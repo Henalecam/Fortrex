@@ -58,6 +58,7 @@ const HEROES=[
   {id:'engineer',name:'Bruna, a Engenheira',ico:'🔧',ab:'Reconstrução',key:'G',cd:50,col:0xff8a5c,d:'reergue na hora até 160 blocos da planta e conserta todas as armas'},
   {id:'berserker',name:'Thor, o Berserker',ico:'🪓',ab:'Fúria',key:'Y',cd:42,col:0xd9414f,d:'8 s de fúria: soldados próximos causam o triplo de dano e correm mais'}];
 const HERO_SLOTS=[1,3,5];
+const HERO_LORE={paladin:'Jurou proteger Fortrex quando a bruma engoliu sua ordem. O martelo ainda brilha com a luz do último templo.',archer:'Caçadora das torres do norte; dizem que nunca errou uma flecha desde que perdeu o irmão para os Lobos da Bruma.',mage:'Exilado da Academia por congelar um rio inteiro. Agora congela o que vier pela frente.',engineer:'Reconstruiu sozinha a ponte de Ponte de Ossos. Para ela, toda ruína é só uma planta esperando.',berserker:'Ninguém sabe de onde veio. Quando ele grita, até os soldados mais cansados lembram por que lutam.'};
 function relicCount(){return Object.values(state.relics||{}).reduce((a,b)=>a+b,0)}
 function spawnHero(H){const m=makeMinion('sol',4,GATE.x+rnd(-1,1),GATE.z+2);m.hero=H.id;m.name=H.name;m.group.scale.setScalar(1.35);m.maxhp*=2.5;m.hp=m.maxhp;
   const halo=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,16),new THREE.MeshBasicMaterial({color:H.col}));halo.rotation.x=Math.PI/2;halo.position.y=2.35;m.group.add(halo);

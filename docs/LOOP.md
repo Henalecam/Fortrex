@@ -50,10 +50,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.23: ☀️ Torre de raio-sol (horda 15): feixe contínuo que esquenta no mesmo alvo (até 4× de dano, incendeia). Tela de escolha de herói revisada (subtítulo próprio). Dificuldade tardia: vida dos inimigos ×1,07 por horda após a 14, mais inimigos após a 18, armadura até 45% (2,5%/horda após a 14) e +1,5% de velocidade por horda após a 12. Bot (todas as automações + heróis): horda 27 em 30 min, base cedendo a partir da 24–27.
 
+- v0.24: ficha do herói (habilidade, tecla, recarga, botão de usar, história; sem troca de função). Diabretes imunes a fogo e se curam na lava. Lobos caçam minions que estão fora das muralhas (dano +40% em matilha). Bot: horda 22 em 25 min.
+
 ## Backlog (próximas rodadas)
+- [ ] Mapa: biomas (deserto, neve, pântano) que mudam o terreno inicial
+- [ ] Minions: necessidades leves (moral/descanso) que afetam rendimento
+- [ ] Modo foto/câmera cinematográfica nas mortes de chefe
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
-- [ ] Diabretes em enxame no fogo; lobos flanqueando pelos lados
-- [ ] Tela de herói (nível, equipamento, história)
 - [ ] Ficha do minion e Arsenal no estilo HUD v0.16; tooltips de comparação
 - [ ] Reino: mensagens de embaixada (tributo/aliança)
 - [ ] Mercador de barco com loja rotativa

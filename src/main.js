@@ -236,3 +236,4 @@ function weatherTick(dt){const ev=state.ev;if(ev!=='blizzard'&&ev!=='quake'&&ev!
 window.__ev=(k)=>{state.ev=k;$('event').style.display='inline-flex';$('event').textContent=EVENTS[k].n;state.phase='wave';state.queue=waveSpec(state.wave+3)};
 
 window.__relic=t=>grantRelic(t);
+window.__heroCard=()=>{grantRelic('boss');const S=Object.values(state.heroes||{})[0];if(S)openCard({m:S.m});return !!S};
