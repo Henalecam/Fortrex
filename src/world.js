@@ -203,13 +203,19 @@ function checkChest(){if(state.running&&chestAlive()===0)gameOver()}
 // zones kept free of terrain decoration: player city, rival cities, outposts
 function cityZones(){const z=[[CX,CZ,WR+5]];for(const [ox,oz] of OUTPOSTS)z.push([ox,oz,5]);for(const R of (typeof rivals!=='undefined'?rivals:[]))z.push([R.cx,R.cz,R.wr+5]);return z}
 const looted=new Uint8Array(N);// a cell pays material only once, so regrown/rebuilt terrain is not a farm
-function genWorld(){vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.clear();fluidSrc.clear();burning.clear();specials.clear();damaged.clear();pendingBooms.length=0;resetFluidSlots();resetVoxSlots();
+const BIOMES={campo:{n:'Campos Verdes',ico:'🌿',g:0x8fd08a,gn:'Grama',d:0x9c7a55,l:0x6fbf6a,t:0x7fc98f,lava:14,ponds:17,trees:330,hills:38},
+  deserto:{n:'Deserto Rubro',ico:'🏜️',g:0xe8cf8a,gn:'Areia',d:0xd4b06a,l:0x8fbf5a,t:0xd8bf78,lava:12,ponds:5,trees:80,hills:46},
+  neve:{n:'Tundra Gelada',ico:'❄️',g:0xf1f5fa,gn:'Neve',d:0xb9a48a,l:0x2f6b4f,t:0xe6eef5,lava:6,ponds:17,trees:300,hills:42,frozen:true},
+  pantano:{n:'Pântano da Bruma',ico:'🐸',g:0x5f8a4a,gn:'Lodo',d:0x5a4a35,l:0x4f6b3a,t:0x4f7a3f,lava:4,ponds:42,trees:260,hills:20}};
+let BIOME=BIOMES.campo;
+function genWorld(){BIOME=BIOMES[state.biome]||BIOMES[pick(Object.keys(BIOMES))];state.biomeName=BIOME.n;MAT[13].c=BIOME.g;MAT[13].n=BIOME.gn;MAT[12].c=BIOME.d;MAT[11].c=BIOME.l;tuftMesh.material.color.setHex(BIOME.t);
+  vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.clear();fluidSrc.clear();burning.clear();specials.clear();damaged.clear();pendingBooms.length=0;resetFluidSlots();resetVoxSlots();
   computeLayout();planRivals();buildBlueprint();
   const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);vox[i]=m;hp[i]=FLUID(m)?4:MAT[m].hp;if(FLUID(m)){fluids.add(i);fluidSrc.add(i)}};
   const zones=cityZones();const inZone=(x,z,r)=>zones.some(([zx,zz,zr])=>Math.abs(x-zx)<zr+r&&Math.abs(z-zz)<zr+r);
-  const LAVA=[],PONDS=[];for(let k=0;k<14;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(2.8,6);if(!inZone(x,z,r+2))LAVA.push([x,z,r])}for(let k=0;k<17;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(3,7);if(!inZone(x,z,r+2)&&!LAVA.some(([a,b,c])=>Math.hypot(a-x,b-z)<c+r+3))PONDS.push([x,z,r])}
+  const LAVA=[],PONDS=[];for(let k=0;k<BIOME.lava;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(2.8,6);if(!inZone(x,z,r+2))LAVA.push([x,z,r])}for(let k=0;k<BIOME.ponds;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(3,7);if(!inZone(x,z,r+2)&&!LAVA.some(([a,b,c])=>Math.hypot(a-x,b-z)<c+r+3))PONDS.push([x,z,r])}
   const nearPool=(x,z,r)=>LAVA.some(([px,pz,pr])=>Math.hypot(x-px,z-pz)<pr+r)||PONDS.some(([px,pz,pr])=>Math.hypot(x-px,z-pz)<pr+r);
-  const HILLS=[];for(let k=0;k<38;k++){const x=rint(6,W-7),z=rint(6,D-7),hr=rnd(4,9);if(inZone(x,z,hr+2)||nearPool(x,z,hr))continue;HILLS.push([x,z,hr,rint(2,5)])}
+  const HILLS=[];for(let k=0;k<BIOME.hills;k++){const x=rint(6,W-7),z=rint(6,D-7),hr=rnd(4,9);if(inZone(x,z,hr+2)||nearPool(x,z,hr))continue;HILLS.push([x,z,hr,rint(2,5)])}
   for(let z=0;z<D;z++)for(let x=0;x<W;x++){put(x,0,z,1);for(let y=1;y<GY-1;y++)put(x,y,z,12);put(x,GY-1,z,13);
     for(const [hx,hz,hr,hh] of HILLS){const d=Math.hypot(x-hx,z-hz);if(d<hr){const h=Math.round(hh*(1-d/hr)+.4);for(let y=0;y<h;y++){put(x,GY-1+y,z,12);put(x,GY+y,z,y===h-1&&hh>=4&&d<hr*.35?3:13)}}}
     for(const [px,pz,pr] of LAVA){const d=Math.hypot(x-px,z-pz);if(d<pr){put(x,GY-1,z,8);put(x,GY-2,z,14);if(d<pr*.5){put(x,GY-2,z,8);put(x,GY-3,z,14)}}}
@@ -217,13 +223,14 @@ function genWorld(){vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.cl
   const free=(x,z,r)=>x>=2&&z>=2&&x<=W-3&&z<=D-3&&!inZone(x,z,r)&&!nearPool(x,z,1.5+r);
   const ground=(x,z)=>{let y=H-1;while(y>0&&!vox[idx(x,y,z)])y--;return y+1};
   let placed=0,tries=0;
-  while(placed<330&&tries++<9000){const x=rint(2,W-3),z=rint(2,D-3);if(!free(x,z,2))continue;const g=ground(x,z);if(vox[idx(x,g-1,z)]!==13)continue;const h=rint(3,6),big=Math.random()<.35;
+  while(placed<BIOME.trees&&tries++<9000){const x=rint(2,W-3),z=rint(2,D-3);if(!free(x,z,2))continue;const g=ground(x,z);if(vox[idx(x,g-1,z)]!==13)continue;const h=rint(3,6),big=Math.random()<.35;
     for(let y=0;y<h;y++)put(x,g+y,z,2);const R=big?2:1;for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++)for(let dy=-1;dy<=R;dy++){const yy=g+h-1+dy;if(Math.abs(dx)+Math.abs(dz)+Math.max(0,dy)>R+1)continue;if(inb(x+dx,yy,z+dz)&&!vox[idx(x+dx,yy,z+dz)])put(x+dx,yy,z+dz,11)}put(x,g+h+R,z,11);placed++}
   placed=0;tries=0;while(placed<75&&tries++<3200){const x=rint(3,W-10),z=rint(3,D-10);if(!free(x,z,2)||!free(x+7,z+7,2))continue;const len=rint(4,10),dir=Math.random()<.5;for(let k=0;k<len;k++){const xx=dir?x+k:x,zz=dir?z:z+k;const g=ground(xx,zz);const h=rint(1,4);for(let y=0;y<h;y++)if(Math.random()<.85)put(xx,g+y,zz,3)}placed++}
   placed=0;tries=0;while(placed<70&&tries++<3200){const x=rint(3,W-4),z=rint(3,D-4);if(!free(x,z,1))continue;const n=rint(3,7);for(let k=0;k<n;k++){const xx=x+rint(-1,1),zz=z+rint(-1,1);if(free(xx,zz,0))put(xx,ground(xx,zz),zz,10)}placed++}
   placed=0;tries=0;while(placed<26&&tries++<2000){const x=rint(4,W-5),z=rint(4,D-5);if(!free(x,z,2))continue;const g=ground(x,z);for(let k=0;k<rint(3,7);k++)put(x+rint(-1,1),g+rint(0,2),z+rint(-1,1),15);placed++}
   for(const i of _chestVox){const x=ix(i),z=iz(i);for(let y=1;y<GY;y++)put(x,y,z,1)}
   for(let i=0;i<N;i++)if(blue[i]){vox[i]=blue[i];hp[i]=maxHpOf(blue[i])}
+  if(BIOME.frozen)for(let z=0;z<D;z++)for(let x=0;x<W;x++){const i=idx(x,GY-1,z);if(vox[i]===9&&Math.random()<.8){vox[i]=18;hp[i]=MAT[18].hp;fluids.delete(i);fluidSrc.delete(i)}}
   buildRivals(put);
   for(let i=0;i<N;i++){if(vox[i]===15||vox[i]===19)specials.add(i)}
   colS.fill(-1);colE.fill(-1);colT.fill(-1);for(let i=0;i<N;i++)if(vox[i])paint(i);initTufts()}

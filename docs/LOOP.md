@@ -52,10 +52,11 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.24: ficha do herói (habilidade, tecla, recarga, botão de usar, história; sem troca de função). Diabretes imunes a fogo e se curam na lava. Lobos caçam minions que estão fora das muralhas (dano +40% em matilha). Bot: horda 22 em 25 min.
 
+- v0.25: biomas sorteados a cada partida — 🌿 Campos Verdes, 🏜️ Deserto Rubro (areia, poucos lagos, mais morros), ❄️ Tundra Gelada (neve, lagos congelados, pinheiros), 🐸 Pântano da Bruma (lodo, muitos lagos). 🎬 Câmera de chefe: aproxima e gira quando um chefe cai (opção no menu ⚙️).
+
 ## Backlog (próximas rodadas)
-- [ ] Mapa: biomas (deserto, neve, pântano) que mudam o terreno inicial
+- [ ] Biomas com efeitos de jogo (deserto: tempestade de areia; pântano: lentidão na lama; neve: nevasca mais comum)
 - [ ] Minions: necessidades leves (moral/descanso) que afetam rendimento
-- [ ] Modo foto/câmera cinematográfica nas mortes de chefe
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
 - [ ] Ficha do minion e Arsenal no estilo HUD v0.16; tooltips de comparação
 - [ ] Reino: mensagens de embaixada (tributo/aliança)

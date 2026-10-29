@@ -58,7 +58,7 @@ function updateBombs(dt){for(let i=bombs.length-1;i>=0;i--){const b=bombs[i];b.v
 function newGame(){for(const e of enemies)scene.remove(e.group);enemies.length=0;for(const m of minions)scene.remove(m.group);minions.length=0;for(const L of loot)scene.remove(L.g);loot.length=0;
   for(const t of turrets)scene.remove(t.group);turrets.length=0;for(const p of projectiles)scene.remove(p.mesh);projectiles.length=0;for(const b of bombs)scene.remove(b.mesh);bombs.length=0;for(const s of shots)scene.remove(s.mesh);shots.length=0;for(const r of rings)scene.remove(r.m);rings.length=0;claimed.clear();fuses.length=0;
   Object.assign(state,freshState());state.running=true;setCenter(96,96);rivals.length=0;initRealm();closeRealm();initGoals();merchantLeave();state.heroes={};state.volleys=[];for(const H of HEROES)$('bHero_'+H.id).hidden=true;cam.target.set(CX,GY+1.5,CZ);hideBoss();closeCard();for(const id of ['reward','report'])$(id).style.display='none';$('event').style.display='none';for(const id of ['buildPanel','arsenal','shop'])$(id).style.display='none';
-  genWorld();snapshotNature();makeTurret('cannon',TOWER_ANCHORS[0],0);makeTurret('cannon',TOWER_ANCHORS[3],0);makeTurret('ballista',KEEP_ANCHORS[2],0);spawnRivalForces();updateModeUi();
+  genWorld();snapshotNature();toast(`${BIOME.ico} Bioma: ${BIOME.n}`,'r4');makeTurret('cannon',TOWER_ANCHORS[0],0);makeTurret('cannon',TOWER_ANCHORS[3],0);makeTurret('ballista',KEEP_ANCHORS[2],0);spawnRivalForces();updateModeUi();
   for(const [r,dx,dz] of [['rep',-3,4],['rep',3,4],['rep',0,-4],['col',-4,5],['col',4,5],['col',-5,3],['col',5,3],['gun',-5,-5],['gun',5,5],['sol',-2,6],['sol',2,6],['sol',0,7]])makeMinion(r,0,CX+dx,CZ+dz);
   state.inv.blocks={16:12,17:6,18:8,15:4,10:6,9:2,19:2};state.inv.turrets=[{type:'ballista',r:1},{type:'cannon',r:0}];
   state.inv.armory=[makeEquip(1,'espada'),makeEquip(0,'couro'),makeEquip(1,'luvas'),makeEquip(0,'botas')];for(const it of state.inv.armory.slice())autoEquip(it);
@@ -99,7 +99,7 @@ $('bBuild').onclick=()=>openSide('buildPanel');$('buildClose').onclick=()=>close
 $('bArs').onclick=()=>openSide('arsenal');$('arsClose').onclick=()=>closeSide('arsenal');
 $('bShop').onclick=()=>openSide('shop');$('shopClose').onclick=()=>closeSide('shop');
 for(const H of HEROES)$('bHero_'+H.id).onclick=()=>heroAbility(H.id);
-$('optShake').onclick=()=>{OPTS.noShake=!OPTS.noShake;saveOpts();$('optShake').classList.toggle('on',!OPTS.noShake)};$('optShake').classList.toggle('on',!OPTS.noShake);
+$('optShake').onclick=()=>{OPTS.noShake=!OPTS.noShake;saveOpts();$('optShake').classList.toggle('on',!OPTS.noShake)};$('optShake').classList.toggle('on',!OPTS.noShake);$('optCine').onclick=()=>{OPTS.noCine=!OPTS.noCine;saveOpts();$('optCine').classList.toggle('on',!OPTS.noCine)};$('optCine').classList.toggle('on',!OPTS.noCine);
 $('bMerch').onclick=()=>{const h=$('merch');const open=h.style.display!=='flex';h.style.display=open?'flex':'none';$('hire').style.display='none';if(open)renderMerch()};
 $('bHire').onclick=()=>{const h=$('hire');const open=h.style.display!=='flex';h.style.display=open?'flex':'none';if(open)renderHire()};
 $('autoEq').onchange=e=>{state.autoEquip=e.target.checked;if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);renderArsenal()};
@@ -147,7 +147,8 @@ function frame(now){requestAnimationFrame(frame);let dt=Math.min(.05,(now-last)/
   if(keys.a||keys.arrowleft){cam.target.x-=cy*pan;cam.target.z+=sy*pan}if(keys.d||keys.arrowright){cam.target.x+=cy*pan;cam.target.z-=sy*pan}
   cam.target.x=clamp(cam.target.x,0,W);cam.target.z=clamp(cam.target.z,0,D);
   {const fm=state.ev==='mist'&&state.phase==='wave';const tn=fm?cam.dist*.95:cam.dist+30,tf=fm?cam.dist*2.1:cam.dist+150;scene.fog.near+=(tn-scene.fog.near)*Math.min(1,rdt*2);scene.fog.far+=(tf-scene.fog.far)*Math.min(1,rdt*2)}
-  {const n=gameSpeed;for(let k=0;k<n;k++)simulate(dt)}updateLabels(rdt);placeCamera();if(shake>0){shake-=rdt*2;if(!OPTS.noShake){camera.position.x+=rnd(-1,1)*shake*.25;camera.position.y+=rnd(-1,1)*shake*.25}}
+  {const n=gameSpeed;for(let k=0;k<n;k++)simulate(dt)}updateLabels(rdt);placeCamera();if(state.cine&&state.cine.t>0){const C=state.cine;C.t-=rdt;cam.target.x+=(C.x-cam.target.x)*Math.min(1,rdt*3);cam.target.z+=(C.z-cam.target.z)*Math.min(1,rdt*3);cam.dist+=(26-cam.dist)*Math.min(1,rdt*2);cam.yaw+=rdt*.5;if(C.t<=0){cam.dist=C.d0;state.cine=null}}
+  if(shake>0){shake-=rdt*2;if(!OPTS.noShake){camera.position.x+=rnd(-1,1)*shake*.25;camera.position.y+=rnd(-1,1)*shake*.25}}
   flushVox();if(!window.__headless)renderer.render(scene,camera)}
 // test hooks
 window.__step=s=>{const n=Math.round(s*60);for(let i=0;i<n;i++){hitstop=0;simulate(1/60);if(state.choosing){const c=$('rewardCards').children;if(c.length)c[Math.floor(Math.random()*c.length)].click()}}updateHud()};
@@ -237,3 +238,5 @@ window.__ev=(k)=>{state.ev=k;$('event').style.display='inline-flex';$('event').t
 
 window.__relic=t=>grantRelic(t);
 window.__heroCard=()=>{grantRelic('boss');const S=Object.values(state.heroes||{})[0];if(S)openCard({m:S.m});return !!S};
+
+window.__biome=b=>{state.biome=b};
