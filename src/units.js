@@ -5,14 +5,18 @@ function standY(x,z){const s=surf(x,z);const fx=Math.floor(x),fz=Math.floor(z);i
 const _f=new Float32Array(W*D);let h2c=()=>0;
 function heapPush(a,v){a.push(v);let i=a.length-1;while(i>0){const p=(i-1)>>1;if(_f[a[p]]<=_f[a[i]])break;const t=a[p];a[p]=a[i];a[i]=t;i=p}}
 function heapPop(a){const top=a[0],last=a.pop();if(a.length){a[0]=last;let i=0;for(;;){const l=i*2+1,r=l+1;let m=i;if(l<a.length&&_f[a[l]]<_f[a[m]])m=l;if(r<a.length&&_f[a[r]]<_f[a[m]])m=r;if(m===i)break;const t=a[m];a[m]=a[i];a[i]=t;i=m}}return top}
-const _g=new Float32Array(W*D),_came=new Int32Array(W*D),_closed=new Uint8Array(W*D),_hc=new Int16Array(W*D);
+const _g=new Float32Array(W*D),_came=new Int32Array(W*D),_closed=new Uint8Array(W*D),_hc=new Int16Array(W*D),_st=new Int32Array(W*D);let _gen=0;
+function _tc(c){if(_st[c]!==_gen){_st[c]=_gen;_g[c]=1e9;_f[c]=1e9;_closed[c]=0;_came[c]=-1;_hc[c]=-100}}
+// straight walkable line? (most open-field trips skip A* entirely)
+function lineClear(sx,sz,gx,gz){const dx=gx-sx,dz=gz-sz,n=Math.ceil(Math.max(Math.abs(dx),Math.abs(dz)));if(n>70)return false;let ph=walkCell(sx,sz);if(ph<=-99)return false;
+  for(let k=1;k<=n;k++){const x=Math.floor(sx+.5+dx*k/n),z=Math.floor(sz+.5+dz*k/n);const h=walkCell(x,z);if(h<=-99||Math.abs(h-ph)>1)return false;ph=h}return true}
 function findPath(sx,sz,gx,gz){sx=clamp(Math.floor(sx),0,W-1);sz=clamp(Math.floor(sz),0,D-1);gx=clamp(Math.floor(gx),0,W-1);gz=clamp(Math.floor(gz),0,D-1);
-  const S=sx+sz*W,G=gx+gz*W;if(S===G)return[];_g.fill(1e9);_closed.fill(0);_came.fill(-1);_hc.fill(-100);
-  const wc=c=>{if(_hc[c]===-100)_hc[c]=walkCell(c%W,(c/W)|0);return _hc[c]};h2c=wc;const hs=wc(S)>-99?wc(S):surf(sx,sz);
-  _g[S]=0;const h=c=>Math.hypot(c%W-gx,((c/W)|0)-gz);_f.fill(1e9);_f[S]=h(S);const open=[S];let it=0;
+  const S=sx+sz*W,G=gx+gz*W;if(S===G)return[];if(lineClear(sx,sz,gx,gz))return[G];_gen++;_tc(S);_tc(G);
+  const wc=c=>{_tc(c);if(_hc[c]===-100)_hc[c]=walkCell(c%W,(c/W)|0);return _hc[c]};h2c=wc;const hs=wc(S)>-99?wc(S):surf(sx,sz);
+  _g[S]=0;const h=c=>Math.hypot(c%W-gx,((c/W)|0)-gz);_f[S]=h(S);const open=[S];let it=0;
   while(open.length&&it++<12000){const cur=heapPop(open);if(cur===G)break;if(_closed[cur])continue;_closed[cur]=1;
     const cx=cur%W,cz=(cur/W)|0,h1=cur===S?hs:wc(cur);
-    for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const nx=cx+dx,nz=cz+dz;if(nx<0||nz<0||nx>=W||nz>=D)continue;const ni=nx+nz*W;if(_closed[ni])continue;
+    for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const nx=cx+dx,nz=cz+dz;if(nx<0||nz<0||nx>=W||nz>=D)continue;const ni=nx+nz*W;_tc(ni);if(_closed[ni])continue;
       if(ni!==G){const h2=wc(ni);if(h2<=-99||h2-h1>1)continue;if(dx&&dz&&(wc(cx+dx+cz*W)<=-99||wc(cx+(cz+dz)*W)<=-99))continue}
       const ng=_g[cur]+(dx&&dz?1.414:1)+(h2c(ni)>h1?.4:0);if(ng<_g[ni]){_g[ni]=ng;_came[ni]=cur;_f[ni]=ng+h(ni);heapPush(open,ni)}}}
   if(_came[G]<0)return null;const path=[];let c=G;while(c!==S&&c>=0){path.push(c);c=_came[c]}path.reverse();return path}
@@ -263,7 +267,7 @@ function updGun(m,dt){
 function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+30||(e.fly&&e.group.position.y>m.group.position.y+3.2)||(!e.fly&&e.gy>GY+3))continue;const d=hd(e.pos,m.pos);const pri=postDist(m,e.pos.x,e.pos.z)*.6+(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+d;if(pri<bd){bd=pri;tgt=e}}
   if(tgt&&(inside(tgt.pos.x,tgt.pos.z)||state.phase!=='wave'||tgt.state==='attack'||hd(tgt.pos,m.pos)<14)){const reach=tgt.radius+1.3+m.st.reach;
     if(walkTo(m,tgt.pos.x,tgt.pos.z,dt,reach)||hd(tgt.pos,m.pos)<reach+.1){m.group.rotation.y=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);
-      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk;hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
+      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
         if(tgt.dead)gainXP(m,6+tgt.maxhp/12);if(m.st.stun&&Math.random()<m.st.stun)tgt.stun=Math.max(tgt.stun,.6);if(m.st.burn)tgt.afire=Math.max(tgt.afire,2);m.wpn.rotation.x=-1.2;spawnDebris(tgt.pos.x,tgt.gy+.8,tgt.pos.z,tgt.T.color,2,.2)}}
     m.wpn.rotation.x*=.85;return}
   // soldiers hold the field outside the walls, in front of the gate

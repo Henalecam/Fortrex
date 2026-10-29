@@ -14,7 +14,7 @@ function spawnDebris(x,y,z,color,n,size){for(let k=0;k<n;k++){const s=debHead;de
 function updateDebris(dt){let any=false;for(let s=0;s<DEB;s++){const d=debris[s];if(!d)continue;any=true;d.life-=dt;if(d.life<=0){debris[s]=null;debMesh.setMatrixAt(s,_zero);continue}
   d.vy-=22*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;d.rx+=d.vx*dt;d.ry+=d.vz*dt;
   if(d.vy<0&&cellSolid(d.x,d.y-d.s/2,d.z)){d.y=Math.floor(d.y-d.s/2)+1+d.s/2;d.vy=-d.vy*.35;d.vx*=.7;d.vz*=.7}
-  const sc=d.life<.5?d.s*d.life/.5:d.s;_e.set(d.rx,d.ry,0);_q.setFromEuler(_e);_p.set(d.x,d.y,d.z);_s.set(sc,sc,sc);_m.compose(_p,_q,_s);debMesh.setMatrixAt(s,_m)}
+  const sc=d.life<.5?d.s*d.life/.5:d.s;const c=Math.cos(d.rx)*sc,sn=Math.sin(d.rx)*sc,e=_m.elements;e[0]=c;e[1]=0;e[2]=-sn;e[3]=0;e[4]=0;e[5]=sc;e[6]=0;e[7]=0;e[8]=sn;e[9]=0;e[10]=c;e[11]=0;e[12]=d.x;e[13]=d.y;e[14]=d.z;e[15]=1;debMesh.setMatrixAt(s,_m)}
   if(any)debMesh.instanceMatrix.needsUpdate=true}
 
 // ── flames

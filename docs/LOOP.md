@@ -46,13 +46,14 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.21: heróis ficam mais fortes com o nível (dano/raio +7%/nível, recarga menor; nível no botão). Expansão continua: torres de vigia (h18, +3 vagas de arma), campo de espinhos além do fosso (h21), base de obsidiana e ameias de aço rúnico (h24). Upgrades sem limite (🔱 Forja real, 🛡️ Baluarte) e Upgrade auto agora gasta o material que sobra nas melhorias mais baratas — fim do material acumulado. Curva +5%/horda após a 20. Bot: horda 25 em 30 min, material < 700.
 
+- v0.22: ao juntar 1, 3 e 5 relíquias você ESCOLHE 1 de 2 heróis (Recompensa auto escolhe sozinho); novos heróis: 🔧 Bruna, a Engenheira (G: reergue até 160 blocos e conserta todas as armas) e 🪓 Thor, o Berserker (Y: 8 s de fúria, soldados próximos com dano triplo). Desempenho: A* com carimbo de geração (sem limpar 37 mil células por busca) + atalho em linha reta, regeneração do terreno com varredura limitada, partículas sem Euler, dia/noite a 10 Hz → cena pesada de 9,9 s caiu para 5,7 s.
+
 ## Backlog (próximas rodadas)
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
 - [ ] Diabretes em enxame no fogo; lobos flanqueando pelos lados
-- [ ] Heróis: escolher 1 de 2 ao chegar; tela de herói
+- [ ] Tela de herói (nível, equipamento, história)
 - [ ] Armas novas: torre de raio-sol (feixe contínuo)
 - [ ] Ficha do minion e Arsenal no estilo HUD v0.16; tooltips de comparação
-- [ ] Desempenho com 150+ criaturas (pooling de geometrias/materiais)
 - [ ] Reino: mensagens de embaixada (tributo/aliança)
 - [ ] Mercador de barco com loja rotativa
 - [ ] Desempenho no mapa 160: medir FPS real; LOD de sombras

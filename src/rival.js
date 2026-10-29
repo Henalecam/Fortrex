@@ -67,12 +67,12 @@ function raidSoldier(m,dt){const R=m.raid;if(!R||!R.alive){m.raid=null;return fa
   if(inside(m.pos.x,m.pos.z)){walkTo(m,GATE.x+.5,GATE.z+.5,dt,1.2);return true}
   const dc=Math.hypot(R.cx-m.pos.x,R.cz-m.pos.z);if(dc>R.wr+5&&!(tt&&bd<9)){const ax=R.cx+(m.pos.x<R.cx-R.wr?-R.wr-3:m.pos.x>R.cx+R.wr?R.wr+3:0),az=R.cz+(m.pos.z<R.cz?-R.wr-3:R.wr+3);walkTo(m,ax,az,dt,2.5);if(Math.hypot(ax-m.pos.x,az-m.pos.z)>3)return true}
   const d=Math.hypot(goal.x-m.pos.x,goal.z-m.pos.z);
-  if(d<2.6){m.group.rotation.y=Math.atan2(goal.x-m.pos.x,goal.z-m.pos.z);if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*state.bladeMul*m.st.atk;if(tt&&bd<9)damageTurret(tt,dmg);else{damageVox(goal.i,dmg,'player');rivalHit(goal.i)}m.wpn.rotation.x=-1.2;SFX.crunch(true)}m.wpn.rotation.x*=.85;return true}
+  if(d<2.6){m.group.rotation.y=Math.atan2(goal.x-m.pos.x,goal.z-m.pos.z);if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*state.bladeMul*m.st.atk*(m.rage>0?3:1);if(tt&&bd<9)damageTurret(tt,dmg);else{damageVox(goal.i,dmg,'player');rivalHit(goal.i)}m.wpn.rotation.x=-1.2;SFX.crunch(true)}m.wpn.rotation.x*=.85;return true}
   // breach: a rival wall right ahead gets smashed
   const dx=(goal.x-m.pos.x)/d,dz=(goal.z-m.pos.z)/d;const fx=Math.floor(m.pos.x+dx*1.3),fz=Math.floor(m.pos.z+dz*1.3);const sy=Math.floor(m.group.position.y);
   for(let y=sy;y<sy+3;y++){if(inb(fx,y,fz)){const i=idx(fx,y,fz);if(SOLIDM(vox[i])&&rown[i]&&walkCell(fx,fz)<=-99){m.group.rotation.y=Math.atan2(dx,dz);if(m.timer<=0){m.timer=.6/(m.work*m.st.rate);damageVox(i,18*m.st.atk*state.bladeMul,'player');m.wpn.rotation.x=-1.2;SFX.crunch(true)}m.wpn.rotation.x*=.85;return true}}}
   walkTo(m,goal.x,goal.z,dt,1.5);return true}
-function soldierHit(m,tgt){m.group.rotation.y=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);if(m.timer>0)return;m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk;
+function soldierHit(m,tgt){m.group.rotation.y=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);if(m.timer>0)return;m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);
   hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});if(tgt.dead)gainXP(m,6+tgt.maxhp/12);if(m.st.stun&&Math.random()<m.st.stun)tgt.stun=Math.max(tgt.stun,.6);if(m.st.burn)tgt.afire=Math.max(tgt.afire,2);m.wpn.rotation.x=-1.2;spawnDebris(tgt.pos.x,tgt.gy+.8,tgt.pos.z,tgt.T.color,2,.2)}
 
 // ───────── smart traps: a heat map of where enemies walk decides where mines, barrels, spikes and ice go
@@ -92,15 +92,15 @@ function snapshotNature(){natLost=[];natBlue=new Uint8Array(N);for(let i=0;i<N;i
 function dayPhase(){return ((simTime/DAY_LEN)+.3)%1}// 0 = midnight, .5 = noon
 function isNight(){const p=dayPhase();return p<.2||p>.82}
 let regrowT=0;
-function lifeTick(dt){const p=dayPhase();const sunUp=Math.sin((p-.25)*Math.PI*2);const k=clamp(sunUp*1.4+.35,0,1);
+let lifeAcc=0;function lifeTick(dt0){lifeAcc+=dt0;if(lifeAcc<.1)return;const dt=lifeAcc;lifeAcc=0;const p=dayPhase();const sunUp=Math.sin((p-.25)*Math.PI*2);const k=clamp(sunUp*1.4+.35,0,1);
   _sky.copy(NIGHT_SKY).lerp(k<.6?DUSK_SKY:DAY_SKY,k<.6?k/.6:1);if(k>=.6)_sky.copy(DUSK_SKY).lerp(DAY_SKY,clamp((k-.6)/.4,0,1));scene.background.copy(_sky);scene.fog.color.copy(_sky);
   sun.intensity=.14+k*1.01;sun.color.setHSL(.09,.6,.55+k*.35);hemi.intensity=.24+k*.66;
   const ang=(p-.25)*Math.PI*2;sun.position.set(cam.target.x+Math.cos(ang)*60,15+Math.max(.2,Math.sin(ang))*60,cam.target.z-25);sun.target.position.set(cam.target.x,0,cam.target.z);
   if(natBlue){regrowT+=dt;const rate=isNight()?.12:.35;if(regrowT>rate){regrowT=0;const tries=isNight()?60:25;let n=0;
     // only environment cells regrow; base/player cells are the player's own management (repairers + blueprint)
     const keep=[];const lim=(isNight()?10:5)+Math.floor(natLost.length/600);
-    for(let k=0;k<natLost.length;k+=2){const i=natLost[k],t0=natLost[k+1];const m=natBlue[i];if(!m||blue[i]||state.custom.has(i)){continue}if(vox[i]&&SOLIDM(vox[i]))continue;
-      if(n>=lim||simTime-t0<40||Math.random()<.5||cellBusy(i)||!supported(i)||vox[i]){keep.push(i,t0);continue}setVox(i,m);n++;if(Math.random()<.2)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,m===11?0x6fbf6a:0x9fe39a,1,.15)}
+    const L=natLost.length;let scanned=0;for(let k=0;k<L;k+=2){const i=natLost[k],t0=natLost[k+1];if(scanned>=600||n>=lim||simTime-t0<40){keep.push(i,t0);continue}scanned++;const m=natBlue[i];if(!m||blue[i]||state.custom.has(i)){continue}if(vox[i]&&SOLIDM(vox[i]))continue;
+      if(Math.random()<.5||vox[i]||!supported(i)||cellBusy(i)){keep.push(i,t0);continue}setVox(i,m);n++;if(Math.random()<.2)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,m===11?0x6fbf6a:0x9fe39a,1,.15)}
     natLost=keep;
     for(let t=0;t<0;t++){const i=0;const m=natBlue[i];if(!m||vox[i])continue;if(!supported(i)||cellBusy(i))continue;if(iy(i)<GY-1&&!SOLIDM(vox[i-W*D]))continue;setVox(i,m);n++;if(Math.random()<.25)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,0x9fe39a,1,.15)}
     for(let t=0;t<12;t++){const x=rint(0,W-1),z=rint(0,D-1);const s=surf(x,z);if(s>0&&s<=GY&&vox[idx(x,s-1,z)]===12&&!blue[idx(x,s-1,z)]){setVox(idx(x,s-1,z),13)}}}}
