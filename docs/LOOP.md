@@ -36,6 +36,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.16 (UI/UX): HUD novo — uma faixa de status (🌊 horda · 💰 material · 👥 minions/feridos · 👾 inimigos · relógio), à direita chip do Reino/Guerra (clique: abre o mapa ou mostra a fortaleza inimiga) e menu ⚙️ Automação com 4 interruptores (substitui 4 botões no topo). Dock único embaixo (ícones; rótulos só em telas largas), Atacar só em guerra, Recuar só com expedição. Removidos: botão Fogo (clique no inimigo já concentra fogo), 🎯, posto ao contratar, avisos dos interruptores. Painéis param acima do dock; no celular viram folha inferior e o dock quebra em 2 linhas. Contratos recolhíveis (clique). Tecla H centraliza. Build mostra armas x/limite; contratar mostra minions x/limite. Loot esquecido voa sozinho ao baú após 75 s; coletores base 7.
 
+- v0.17: novas criaturas com anatomias próprias — 🐺 Lobo (rápido, focinho e cauda), 🕷️ Aranha (8 patas, 6 olhos), 🟢 Gosma (translúcida, se divide em 2 ao morrer), 😈 Diabrete (asas, explode em fogo), 🦍 Bruto (bípede, braços enormes), 🪲 Besouro Blindado (carapaça corta 50% do dano até quebrar). Entram nas hordas a partir das hordas 2–9. Criaturas clássicas ganham variação aleatória (chifres, espinhos, cauda, olho extra, carapaça, tom). Chefes maiores com aura no chão e marcador de impacto antes das rochas/bolas de fogo. Curva tardia mais dura após a 15 (base sob pressão na 18–20). Corrigido: botões com hidden aparecendo.
+
 ## Backlog (próximas rodadas)
 - [ ] Reino: mensagens de embaixada (tributo/aliança)
 - [ ] Mercador de barco com loja rotativa
