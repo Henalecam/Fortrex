@@ -227,6 +227,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 </div>
 <div id="mcard"></div>
 <div id="hire" class="pop"></div>
+<div id="merch" class="pop"></div>
 
 <div id="bottom" class="bar"><div class="dock">
   <button class="btn" id="bBuild" title="Construir (B)">🧱<span class="lb">Construir</span></button>
@@ -234,6 +235,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <button class="btn" id="bHire" title="Contratar">👥<span class="lb">Contratar</span></button>
   <button class="btn" id="bShop" title="Upgrades (U)">⬆️<span class="lb">Upgrades</span></button>
   <button class="btn" id="bRealm" title="Mapa do reino (M)">🗺️<span class="lb">Reino</span></button>
+  <button class="btn war" id="bMerch" hidden title="Mercador itinerante">🛒<span class="lb">Mercador</span></button>
   <span class="sep"></span>
   <button class="btn" id="bomb" title="Bombardeio: 25 material">💣<span class="lb">Bomba</span><span class="cost" id="bombCd">25</span></button>
   <button class="btn war" id="raidBtn" hidden title="Envia soldados e curandeiros contra a fortaleza inimiga">⚔️<span class="lb">Atacar</span></button>
@@ -586,7 +588,8 @@ function genWorld(){vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.cl
 
 // ───────── entities: particles, beams, loot, equipment, turrets, projectiles
 const _e=new THREE.Euler(),_q=new THREE.Quaternion(),_p=new THREE.Vector3(),_s=new THREE.Vector3();
-function box(w,h,d,color,x,y,z,parent){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({color}));m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
+const _boxGeo=new Map();function boxGeo(w,h,d){const k=(w*100|0)+'_'+(h*100|0)+'_'+(d*100|0);let g=_boxGeo.get(k);if(!g){g=new THREE.BoxGeometry(w,h,d);_boxGeo.set(k,g)}return g}
+function box(w,h,d,color,x,y,z,parent){const m=new THREE.Mesh(boxGeo(w,h,d),new THREE.MeshLambertMaterial({color}));m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
 function eyes(parent,y,z,w){box(.09,.12,.05,0x2b2d4a,-w,y,z,parent);box(.09,.12,.05,0x2b2d4a,w,y,z,parent)}
 function clearGroup(g){while(g.children.length)g.remove(g.children[0])}
 const cellSolid=(x,y,z)=>{const fx=Math.floor(x),fy=Math.floor(y),fz=Math.floor(z);return fy<0||(inb(fx,fy,fz)&&SOLIDM(vox[idx(fx,fy,fz)]))};
@@ -846,6 +849,7 @@ const ETYPES={
   wyrm:{hp:1100,speed:2.6,dmg:40,rate:1.2,color:0xe0662c,radius:1.5,n:'Serpe de Fogo'},
   necro:{hp:950,speed:1.4,dmg:35,rate:1.4,color:0x4b2e6b,radius:1.2,n:'Necromante da Bruma'},
 };
+const CLIMBS=t=>t==='climber'||t==='spider';
 const BIG=t=>t==='boss'||t==='colossus'||t==='queen'||t==='titan'||t==='general'||t==='golem'||t==='wyrm'||t==='necro';
 const enemies=[];const fuses=[];
 function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group();const col=new THREE.Color(T.color).lerp(new THREE.Color(RARITY[rarity].c),rarity?.35:0).getHex();
@@ -875,7 +879,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US,state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
     speed:T.speed*1.5*rnd(.9,1.1)*(state.ev==='elite'?1.15:1),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+12:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   setupChunks(e,body,head);
-  e.gy=type==='climber'?topY(x,z):surfE(x,z);g.position.y=e.fly?e.alt:e.gy;g.userData.enemy=e;
+  e.gy=CLIMBS(type)?topY(x,z):surfE(x,z);g.position.y=e.fly?e.alt:e.gy;g.userData.enemy=e;
   if(BIG(type)){showBoss(e);const ring=new THREE.Mesh(new THREE.RingGeometry(e.radius*1.15,e.radius*1.45,32),new THREE.MeshBasicMaterial({color:RARITY[Math.max(2,rarity)].c,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.08;g.add(ring);e.aura=ring}enemies.push(e);return e}
 function dmgEnemy(e,d,flash,crit){if(e.dead)return;if(e.type==='beetle'&&e.chunks&&e.lost<e.chunks.length*.35){d*=.5;if(Math.random()<.05)label({x:e.pos.x,y:e.gy+1.6,z:e.pos.z},'carapaça','#5cc0c0')}if(e.type==='necro'&&e.summ&&e.summ.filter(s=>!s.dead).length>=3){d*=.3;if(Math.random()<.08)label({x:e.pos.x,y:e.gy+e.sc*1.5,z:e.pos.z},'escudo de ossos','#7dff9a')}e.hp-=d;if(e.chunks&&e.hp>0)chipEnemy(e,d);if(flash&&(d>=14||crit)&&Math.random()<(crit?1:.5))label({x:e.pos.x+rnd(-.3,.3),y:e.group.position.y-.6+e.sc*.6,z:e.pos.z},crit?`${Math.round(d)}!`:String(Math.round(d)),crit?'#e0a000':'#6b6e8f');if(flash){e.hit=.1;for(const p of e.parts)p.material.emissive.setHex(0xffffff)}if(e.hp<=0)killEnemy(e)}
 function hurtEnemy(e,d,at){if(e.dead)return;
@@ -905,7 +909,7 @@ function nearMinion(e,reach,dyMax=2.4){for(const m of minions){if(m.wounded)cont
 function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
   if(e.hit>0){e.hit-=dt;if(e.hit<=0)for(const p of e.parts)p.material.emissive.setHex(e.afire>0?0x7a2a00:(p.userData.em||0))}
   const fx=Math.floor(e.pos.x),fz=Math.floor(e.pos.z);
-  if(!e.fly){const tg=e.type==='climber'?topY(e.pos.x,e.pos.z):surfE(e.pos.x,e.pos.z);e.gy+=(tg-e.gy)*Math.min(1,dt*(tg<e.gy?5:9));
+  if(!e.fly){const tg=CLIMBS(e.type)?topY(e.pos.x,e.pos.z):surfE(e.pos.x,e.pos.z);e.gy+=(tg-e.gy)*Math.min(1,dt*(tg<e.gy?5:9));
     const fy=Math.floor(e.gy+.05);const under=inb(fx,fy,fz)?vox[idx(fx,fy,fz)]:0;e.inLava=under===8;e.inWater=under===9;
     if(e.type==='titan'){e.inLava=false;if(e.inWater)dmgEnemy(e,40*dt,false);e.trailT=(e.trailT||0)-dt;if(e.trailT<=0){e.trailT=.45;const ly=Math.floor(e.gy);for(let k=0;k<3;k++){const x=Math.floor(e.pos.x+rnd(-1.5,1.5)),z=Math.floor(e.pos.z+rnd(-1.5,1.5));if(inb(x,ly,z)&&vox[idx(x,ly,z)]===0&&!inside(x,z))setFluid(idx(x,ly,z),8,3,false)}}}
     if(e.inLava){dmgEnemy(e,(e.type==='colossus'?14:30)*dt,false);e.afire=Math.max(e.afire,1.5);if(Math.random()<dt*6)spawnFlame(e.pos.x+rnd(-.4,.4),e.gy+.3,e.pos.z+rnd(-.4,.4),.7)}
@@ -918,6 +922,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
   if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}
   if(e.rival&&rivalBrain(e,dt))return;
+  if(e.type==='wolf'){e.packT=(e.packT??0)-dt;if(e.packT<=0){e.packT=1;let n=0;for(const o of enemies)if(!o.dead&&o.type==='wolf'&&Math.abs(o.pos.x-e.pos.x)<7&&Math.abs(o.pos.z-e.pos.z)<7)n++;const was=e.pack;e.pack=n>=3;if(e.pack&&!was){e.speed*=1.3;if(Math.random()<.3)label({x:e.pos.x,y:e.gy+1.6,z:e.pos.z},'Auuu!','#7d7f8f')}else if(!e.pack&&was)e.speed/=1.3}}
   if(e.type==='golem'){e.thrT=(e.thrT??4)-dt;if(e.thrT<=0){e.thrT=Math.max(2.8,7.5-e.blvl*.35);let tg=null,bd=48;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd){bd=d;tg=t.pos}}if(!tg)tg={x:CHEST.x+rnd(-8,8),z:CHEST.z+rnd(-8,8)};throwRock(e,tg.x,tg.z,2.6+e.blvl*.12,55+e.blvl*14,0x75706a,false);label({x:e.pos.x,y:e.gy+e.sc*1.6,z:e.pos.z},'🪨','#75706a')}}
   if(e.type==='wyrm'){e.fbT=(e.fbT??2)-dt;if(e.fbT<=0){e.fbT=Math.max(1.2,3.4-e.blvl*.14);throwRock(e,e.pos.x+rnd(-2,2),e.pos.z+rnd(-2,2),2+e.blvl*.08,30+e.blvl*8,0xff7a2a,true)}}
   if(e.type==='necro'){e.raiseT=(e.raiseT??3)-dt;e.summ=(e.summ||[]).filter(s=>!s.dead);if(e.raiseT<=0){e.raiseT=Math.max(3,7-e.blvl*.3);if(enemies.length<160)for(let k=0;k<2+Math.floor(e.blvl/2);k++){const a=rnd(0,Math.PI*2);const s=makeEnemy('crawler',Math.min(3,Math.floor(e.blvl/3)),e.pos.x+Math.cos(a)*3,e.pos.z+Math.sin(a)*3);s.viaWall=true;for(const p of s.parts)p.material.color.setHex(0xe8e2d0);e.summ.push(s)}for(let k=0;k<10;k++)spawnDebris(e.pos.x,e.gy+2,e.pos.z,0x7dff9a,1,.3);label({x:e.pos.x,y:e.gy+3,z:e.pos.z},'💀 Erguei-vos!','#7dff9a')}}
@@ -930,7 +935,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
     const dx=tgt.p.x-e.pos.x,dz=tgt.p.z-e.pos.z,d=Math.hypot(dx,dz);e.group.rotation.y=Math.atan2(dx,dz);e.diveY=d<5?(tgt.t?tgt.t.pos.y+1.2:tgt.m?tgt.m.group.position.y+1.8:GY+3):undefined;
     if(d<2){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;const dmg=e.T.dmg*(1+e.rarity*.3);if(tgt.t){damageTurret(tgt.t,dmg);spawnDebris(tgt.t.pos.x,tgt.t.pos.y+.5,tgt.t.pos.z,0x6d6a8a,2,.2);SFX.crunch(true)}else if(tgt.m)hurtMinion(tgt.m,dmg);else{const i=CHEST_VOX().find(i=>vox[i]);if(i!==undefined)damageVox(i,dmg,'enemy',e)}}return}
     e.vel.set(dx/d*e.speed*sf,0,dz/d*e.speed*sf);e.pos.x+=e.vel.x*dt;e.pos.z+=e.vel.z*dt;return}
-  if(e.type==='climber'){e.group.position.y=e.gy;
+  if(CLIMBS(e.type)){e.group.position.y=e.gy;
     let tt=null;for(const t of turrets)if(t.alive&&hd(t.pos,e.pos)<2.2&&Math.abs(t.pos.y-e.gy)<2.4){tt=t;break}
     const victim=nearMinion(e,1.3);if(tt||victim){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;if(victim)hurtMinion(victim,e.T.dmg);else damageTurret(tt,e.T.dmg*1.5)}return}
     _dir.subVectors(CHEST,e.pos);_dir.y=0;const dist=_dir.length();_dir.normalize();
@@ -941,7 +946,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
   if(e.type==='sapper'&&victim){e.fuse=.5;return}
   if(e.state==='attack'){e.vel.set(0,0,0);if(!SOLIDM(vox[e.target])){e.state='walk';return}
     if(e.timer<=0){e.timer=e.T.rate;const tx=ix(e.target),tz=iz(e.target),ty=iy(e.target);
-      if(e.type==='ram'||e.type==='rammer'||BIG(e.type)){const R=BIG(e.type)?2:1;for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++)for(let y=ty;y<ty+3;y++)if(inb(tx+dx,y,tz+dz))damageVox(idx(tx+dx,y,tz+dz),e.T.dmg*(dx||dz?.45:1),'enemy',e);shake=Math.max(shake,.3);SFX.boom(false)}
+      if(e.type==='ram'||e.type==='rammer'||e.type==='brute'||BIG(e.type)){const R=BIG(e.type)?2:1;for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++)for(let y=ty;y<ty+3;y++)if(inb(tx+dx,y,tz+dz))damageVox(idx(tx+dx,y,tz+dz),e.T.dmg*(dx||dz?.45:1),'enemy',e);shake=Math.max(shake,.3);SFX.boom(false)}
       else damageVox(e.target,e.T.dmg*(1+e.rarity*.2),'enemy',e);e.lunge=.25}
     if(e.lunge>0){e.lunge-=dt;e.group.position.y=e.gy+Math.sin(Math.max(0,e.lunge)/.25*Math.PI)*.3}else e.group.position.y=e.gy;return}
   // anti-stuck: no progress for 9 s → smash the ground ahead (big) or hop forward
@@ -1703,6 +1708,14 @@ const UPGRADES_EXTRA=[
   {id:'oficina',ico:'🏭',nm:'Oficina',ds:'+2 vagas de reparador e +2 de coletor.',max:5,cost:l=>50+l*50,go(){}},
   {id:'escola',ico:'🎓',nm:'Escola de artilharia',ds:'+2 vagas de artilheiro.',max:5,cost:l=>60+l*60,go(){}}];
 UPGRADES.unshift(...UPGRADES_EXTRA);
+// ───────── travelling merchant: shows up every 3 waves with a rotating stock; what you buy is unloaded at the gate
+function merchantArrive(){const w=state.wave,offers=[];let guard=0;while(offers.length<4&&guard++<30){const r=Math.min(4,rollRarity(.06+w*.008)+(offers.length===0?1:0));const [kind,data]=lootPick('any',r);if(kind==='material')continue;offers.push({kind,data,r,price:Math.round((25+r*r*30)*(1+w*.03)),sold:false})}
+  state.merchant={offers,until:w+2};$('bMerch').hidden=false;toast('🛒 O mercador chegou ao portão! Ofertas por 2 hordas.','r3');renderMerch()}
+function merchantLeave(){if(!state.merchant)return;state.merchant=null;$('bMerch').hidden=true;$('merch').style.display='none'}
+function offerName(o){const d=o.data;return o.kind==='equip'?`${itemIco(d.item)} ${d.item.n}`:o.kind==='block'?`🧱 ${d.n}× ${MAT[d.m].n}`:o.kind==='turret'?`${TURRETS[d.type].ico} ${TURRETS[d.type].n}`:o.kind==='recruit'?`${ROLES[d.role].ico} Recruta ${ROLES[d.role].n}`:o.kind}
+function renderMerch(){const el=$('merch');if(!el)return;const M=state.merchant;if(!M){el.innerHTML='';return}
+  el.innerHTML=`<div class="ds" style="width:100%;text-align:center">🛒 Mercador itinerante · fica até a horda ${M.until} · as compras chegam pelo portão</div>`+M.offers.map((o,k)=>`<button class="btn" data-buy="${k}" ${o.sold||state.material<o.price?'disabled':''} title="${esc(o.kind==='equip'?itemLines(o.data.item).join(' · '):'')}"><span style="color:var(--${RARITY[o.r].css})">${offerName(o)}</span> <span class="cost">${o.sold?'vendido':o.price}</span></button>`).join('');
+  for(const b of el.querySelectorAll('[data-buy]'))b.onclick=()=>{const o=M.offers[+b.dataset.buy];if(o.sold||state.material<o.price)return;state.material-=o.price;o.sold=true;spawnLoot(GATE.x+rnd(-1,1),GY+1.5,GATE.z+3,o.kind,o.r,o.data);SFX.coin();SFX.loot(o.r);renderMerch();updateHud()}}
 
 // ───────── main: waves, events, game flow, input, loop
 function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i=0;i<Math.floor((w-from+2)*k);i++)list.push(t)};extra('wolf',2,.5);extra('imp',4,.6);extra('spider',4,.45);extra('slime',5,.35);extra('brute',7,.3);extra('beetle',9,.3);const n=-Math.floor(list.length*.5)+6+Math.floor(w*2.05+(w>10?(w-10)*1.6:0)+(w>15?(w-15)*1.6:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
@@ -1729,12 +1742,13 @@ function startWave(){if(state.choosing||state.phase==='wave')return;state.phase=
 function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.length)return;state.spawnT=rnd(.14,.4);const type=state.queue.shift();const side=rint(0,3),mg=state.ev==='mist'?6:1;let x,z;
   // waves come out of the mist on a ring around the citadel (the big map stays for battles, lairs and fortresses)
   {const a=rnd(0,Math.PI*2),r=rnd(54,72)*(state.ev==='mist'?.85:1);x=clamp(CX+Math.cos(a)*r,3,W-4);z=clamp(CZ+Math.sin(a)*r,3,D-4)}{const B=battle();if(B&&Math.abs(x-B.cx)<B.wr+6&&Math.abs(z-B.cz)<B.wr+6){x=W-x;z=D-z}}
+  if(type==='wolf'){if(state.packN>0&&state.packPos){x=state.packPos.x+rnd(-2.5,2.5);z=state.packPos.z+rnd(-2.5,2.5);state.packN--}else{state.packPos={x,z};state.packN=rint(2,4)}}
   if(state.ev==='ambush'&&Math.random()<.5&&!BIG(type)){x=rnd(5,16);z=rnd(5,D-5);if(Math.random()<.5)x=W-x}
   let r=type==='titan'||type==='queen'?Math.max(3,rollRarity(.15)):type==='colossus'?Math.max(2,rollRarity(.1)):type==='boss'?Math.max(1,rollRarity(.05)):rollRarity(state.wave*.004);if(state.ev==='elite')r=Math.min(4,r+1);if(state.ev==='golden')r=Math.max(2,r);
   const e=makeEnemy(type,r,x,z);if(r>=2&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
-function endWave(){const ev=state.ev;state.wave++;checkUnlocks();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
+function endWave(){const ev=state.ev;state.wave++;checkUnlocks();if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
   if(ev==='siege'&&state.siege>1){state.siege--;state.phase='rest';toast(`Cerco: horda ${4-state.siege} de 3. Sem descanso!`,'r2');startWave();return}
   if(ev==='siege'){state.siege=0;spawnLoot(CHEST.x+3,GY+3,CHEST.z+4,'treasure',3,{})}
   state.phase='rest';state.restT=15;$('event').style.display='none';
@@ -1759,7 +1773,7 @@ function updateBombs(dt){for(let i=bombs.length-1;i>=0;i--){const b=bombs[i];b.v
 // ───────── new game
 function newGame(){for(const e of enemies)scene.remove(e.group);enemies.length=0;for(const m of minions)scene.remove(m.group);minions.length=0;for(const L of loot)scene.remove(L.g);loot.length=0;
   for(const t of turrets)scene.remove(t.group);turrets.length=0;for(const p of projectiles)scene.remove(p.mesh);projectiles.length=0;for(const b of bombs)scene.remove(b.mesh);bombs.length=0;for(const s of shots)scene.remove(s.mesh);shots.length=0;for(const r of rings)scene.remove(r.m);rings.length=0;claimed.clear();fuses.length=0;
-  Object.assign(state,freshState());state.running=true;setCenter(96,96);rivals.length=0;initRealm();closeRealm();initGoals();cam.target.set(CX,GY+1.5,CZ);hideBoss();closeCard();for(const id of ['reward','report'])$(id).style.display='none';$('event').style.display='none';for(const id of ['buildPanel','arsenal','shop'])$(id).style.display='none';
+  Object.assign(state,freshState());state.running=true;setCenter(96,96);rivals.length=0;initRealm();closeRealm();initGoals();merchantLeave();cam.target.set(CX,GY+1.5,CZ);hideBoss();closeCard();for(const id of ['reward','report'])$(id).style.display='none';$('event').style.display='none';for(const id of ['buildPanel','arsenal','shop'])$(id).style.display='none';
   genWorld();snapshotNature();makeTurret('cannon',TOWER_ANCHORS[0],0);makeTurret('cannon',TOWER_ANCHORS[3],0);makeTurret('ballista',KEEP_ANCHORS[2],0);spawnRivalForces();updateModeUi();
   for(const [r,dx,dz] of [['rep',-3,4],['rep',3,4],['rep',0,-4],['col',-4,5],['col',4,5],['col',-5,3],['col',5,3],['gun',-5,-5],['gun',5,5],['sol',-2,6],['sol',2,6],['sol',0,7]])makeMinion(r,0,CX+dx,CZ+dz);
   state.inv.blocks={16:12,17:6,18:8,15:4,10:6,9:2,19:2};state.inv.turrets=[{type:'ballista',r:1},{type:'cannon',r:0}];
@@ -1800,6 +1814,7 @@ const keys={};window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=fals
 $('bBuild').onclick=()=>openSide('buildPanel');$('buildClose').onclick=()=>closeSide('buildPanel');
 $('bArs').onclick=()=>openSide('arsenal');$('arsClose').onclick=()=>closeSide('arsenal');
 $('bShop').onclick=()=>openSide('shop');$('shopClose').onclick=()=>closeSide('shop');
+$('bMerch').onclick=()=>{const h=$('merch');const open=h.style.display!=='flex';h.style.display=open?'flex':'none';$('hire').style.display='none';if(open)renderMerch()};
 $('bHire').onclick=()=>{const h=$('hire');const open=h.style.display!=='flex';h.style.display=open?'flex':'none';if(open)renderHire()};
 $('autoEq').onchange=e=>{state.autoEquip=e.target.checked;if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);renderArsenal()};
 $('abBtn').onclick=()=>{state.autoBuild=!state.autoBuild;updateHud()};
@@ -1858,7 +1873,7 @@ window.__dbg=()=>({wave:state.wave,mat:Math.floor(state.material),chest:chestAli
   turrets:turrets.map(t=>`${t.type}${t.gunner&&t.gunner.state==='man'?'*':''}:${Math.round(t.hp)}`),fluids:fluids.size,burning:burning.size,armory:state.inv.armory.length,inv:JSON.stringify(state.inv.blocks),ev:state.ev,plan:blueList.filter(i=>vox[i]!==blue[i]).length,planS:blueList.filter(i=>vox[i]!==blue[i]).slice(0,8).map(i=>`${ix(i)},${iy(i)},${iz(i)} v${vox[i]} b${blue[i]} s${+supported(i)} busy${+cellBusy(i)}`).join(' | '),kills:state.kills,cols:minions.filter(m=>m.role==='col').map(m=>`${m.state} t${m.timer.toFixed(1)} @${m.pos.x.toFixed(0)},${m.pos.z.toFixed(0)} y${m.group.position.y.toFixed(1)} wc${walkCell(Math.floor(m.pos.x),Math.floor(m.pos.z))} task${m.task&&m.task.L?Math.round(m.task.L.x)+','+Math.round(m.task.L.z):'-'} bag${m.bag.length}`),lootS:loot.filter(L=>!L.carried&&!L.claimed).slice(0,6).map(L=>`${L.kind}@${L.x.toFixed(0)},${L.y.toFixed(1)},${L.z.toFixed(0)} ok${+lootOK(L)} un${+(L.unreach>simTime)} rest${+L.rest}`)});
 genWorld();placeCamera();requestAnimationFrame(frame);
 // bot used by the headless test to exercise build/arsenal paths like a player would
-window.__bot=()=>{const out=[];state.autoBuild=true;state.autoUp=true;state.autoSell=true;{const B=battle();if(B&&!minions.some(m=>m.raid)&&battleOdds(B.lvl).p>.45){sendRaid();out.push('raid')}if(!state.quest&&REALM.pois.length){const P=REALM.pois.find(q=>questOdds(q).p>.6);if(P&&acceptPoi(P))out.push('poi')}}
+window.__bot=()=>{const out=[];state.autoBuild=true;state.autoUp=true;state.autoSell=true;if(state.merchant){renderMerch();const k=state.merchant.offers.findIndex(o=>!o.sold&&o.price<state.material*.5);if(k>=0){const b=document.querySelector(`[data-buy="${k}"]`);if(b){b.click();out.push('buy')}}}{const B=battle();if(B&&!minions.some(m=>m.raid)&&battleOdds(B.lvl).p>.45){sendRaid();out.push('raid')}if(!state.quest&&REALM.pois.length){const P=REALM.pois.find(q=>questOdds(q).p>.6);if(P&&acceptPoi(P))out.push('poi')}}
   if(state.phase==='wave'&&state.bombCd<=0&&state.material>60){const e=enemies.find(e=>!e.dead&&!e.fly&&!inside(e.pos.x,e.pos.z));if(e){dropBomb(e.pos.x,e.pos.z);out.push('bomb')}}
   for(const L of loot)if(L.kind==='treasure'&&!L.carried){openTreasure(L);out.push('open');break}
   return out.join(' ')};

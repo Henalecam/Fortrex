@@ -1,6 +1,7 @@
 // ───────── entities: particles, beams, loot, equipment, turrets, projectiles
 const _e=new THREE.Euler(),_q=new THREE.Quaternion(),_p=new THREE.Vector3(),_s=new THREE.Vector3();
-function box(w,h,d,color,x,y,z,parent){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({color}));m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
+const _boxGeo=new Map();function boxGeo(w,h,d){const k=(w*100|0)+'_'+(h*100|0)+'_'+(d*100|0);let g=_boxGeo.get(k);if(!g){g=new THREE.BoxGeometry(w,h,d);_boxGeo.set(k,g)}return g}
+function box(w,h,d,color,x,y,z,parent){const m=new THREE.Mesh(boxGeo(w,h,d),new THREE.MeshLambertMaterial({color}));m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
 function eyes(parent,y,z,w){box(.09,.12,.05,0x2b2d4a,-w,y,z,parent);box(.09,.12,.05,0x2b2d4a,w,y,z,parent)}
 function clearGroup(g){while(g.children.length)g.remove(g.children[0])}
 const cellSolid=(x,y,z)=>{const fx=Math.floor(x),fy=Math.floor(y),fz=Math.floor(z);return fy<0||(inb(fx,fy,fz)&&SOLIDM(vox[idx(fx,fy,fz)]))};

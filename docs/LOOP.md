@@ -38,7 +38,17 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.17: novas criaturas com anatomias próprias — 🐺 Lobo (rápido, focinho e cauda), 🕷️ Aranha (8 patas, 6 olhos), 🟢 Gosma (translúcida, se divide em 2 ao morrer), 😈 Diabrete (asas, explode em fogo), 🦍 Bruto (bípede, braços enormes), 🪲 Besouro Blindado (carapaça corta 50% do dano até quebrar). Entram nas hordas a partir das hordas 2–9. Criaturas clássicas ganham variação aleatória (chifres, espinhos, cauda, olho extra, carapaça, tom). Chefes maiores com aura no chão e marcador de impacto antes das rochas/bolas de fogo. Curva tardia mais dura após a 15 (base sob pressão na 18–20). Corrigido: botões com hidden aparecendo.
 
+- v0.18: aranhas escalam muralhas (como escaladores); lobos surgem em matilhas de 3–5 e correm +30% juntos ("Auuu!"); Bruto arromba muralhas/portões como aríete; 🛒 Mercador itinerante a cada 3 hordas (4 ofertas por raridade, fica 2 hordas; o que você compra chega pelo portão e os coletores levam ao baú); cache de geometrias dos modelos (simulação ~10% mais rápida, menos memória). Bot compra do mercador.
+
 ## Backlog (próximas rodadas)
+Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
+- [ ] Diabretes em enxame no fogo; lobos flanqueando pelos lados
+- [ ] Clima/eventos do mapa: nevasca (lentidão, lagos congelam), eclipse (inimigos sombrios), terremoto (rachaduras no chão)
+- [ ] Heróis: minion lendário único com habilidade ativa (clique) — ex.: Paladino (cura área), Arqueira (chuva de flechas)
+- [ ] Armas novas: catapulta de barris, torre de raio-sol (feixe contínuo), canhão de gelo em área
+- [ ] Relíquias permanentes por chefe derrotado (bônus passivos colecionáveis)
+- [ ] Ficha do minion e Arsenal no estilo HUD v0.16; tooltips de comparação
+- [ ] Desempenho com 150+ criaturas (pooling de geometrias/materiais)
 - [ ] Reino: mensagens de embaixada (tributo/aliança)
 - [ ] Mercador de barco com loja rotativa
 - [ ] Desempenho no mapa 160: medir FPS real; LOD de sombras
