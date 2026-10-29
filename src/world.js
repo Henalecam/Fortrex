@@ -208,7 +208,7 @@ const BIOMES={campo:{n:'Campos Verdes',ico:'🌿',g:0x8fd08a,gn:'Grama',d:0x9c7a
   neve:{n:'Tundra Gelada',ico:'❄️',g:0xf1f5fa,gn:'Neve',d:0xb9a48a,l:0x2f6b4f,t:0xe6eef5,lava:6,ponds:17,trees:300,hills:42,frozen:true},
   pantano:{n:'Pântano da Bruma',ico:'🐸',g:0x5f8a4a,gn:'Lodo',d:0x5a4a35,l:0x4f6b3a,t:0x4f7a3f,lava:4,ponds:42,trees:260,hills:20}};
 let BIOME=BIOMES.campo;
-function genWorld(){BIOME=BIOMES[state.biome]||BIOMES[pick(Object.keys(BIOMES))];state.biomeName=BIOME.n;MAT[13].c=BIOME.g;MAT[13].n=BIOME.gn;MAT[12].c=BIOME.d;MAT[11].c=BIOME.l;tuftMesh.material.color.setHex(BIOME.t);
+function genWorld(){state.biomeKey=BIOMES[state.biome]?state.biome:pick(Object.keys(BIOMES));BIOME=BIOMES[state.biomeKey];state.biomeName=BIOME.n;MAT[13].c=BIOME.g;MAT[13].n=BIOME.gn;MAT[12].c=BIOME.d;MAT[11].c=BIOME.l;tuftMesh.material.color.setHex(BIOME.t);
   vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.clear();fluidSrc.clear();burning.clear();specials.clear();damaged.clear();pendingBooms.length=0;resetFluidSlots();resetVoxSlots();
   computeLayout();planRivals();buildBlueprint();
   const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);vox[i]=m;hp[i]=FLUID(m)?4:MAT[m].hp;if(FLUID(m)){fluids.add(i);fluidSrc.add(i)}};

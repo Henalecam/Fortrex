@@ -54,8 +54,9 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.25: biomas sorteados a cada partida — 🌿 Campos Verdes, 🏜️ Deserto Rubro (areia, poucos lagos, mais morros), ❄️ Tundra Gelada (neve, lagos congelados, pinheiros), 🐸 Pântano da Bruma (lodo, muitos lagos). 🎬 Câmera de chefe: aproxima e gira quando um chefe cai (opção no menu ⚙️).
 
+- v0.26: biomas mudam o jogo — 🏜️ Deserto tem 🌪️ Tempestade de areia (armas enxergam 35% menos, inimigos +12% de velocidade) e nunca nevasca; ❄️ Tundra tem nevasca 4× mais comum; 🐸 Pântano tem bruma 4× mais comum e lama que deixa inimigos terrestres 12% mais lentos.
+
 ## Backlog (próximas rodadas)
-- [ ] Biomas com efeitos de jogo (deserto: tempestade de areia; pântano: lentidão na lama; neve: nevasca mais comum)
 - [ ] Minions: necessidades leves (moral/descanso) que afetam rendimento
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
 - [ ] Ficha do minion e Arsenal no estilo HUD v0.16; tooltips de comparação

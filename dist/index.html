@@ -577,7 +577,7 @@ const BIOMES={campo:{n:'Campos Verdes',ico:'🌿',g:0x8fd08a,gn:'Grama',d:0x9c7a
   neve:{n:'Tundra Gelada',ico:'❄️',g:0xf1f5fa,gn:'Neve',d:0xb9a48a,l:0x2f6b4f,t:0xe6eef5,lava:6,ponds:17,trees:300,hills:42,frozen:true},
   pantano:{n:'Pântano da Bruma',ico:'🐸',g:0x5f8a4a,gn:'Lodo',d:0x5a4a35,l:0x4f6b3a,t:0x4f7a3f,lava:4,ponds:42,trees:260,hills:20}};
 let BIOME=BIOMES.campo;
-function genWorld(){BIOME=BIOMES[state.biome]||BIOMES[pick(Object.keys(BIOMES))];state.biomeName=BIOME.n;MAT[13].c=BIOME.g;MAT[13].n=BIOME.gn;MAT[12].c=BIOME.d;MAT[11].c=BIOME.l;tuftMesh.material.color.setHex(BIOME.t);
+function genWorld(){state.biomeKey=BIOMES[state.biome]?state.biome:pick(Object.keys(BIOMES));BIOME=BIOMES[state.biomeKey];state.biomeName=BIOME.n;MAT[13].c=BIOME.g;MAT[13].n=BIOME.gn;MAT[12].c=BIOME.d;MAT[11].c=BIOME.l;tuftMesh.material.color.setHex(BIOME.t);
   vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.clear();fluidSrc.clear();burning.clear();specials.clear();damaged.clear();pendingBooms.length=0;resetFluidSlots();resetVoxSlots();
   computeLayout();planRivals();buildBlueprint();
   const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);vox[i]=m;hp[i]=FLUID(m)?4:MAT[m].hp;if(FLUID(m)){fluids.add(i);fluidSrc.add(i)}};
@@ -765,7 +765,7 @@ function killTurret(t,drop){if(!t.alive)return;t.alive=false;scene.remove(t.grou
   if(drop){const L=spawnLoot(t.pos.x,t.pos.y+.4,t.pos.z,'turret',t.r,{type:t.type});if(L)L.prio=true;toast(`${t.T.n} caiu! Um coletor vai buscá-la.`,'r0')}}
 function damageTurret(t,d){if(!t.alive)return;t.hp-=d;t.hit=.1;if(t.hp<=0)killTurret(t,true)}
 function checkTurretAnchor(i){const t=turretAt(i);if(t)killTurret(t,true)}
-const turretRange=t=>t.T.range*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?.72:1);
+const turretRange=t=>t.T.range*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?.72:state.ev==='sandstorm'?.65:1);
 function enemyAim(e){return new THREE.Vector3(e.pos.x,e.fly?e.group.position.y+.5:e.gy+(e.type==='colossus'?2.2:.9),e.pos.z)}
 function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRivalTurret(t,dt);const man=t.gunner&&t.gunner.state==='man';const g=t.gunner;
   if(t.hit>0)t.hit-=dt;if(t.station&&walkCell(Math.floor(t.station.x),Math.floor(t.station.z))<=-99)t.station=findStation(t.pos.x,t.pos.z);
@@ -944,7 +944,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
   if(e.afire>0){e.afire-=dt;if(e.inWater||e.type==='titan'||e.type==='imp')e.afire=0;dmgEnemy(e,5*dt,false);if(Math.random()<dt*10)spawnFlame(e.pos.x+rnd(-.4,.4),e.group.position.y+rnd(.3,1.2)*e.sc,e.pos.z+rnd(-.4,.4),.6);if(e.dead)return}
   e.iceT-=dt;if(e.iceT<=0&&!e.fly){e.iceT=.3;const y0=Math.floor(e.gy+.05);for(const [dx,dz] of NB4){for(let y=y0;y<y0+2;y++){const x=fx+dx,z=fz+dz;if(inb(x,y,z)&&vox[idx(x,y,z)]===18){e.slowT=Math.max(e.slowT,.8)}}}}
   if(e.slowT>0){e.slowT-=dt;if(Math.random()<dt*4)spawnFlame(e.pos.x+rnd(-.4,.4),e.group.position.y+.8,e.pos.z+rnd(-.4,.4),.4,true)}
-  const sf=(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1)*(state.ev==='blizzard'?.7:1);e.timer-=dt*(e.slowT>0?.5:1);
+  const sf=(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1)*(state.ev==='blizzard'?.7:state.ev==='sandstorm'?1.12:1)*(state.biomeKey==='pantano'&&!e.fly?.88:1);e.timer-=dt*(e.slowT>0?.5:1);
   if(e.stun>0){e.stun-=dt;e.vel.set(0,0,0);e.group.rotation.z=Math.sin(e.stun*9)*.12;if(e.stun<=0)e.group.rotation.z=0;return}
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
   if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}
@@ -953,7 +953,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
     // wolves hunt minions caught outside the walls
     if(!e.stun){let v=null,bd=11;for(const m of minions){if(m.wounded>0||inside(m.pos.x,m.pos.z))continue;const d=hd(m.pos,e.pos);if(d<bd){bd=d;v=m}}
       if(v){const dx=v.pos.x-e.pos.x,dz=v.pos.z-e.pos.z,d=Math.hypot(dx,dz)||1;e.group.rotation.y=Math.atan2(dx,dz);if(d<e.radius+1.2){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;hurtMinion(v,e.T.dmg*(e.pack?1.4:1),e)}return}
-        const sp=e.speed*(e.slowT>0?.4:1)*(state.ev==='blizzard'?.7:1);e.pos.x+=dx/d*sp*dt;e.pos.z+=dz/d*sp*dt;e.gy+=(surfE(e.pos.x,e.pos.z)-e.gy)*Math.min(1,dt*9);e.group.position.y=e.gy+Math.abs(Math.sin(e.bob+=dt*12))*.15;return}}}
+        const sp=e.speed*(e.slowT>0?.4:1)*(state.ev==='blizzard'?.7:state.ev==='sandstorm'?1.12:1)*(state.biomeKey==='pantano'&&!e.fly?.88:1);e.pos.x+=dx/d*sp*dt;e.pos.z+=dz/d*sp*dt;e.gy+=(surfE(e.pos.x,e.pos.z)-e.gy)*Math.min(1,dt*9);e.group.position.y=e.gy+Math.abs(Math.sin(e.bob+=dt*12))*.15;return}}}
   if(e.type==='golem'){e.thrT=(e.thrT??4)-dt;if(e.thrT<=0){e.thrT=Math.max(2.8,7.5-e.blvl*.35);let tg=null,bd=48;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd){bd=d;tg=t.pos}}if(!tg)tg={x:CHEST.x+rnd(-8,8),z:CHEST.z+rnd(-8,8)};throwRock(e,tg.x,tg.z,2.6+e.blvl*.12,55+e.blvl*14,0x75706a,false);label({x:e.pos.x,y:e.gy+e.sc*1.6,z:e.pos.z},'🪨','#75706a')}}
   if(e.type==='wyrm'){e.fbT=(e.fbT??2)-dt;if(e.fbT<=0){e.fbT=Math.max(1.2,3.4-e.blvl*.14);throwRock(e,e.pos.x+rnd(-2,2),e.pos.z+rnd(-2,2),2+e.blvl*.08,30+e.blvl*8,0xff7a2a,true)}}
   if(e.type==='necro'){e.raiseT=(e.raiseT??3)-dt;e.summ=(e.summ||[]).filter(s=>!s.dead);if(e.raiseT<=0){e.raiseT=Math.max(3,7-e.blvl*.3);if(enemies.length<160)for(let k=0;k<2+Math.floor(e.blvl/2);k++){const a=rnd(0,Math.PI*2);const s=makeEnemy('crawler',Math.min(3,Math.floor(e.blvl/3)),e.pos.x+Math.cos(a)*3,e.pos.z+Math.sin(a)*3);s.viaWall=true;for(const p of s.parts)p.material.color.setHex(0xe8e2d0);e.summ.push(s)}for(let k=0;k<10;k++)spawnDebris(e.pos.x,e.gy+2,e.pos.z,0x7dff9a,1,.3);label({x:e.pos.x,y:e.gy+3,z:e.pos.z},'💀 Erguei-vos!','#7dff9a')}}
@@ -1828,12 +1828,13 @@ const EVENTS={
   meteor:{n:'Chuva de meteoros',d:'Meteoros caem na ilha. Crateras, fogo e loot raro onde caem.',css:'r3',w:6},
   siege:{n:'Cerco',d:'Três hordas seguidas sem descanso. Peça Épica garantida.',css:'r2',w:7},
   storm:{n:'Tempestade',d:'Raios caem na ilha e o vento espalha o fogo. Devoradores na água viram condutores.',css:'r2',w:5},
+  sandstorm:{n:'Tempestade de areia',d:'Areia no ar: as armas enxergam 35% menos e os inimigos correm mais.',css:'r2',w:4},
   blizzard:{n:'Nevasca',d:'Tudo fica lento e a água dos lagos congela em pontes de gelo.',css:'r2',w:6},
   quake:{n:'Terremoto',d:'O chão racha sob os pés: crateras, muralhas abaladas e inimigos derrubados.',css:'r3',w:7},
   eclipse:{n:'Eclipse',d:'A escuridão fortalece os inimigos (+1 raridade). Loot muito melhor.',css:'r3',w:9},
   golden:{n:'Horda dourada',d:'Todos os Devoradores são Raros ou acima. Curta e brutal.',css:'r3',w:8},
 };
-function rollEvent(w){if(w<3||w%5===0||Math.random()<.5)return null;return pick(Object.keys(EVENTS).filter(k=>EVENTS[k].w<=w))}
+function rollEvent(w){if(w<3||w%5===0||Math.random()<.5)return null;const b=state.biomeKey;const pool=[];for(const k of Object.keys(EVENTS)){if(EVENTS[k].w>w)continue;if(k==='sandstorm'&&b!=='deserto')continue;if(k==='blizzard'&&b==='deserto')continue;const n=(k==='blizzard'&&b==='neve')||(k==='sandstorm'&&b==='deserto')||(k==='mist'&&b==='pantano')?4:1;for(let i=0;i<n;i++)pool.push(k)}return pick(pool)}
 function startWave(){if(state.choosing||state.phase==='wave')return;state.phase='wave';state.wk=0;state.wwound=0;state.ev=state.siege>0?'siege':rollEvent(state.wave);state.queue=waveSpec(state.wave);state.meteorT=3;if(isNight()){for(let k=0;k<Math.ceil(state.queue.length*.25);k++)state.queue.push(pick(['crawler','climber','flyer']));toast('É noite: a bruma vem mais forte','r2')}
   if(state.ev==='siege'&&state.siege===0)state.siege=3;if(state.ev==='golden')state.queue=state.queue.slice(0,Math.ceil(state.queue.length*.5));
   state.spawnT=0;$('report').style.display='none';
@@ -2044,7 +2045,7 @@ window.__zoo=()=>{const ts=['crawler','wolf','spider','slime','imp','brute','bee
 
 // ───────── weather events: blizzard, earthquake, eclipse
 let wxT=0;const _snow=new THREE.Color(0xe8f2fa),_dark=new THREE.Color(0x1d1e33);
-function weatherTick(dt){const ev=state.ev;if(ev!=='blizzard'&&ev!=='quake'&&ev!=='eclipse')return;wxT-=dt;
+const _sand=new THREE.Color(0xe8c98a);function weatherTick(dt){const ev=state.ev;if(ev==='sandstorm'){scene.background.lerp(_sand,.6);scene.fog.color.copy(scene.background);for(let k=0;k<4;k++)spawnDebris(cam.target.x+rnd(-30,30),GY+rnd(2,10),cam.target.z+rnd(-30,30),0xd9b56a,1,.1);return}if(ev!=='blizzard'&&ev!=='quake'&&ev!=='eclipse')return;wxT-=dt;
   if(ev==='blizzard'){scene.background.lerp(_snow,.55);scene.fog.color.copy(scene.background);for(let k=0;k<3;k++)spawnDebris(cam.target.x+rnd(-30,30),GY+rnd(12,20),cam.target.z+rnd(-30,30),0xffffff,1,.12);
     if(wxT<=0){wxT=.35;for(let k=0;k<6;k++){const x=rint(2,W-3),z=rint(2,D-3);const i=idx(x,GY-1,z);if(vox[i]===9){setVox(i,18);fluids.delete(i);fluidSrc.delete(i)}}}}
   if(ev==='eclipse'){scene.background.lerp(_dark,.7);scene.fog.color.copy(scene.background);sun.intensity*=.3;hemi.intensity*=.45}
