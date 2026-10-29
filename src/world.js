@@ -77,7 +77,7 @@ function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m)
 function removeVox(i,src){const m=vox[i];if(!m)return;const x=ix(i),y=iy(i),z=iz(i);
   spawnDebris(x+.5,y+.5,z+.5,MAT[m].c,m>=11&&m<=13?3:5,.45);
   if(src==='dig'&&natBlue)natBlue[i]=0;
-  if(m!==11&&src!=='dig'&&!blue[i]&&Math.random()<(rown[i]?.12:m===12||m===13?.08:.3))spawnLoot(x+.5,y+.6,z+.5,'material',0,{amount:1});
+  if(m!==11&&src!=='dig'&&!blue[i]&&!looted[i]&&(looted[i]=1)&&Math.random()<(rown[i]?.06:m===12||m===13?.04:.15))spawnLoot(x+.5,y+.6,z+.5,'material',0,{amount:1});
   setVox(i,0);SFX.crunch(m===4);settleDirty=true;checkTurretAnchor(i);if(m===5)checkChest();
   if(m===10)pendingBooms.push({x:x+.5,y:y+.5,z:z+.5,r:2.7,dmg:95,o:{fire:true,src:blue[i]?'player':'env'},t:.12});
   if(m===17)pendingBooms.push({x:x+.5,y:y+.5,z:z+.5,r:2.8,dmg:130,o:{fire:false,src:'player'},t:.05})}
@@ -140,7 +140,7 @@ function settle(){settleDirty=false;if(!removedQ.length)return;settlePass++;cons
     while(st.length){const c=st.pop();const x=ix(c),y=iy(c),z=iz(c);if(y===0||chestSet.has(c)){grounded=true;break}if(comp.length>14000){grounded=true;break}
       for(let k=NB6.length-1;k>=0;k--){const [dx,dy,dz]=NB6[(k+3)%6];const nx=x+dx,ny=y+dy,nz=z+dz;if(!inb(nx,ny,nz))continue;const j=idx(nx,ny,nz);if(_seenS[j]===settlePass||!SOLIDM(vox[j]))continue;_seenS[j]=settlePass;comp.push(j);st.push(j)}}
     if(grounded)continue;
-    for(const i of comp){const m=vox[i];if(!m)continue;spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[m].c,1,.95);if(!blue[i]&&Math.random()<(rown[i]?.1:m>=12&&m<=13?.1:.45))spawnLoot(ix(i)+.5,iy(i)+.6,iz(i)+.5,'material',0,{amount:1});
+    for(const i of comp){const m=vox[i];if(!m)continue;spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[m].c,1,.95);if(!blue[i]&&!looted[i]&&(looted[i]=1)&&Math.random()<(rown[i]?.05:m>=12&&m<=13?.04:.18))spawnLoot(ix(i)+.5,iy(i)+.6,iz(i)+.5,'material',0,{amount:1});
       const wasBarrel=m===10;vox[i]=0;hp[i]=0;burning.delete(i);damaged.delete(i);specials.delete(i);markCol(ix(i),iz(i));fell++;checkTurretAnchor(i);if(rown[i])rivalHit(i);if(wasBarrel)pendingBooms.push({x:ix(i)+.5,y:iy(i)+.5,z:iz(i)+.5,r:2.5,dmg:90,o:{fire:true,src:'env'},t:.3})}
     for(const i of comp)touch(i)}
   if(fell>0){SFX.boom(fell>20);shake=Math.min(1.2,shake+.3+fell*.02);checkChest()}}
@@ -202,7 +202,8 @@ function checkChest(){if(state.running&&chestAlive()===0)gameOver()}
 
 // zones kept free of terrain decoration: player city, rival cities, outposts
 function cityZones(){const z=[[CX,CZ,WR+5]];for(const [ox,oz] of OUTPOSTS)z.push([ox,oz,5]);for(const R of (typeof rivals!=='undefined'?rivals:[]))z.push([R.cx,R.cz,R.wr+5]);return z}
-function genWorld(){vox.fill(0);hp.fill(0);rown.fill(0);fluids.clear();fluidSrc.clear();burning.clear();specials.clear();damaged.clear();pendingBooms.length=0;resetFluidSlots();resetVoxSlots();
+const looted=new Uint8Array(N);// a cell pays material only once, so regrown/rebuilt terrain is not a farm
+function genWorld(){vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.clear();fluidSrc.clear();burning.clear();specials.clear();damaged.clear();pendingBooms.length=0;resetFluidSlots();resetVoxSlots();
   computeLayout();planRivals();buildBlueprint();
   const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);vox[i]=m;hp[i]=FLUID(m)?4:MAT[m].hp;if(FLUID(m)){fluids.add(i);fluidSrc.add(i)}};
   const zones=cityZones();const inZone=(x,z,r)=>zones.some(([zx,zz,zr])=>Math.abs(x-zx)<zr+r&&Math.abs(z-zz)<zr+r);

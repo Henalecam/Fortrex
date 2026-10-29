@@ -105,10 +105,10 @@ function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)
     if(L.ring){const p=L.prio?1.3+Math.sin(L.t*8)*.25:1;L.ring.scale.set(p,p,p)}if(L.bm)L.bm.material.opacity=.14+Math.sin(L.t*3)*.08;
     if(L.kind==='treasure')L.main.rotation.y=Math.sin(L.t*1.5)*.3}}
 function lootPick(kind,r,big){const k=Math.random();
-  if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:6+r*6}]}}
+  if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:4+r*4}]}}
 function randBlockPack(r){const pool=r>=3?[16,17,18,15,10,14,19,20,9,8]:r>=2?[16,17,18,15,10,14,19,9]:r>=1?[16,17,18,15,10,14]:[16,17,18,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
 function randTurretType(){return pick(['ballista','flamer','mortar','tesla','frost','cannon','ballista','tesla'])}
-function openTreasure(L){removeLoot(L);const r=L.r;const n=3+r+rint(0,1);
+function openTreasure(L){removeLoot(L);const r=L.r;const n=2+Math.ceil(r*.7)+rint(0,1);
   for(let k=0;k<n;k++){const rr=k===0?r:Math.max(0,Math.min(r,rollRarity(r*.06+state.luck)));const [kind,data]=lootPick('any',rr);
     const it=spawnLoot(L.x,L.y+.6,L.z,kind,rr,data);if(it){const a=k/n*Math.PI*2;it.vx=Math.cos(a)*rnd(3,5);it.vz=Math.sin(a)*rnd(3,5);it.vy=rnd(6,9)}}
   if(Math.random()<.25+r*.1)spawnLoot(L.x,L.y+.6,L.z,'recruit',Math.max(1,r-1),{role:pick(['rep','col','gun','sol','med'])});
@@ -121,7 +121,7 @@ function deposit(L,m){const d=L.data;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treas
     case'equip':{state.inv.armory.push(d.item);state.newItems++;if(!(state.autoEquip&&autoEquip(d.item)))toast(`${d.item.n} ${RARITY[L.r].n} no arsenal`,RARITY[L.r].css);break}
     case'block':{addBlocks(d.m,d.n);state.newItems++;toast(`+${d.n} ${MAT[d.m].n} para construir`,RARITY[L.r].css);break}
     case'turret':{state.inv.turrets.push({type:d.type,r:L.r});state.newItems++;toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
-    case'recruit':{if(minions.length>=MAX_MINIONS){const g=12*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
+    case'recruit':{if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){const g=6*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
   if(L.r>=1)SFX.loot(L.r);refreshPanels()}
 
 // ───────── turrets: defensive weapons placed on any block

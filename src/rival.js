@@ -21,7 +21,7 @@ function spawnRivalUnit(R,mode){const type=pick(mode==='raid'?['knight','knight'
   const hx=CX-R.cx,hz=CZ-R.cz,hl=Math.hypot(hx,hz)||1;const x=mode==='raid'?R.cx+hx/hl*(R.wr+3+rnd(0,2))+rnd(-2,2):R.cx+Math.cos(a)*r,z=mode==='raid'?R.cz+hz/hl*(R.wr+3+rnd(0,2))+rnd(-2,2):R.cz+Math.sin(a)*r;const e=makeEnemy(type,Math.min(4,Math.max(0,rollRarity(R.lvl*.05))),x,z);e.rival=R;e.rmode=mode;e.home={x,z};if(mode==='guard')R.guards.push(e);return e}
 function rivalTick(dt){realmTick(dt);if(!rivals.length)return;
   for(const R of rivals){if(!R.alive)continue;
-    R.raidT-=dt;if(R.raidT<=0){R.raidT=(R.kind==='defend'?50:80)*rnd(.8,1.2)/Math.min(2.5,1+R.lvl*.15);const n=3+R.lvl*2+Math.floor(simTime/240);const foes=rivals.filter(o=>o!==R&&o.alive);
+    R.raidT-=dt;if(R.raidT<=0){R.raidT=(R.kind==='defend'?65:85)*rnd(.8,1.2)/Math.min(2,1+R.lvl*.08);const n=Math.min(16,2+R.lvl+Math.floor(simTime/300));const foes=rivals.filter(o=>o!==R&&o.alive);
       if(foes.length&&Math.random()<.4){const F=pick(foes);for(let k=0;k<n;k++){const e=spawnRivalUnit(R,'war');e.foe=F}toast(`Guerra! ${R.name} marcha contra ${F.name}`,'r2')}
       else{for(let k=0;k<n;k++)spawnRivalUnit(R,'raid');toast(`Raid de ${R.name}: ${n} guerreiros a caminho!`,'r3')}SFX.boom(true)}
     R.guards=R.guards.filter(e=>!e.dead);if(R.guards.length<2+R.lvl&&Math.random()<dt*.05)spawnRivalUnit(R,'guard');
@@ -35,7 +35,7 @@ function conquer(R){if(!R.alive)return;R.alive=false;slowmo=1.5;shake=1.4;toast(
   for(let k=0;k<2;k++)spawnLoot(R.cx+rnd(-2,2),GY+3,R.cz+rnd(-2,2),'treasure',Math.min(4,1+Math.floor(R.lvl/3)+(k===0?1:0)),{});
   for(const t of turrets)if(t.alive&&t.R===R){killTurret(t,true)}for(const e of enemies)if(e.rival===R&&e.rmode==='guard'&&!e.dead){killEnemy(e)}
   pendingBooms.push({x:R.cx+.5,y:GY+1,z:R.cz+.5,r:5,dmg:200,o:{src:'env',fire:true},t:.2});state.conquests=(state.conquests||0)+1;
-  for(const m of minions)if(m.raid===R)m.raid=null;state.material+=60*R.lvl;battleWon(R);updateModeUi();label({x:R.cx,y:GY+4,z:R.cz},`+${60*R.lvl}`,'#c99a1a')}
+  for(const m of minions)if(m.raid===R)m.raid=null;state.material+=10*R.lvl;battleWon(R);updateModeUi();label({x:R.cx,y:GY+4,z:R.cz},`+${10*R.lvl}`,'#c99a1a')}
 function nextRivalRound(){state.rivalLvl=(state.rivalLvl||1)+1;state.duelWon=false;pendingBooms.length=0;for(const R of rivals){for(const [i] of R.rblue){if(rown[i]){vox[i]=0;rown[i]=0}}}
   const saved=rivals.slice();planRivals();const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);vox[i]=m;hp[i]=MAT[m].hp};buildRivals(put);
   for(let x=0;x<W;x++)for(let z=0;z<D;z++)for(let y=GY-1;y<H;y++){const i=idx(x,y,z);if(rown[i]||saved.some(R=>Math.abs(x-R.cx)<R.wr+3&&Math.abs(z-R.cz)<R.wr+3)){hp[i]=vox[i]?maxHpOf(vox[i]):0;markCol(x,z);touch(i)}}

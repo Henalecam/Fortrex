@@ -1,5 +1,5 @@
 // ───────── main: waves, events, game flow, input, loop
-function waveSpec(w){const list=[];const n=5+Math.floor(w*1.9+(w>10?(w-10)*1.5:0));for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
+function waveSpec(w){const list=[];const n=6+Math.floor(w*2.05+(w>10?(w-10)*1.6:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
   if(w>=3)for(let i=0;i<Math.floor((w-1)/2);i++)list.push('climber');if(w>=4)for(let i=0;i<Math.floor(w/3);i++)list.push('sapper');
   if(w>=6)for(let i=0;i<Math.floor((w-3)/3);i++)list.push('flyer');if(w>=6)for(let i=0;i<Math.floor((w-3)/4);i++)list.push('shaman');
   if(w>12)for(let i=0;i<(w-12)*2;i++)list.push(pick(['crawler','climber','ram','sapper','flyer']));
@@ -26,7 +26,7 @@ function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.len
   const e=makeEnemy(type,r,x,z);if(r>=2&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
-function endWave(){const ev=state.ev;state.wave++;realmWaveIncome();startSelfRepair();
+function endWave(){const ev=state.ev;state.wave++;realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
   if(ev==='siege'&&state.siege>1){state.siege--;state.phase='rest';toast(`Cerco: horda ${4-state.siege} de 3. Sem descanso!`,'r2');startWave();return}
   if(ev==='siege'){state.siege=0;spawnLoot(CHEST.x+3,GY+3,CHEST.z+4,'treasure',3,{})}
   state.phase='rest';state.restT=25;$('event').style.display='none';
@@ -34,7 +34,7 @@ function endWave(){const ev=state.ev;state.wave++;realmWaveIncome();startSelfRep
   if(ev==='ambush')spawnLoot(CHEST.x-2,GY+3,CHEST.z+3,'treasure',2,{});
   if(ev==='elite')spawnLoot(CHEST.x-2,GY+3,CHEST.z+3,'recruit',Math.max(1,rollRarity(.1)),{role:pick(['sol','gun','med'])});
   $('report').style.display='block';$('report').innerHTML=`Horda ${state.wave-1} vencida · melhor combo <b>×${state.comboBest}</b> · <b>${state.wk}</b> estilhaçados · <b>${state.wwound}</b> ferido${state.wwound===1?'':'s'} · <b>${loot.filter(L=>!L.carried).length}</b> itens no chão`;
-  offerRewards();updateHud()}
+  if((state.wave-1)%5===0)offerRewards();updateHud()}
 function gameOver(){state.running=false;saveRecord();if(window.__chestLog)window.__chestLog.push('GAMEOVER '+new Error().stack.split('\n').slice(1,6).join(' < '));$('over').style.display='flex';$('overStat').textContent=`A Fortaleza caiu na horda ${state.wave} · ${state.kills} Devoradores estilhaçados`;
   $('overTitle').textContent='A bruma venceu';$('overText').textContent='O baú foi devorado. Uma Fortaleza nunca morre de verdade: acorde de novo, com o que aprendeu.';$('start').textContent='Acordar de novo';showRecord()}
 
@@ -50,7 +50,7 @@ function updateBombs(dt){for(let i=bombs.length-1;i>=0;i--){const b=bombs[i];b.v
 // ───────── new game
 function newGame(){for(const e of enemies)scene.remove(e.group);enemies.length=0;for(const m of minions)scene.remove(m.group);minions.length=0;for(const L of loot)scene.remove(L.g);loot.length=0;
   for(const t of turrets)scene.remove(t.group);turrets.length=0;for(const p of projectiles)scene.remove(p.mesh);projectiles.length=0;for(const b of bombs)scene.remove(b.mesh);bombs.length=0;for(const s of shots)scene.remove(s.mesh);shots.length=0;for(const r of rings)scene.remove(r.m);rings.length=0;claimed.clear();fuses.length=0;
-  Object.assign(state,freshState());state.running=true;setCenter(80,80);rivals.length=0;initRealm();closeRealm();cam.target.set(CX,GY+1.5,CZ);hideBoss();closeCard();for(const id of ['reward','report'])$(id).style.display='none';$('event').style.display='none';for(const id of ['buildPanel','arsenal','shop'])$(id).style.display='none';
+  Object.assign(state,freshState());state.running=true;setCenter(80,80);rivals.length=0;initRealm();closeRealm();initGoals();cam.target.set(CX,GY+1.5,CZ);hideBoss();closeCard();for(const id of ['reward','report'])$(id).style.display='none';$('event').style.display='none';for(const id of ['buildPanel','arsenal','shop'])$(id).style.display='none';
   genWorld();snapshotNature();makeTurret('cannon',TOWER_ANCHORS[0],0);makeTurret('cannon',TOWER_ANCHORS[3],0);makeTurret('ballista',KEEP_ANCHORS[2],0);spawnRivalForces();updateModeUi();
   for(const [r,dx,dz] of [['rep',-3,4],['rep',3,4],['rep',0,-4],['col',-4,5],['col',4,5],['col',-5,3],['col',5,3],['gun',-5,-5],['gun',5,5],['sol',-2,6],['sol',2,6],['sol',0,7]])makeMinion(r,0,CX+dx,CZ+dz);
   state.inv.blocks={16:12,17:6,18:8,15:4,10:6,9:2,19:2};state.inv.turrets=[{type:'ballista',r:1},{type:'flamer',r:0},{type:'tesla',r:0}];
@@ -94,6 +94,7 @@ $('bShop').onclick=()=>openSide('shop');$('shopClose').onclick=()=>closeSide('sh
 $('bHire').onclick=()=>{const h=$('hire');const open=h.style.display!=='flex';h.style.display=open?'flex':'none';if(open)renderHire()};
 $('autoEq').onchange=e=>{state.autoEquip=e.target.checked;if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);renderArsenal()};
 $('abBtn').onclick=()=>{state.autoBuild=!state.autoBuild;toast(state.autoBuild?'Construção automática ligada: os minions decidem onde construir':'Construção automática desligada','r1');updateHud()};
+$('arBtn').onclick=()=>{state.autoReward=!state.autoReward;toast(state.autoReward?'Recompensas escolhidas automaticamente (a mais rara)':'Você escolhe as recompensas','r2',true);updateHud()};
 $('auBtn').onclick=()=>{state.autoUp=!state.autoUp;state.autoEquip=state.autoUp||state.autoEquip;toast(state.autoUp?'Upgrade automático ligado: o pior vira o melhor':'Upgrade automático desligado','r2');updateHud()};
 function cycleSpeed(){gameSpeed=SPEEDS[(SPEEDS.indexOf(gameSpeed)+1)%SPEEDS.length];$('speed').textContent=`⏩ ${gameSpeed}×`;$('speed').classList.toggle('on',gameSpeed>1);toast(`Velocidade ${gameSpeed}×`,'r0')}
 $('speed').onclick=cycleSpeed;
@@ -122,7 +123,7 @@ function simulate(dt){simTime+=dt;
     rivalTick(dt);heatTick(dt);lifeTick(dt);musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
-    if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.6);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':state.combo>=15?'r3':'r2');state.combo=0}
+    if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':state.combo>=15?'r3':'r2');state.combo=0}
     $('combo').hidden=!(state.combo>=3&&simTime-state.comboT<1.6);if(!$('combo').hidden)$('combo').textContent=`×${state.combo}`;
     if(state.autoBuild||state.autoUp){state.mgAcc+=dt;if(state.mgAcc>2.5){state.mgAcc=0;if(state.autoBuild)autoBuildTick();if(state.autoUp)autoUpgradeTick()}}
     hudAcc+=dt;if(hudAcc>.25){hudAcc=0;updateHud()}}
@@ -146,7 +147,7 @@ window.__dbg=()=>({wave:state.wave,mat:Math.floor(state.material),chest:chestAli
   turrets:turrets.map(t=>`${t.type}${t.gunner&&t.gunner.state==='man'?'*':''}:${Math.round(t.hp)}`),fluids:fluids.size,burning:burning.size,armory:state.inv.armory.length,inv:JSON.stringify(state.inv.blocks),ev:state.ev,plan:blueList.filter(i=>vox[i]!==blue[i]).length,planS:blueList.filter(i=>vox[i]!==blue[i]).slice(0,8).map(i=>`${ix(i)},${iy(i)},${iz(i)} v${vox[i]} b${blue[i]} s${+supported(i)} busy${+cellBusy(i)}`).join(' | '),kills:state.kills,cols:minions.filter(m=>m.role==='col').map(m=>`${m.state} t${m.timer.toFixed(1)} @${m.pos.x.toFixed(0)},${m.pos.z.toFixed(0)} y${m.group.position.y.toFixed(1)} wc${walkCell(Math.floor(m.pos.x),Math.floor(m.pos.z))} task${m.task&&m.task.L?Math.round(m.task.L.x)+','+Math.round(m.task.L.z):'-'} bag${m.bag.length}`),lootS:loot.filter(L=>!L.carried&&!L.claimed).slice(0,6).map(L=>`${L.kind}@${L.x.toFixed(0)},${L.y.toFixed(1)},${L.z.toFixed(0)} ok${+lootOK(L)} un${+(L.unreach>simTime)} rest${+L.rest}`)});
 genWorld();placeCamera();requestAnimationFrame(frame);
 // bot used by the headless test to exercise build/arsenal paths like a player would
-window.__bot=()=>{const out=[];state.autoBuild=true;state.autoUp=true;
+window.__bot=()=>{const out=[];state.autoBuild=true;state.autoUp=true;{const B=battle();if(B&&!minions.some(m=>m.raid)&&battleOdds(B.lvl).p>.45){sendRaid();out.push('raid')}if(!state.quest&&REALM.pois.length){const P=REALM.pois.find(q=>questOdds(q).p>.6);if(P&&acceptPoi(P))out.push('poi')}}
   if(state.phase==='wave'&&state.bombCd<=0&&state.material>60){const e=enemies.find(e=>!e.dead&&!e.fly&&!inside(e.pos.x,e.pos.z));if(e){dropBomb(e.pos.x,e.pos.z);out.push('bomb')}}
   for(const L of loot)if(L.kind==='treasure'&&!L.carried){openTreasure(L);out.push('open');break}
   return out.join(' ')};
@@ -206,5 +207,6 @@ window.__rdbg=(t)=>{if(t==='win'){conquer(battle());return 'won'}if(t===60)sendR
 window.__rpos=()=>({raiders:enemies.filter(e=>e.rival&&!e.dead&&e.rmode!=='guard').map(e=>e.type+'@'+e.pos.x.toFixed(0)+','+e.pos.z.toFixed(0)+' st'+e.state+(e.path?' p'+e.path.length:'')),sols:minions.filter(m=>m.role==='sol').map(m=>m.state+'@'+m.pos.x.toFixed(0)+','+m.pos.z.toFixed(0)+' w'+(m.wounded|0)+(m.raid?' R':'')),center:[CX,CZ]});
 window.__realm=()=>({cities:REALM.cities.map(c=>c.name.slice(0,6)+':'+c.lvl+(c.fac.isMe?'*':'')+':'+Math.round(c.garrison)).join(' '),armies:REALM.armies.length,facs:new Set(REALM.cities.map(c=>c.fac.id)).size,log:REALM.log.slice(0,3).map(l=>l.txt),battle:battle()?battle().name:null,chunks:enemies.filter(e=>!e.dead&&e.chunks).slice(0,3).map(e=>e.type+':'+e.lost+'/'+e.chunks.length+' hp'+Math.round(e.hp/e.maxhp*100))});
 window.__boss=(t,f)=>{const e=makeEnemy(t||'boss',2,CX+14,CZ+30);dmgEnemy(e,e.maxhp*(f||.55),true);cam.target.set(e.pos.x,GY+2,e.pos.z);cam.dist=26;return e.lost+'/'+e.chunks.length};
-window.__matTrace=()=>{let v=state.material;const big={};Object.defineProperty(state,'material',{configurable:true,get(){return v},set(n){const d=n-v;if(d>0){const k=(new Error().stack.split('\n')[2]||'').trim().slice(0,90);big[k]=(big[k]||0)+d}v=n}});window.__matBig=()=>Object.entries(big).sort((a,b)=>b[1]-a[1]).slice(0,6)};
+window.__matTrace=()=>{let v=state.material;const big={};Object.defineProperty(state,'material',{configurable:true,get(){return v},set(n){const d=n-v;if(d>0){const k=(new Error().stack.split('\n')[2]||'').trim().split(' (')[0];big[k]=(big[k]||0)+d}v=n}});window.__matBig=()=>Object.entries(big).sort((a,b)=>b[1]-a[1]).slice(0,6)};
 window.__lootTrace=()=>{const big={};const orig=spawnLoot;window.__lt=big;spawnLootHook=(x,y,z,kind,r,data)=>{if(kind==='material'){const k=(new Error().stack.split('\n')[3]||'').trim().split(' (')[0];big[k]=(big[k]||0)+data.amount}}};
+window.__fame=()=>({fame:state.fame,rank:RANKS[rankIdx()].n,c:state.contracts.map(c=>c.k+':'+Math.floor(c.p)+'/'+c.n)});

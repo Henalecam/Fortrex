@@ -107,10 +107,15 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #over p{margin:6px 0 12px;color:var(--ink-soft);line-height:1.45}
 #over .keys{font-size:12px;color:var(--ink-soft);margin-bottom:16px;line-height:1.6}
 #over .keys kbd{font-family:var(--display);background:var(--bg);border-radius:5px;padding:1px 6px;color:var(--ink)}
+#goals{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(96px + env(safe-area-inset-top,0px));width:230px;background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;font-size:12px;z-index:3;pointer-events:none;box-shadow:0 2px 10px rgba(43,45,74,.08)}
+#goals .gr{font-family:var(--display);font-weight:700;font-size:14px;display:flex;justify-content:space-between;gap:6px}#goals .gr span{font-weight:500;color:var(--ink-soft);font-size:11px;align-self:center}
+#goals .gc{display:flex;flex-direction:column;gap:3px}#goals .gc span{color:var(--ink-soft);font-size:10.5px}#goals .gb{height:5px;border-radius:9px;background:rgba(43,45,74,.1);overflow:hidden}#goals .gb i{display:block;height:100%;background:var(--accent);border-radius:9px}
+@media (max-width:760px){#goals{display:none}}
 #realm{position:absolute;inset:0;display:none;align-items:stretch;justify-content:center;background:rgba(223,241,247,.82);backdrop-filter:blur(6px);z-index:7;padding:calc(56px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 76px max(16px,env(safe-area-inset-left,0px))}
 #realm .rwrap{position:relative;display:flex;gap:12px;width:100%;max-width:1300px}
 #realmCanvas{flex:1;min-width:0;height:100%;background:#a9d3df;border-radius:20px;box-shadow:0 8px 30px rgba(43,45,74,.15);cursor:pointer}
 #realmSide{width:260px;display:flex;flex-direction:column;gap:8px;background:var(--card);border-radius:20px;padding:14px;box-shadow:0 8px 30px rgba(43,45,74,.12);overflow:auto}
+#realmSide .odds{display:flex;flex-direction:column;gap:4px;font-size:13px;margin:4px 0}#realmSide .obar{height:8px;border-radius:99px;background:rgba(43,45,74,.1);overflow:hidden}#realmSide .obar i{display:block;height:100%;border-radius:99px}#realmSide .btn{justify-content:center}
 #realmSide .rh{font-family:var(--display);font-size:20px;font-weight:700}#realmSide .rc{margin-top:10px;display:flex;flex-direction:column;gap:6px}#realmSide .ds{color:var(--ink-soft);font-size:13px;line-height:1.4}
 @media (max-width:760px){#realm .rwrap{flex-direction:column}#realmSide{width:auto;max-height:38%}}
 #over .stat{font-family:var(--display);font-size:20px;font-weight:700;margin-bottom:12px}
@@ -120,7 +125,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 
 <canvas id="c"></canvas>
 <div id="top" class="bar">
-  <span class="title">FORTREX<small>v0.12</small></span>
+  <span class="title">FORTREX<small>v0.14</small></span>
   <span class="chip"><span class="lbl">Horda</span><b id="wave">1</b></span>
   <span class="chip"><span class="lbl">Baú</span><b id="mat">0</b><span class="lbl hide-sm">material</span></span>
   <span class="chip"><span class="lbl">Minions</span><b id="mcount">0</b><span id="wounded" class="lbl" style="color:var(--bad)"></span></span>
@@ -129,6 +134,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <span class="chip" id="clock">☀️ Dia 1</span>
   <span class="chip" id="rivalChip" style="cursor:pointer" title="Abrir o mapa do reino">🗺️ Reino</span>
   <button class="btn" id="abBtn" title="Os minions decidem onde construir, onde instalar armas e blocos, e contratam">🏗️ Construção auto</button>
+  <button class="btn" id="arBtn" title="Escolhe sozinho a recompensa mais rara a cada 5 hordas">🎁 Recompensa auto</button>
   <button class="btn" id="auBtn" title="Troca o pior pelo melhor: blocos, armas instaladas, equipamentos e upgrades">✨ Upgrade auto</button>
 </div>
 <div id="toasts"></div>
@@ -178,6 +184,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 </div>
 
 <div id="reward"><h2 id="rewardTitle">Horda vencida!</h2><div class="sub">Escolha uma recompensa.</div><div class="cards" id="rewardCards"></div></div>
+<div id="goals"></div>
 <div id="realm"><div class="rwrap"><canvas id="realmCanvas"></canvas><div id="realmSide"><button class="btn" id="realmClose" style="align-self:flex-end">✕ Fechar</button><div id="realmInfo"></div></div></div></div>
 <div id="over"><div class="card">
   <h1 id="overTitle">Fortrex</h1>

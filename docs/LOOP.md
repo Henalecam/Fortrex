@@ -30,6 +30,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.12: fortaleza inimiga com telhados e estandartes na cor do império; General rival (chefe com coroa, barra de chefe, vida/dano por nível) guarda o núcleo; no Reino, clicar num exército mostra origem, destino, força, guerreiros estimados, chegada e previsão. Teste: `node t11.js` (batalhas seguidas), `node shotb.js`.
 
+- v0.13–0.14: mapa do Reino redesenhado (litoral, rios, lagos, florestas, montanhas, estradas, territórios, castelos com torres/bandeiras, exércitos com estandarte); objetivos secundários (💀 covil de chefe, ⚔️ escaramuça, 💎 ruínas) com tempo para sumir; chance de vitória mostrada e confirmação em 2 passos antes de toda batalha; fortalezas derrotadas SOMEM (sem domínio, sem tributo), o vencedor entre rivais sobe de nível, e quando uma cai outra cresce ou nasce mais forte; o mundo cresce sozinho a cada ~3 min. Recompensas só a cada 5 hordas + 🎁 Recompensa auto; avisos só importantes (r3/r4 ou resposta a clique). Propósito: Renome, 9 títulos (Senhor de Aldeia → Lenda de Fortrex), 3 contratos ativos com progresso no HUD; subir de título dá vagas de minion e recompensa, mas o mundo endurece (vida/quantidade de inimigos por título). Economia: material cai 1× por célula (sem farm de terreno regenerado), drops menores, baús menores, menos itens. Bot (`__bot`) agora ataca fortalezas e aceita objetivos quando a chance é boa; passivo morre ~horda 8, ativo chega à 22 em 30 min.
+
 ## Backlog (próximas rodadas)
 - [ ] Reino: mensagens de embaixada (tributo/aliança)
 - [ ] Mercador de barco com loja rotativa

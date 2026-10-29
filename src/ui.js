@@ -1,5 +1,7 @@
 // ───────── ui: toasts, world labels, HUD, build mode, arsenal, unit card, hire, upgrades, rewards, tooltip
-function toast(txt,cls){const box=$('toasts');const t=document.createElement('div');t.className='toast '+(cls||'');t.textContent=txt;box.appendChild(t);while(box.children.length>5)box.firstChild.remove();setTimeout(()=>t.remove(),2700)}
+// only important messages (rare/epic events, or feedback to something the player just did) are shown
+let lastInputT=-1e9;addEventListener('pointerdown',()=>lastInputT=performance.now(),true);addEventListener('keydown',()=>lastInputT=performance.now(),true);
+function toast(txt,cls,force){if(!force&&cls!=='r3'&&cls!=='r4'&&performance.now()-lastInputT>1500)return;const box=$('toasts');const t=document.createElement('div');t.className='toast '+(cls||'');t.textContent=txt;box.appendChild(t);while(box.children.length>5)box.firstChild.remove();setTimeout(()=>t.remove(),2700)}
 const labels=[];const _v=new THREE.Vector3();
 function label(pos,txt,color){if(labels.length>40)return;const el=document.createElement('div');el.className='lab';el.textContent=txt;el.style.color=color||'#2b2d4a';$('labels').appendChild(el);labels.push({el,x:pos.x,y:(pos.y||GY)+2,z:pos.z,t:1.2})}
 function updateLabels(dt){for(let i=labels.length-1;i>=0;i--){const L=labels[i];L.t-=dt;if(L.t<=0){L.el.remove();labels.splice(i,1);continue}_v.set(L.x,L.y,L.z).project(camera);L.el.style.left=((_v.x+1)/2*innerWidth)+'px';L.el.style.top=((1-_v.y)/2*innerHeight)+'px'}}
@@ -12,7 +14,7 @@ function updateHud(){$('wave').textContent=state.wave;$('mat').textContent=Math.
   $('focusCd').textContent=state.focusCd>0?Math.ceil(state.focusCd)+'s':'pronto';$('focus').classList.toggle('on',state.focusT>0);
   $('bombCd').textContent=state.bombCd>0?Math.ceil(state.bombCd)+'s':'25';$('bomb').classList.toggle('armed',state.bombMode);
   $('arsN').textContent=state.newItems?String(state.newItems):'';$('arsN').hidden=!state.newItems;
-  $('bBuild').classList.toggle('on',state.build.on);$('abBtn').classList.toggle('on',state.autoBuild);$('auBtn').classList.toggle('on',state.autoUp);
+  $('bBuild').classList.toggle('on',state.build.on);$('abBtn').classList.toggle('on',state.autoBuild);$('auBtn').classList.toggle('on',state.autoUp);$('arBtn').classList.toggle('on',!!state.autoReward);
   {const rp=raidPower();const c=$('rivalChip');if(rp){const w=rp.us/(rp.us+rp.them+.01);c.textContent=`⚔️ ${rp.R.name}: ${rp.us.toFixed(0)} vs ${rp.them.toFixed(0)} · núcleo ${rp.core}/8 · ${w>.6?'vantagem':w>.4?'equilibrado':'perigo!'}`;c.style.color=w>.6?'#2f9a5e':w>.4?'#c99a1a':'#d9414f'}else{c.style.color='';const B=battle();const inc=REALM.armies.filter(A=>A.to.home).length;c.textContent=B?`⚔️ Guerra: ${B.name} nv ${B.lvl} · núcleo ${B.core.filter(i=>vox[i]===21).length}/8`:`🗺️ ${REALM.cities.length} fortalezas${inc?` · ⚠️ ${inc} exército${inc>1?'s':''} vindo`:''}`;if(!B&&inc)c.style.color='#d9414f'}}
   if(state.card)renderCard()}
 
@@ -114,7 +116,7 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
 // ── hire
 function renderHire(){const el=$('hire');let h='';for(const r in ROLES){const R=ROLES[r];h+=`<button class="btn" data-h="${r}" ${state.material<R.cost?'disabled':''} title="${esc(R.d)}">${R.ico} ${R.n} <span class="cost">${R.cost}</span></button>`}el.innerHTML=h;
   for(const b of el.querySelectorAll('[data-h]'))b.onclick=()=>{hire(b.dataset.h);renderHire()}}
-function hire(role){const R=ROLES[role];if(minions.length>=MAX_MINIONS){toast(`Limite de ${MAX_MINIONS} minions: a cidadela está lotada`,'r0');return}if(state.material<R.cost)return;state.material-=R.cost;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);
+function hire(role){const R=ROLES[role];if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){toast(`Limite de ${MAX_MINIONS+MAX_MINIONS_BONUS} minions: a cidadela está lotada`,'r0');return}if(state.material<R.cost)return;state.material-=R.cost;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);
   toast(`${m.name}, ${R.n} ${RARITY[r].n}${m.trait?' · '+m.trait:''}`,RARITY[r].css);SFX.pop();if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);updateHud()}
 
 // ── upgrades
@@ -150,10 +152,12 @@ function rewardPool(){const w=state.wave,rr=()=>rollRarity(w*.006+state.luck),P=
   P.push(()=>{const r=rr();const n=25+r*15+w*3;return{r,ico:'📦',nm:'Carga de material',ds:`+${n} material no baú.`,go(){state.material+=n}}});
   if(minions.some(m=>m.wounded>0))P.push(()=>({r:1,ico:'💊',nm:'Enfermaria cheia',ds:'Todos os feridos voltam agora.',go(){for(const m of minions)if(m.wounded>0)m.wounded=.01}}));
   return P}
-function offerRewards(){state.choosing=true;const pool=rewardPool();const picks=[];while(picks.length<3&&pool.length){const i=Math.floor(Math.random()*pool.length);picks.push(pool.splice(i,1)[0]())}
+function offerRewards(){const pool=rewardPool();const picks=[];while(picks.length<3&&pool.length){const i=Math.floor(Math.random()*pool.length);const R=pool.splice(i,1)[0]();R.r=Math.min(4,R.r+(Math.random()<.5?1:0));picks.push(R)}
+  if(state.autoReward&&picks.length){const R=picks.sort((a,b)=>b.r-a.r)[0];R.go();SFX.loot(R.r);toast(`🎁 Recompensa automática: ${R.nm} (${RARITY[R.r].n})`,RARITY[R.r].css,true);refreshPanels();updateHud();return}state.choosing=true;
   const box=$('rewardCards');box.innerHTML='';$('rewardTitle').textContent=`Horda ${state.wave-1} vencida!`;
   for(const R of picks){const el=document.createElement('button');el.className='rcard '+RARITY[R.r].css;el.innerHTML=`<div class="ico">${R.ico}</div><div class="nm">${esc(R.nm)}</div><div class="ds">${esc(R.ds)}</div><div class="rr">${RARITY[R.r].n}</div>`;
     el.onclick=()=>{R.go();SFX.loot(R.r);$('reward').style.display='none';state.choosing=false;refreshPanels();updateHud()};box.appendChild(el)}
+  {const a=document.createElement('button');a.className='btn';a.style.cssText='margin-top:10px';a.textContent='🎁 Escolher automaticamente daqui pra frente';a.onclick=()=>{state.autoReward=true;const R=picks.slice().sort((x,y)=>y.r-x.r)[0];R.go();SFX.loot(R.r);$('reward').style.display='none';state.choosing=false;refreshPanels();updateHud()};box.appendChild(a)}
   $('reward').style.display='flex';SFX.loot(1)}
 
 // ── boss bar, tooltip

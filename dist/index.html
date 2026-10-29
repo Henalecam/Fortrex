@@ -114,10 +114,15 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #over p{margin:6px 0 12px;color:var(--ink-soft);line-height:1.45}
 #over .keys{font-size:12px;color:var(--ink-soft);margin-bottom:16px;line-height:1.6}
 #over .keys kbd{font-family:var(--display);background:var(--bg);border-radius:5px;padding:1px 6px;color:var(--ink)}
+#goals{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:calc(96px + env(safe-area-inset-top,0px));width:230px;background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;font-size:12px;z-index:3;pointer-events:none;box-shadow:0 2px 10px rgba(43,45,74,.08)}
+#goals .gr{font-family:var(--display);font-weight:700;font-size:14px;display:flex;justify-content:space-between;gap:6px}#goals .gr span{font-weight:500;color:var(--ink-soft);font-size:11px;align-self:center}
+#goals .gc{display:flex;flex-direction:column;gap:3px}#goals .gc span{color:var(--ink-soft);font-size:10.5px}#goals .gb{height:5px;border-radius:9px;background:rgba(43,45,74,.1);overflow:hidden}#goals .gb i{display:block;height:100%;background:var(--accent);border-radius:9px}
+@media (max-width:760px){#goals{display:none}}
 #realm{position:absolute;inset:0;display:none;align-items:stretch;justify-content:center;background:rgba(223,241,247,.82);backdrop-filter:blur(6px);z-index:7;padding:calc(56px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 76px max(16px,env(safe-area-inset-left,0px))}
 #realm .rwrap{position:relative;display:flex;gap:12px;width:100%;max-width:1300px}
 #realmCanvas{flex:1;min-width:0;height:100%;background:#a9d3df;border-radius:20px;box-shadow:0 8px 30px rgba(43,45,74,.15);cursor:pointer}
 #realmSide{width:260px;display:flex;flex-direction:column;gap:8px;background:var(--card);border-radius:20px;padding:14px;box-shadow:0 8px 30px rgba(43,45,74,.12);overflow:auto}
+#realmSide .odds{display:flex;flex-direction:column;gap:4px;font-size:13px;margin:4px 0}#realmSide .obar{height:8px;border-radius:99px;background:rgba(43,45,74,.1);overflow:hidden}#realmSide .obar i{display:block;height:100%;border-radius:99px}#realmSide .btn{justify-content:center}
 #realmSide .rh{font-family:var(--display);font-size:20px;font-weight:700}#realmSide .rc{margin-top:10px;display:flex;flex-direction:column;gap:6px}#realmSide .ds{color:var(--ink-soft);font-size:13px;line-height:1.4}
 @media (max-width:760px){#realm .rwrap{flex-direction:column}#realmSide{width:auto;max-height:38%}}
 #over .stat{font-family:var(--display);font-size:20px;font-weight:700;margin-bottom:12px}
@@ -127,7 +132,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 
 <canvas id="c"></canvas>
 <div id="top" class="bar">
-  <span class="title">FORTREX<small>v0.12</small></span>
+  <span class="title">FORTREX<small>v0.14</small></span>
   <span class="chip"><span class="lbl">Horda</span><b id="wave">1</b></span>
   <span class="chip"><span class="lbl">Baú</span><b id="mat">0</b><span class="lbl hide-sm">material</span></span>
   <span class="chip"><span class="lbl">Minions</span><b id="mcount">0</b><span id="wounded" class="lbl" style="color:var(--bad)"></span></span>
@@ -136,6 +141,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <span class="chip" id="clock">☀️ Dia 1</span>
   <span class="chip" id="rivalChip" style="cursor:pointer" title="Abrir o mapa do reino">🗺️ Reino</span>
   <button class="btn" id="abBtn" title="Os minions decidem onde construir, onde instalar armas e blocos, e contratam">🏗️ Construção auto</button>
+  <button class="btn" id="arBtn" title="Escolhe sozinho a recompensa mais rara a cada 5 hordas">🎁 Recompensa auto</button>
   <button class="btn" id="auBtn" title="Troca o pior pelo melhor: blocos, armas instaladas, equipamentos e upgrades">✨ Upgrade auto</button>
 </div>
 <div id="toasts"></div>
@@ -185,6 +191,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 </div>
 
 <div id="reward"><h2 id="rewardTitle">Horda vencida!</h2><div class="sub">Escolha uma recompensa.</div><div class="cards" id="rewardCards"></div></div>
+<div id="goals"></div>
 <div id="realm"><div class="rwrap"><canvas id="realmCanvas"></canvas><div id="realmSide"><button class="btn" id="realmClose" style="align-self:flex-end">✕ Fechar</button><div id="realmInfo"></div></div></div></div>
 <div id="over"><div class="card">
   <h1 id="overTitle">Fortrex</h1>
@@ -369,7 +376,7 @@ function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m)
 function removeVox(i,src){const m=vox[i];if(!m)return;const x=ix(i),y=iy(i),z=iz(i);
   spawnDebris(x+.5,y+.5,z+.5,MAT[m].c,m>=11&&m<=13?3:5,.45);
   if(src==='dig'&&natBlue)natBlue[i]=0;
-  if(m!==11&&src!=='dig'&&!blue[i]&&Math.random()<(rown[i]?.12:m===12||m===13?.08:.3))spawnLoot(x+.5,y+.6,z+.5,'material',0,{amount:1});
+  if(m!==11&&src!=='dig'&&!blue[i]&&!looted[i]&&(looted[i]=1)&&Math.random()<(rown[i]?.06:m===12||m===13?.04:.15))spawnLoot(x+.5,y+.6,z+.5,'material',0,{amount:1});
   setVox(i,0);SFX.crunch(m===4);settleDirty=true;checkTurretAnchor(i);if(m===5)checkChest();
   if(m===10)pendingBooms.push({x:x+.5,y:y+.5,z:z+.5,r:2.7,dmg:95,o:{fire:true,src:blue[i]?'player':'env'},t:.12});
   if(m===17)pendingBooms.push({x:x+.5,y:y+.5,z:z+.5,r:2.8,dmg:130,o:{fire:false,src:'player'},t:.05})}
@@ -432,7 +439,7 @@ function settle(){settleDirty=false;if(!removedQ.length)return;settlePass++;cons
     while(st.length){const c=st.pop();const x=ix(c),y=iy(c),z=iz(c);if(y===0||chestSet.has(c)){grounded=true;break}if(comp.length>14000){grounded=true;break}
       for(let k=NB6.length-1;k>=0;k--){const [dx,dy,dz]=NB6[(k+3)%6];const nx=x+dx,ny=y+dy,nz=z+dz;if(!inb(nx,ny,nz))continue;const j=idx(nx,ny,nz);if(_seenS[j]===settlePass||!SOLIDM(vox[j]))continue;_seenS[j]=settlePass;comp.push(j);st.push(j)}}
     if(grounded)continue;
-    for(const i of comp){const m=vox[i];if(!m)continue;spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[m].c,1,.95);if(!blue[i]&&Math.random()<(rown[i]?.1:m>=12&&m<=13?.1:.45))spawnLoot(ix(i)+.5,iy(i)+.6,iz(i)+.5,'material',0,{amount:1});
+    for(const i of comp){const m=vox[i];if(!m)continue;spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[m].c,1,.95);if(!blue[i]&&!looted[i]&&(looted[i]=1)&&Math.random()<(rown[i]?.05:m>=12&&m<=13?.04:.18))spawnLoot(ix(i)+.5,iy(i)+.6,iz(i)+.5,'material',0,{amount:1});
       const wasBarrel=m===10;vox[i]=0;hp[i]=0;burning.delete(i);damaged.delete(i);specials.delete(i);markCol(ix(i),iz(i));fell++;checkTurretAnchor(i);if(rown[i])rivalHit(i);if(wasBarrel)pendingBooms.push({x:ix(i)+.5,y:iy(i)+.5,z:iz(i)+.5,r:2.5,dmg:90,o:{fire:true,src:'env'},t:.3})}
     for(const i of comp)touch(i)}
   if(fell>0){SFX.boom(fell>20);shake=Math.min(1.2,shake+.3+fell*.02);checkChest()}}
@@ -494,7 +501,8 @@ function checkChest(){if(state.running&&chestAlive()===0)gameOver()}
 
 // zones kept free of terrain decoration: player city, rival cities, outposts
 function cityZones(){const z=[[CX,CZ,WR+5]];for(const [ox,oz] of OUTPOSTS)z.push([ox,oz,5]);for(const R of (typeof rivals!=='undefined'?rivals:[]))z.push([R.cx,R.cz,R.wr+5]);return z}
-function genWorld(){vox.fill(0);hp.fill(0);rown.fill(0);fluids.clear();fluidSrc.clear();burning.clear();specials.clear();damaged.clear();pendingBooms.length=0;resetFluidSlots();resetVoxSlots();
+const looted=new Uint8Array(N);// a cell pays material only once, so regrown/rebuilt terrain is not a farm
+function genWorld(){vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.clear();fluidSrc.clear();burning.clear();specials.clear();damaged.clear();pendingBooms.length=0;resetFluidSlots();resetVoxSlots();
   computeLayout();planRivals();buildBlueprint();
   const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);vox[i]=m;hp[i]=FLUID(m)?4:MAT[m].hp;if(FLUID(m)){fluids.add(i);fluidSrc.add(i)}};
   const zones=cityZones();const inZone=(x,z,r)=>zones.some(([zx,zz,zr])=>Math.abs(x-zx)<zr+r&&Math.abs(z-zz)<zr+r);
@@ -626,10 +634,10 @@ function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)
     if(L.ring){const p=L.prio?1.3+Math.sin(L.t*8)*.25:1;L.ring.scale.set(p,p,p)}if(L.bm)L.bm.material.opacity=.14+Math.sin(L.t*3)*.08;
     if(L.kind==='treasure')L.main.rotation.y=Math.sin(L.t*1.5)*.3}}
 function lootPick(kind,r,big){const k=Math.random();
-  if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:6+r*6}]}}
+  if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:4+r*4}]}}
 function randBlockPack(r){const pool=r>=3?[16,17,18,15,10,14,19,20,9,8]:r>=2?[16,17,18,15,10,14,19,9]:r>=1?[16,17,18,15,10,14]:[16,17,18,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
 function randTurretType(){return pick(['ballista','flamer','mortar','tesla','frost','cannon','ballista','tesla'])}
-function openTreasure(L){removeLoot(L);const r=L.r;const n=3+r+rint(0,1);
+function openTreasure(L){removeLoot(L);const r=L.r;const n=2+Math.ceil(r*.7)+rint(0,1);
   for(let k=0;k<n;k++){const rr=k===0?r:Math.max(0,Math.min(r,rollRarity(r*.06+state.luck)));const [kind,data]=lootPick('any',rr);
     const it=spawnLoot(L.x,L.y+.6,L.z,kind,rr,data);if(it){const a=k/n*Math.PI*2;it.vx=Math.cos(a)*rnd(3,5);it.vz=Math.sin(a)*rnd(3,5);it.vy=rnd(6,9)}}
   if(Math.random()<.25+r*.1)spawnLoot(L.x,L.y+.6,L.z,'recruit',Math.max(1,r-1),{role:pick(['rep','col','gun','sol','med'])});
@@ -642,7 +650,7 @@ function deposit(L,m){const d=L.data;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treas
     case'equip':{state.inv.armory.push(d.item);state.newItems++;if(!(state.autoEquip&&autoEquip(d.item)))toast(`${d.item.n} ${RARITY[L.r].n} no arsenal`,RARITY[L.r].css);break}
     case'block':{addBlocks(d.m,d.n);state.newItems++;toast(`+${d.n} ${MAT[d.m].n} para construir`,RARITY[L.r].css);break}
     case'turret':{state.inv.turrets.push({type:d.type,r:L.r});state.newItems++;toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
-    case'recruit':{if(minions.length>=MAX_MINIONS){const g=12*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
+    case'recruit':{if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){const g=6*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
   if(L.r>=1)SFX.loot(L.r);refreshPanels()}
 
 // ───────── turrets: defensive weapons placed on any block
@@ -792,7 +800,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(type==='shaman'){box(.1*US,1.4*US,.1*US,0x6b5235,.45*US,.9*US,.2*US,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.2*US,0),lmat(0x7dff9a,.8));o.position.set(.45*US,1.7*US,.2*US);g.add(o)}
   if(rarity>=2){head.material.emissive.setHex(RARITY[rarity].c);head.material.emissiveIntensity=.5;head.userData.em=RARITY[rarity].c}
   g.position.set(x,0,z);scene.add(g);
-  const w=state.wave;const scale=(1+.12*(w-1))*(w>10?1+.07*(w-10):1)*(w>18?1+.06*(w-18):1);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?.8:1);
+  const w=state.wave;const scale=(1+.135*(w-1))*(w>10?1+.075*(w-10):1)*(w>18?1+.06*(w-18):1)*(1+(state.rank||0)*.08);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?.8:1);
   const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US,state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
     speed:T.speed*1.5*rnd(.9,1.1)*(state.ev==='elite'?1.15:1),parts:[body,head],sc,legs,fly:type==='flyer',alt:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   setupChunks(e,body,head);
@@ -805,17 +813,17 @@ function hurtEnemy(e,d,at){if(e.dead)return;
       const down=e.legs.filter(L=>!L.alive).length;toast(down>=2?'O Colosso perdeu as pernas — vai cair!':'Perna do Colosso destruída!','r3');if(down>=2)killEnemy(e)}return}
     d*=e.stun>0?1.4:.35}
   const crit=Math.random()<.1+state.critBonus;if(crit)d*=2;if(Math.random()<.35)SFX.hurt();dmgEnemy(e,d,true,crit)}
-function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t=e.type,big=BIG(t);
+function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t=e.type,big=BIG(t);goalEvent('kills');if(big)goalEvent('boss');
   spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?140:t==='boss'?60:t==='ram'?18:10,big?.8:.4);SFX.shatter(t!=='crawler');
   hitstop=Math.max(hitstop,t==='colossus'?.22:t==='boss'?.14:.05);shake=Math.max(shake,t==='colossus'?1.4:t==='boss'?.9:.22);if(big){hideBoss();slowmo=1.3;toast(`${e.T.n} derrotado!`,'r4')}
   if(t==='colossus'){const fx=e.pos.x+Math.sin(e.group.rotation.y)*3,fz=e.pos.z+Math.cos(e.group.rotation.y)*3;pendingBooms.push({x:fx,y:GY+.5,z:fz,r:3.6,dmg:230,o:{src:'env'},t:.25});toast('O Colosso desabou!','r4')}
   dropTable(e);state.kills++;state.wk++;addCombo(e)}
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
-  at('material',0,{amount:({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40})[t]+r*2});
+  at('material',0,{amount:Math.max(1,Math.round(({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40})[t]*.6+r))});
   const luck=state.wave*.004+r*.04+state.luck+(state.ev==='golden'?.1:0);
   const P=({crawler:.11,ram:.24,climber:.14,sapper:.12,flyer:.16,shaman:.45,boss:1,colossus:1,queen:1,titan:1,knight:.3,archer:.25,rammer:.35,general:1})[t];
-  const n=t==='titan'?7:t==='queen'||t==='colossus'?5:t==='boss'?3:1;for(let k=0;k<n;k++)if(Math.random()<P){const rr=Math.max(Math.min(r,3),rollRarity(luck+(big?.15:0)));const [kind,data]=lootPick('any',rr);at(kind,rr,data)}
+  const n=t==='titan'?7:t==='queen'||t==='colossus'?5:t==='boss'?3:1;for(let k=0;k<n;k++)if(Math.random()<P*(big?1:.6)){const rr=Math.max(Math.min(r,3),rollRarity(luck+(big?.15:0)));const [kind,data]=lootPick('any',rr);at(kind,rr,data)}
   if(Math.random()<(big?.7:r>=2?.18:.035))at('recruit',Math.max(1,rollRarity(luck)),{role:pick(['rep','col','gun','sol','med','sol'])});
   if(big||Math.random()<(r>=2?.35:.03))at('treasure',big?Math.max(t==='titan'?4:t==='colossus'||t==='queen'?3:2,rollRarity(luck+.1)):Math.max(1,rollRarity(luck)),{})}
 const _dir=new THREE.Vector3();
@@ -1044,7 +1052,7 @@ function spawnRivalUnit(R,mode){const type=pick(mode==='raid'?['knight','knight'
   const hx=CX-R.cx,hz=CZ-R.cz,hl=Math.hypot(hx,hz)||1;const x=mode==='raid'?R.cx+hx/hl*(R.wr+3+rnd(0,2))+rnd(-2,2):R.cx+Math.cos(a)*r,z=mode==='raid'?R.cz+hz/hl*(R.wr+3+rnd(0,2))+rnd(-2,2):R.cz+Math.sin(a)*r;const e=makeEnemy(type,Math.min(4,Math.max(0,rollRarity(R.lvl*.05))),x,z);e.rival=R;e.rmode=mode;e.home={x,z};if(mode==='guard')R.guards.push(e);return e}
 function rivalTick(dt){realmTick(dt);if(!rivals.length)return;
   for(const R of rivals){if(!R.alive)continue;
-    R.raidT-=dt;if(R.raidT<=0){R.raidT=(R.kind==='defend'?50:80)*rnd(.8,1.2)/Math.min(2.5,1+R.lvl*.15);const n=3+R.lvl*2+Math.floor(simTime/240);const foes=rivals.filter(o=>o!==R&&o.alive);
+    R.raidT-=dt;if(R.raidT<=0){R.raidT=(R.kind==='defend'?65:85)*rnd(.8,1.2)/Math.min(2,1+R.lvl*.08);const n=Math.min(16,2+R.lvl+Math.floor(simTime/300));const foes=rivals.filter(o=>o!==R&&o.alive);
       if(foes.length&&Math.random()<.4){const F=pick(foes);for(let k=0;k<n;k++){const e=spawnRivalUnit(R,'war');e.foe=F}toast(`Guerra! ${R.name} marcha contra ${F.name}`,'r2')}
       else{for(let k=0;k<n;k++)spawnRivalUnit(R,'raid');toast(`Raid de ${R.name}: ${n} guerreiros a caminho!`,'r3')}SFX.boom(true)}
     R.guards=R.guards.filter(e=>!e.dead);if(R.guards.length<2+R.lvl&&Math.random()<dt*.05)spawnRivalUnit(R,'guard');
@@ -1058,7 +1066,7 @@ function conquer(R){if(!R.alive)return;R.alive=false;slowmo=1.5;shake=1.4;toast(
   for(let k=0;k<2;k++)spawnLoot(R.cx+rnd(-2,2),GY+3,R.cz+rnd(-2,2),'treasure',Math.min(4,1+Math.floor(R.lvl/3)+(k===0?1:0)),{});
   for(const t of turrets)if(t.alive&&t.R===R){killTurret(t,true)}for(const e of enemies)if(e.rival===R&&e.rmode==='guard'&&!e.dead){killEnemy(e)}
   pendingBooms.push({x:R.cx+.5,y:GY+1,z:R.cz+.5,r:5,dmg:200,o:{src:'env',fire:true},t:.2});state.conquests=(state.conquests||0)+1;
-  for(const m of minions)if(m.raid===R)m.raid=null;state.material+=60*R.lvl;battleWon(R);updateModeUi();label({x:R.cx,y:GY+4,z:R.cz},`+${60*R.lvl}`,'#c99a1a')}
+  for(const m of minions)if(m.raid===R)m.raid=null;state.material+=10*R.lvl;battleWon(R);updateModeUi();label({x:R.cx,y:GY+4,z:R.cz},`+${10*R.lvl}`,'#c99a1a')}
 function nextRivalRound(){state.rivalLvl=(state.rivalLvl||1)+1;state.duelWon=false;pendingBooms.length=0;for(const R of rivals){for(const [i] of R.rblue){if(rown[i]){vox[i]=0;rown[i]=0}}}
   const saved=rivals.slice();planRivals();const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);vox[i]=m;hp[i]=MAT[m].hp};buildRivals(put);
   for(let x=0;x<W;x++)for(let z=0;z<D;z++)for(let y=GY-1;y<H;y++){const i=idx(x,y,z);if(rown[i]||saved.some(R=>Math.abs(x-R.cx)<R.wr+3&&Math.abs(z-R.cz)<R.wr+3)){hp[i]=vox[i]?maxHpOf(vox[i]):0;markCol(x,z);touch(i)}}
@@ -1155,7 +1163,7 @@ function musicTick(dt){if(!soundOn||!AC||window.__headless)return;musT-=dt;if(mu
 
 // ───────── the Realm: a living strategic map of fortresses that grow, wage war on each other and on us.
 // The voxel map is always our own land; a fortress battle builds the enemy citadel on one side of it.
-const REALM={cities:[],armies:[],facs:[],log:[],t:0,spawnT:70,sel:null,open:false,nextId:1};
+const REALM={cities:[],armies:[],facs:[],pois:[],log:[],t:0,spawnT:70,sel:null,open:false,nextId:1,deco:null};
 const FAC_COLORS=[0xe8a21f,0xd9414f,0x8e5bd6,0x2f9a5e,0x2aa7b8,0xc4497f,0x7a7f3a,0x9b5a35,0x3d5bd6,0xe0662c,0x3f8f8a,0x6b4f9e];
 const CITY_NAMES=['Cinzaforte','Garra Rubra','Pico do Corvo','Muralha Negra','Ponte de Ossos','Vale Sombrio','Trono de Ferro','Forja Rubra','Ninho de Vespas','Rocha Uivante','Dente de Lobo','Brasa Eterna','Torre Partida','Fosso Frio','Coroa de Espinhos','Lâmina Cinza','Olho da Tormenta','Bastião Velho','Cripta Dourada','Penhasco Rubro'];
 const BATTLE_SLOTS=()=>[[CX+56,CZ],[CX-56,CZ],[CX,CZ+56],[CX,CZ-56]];
@@ -1165,7 +1173,7 @@ function addCity(x,y,lvl,fac,o={}){const c={id:REALM.nextId++,name:o.name||rName
 function homeCity(){return REALM.cities.find(c=>c.home)}
 function cityDef(c){return c.lvl*4+c.garrison*.8}
 function rlog(txt,css='r0'){REALM.log.unshift({txt,css,t:simTime});REALM.log.length=Math.min(REALM.log.length,7)}
-function initRealm(){REALM.cities.length=0;REALM.armies.length=0;REALM.facs.length=0;REALM.log.length=0;REALM.t=0;REALM.spawnT=150;REALM.sel=null;REALM.nextId=1;
+function initRealm(){REALM.cities.length=0;REALM.armies.length=0;REALM.pois.length=0;REALM.poiT=45;REALM.deco=null;REALM.selA=null;REALM.confirm=null;state.quest=null;REALM.facs.length=0;REALM.log.length=0;REALM.t=0;REALM.spawnT=150;REALM.sel=null;REALM.nextId=1;
   const me=newFac(0xe8a21f,'Fortrex',true);addCity(500,500,1,me,{name:'Fortrex',home:true});
   const n=10;for(let k=0;k<n;k++){const a=k/n*Math.PI*2+rnd(-.2,.2),r=k%2?rnd(170,260):rnd(300,430);const f=newFac(FAC_COLORS[1+k%(FAC_COLORS.length-1)],'');const c=addCity(500+Math.cos(a)*r,500+Math.sin(a)*r*.82,r<280?rint(1,2):rint(2,3),f);f.name=c.name}
   rlog('Dez fortalezas dividem o reino. Observe, cresça, conquiste.','r2')}
@@ -1174,7 +1182,7 @@ function realmTick(dt){if(!REALM.cities.length)return;REALM.t+=dt;if(state.battl
   for(const c of REALM.cities){const cap=c.lvl*22;if(c.garrison<cap)c.garrison=Math.min(cap,c.garrison+dt*(.04+c.lvl*.03));
     if(c.fac.isMe)continue;c.raidT-=dt;if(c.raidT>0||c.garrison<12)continue;c.raidT=rnd(35,80)/Math.min(2,1+c.lvl*.1);
     // pick a nearby target of another faction: weaker is likelier, our home is always tempting
-    const grace=simTime<220;const cand=REALM.cities.filter(o=>o.fac!==c.fac&&!(grace&&o.fac.isMe)).map(o=>({o,s:Math.hypot(o.x-c.x,o.y-c.y)*(o.home?.7:1)+cityDef(o)*2*Math.random()})).sort((a,b)=>a.s-b.s);if(!cand.length)continue;
+    const grace=simTime<300;const cand=REALM.cities.filter(o=>o.fac!==c.fac&&!(grace&&o.fac.isMe)).map(o=>({o,s:Math.hypot(o.x-c.x,o.y-c.y)*(o.home?1.25:1)+cityDef(o)*2*Math.random()})).sort((a,b)=>a.s-b.s);if(!cand.length)continue;
     const T=cand[Math.min(cand.length-1,Math.random()<.7?0:1)].o;const g0=c.garrison*rnd(.5,.75);c.garrison-=g0;const p=g0+c.lvl*4;REALM.armies.push({from:c,to:T,fac:c.fac,power:p,x:c.x,y:c.y,speed:rnd(9,13)});
     if(T.fac.isMe)rlog(`${c.name} marcha contra ${T.home?'você':T.name}!`,'r3')}
   for(let i=REALM.armies.length-1;i>=0;i--){const A=REALM.armies[i];const dx=A.to.x-A.x,dy=A.to.y-A.y,d=Math.hypot(dx,dy);const st=A.speed*dt;
@@ -1182,12 +1190,14 @@ function realmTick(dt){if(!REALM.cities.length)return;REALM.t+=dt;if(state.battl
   // new, stronger fortresses rise at the edges of the known world
   REALM.spawnT-=dt;const foes=REALM.cities.filter(c=>!c.fac.isMe);if(REALM.spawnT<=0&&(foes.length<10||Math.random()<.3)){REALM.spawnT=rnd(70,120);const top=Math.max(1,...REALM.cities.map(c=>c.lvl));
     const a=rnd(0,Math.PI*2);const f=newFac(FAC_COLORS[1+REALM.facs.length%(FAC_COLORS.length-1)],'');const c=addCity(clamp(500+Math.cos(a)*rnd(380,470),40,960),clamp(500+Math.sin(a)*rnd(330,420),40,960),Math.min(12,top+rint(0,1)),f);f.name=c.name;rlog(`Uma nova fortaleza surge: ${c.name} (nv ${c.lvl})`,'r3')}
-  if(H0)H0.lvl=1+(state.conquests||0)}
+  // the world keeps getting stronger whether you fight or not
+  REALM.growT=(REALM.growT??180)-dt;if(REALM.growT<=0){REALM.growT=rnd(140,210);const foes2=REALM.cities.filter(c=>!c.fac.isMe);if(foes2.length){const c=pick(foes2);c.lvl=Math.min(20,c.lvl+1);c.garrison+=c.lvl*3;c.flash=simTime;rlog(`${c.name} cresce para nv ${c.lvl}`,'r0')}}
+  poiTick(dt);if(H0)H0.lvl=1+(state.conquests||0)}
 function arrive(A){const T=A.to;if(A.fac===T.fac){T.garrison+=A.power;return}
   if(T.home){// they come for us: a fortress-vs-fortress battle, or a raid if we are already at war
-    const src=A.from;if(!battle()&&!(state.battleCd>0)&&src.fac===A.fac){startBattle(src,'defend',A.power)}else{const n=Math.min(14,3+Math.round(A.power/6));const R=battle();for(let k=0;k<n;k++){const e=edgeRaider(src,A.power)}toast(`Tropas de ${src.name} invadem suas terras: ${n} guerreiros!`,'r3')}return}
-  const def=cityDef(T);if(A.power>def*rnd(.8,1.2)){const old=T.fac;const lost=old.isMe;T.fac=A.fac;T.garrison=Math.max(4,(A.power-def)*.6);const src=A.from;if(src.fac===A.fac)src.lvl=Math.min(14,src.lvl+1);
-    rlog(`${src.name} conquistou ${T.name}${lost?' (era sua!)':''}. ${src.name} sobe para nv ${src.lvl}`,lost?'r3':'r1');if(lost)toast(`Perdemos ${T.name} para ${src.name}!`,'r3')}
+    const src=A.from;if(!battle()&&!(state.battleCd>0)&&src.fac===A.fac){startBattle(src,'defend',A.power)}else{const n=Math.min(10,2+Math.round(A.power/8));const R=battle();for(let k=0;k<n;k++){const e=edgeRaider(src,A.power)}toast(`Tropas de ${src.name} invadem suas terras: ${n} guerreiros!`,'r3')}return}
+  const def=cityDef(T);if(A.power>def*rnd(.8,1.2)){const src=A.from;removeCity(T);if(REALM.cities.includes(src)){src.lvl=Math.min(20,src.lvl+1);src.garrison+=Math.max(4,(A.power-def)*.6)+T.garrison*.3;src.flash=simTime}
+    rlog(`${src.name} destruiu ${T.name} e sobe para nv ${src.lvl}`,'r1');riseAfterFall(T,src)}
   else{T.garrison=Math.max(1,T.garrison-A.power*.5);rlog(`${T.name} repeliu ${A.from.name}`,'r0')}}
 function edgeRaider(src,power){const H0=homeCity();const a=Math.atan2(src.y-H0.y,src.x-H0.x);const x=clamp(CX+Math.cos(a)*(W*.46),3,W-4),z=clamp(CZ+Math.sin(a)*(D*.46),3,D-4);
   const fakeR={alive:true,lvl:src.lvl,name:src.name,guards:[],cx:x,cz:z,wr:0,core:[],edge:true};const e=makeEnemy(pick(['knight','knight','archer','rammer']),Math.min(4,rollRarity(src.lvl*.04)),x+rnd(-3,3),z+rnd(-3,3));e.rival=fakeR;e.rmode='raid';e.home={x,z};return e}
@@ -1200,52 +1210,143 @@ function startBattle(c,kind,power){if(battle())return false;clearBattleRuins();c
   buildRivals(put);for(let x=cx-R.wr-3;x<=cx+R.wr+3;x++)for(let z=cz-R.wr-3;z<=cz+R.wr+3;z++){if(x<0||z<0||x>=W||z>=D)continue;for(let y=GY-1;y<H;y++){const i=idx(x,y,z);hp[i]=vox[i]?MAT[vox[i]].hp:0;touch(i)}markCol(x,z)}
   if(natBlue)for(const [i] of R.rblue)natBlue[i]=0;
   spawnRivalForces();updateModeUi();shake=1;SFX.boom(true);
-  if(kind==='defend'){toast(`⚔️ ${c.name} (nv ${c.lvl}) ergueu uma fortaleza de cerco nas suas terras! Destrua o núcleo vermelho.`,'r3');rlog(`${c.name} sitia Fortrex!`,'r3')}
+  const od=battleOdds(c.lvl);if(kind==='defend'){toast(`⚔️ ${c.name} (nv ${c.lvl}) ergueu uma fortaleza de cerco nas suas terras! Chance de vitória: ${pctS(od.p)} (${oddsText(od.p)}). Destrua o núcleo vermelho.`,'r3');rlog(`${c.name} sitia Fortrex!`,'r3')}
   else{toast(`⚔️ Guerra contra ${c.name} (nv ${c.lvl})! A fortaleza deles está à vista. Use ⚔️ Atacar.`,'r2');rlog(`Fortrex declara guerra a ${c.name}`,'r2')}
   cam.target.set((cx+CX)/2,GY+1.5,(cz+CZ)/2);return true}
-function battleWon(R){const c=R.city;if(!c)return;c.fac=homeCity().fac;c.garrison=8;rlog(`Fortrex conquistou ${c.name}! (+${c.lvl*8} material por horda)`,'r4');R.ruinT=30;state.battleCd=160;state.realmIncome=REALM.cities.filter(o=>o.fac.isMe&&!o.home).reduce((a,o)=>a+o.lvl*8,0);
-  for(const o of REALM.cities)if(!o.fac.isMe&&o.fac===R.city.fac)o.garrison*=.7}
+function battleWon(R){const c=R.city;if(!c)return;addFame(15*c.lvl);goalEvent('fort',1,{lvl:c.lvl});if(R.kind==='defend')goalEvent('defend');removeCity(c);rlog(`Fortrex destruiu ${c.name}! A fortaleza sumiu do mapa.`,'r4');R.ruinT=30;state.battleCd=160;state.realmIncome=0;riseAfterFall(c,null)}
+function removeCity(T){const k=REALM.cities.indexOf(T);if(k<0||T.home)return;REALM.cities.splice(k,1);for(let i=REALM.armies.length-1;i>=0;i--){const A=REALM.armies[i];if(A.to===T){const alt=REALM.cities.filter(o=>o.fac!==A.fac).sort((a,b)=>Math.hypot(a.x-A.x,a.y-A.y)-Math.hypot(b.x-A.x,b.y-A.y))[0];if(alt)A.to=alt;else REALM.armies.splice(i,1)}}if(REALM.sel===T)REALM.sel=null;if(REALM.confirm===T)REALM.confirm=null}
 function clearBattleRuins(){for(const R of rivals){for(const [i] of R.rblue){if(rown[i]){if(vox[i]){if(Math.random()<.08)spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[vox[i]].c,1,.25);setVox(i,0)}rown[i]=0}}}rivals.length=0;settleDirty=true;updateModeUi()}
 function ruinTick(dt){for(const R of rivals){if(R.alive||R.ruinT===undefined)continue;R.ruinT-=dt;if(R.ruinT<=0){R.ruinT=undefined;clearBattleRuins();toast('As ruínas da fortaleza inimiga desmoronam. O campo está livre.','r0');return}}}
 function realmWaveIncome(){const inc=state.realmIncome||0;if(inc>0){state.material+=inc;toast(`Tributo das suas cidades: +${inc} material`,'r1')}}
 
+// ───────── odds: how likely is a direct battle to go our way (shown before every confirmation)
+function ourForce(){let atk=0,def=0;for(const m of minions){if(m.wounded>0)continue;const k=1+m.lvl*.08+m.rarity*.3;if(m.role==='sol')atk+=k*(m.st?m.st.atk:1);else if(m.role==='med')atk+=.35;else if(m.role==='gun')def+=.5*k;else if(m.role==='rep')def+=.25}
+  for(const t of turrets)if(t.alive&&t.team!=='r')def+=1.1+(t.r||0)*.35;return{atk,def}}
+function fortForce(lvl){const guards=(4+lvl*2)*(1+lvl*.12),tur=Math.min(8,3+lvl)*1.4,gen=3+lvl*1.5;return{guards,tur,gen,total:guards+gen+tur*.7}}
+function oddsText(p){return p>=.75?'Vitória provável':p>=.5?'Equilibrada, com vantagem sua':p>=.3?'Arriscada':'Muito difícil: contrate e equipe mais soldados'}
+function battleOdds(lvl){const F=ourForce(),E=fortForce(lvl);const us=F.atk+F.def*.35;const p=clamp(1/(1+Math.exp(-(us-E.total)/(E.total*.3+2))),.03,.97);return{p,us,E,F}}
+function questOdds(q){const F=ourForce();const us=F.def*.9+F.atk*.8;const p=clamp(1/(1+Math.exp(-(us-q.E)/(q.E*.3+2))),.03,.97);return{p,us}}
+function pctS(p){return Math.round(p*100)+'%'}
+function oddsHtml(o,label){const col=o.p>=.6?'#2f9a5e':o.p>=.35?'#c99a1a':'#d9414f';return`<div class="odds"><div class="obar"><i style="width:${pctS(o.p)};background:${col}"></i></div><b style="color:${col}">${label||'Chance de vitória'}: ${pctS(o.p)}</b> · ${oddsText(o.p)}</div>`}
+
+// ───────── secondary objectives on the realm map: boss lairs, skirmishes, ancient ruins
+const POI_KINDS={boss:{ico:'💀',n:'Covil',d:'Um chefe colossal desperta e marcha até a sua cidadela. Derrote-o para saquear o covil.'},
+  skirmish:{ico:'⚔️',n:'Escaramuça',d:'Um bando de saqueadores acampou nas suas terras. Batalha aberta, sem muralhas.'},
+  ruins:{ico:'💎',n:'Ruínas',d:'Ruínas antigas cheias de tesouro, guardadas por criaturas da bruma.'}};
+function bossFor(l){return l<=3?'boss':l<=6?'colossus':l<=9?'queen':'titan'}
+function spawnPoi(){const kinds=['boss','skirmish','skirmish','ruins','ruins'];const kind=pick(kinds);const top=Math.max(1,...REALM.cities.filter(c=>!c.fac.isMe).map(c=>c.lvl));const lvl=Math.max(1,Math.min(14,Math.round(top*rnd(.5,1))+(kind==='boss'?1:0)));
+  let x,y,ok=false;for(let t=0;t<40&&!ok;t++){const a=rnd(0,Math.PI*2),r=rnd(120,420);x=500+Math.cos(a)*r;y=500+Math.sin(a)*r*.85;ok=REALM.cities.every(c=>Math.hypot(c.x-x,c.y-y)>60)&&REALM.pois.every(p=>Math.hypot(p.x-x,p.y-y)>60)}if(!ok)return;
+  const names={boss:['do Devorador Antigo','da Fera de Lava','da Rainha Pálida','do Colosso Adormecido'],skirmish:['dos Lobos Rubros','da Lâmina Cega','dos Saqueadores Cinza','do Corvo Faminto'],ruins:['de Velhoforte','do Templo Afundado','da Torre Caída','de Ouro Antigo']};
+  const n=kind==='skirmish'?5+lvl*2:kind==='ruins'?8+lvl*2:1;const E=kind==='boss'?8+lvl*4:kind==='skirmish'?n*(1+lvl*.12):n*.55;
+  const P={id:REALM.nextId++,kind,lvl,x,y,ttl:rnd(200,300),n,E,name:`${POI_KINDS[kind].n} ${pick(names[kind])}`};REALM.pois.push(P);rlog(`${POI_KINDS[kind].ico} ${P.name} (nv ${lvl}) apareceu no mapa`,'r2')}
+function edgePos(px,py){const H0=homeCity();const a=Math.atan2(py-H0.y,px-H0.x);return[clamp(CX+Math.cos(a)*(W*.45),4,W-5),clamp(CZ+Math.sin(a)*(D*.45),4,D-5)]}
+function acceptPoi(P){if(state.quest){toast('Termine o objetivo atual primeiro','r0');return false}const [x,z]=edgePos(P.x,P.y);const units=[];
+  if(P.kind==='boss'){const e=makeEnemy(bossFor(P.lvl),Math.min(4,1+Math.floor(P.lvl/3)),x,z);e.maxhp*=1+P.lvl*.12;e.hp=e.maxhp;units.push(e);toast(`💀 ${P.name}: ${e.T.n} vem aí!`,'r4')}
+  else if(P.kind==='skirmish'){const fake={alive:true,lvl:P.lvl,name:P.name,guards:[],cx:x,cz:z,wr:0,core:[],edge:true};for(let k=0;k<P.n;k++){const e=makeEnemy(pick(['knight','knight','archer','rammer']),Math.min(4,rollRarity(P.lvl*.04)),x+rnd(-4,4),z+rnd(-4,4));e.rival=fake;e.rmode='raid';e.home={x,z};units.push(e)}toast(`⚔️ ${P.name}: ${P.n} saqueadores avançam!`,'r3')}
+  else{for(let k=0;k<P.n;k++)units.push(makeEnemy(pick(['crawler','climber','crawler','sapper','flyer']),Math.min(4,rollRarity(P.lvl*.05)),x+rnd(-5,5),z+rnd(-5,5)));toast(`💎 ${P.name}: os guardiões da bruma despertam!`,'r2')}
+  state.quest={P,units,last:{x,z}};REALM.pois.splice(REALM.pois.indexOf(P),1);rlog(`Fortrex aceita: ${P.name}`,'r2');cam.target.set((x+CX)/2,GY+1.5,(z+CZ)/2);return true}
+function questTick(){const q=state.quest;if(!q)return;let alive=0;for(const e of q.units){if(!e.dead){alive++;q.last={x:e.pos.x,z:e.pos.z}}}if(alive)return;state.quest=null;const P=q.P,L=q.last;
+  const nt=P.kind==='ruins'?3:P.kind==='boss'?2:1;for(let k=0;k<nt;k++)spawnLoot(L.x+rnd(-1.5,1.5),GY+2,L.z+rnd(-1.5,1.5),'treasure',Math.min(4,(P.kind==='boss'?2:1)+Math.floor(P.lvl/3)+(k===0?1:0)),{});
+  const g=(P.kind==='boss'?20:P.kind==='skirmish'?12:8)*P.lvl;spawnLoot(L.x,GY+2,L.z,'material',0,{amount:g});state.conquests=(state.conquests||0)+(P.kind==='boss'?1:0);
+  addFame((P.kind==='boss'?15:10)*P.lvl);goalEvent('poi');
+  toast(`${POI_KINDS[P.kind].ico} ${P.name} concluído! Tesouro no campo.`,'r4');rlog(`Fortrex venceu ${P.name}`,'r4');slowmo=Math.max(slowmo,.8)}
+function poiTick(dt){REALM.poiT=(REALM.poiT??50)-dt;if(REALM.poiT<=0){REALM.poiT=rnd(55,95);if(REALM.pois.length<4)spawnPoi()}for(let i=REALM.pois.length-1;i>=0;i--){const P=REALM.pois[i];P.ttl-=dt;if(P.ttl<=0){REALM.pois.splice(i,1);if(REALM.sel===P)REALM.sel=null}}questTick()}
+// when a fortress falls, another one grows
+function riseAfterFall(T,by){const others=REALM.cities.filter(c=>c!==T&&c!==by&&!c.fac.isMe&&c.fac!==(by&&by.fac));if(Math.random()<.5&&others.length){const c=pick(others);c.lvl=Math.min(14,c.lvl+1);c.garrison+=c.lvl*5;c.flash=simTime;rlog(`Com a queda de ${T.name}, ${c.name} se fortalece (nv ${c.lvl})`,'r3')}
+  if(REALM.cities.filter(c=>!c.fac.isMe).length<8||(REALM.cities.length<14&&Math.random()<.5)){const a=Math.atan2(T.y-500,T.x-500)+rnd(-1.2,1.2);const f=newFac(FAC_COLORS[1+REALM.facs.length%(FAC_COLORS.length-1)],'');let x=clamp(500+Math.cos(a)*rnd(330,450),50,950),y=clamp(500+Math.sin(a)*rnd(300,400),50,950);const c=addCity(x,y,Math.min(14,T.lvl+1),f);f.name=c.name;c.flash=simTime;rlog(`Das cinzas de ${T.name} surge ${c.name} (nv ${c.lvl})`,'r3')}}
+
 // ───────── realm map overlay
 let rcv=null,rctx=null;
-function openRealm(){REALM.open=true;$('realm').style.display='flex';rcv=$('realmCanvas');rctx=rcv.getContext('2d');drawRealm();renderRealmInfo()}
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function genDeco(){const R=rng(rint(1,1e9)),D={coast:[],mts:[],forests:[],lakes:[],rivers:[]};const far=(x,y,d)=>REALM.cities.every(c=>Math.hypot(c.x-x,c.y-y)>d);
+  for(let k=0;k<72;k++){const a=k/72*Math.PI*2;const r=430+Math.sin(a*3+R()*.5)*22+Math.sin(a*7)*12+R()*16;D.coast.push([500+Math.cos(a)*r*1.08,500+Math.sin(a)*r*.98])}
+  for(let k=0;k<26;k++){const a=R()*Math.PI*2,r=60+R()*360,x=500+Math.cos(a)*r,y=500+Math.sin(a)*r*.88;if(!far(x,y,48))continue;const n=2+Math.floor(R()*3);for(let j=0;j<n;j++)D.mts.push({x:x+j*14-n*6+R()*6,y:y+R()*10-j*3,s:14+R()*12})}
+  for(let k=0;k<30;k++){const a=R()*Math.PI*2,r=40+R()*390,x=500+Math.cos(a)*r,y=500+Math.sin(a)*r*.88;if(!far(x,y,36))continue;const n=5+Math.floor(R()*9),t=[];for(let j=0;j<n;j++)t.push([x+(R()-.5)*40,y+(R()-.5)*26,4+R()*4]);D.forests.push(t)}
+  for(let k=0;k<5;k++){const a=R()*Math.PI*2,r=80+R()*320,x=500+Math.cos(a)*r,y=500+Math.sin(a)*r*.88;if(far(x,y,50))D.lakes.push({x,y,rx:14+R()*20,ry:9+R()*12,a:R()*3})}
+  for(let k=0;k<2;k++){const a=R()*Math.PI*2;let x=500+Math.cos(a)*80,y=500+Math.sin(a)*70;const pts=[[x,y]];const da=a+(R()-.5)*.6;for(let j=0;j<9;j++){x+=Math.cos(da+(R()-.5)*.9)*45;y+=Math.sin(da+(R()-.5)*.9)*40;pts.push([x,y])}D.rivers.push(pts)}
+  REALM.deco=D}
+function openRealm(){REALM.open=true;$('realm').style.display='flex';rcv=$('realmCanvas');rctx=rcv.getContext('2d');if(!REALM.deco)genDeco();drawRealm();renderRealmInfo()}
 function closeRealm(){REALM.open=false;$('realm').style.display='none'}
-function rView(){const r=rcv.getBoundingClientRect();const s=Math.min(r.width,r.height)/1000*.96;return{s,ox:(r.width-1000*s)/2,oy:(r.height-1000*s)/2,w:r.width,h:r.height}}
-function drawRealm(){if(!REALM.open||!rctx)return;const dpr=Math.min(2,window.devicePixelRatio||1);const r=rcv.getBoundingClientRect();if(rcv.width!==Math.round(r.width*dpr)){rcv.width=Math.round(r.width*dpr);rcv.height=Math.round(r.height*dpr)}
-  const g=rctx;g.setTransform(dpr,0,0,dpr,0,0);const V=rView();g.clearRect(0,0,V.w,V.h);const P=(x,y)=>[V.ox+x*V.s,V.oy+y*V.s];
-  // land
-  const [lx,ly]=P(500,500);const grad=g.createRadialGradient(lx,ly,40*V.s,lx,ly,560*V.s);grad.addColorStop(0,'#cfe8b8');grad.addColorStop(.75,'#b9dba4');grad.addColorStop(1,'#9cc7d6');g.fillStyle=grad;g.beginPath();g.ellipse(lx,ly,490*V.s,470*V.s,0,0,Math.PI*2);g.fill();
-  // influence of each faction
-  for(const c of REALM.cities){const [x,y]=P(c.x,c.y);g.fillStyle=hex(facOf(c).color)+'22';g.beginPath();g.arc(x,y,(34+c.lvl*6)*V.s,0,Math.PI*2);g.fill()}
-  // roads to nearest neighbours
-  g.strokeStyle='rgba(120,100,70,.25)';g.lineWidth=1.5;g.setLineDash([4,5]);for(const c of REALM.cities){const nb=REALM.cities.filter(o=>o!==c).sort((a,b)=>Math.hypot(a.x-c.x,a.y-c.y)-Math.hypot(b.x-c.x,b.y-c.y)).slice(0,2);for(const o of nb){const [a,b]=P(c.x,c.y),[x,y]=P(o.x,o.y);g.beginPath();g.moveTo(a,b);g.lineTo(x,y);g.stroke()}}g.setLineDash([]);
+function rView(){const r=rcv.getBoundingClientRect();const s=Math.min(r.width,r.height)/1000*.98;return{s,ox:(r.width-1000*s)/2,oy:(r.height-1000*s)/2,w:r.width,h:r.height}}
+function shade(c,k){const C=new THREE.Color(c);return'#'+(k<0?C.lerp(new THREE.Color(0x1d1e33),-k):C.lerp(new THREE.Color(0xffffff),k)).getHexString()}
+function drawRealm(){if(!REALM.open||!rctx)return;const dpr=Math.min(2,window.devicePixelRatio||1);const r=rcv.getBoundingClientRect();if(rcv.width!==Math.round(r.width*dpr)||rcv.height!==Math.round(r.height*dpr)){rcv.width=Math.round(r.width*dpr);rcv.height=Math.round(r.height*dpr)}
+  const g=rctx;g.setTransform(dpr,0,0,dpr,0,0);const V=rView(),S=V.s,now=performance.now()/1000;const P=(x,y)=>[V.ox+x*S,V.oy+y*S];const D=REALM.deco||(genDeco(),REALM.deco);
+  // sea
+  const sea=g.createLinearGradient(0,0,0,V.h);sea.addColorStop(0,'#8fcbdc');sea.addColorStop(1,'#6aaac4');g.fillStyle=sea;g.fillRect(0,0,V.w,V.h);
+  g.strokeStyle='rgba(255,255,255,.18)';g.lineWidth=1.2;for(let k=0;k<26;k++){const y=(k*41+now*6)%V.h,x=(k*137)%V.w;g.beginPath();g.moveTo(x,y);g.quadraticCurveTo(x+10,y-4,x+20,y);g.quadraticCurveTo(x+30,y+4,x+40,y);g.stroke()}
+  // land with sandy coast
+  const path=()=>{g.beginPath();D.coast.forEach(([x,y],k)=>{const [a,b]=P(x,y);k?g.lineTo(a,b):g.moveTo(a,b)});g.closePath()};
+  path();g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=16*S+6;g.stroke();path();g.strokeStyle='#eadcae';g.lineWidth=8*S+3;g.stroke();
+  const [cx0,cy0]=P(500,500);const land=g.createRadialGradient(cx0,cy0,30*S,cx0,cy0,520*S);land.addColorStop(0,'#d7ebb4');land.addColorStop(.7,'#c3dfa0');land.addColorStop(1,'#a9cf8d');path();g.fillStyle=land;g.fill();
+  g.save();path();g.clip();
+  // territories
+  for(const c of REALM.cities){const [x,y]=P(c.x,c.y);const rad=(48+c.lvl*7)*S;const tg=g.createRadialGradient(x,y,rad*.2,x,y,rad);tg.addColorStop(0,hex(facOf(c).color)+'40');tg.addColorStop(1,hex(facOf(c).color)+'00');g.fillStyle=tg;g.beginPath();g.arc(x,y,rad,0,Math.PI*2);g.fill()}
+  // rivers and lakes
+  for(const rv of D.rivers){g.beginPath();rv.forEach(([x,y],k)=>{const [a,b]=P(x,y);k?g.lineTo(a,b):g.moveTo(a,b)});g.strokeStyle='#7fbfd6';g.lineWidth=5*S+1.5;g.lineJoin='round';g.lineCap='round';g.stroke();g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=1.5*S+.5;g.stroke()}
+  for(const L of D.lakes){const [x,y]=P(L.x,L.y);g.fillStyle='#86c4d8';g.beginPath();g.ellipse(x,y,L.rx*S,L.ry*S,L.a,0,Math.PI*2);g.fill();g.strokeStyle='#e9ddb0';g.lineWidth=2;g.stroke()}
+  // forests
+  for(const F of D.forests)for(const [fx,fy,fr] of F){const [x,y]=P(fx,fy);const rr=fr*S*1.4+1.5;g.fillStyle='rgba(43,60,40,.18)';g.beginPath();g.ellipse(x+1.5,y+rr*.7,rr,rr*.45,0,0,Math.PI*2);g.fill();g.fillStyle='#6fa45f';g.beginPath();g.arc(x,y,rr,0,Math.PI*2);g.fill();g.fillStyle='#8cc075';g.beginPath();g.arc(x-rr*.3,y-rr*.3,rr*.55,0,Math.PI*2);g.fill()}
+  // mountains
+  for(const M of D.mts){const [x,y]=P(M.x,M.y);const s=M.s*S*1.3+3;g.fillStyle='#9a9384';g.beginPath();g.moveTo(x-s,y+s*.5);g.lineTo(x,y-s*.8);g.lineTo(x+s,y+s*.5);g.closePath();g.fill();g.fillStyle='#7d7769';g.beginPath();g.moveTo(x,y-s*.8);g.lineTo(x+s,y+s*.5);g.lineTo(x+s*.15,y+s*.5);g.closePath();g.fill();g.fillStyle='#f4f1e8';g.beginPath();g.moveTo(x-s*.32,y-s*.27);g.lineTo(x,y-s*.8);g.lineTo(x+s*.32,y-s*.27);g.lineTo(x+s*.1,y-s*.35);g.lineTo(x-s*.05,y-s*.22);g.closePath();g.fill()}
+  g.restore();
+  // roads
+  g.strokeStyle='rgba(140,110,70,.45)';g.lineWidth=2.2;g.setLineDash([6,5]);const seen=new Set();for(const c of REALM.cities){const nb=REALM.cities.filter(o=>o!==c).sort((a,b)=>Math.hypot(a.x-c.x,a.y-c.y)-Math.hypot(b.x-c.x,b.y-c.y)).slice(0,2);for(const o of nb){const key=Math.min(c.id,o.id)+'-'+Math.max(c.id,o.id);if(seen.has(key))continue;seen.add(key);const [a,b]=P(c.x,c.y),[x,y]=P(o.x,o.y);const mx=(a+x)/2+(b-y)*.12,my=(b+y)/2+(x-a)*.12;g.beginPath();g.moveTo(a,b);g.quadraticCurveTo(mx,my,x,y);g.stroke()}}g.setLineDash([]);
+  // points of interest
+  for(const Q of REALM.pois){const [x,y]=P(Q.x,Q.y);const K=POI_KINDS[Q.kind];const pr=13+Math.sin(now*3)*2;g.fillStyle=Q.kind==='boss'?'rgba(217,65,79,.22)':Q.kind==='skirmish'?'rgba(232,162,31,.22)':'rgba(79,156,242,.22)';g.beginPath();g.arc(x,y,pr+6,0,Math.PI*2);g.fill();
+    g.fillStyle='#fff';g.beginPath();g.arc(x,y,13,0,Math.PI*2);g.fill();g.strokeStyle=REALM.sel===Q?'#ff8a5c':'rgba(43,45,74,.3)';g.lineWidth=REALM.sel===Q?3:1.5;g.stroke();
+    g.strokeStyle='#2b2d4a';g.lineWidth=2.5;g.beginPath();g.arc(x,y,16,-Math.PI/2,-Math.PI/2+Math.PI*2*clamp(Q.ttl/300,0,1));g.stroke();g.font='15px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(K.ico,x,y+1);g.textBaseline='alphabetic';
+    g.font='700 10px Fredoka,sans-serif';g.fillStyle='#2b2d4a';g.fillText(`${Q.name.split(' ').slice(0,3).join(' ')} · nv ${Q.lvl}`,x,y+28)}
   // armies
-  for(const A of REALM.armies){const [ax,ay]=P(A.x,A.y),[tx,ty]=P(A.to.x,A.to.y);const col=hex(A.fac.color);g.strokeStyle=col+(A.to.fac.isMe?'cc':'66');g.lineWidth=A.to.fac.isMe?2:1.2;g.beginPath();g.moveTo(ax,ay);g.lineTo(tx,ty);g.stroke();
-    const n=Math.min(6,1+Math.floor(A.power/8));const ang=Math.atan2(ty-ay,tx-ax);for(let k=0;k<n;k++){const bx=ax-Math.cos(ang)*k*6+Math.sin(ang)*((k%2)*4-2),by=ay-Math.sin(ang)*k*6-Math.cos(ang)*((k%2)*4-2);g.fillStyle=col;g.beginPath();g.arc(bx,by,3,0,Math.PI*2);g.fill()}
-    g.fillStyle='#2b2d4a';g.font='600 10px Fredoka,sans-serif';g.textAlign='center';g.fillText(Math.round(A.power),ax,ay-8)}
-  // cities
-  for(const c of REALM.cities){const [x,y]=P(c.x,c.y);const col=hex(facOf(c).color);const s=(10+Math.min(10,c.lvl)*1.3)*Math.max(.7,V.s*1.4);
-    if(c.home){g.fillStyle='rgba(255,207,61,.35)';g.beginPath();g.arc(x,y,s*1.9,0,Math.PI*2);g.fill()}
-    if(REALM.sel===c){g.strokeStyle='#ff8a5c';g.lineWidth=3;g.beginPath();g.arc(x,y,s*1.7,0,Math.PI*2);g.stroke()}
-    const war=rivals.some(R=>R.alive&&R.city===c);if(war){g.strokeStyle='#d9414f';g.lineWidth=2;g.setLineDash([3,3]);g.beginPath();g.arc(x,y,s*2.1+Math.sin(performance.now()/200)*2,0,Math.PI*2);g.stroke();g.setLineDash([])}
-    g.fillStyle='rgba(43,45,74,.18)';g.fillRect(x-s*.9+2,y-s*.2+3,s*1.8,s*1.1);
-    g.fillStyle=col;g.fillRect(x-s*.9,y-s*.2,s*1.8,s*1.1);g.fillRect(x-s*.9,y-s*.75,s*.5,s*.6);g.fillRect(x+s*.4,y-s*.75,s*.5,s*.6);g.fillRect(x-s*.3,y-s,s*.6,s*.85);
-    g.fillStyle='#fff';g.fillRect(x-s*.15,y+s*.35,s*.3,s*.55);
-    g.fillStyle='#2b2d4a';g.font=`700 ${c.home?13:11}px Fredoka,sans-serif`;g.textAlign='center';g.fillText((c.home?'👑 ':'')+c.name,x,y+s*1.35+10);g.font='600 10px Nunito,sans-serif';g.fillStyle='#6b6e8f';g.fillText(`nv ${c.lvl} · ⚔ ${Math.round(c.garrison)}`,x,y+s*1.35+22)}
-  // log
-  g.textAlign='left';g.font='600 12px Nunito,sans-serif';let ly2=V.h-16;const nl=Math.min(6,REALM.log.length);if(nl){g.fillStyle='rgba(255,255,255,.72)';g.fillRect(6,V.h-14-nl*17,Math.min(V.w-12,470),nl*17+8)}for(const L of REALM.log.slice(0,6)){g.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--'+L.css)||'#2b2d4a';g.globalAlpha=.95;g.fillText('• '+L.txt,14,ly2);ly2-=17}g.globalAlpha=1}
-function renderRealmInfo(){const el=$('realmInfo');const c=REALM.sel;const mine=REALM.cities.filter(o=>o.fac.isMe);const facs=new Set(REALM.cities.map(o=>o.fac.id)).size;
-  let h=`<div class="rh">🗺️ Reino</div><div class="ds">${REALM.cities.length} fortalezas · ${facs} impérios · você tem ${mine.length} ${mine.length===1?'cidade':'cidades'}${state.realmIncome?` (+${state.realmIncome}/horda)`:''}</div>`;
-  const A=REALM.selA;if(A&&REALM.armies.includes(A)){const eta=Math.hypot(A.to.x-A.x,A.to.y-A.y)/A.speed;const n=Math.round(A.power/3);h+=`<div class="rc"><b style="color:${hex(A.fac.color)}">⚔️ Exército de ${A.from.name}</b><div class="ds">Rumo a ${A.to.home?'<b>Fortrex (você!)</b>':A.to.name} · força ${Math.round(A.power)} · ~${n} guerreiros (cavaleiros, arqueiros, aríetes) · chega em ${Math.ceil(eta)} s</div><div class="ds">Defesa do alvo: ${Math.round(cityDef(A.to))}${A.to.home?'':A.power>cityDef(A.to)?' → provável conquista':' → provável derrota'}</div></div>`}
+  for(const A of REALM.armies){const [ax,ay]=P(A.x,A.y),[tx,ty]=P(A.to.x,A.to.y);const col=hex(A.fac.color);const vs=A.to.fac.isMe;g.strokeStyle=col+(vs?'dd':'77');g.lineWidth=vs?2.4:1.4;g.setLineDash([5,4]);g.lineDashOffset=-now*20;g.beginPath();g.moveTo(ax,ay);g.lineTo(tx,ty);g.stroke();g.setLineDash([]);
+    const ang=Math.atan2(ty-ay,tx-ax);g.fillStyle=col;g.beginPath();g.moveTo(tx-Math.cos(ang)*14,ty-Math.sin(ang)*14);g.lineTo(tx-Math.cos(ang)*22+Math.sin(ang)*5,ty-Math.sin(ang)*22-Math.cos(ang)*5);g.lineTo(tx-Math.cos(ang)*22-Math.sin(ang)*5,ty-Math.sin(ang)*22+Math.cos(ang)*5);g.fill();
+    const n=Math.min(7,1+Math.floor(A.power/8));for(let k=0;k<n;k++){const bob=Math.sin(now*8+k)*1;const bx=ax-Math.cos(ang)*k*5.5+Math.sin(ang)*((k%2)*5-2.5),by=ay-Math.sin(ang)*k*5.5-Math.cos(ang)*((k%2)*5-2.5)+bob;g.fillStyle=shade(A.fac.color,-.25);g.beginPath();g.arc(bx,by,3.2,0,Math.PI*2);g.fill()}
+    g.strokeStyle='#5a4630';g.lineWidth=1.5;g.beginPath();g.moveTo(ax,ay);g.lineTo(ax,ay-16);g.stroke();g.fillStyle=col;g.beginPath();g.moveTo(ax,ay-16);g.quadraticCurveTo(ax+6,ay-16+Math.sin(now*6)*2,ax+11,ay-13);g.lineTo(ax,ay-10);g.fill();
+    g.fillStyle='#fff';g.strokeStyle='rgba(43,45,74,.25)';const tw=20;g.beginPath();g.roundRect?g.roundRect(ax-tw/2,ay+6,tw,12,6):g.rect(ax-tw/2,ay+6,tw,12);g.fill();g.stroke();g.fillStyle='#2b2d4a';g.font='700 9px Fredoka,sans-serif';g.textAlign='center';g.fillText(Math.round(A.power),ax,ay+15);if(REALM.selA===A){g.strokeStyle='#ff8a5c';g.lineWidth=2.5;g.beginPath();g.arc(ax,ay-4,14,0,Math.PI*2);g.stroke()}}
+  // fortresses
+  for(const c of REALM.cities){const [x,y]=P(c.x,c.y);const fc=facOf(c).color,col=hex(fc);const s=(9+Math.min(12,c.lvl)*1.1)*Math.max(.75,S*1.5);
+    if(c.flash&&simTime-c.flash<12){const k=(simTime-c.flash)/12;g.strokeStyle=`rgba(255,177,61,${1-k})`;g.lineWidth=3;g.beginPath();g.arc(x,y,s*(1.5+k*2.5),0,Math.PI*2);g.stroke()}
+    if(c.home){const hg=g.createRadialGradient(x,y,s*.5,x,y,s*2.6);hg.addColorStop(0,'rgba(255,207,61,.55)');hg.addColorStop(1,'rgba(255,207,61,0)');g.fillStyle=hg;g.beginPath();g.arc(x,y,s*2.6,0,Math.PI*2);g.fill()}
+    if(REALM.sel===c){g.strokeStyle='#ff8a5c';g.lineWidth=3;g.beginPath();g.arc(x,y+s*.2,s*1.9,0,Math.PI*2);g.stroke()}
+    if(rivals.some(R=>R.alive&&R.city===c)){g.strokeStyle='#d9414f';g.lineWidth=2.5;g.setLineDash([4,3]);g.lineDashOffset=now*12;g.beginPath();g.arc(x,y+s*.2,s*2.2+Math.sin(now*5)*2,0,Math.PI*2);g.stroke();g.setLineDash([])}
+    g.fillStyle='rgba(43,45,74,.22)';g.beginPath();g.ellipse(x+2,y+s*.95,s*1.25,s*.32,0,0,Math.PI*2);g.fill();
+    const stone=c.fac.isMe?'#efe9dc':'#b9b2c8',dark=c.fac.isMe?'#cfc6b2':'#9a92ad';
+    // walls with crenellations
+    g.fillStyle=stone;g.fillRect(x-s,y-s*.15,s*2,s*1.05);g.fillStyle=dark;g.fillRect(x-s,y+s*.55,s*2,s*.35);for(let k=0;k<5;k++){g.fillStyle=stone;g.fillRect(x-s+k*s*.44,y-s*.32,s*.24,s*.2)}
+    // towers with faction roofs
+    const tower=(tx,tw,th)=>{g.fillStyle=stone;g.fillRect(tx-tw/2,y-th,tw,th+s*.9);g.fillStyle=dark;g.fillRect(tx+tw*.15,y-th,tw*.35,th+s*.9);g.fillStyle=col;g.beginPath();g.moveTo(tx-tw*.7,y-th);g.lineTo(tx,y-th-tw*1.1);g.lineTo(tx+tw*.7,y-th);g.closePath();g.fill();g.fillStyle=shade(fc,-.3);g.beginPath();g.moveTo(tx,y-th-tw*1.1);g.lineTo(tx+tw*.7,y-th);g.lineTo(tx,y-th);g.closePath();g.fill()};
+    tower(x-s*.82,s*.45,s*.55);tower(x+s*.82,s*.45,s*.55);tower(x,s*.62,s*1.0+Math.min(6,c.lvl)*s*.06);
+    // flag
+    const fy=y-s*1.0-Math.min(6,c.lvl)*s*.06-s*.62*1.1;g.strokeStyle='#5a4630';g.lineWidth=1.3;g.beginPath();g.moveTo(x,fy);g.lineTo(x,fy-s*.7);g.stroke();g.fillStyle=col;g.beginPath();g.moveTo(x,fy-s*.7);g.quadraticCurveTo(x+s*.3,fy-s*.7+Math.sin(now*5+c.id)*s*.08,x+s*.6,fy-s*.6);g.lineTo(x,fy-s*.4);g.fill();
+    // gate
+    g.fillStyle='#6b4a2f';g.beginPath();g.moveTo(x-s*.2,y+s*.9);g.lineTo(x-s*.2,y+s*.45);g.quadraticCurveTo(x,y+s*.25,x+s*.2,y+s*.45);g.lineTo(x+s*.2,y+s*.9);g.fill();
+    // level badge
+    g.fillStyle=col;g.beginPath();g.arc(x+s*1.05,y-s*.35,8,0,Math.PI*2);g.fill();g.strokeStyle='#fff';g.lineWidth=1.5;g.stroke();g.fillStyle='#fff';g.font='700 9px Fredoka,sans-serif';g.textAlign='center';g.fillText(c.lvl,x+s*1.05,y-s*.35+3);
+    // label pill
+    const label=(c.home?'👑 ':'')+c.name;g.font=`700 ${c.home?12:11}px Fredoka,sans-serif`;const lw=g.measureText(label).width+12;g.fillStyle='rgba(255,255,255,.85)';const ly=y+s*1.2+4;g.beginPath();g.roundRect?g.roundRect(x-lw/2,ly,lw,28,8):g.rect(x-lw/2,ly,lw,28);g.fill();
+    g.fillStyle='#2b2d4a';g.fillText(label,x,ly+12);g.font='600 9.5px Nunito,sans-serif';g.fillStyle='#6b6e8f';g.fillText(`⚔ ${Math.round(c.garrison)} · ${c.fac.isMe?'sua':facOf(c).name.split(' ')[0]}`,x,ly+24)}
+  // compass + title
+  const [kx,ky]=[V.w-38,38];g.fillStyle='rgba(255,255,255,.7)';g.beginPath();g.arc(kx,ky,22,0,Math.PI*2);g.fill();g.fillStyle='#d9414f';g.beginPath();g.moveTo(kx,ky-18);g.lineTo(kx+5,ky);g.lineTo(kx-5,ky);g.fill();g.fillStyle='#2b2d4a';g.beginPath();g.moveTo(kx,ky+18);g.lineTo(kx+5,ky);g.lineTo(kx-5,ky);g.fill();g.font='700 9px Fredoka,sans-serif';g.textAlign='center';g.fillText('N',kx,ky-21+(-2));
+  g.font='700 18px Fredoka,sans-serif';g.textAlign='left';g.fillStyle='rgba(43,45,74,.8)';g.fillText('Reino de Fortrex',16,28);
+  // event log
+  g.font='600 12px Nunito,sans-serif';let ly2=V.h-14;const nl=Math.min(6,REALM.log.length);if(nl){g.fillStyle='rgba(255,255,255,.78)';g.beginPath();g.roundRect?g.roundRect(8,V.h-18-nl*17,Math.min(V.w-16,480),nl*17+10,10):g.rect(8,V.h-18-nl*17,Math.min(V.w-16,480),nl*17+10);g.fill()}
+  for(const L of REALM.log.slice(0,6)){g.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--'+L.css)||'#2b2d4a';if(L.css==='r0')g.fillStyle='#6b6e8f';g.fillText('• '+L.txt,16,ly2);ly2-=17}}
+function renderRealmInfo(){const el=$('realmInfo');if(!el)return;const c=REALM.sel&&REALM.sel.kind?null:REALM.sel,Q=REALM.sel&&REALM.sel.kind?REALM.sel:null;const mine=REALM.cities.filter(o=>o.fac.isMe);const facs=new Set(REALM.cities.map(o=>o.fac.id)).size;const F=ourForce();
+  let h=`<div class="rh">🗺️ Reino</div><div class="ds">${REALM.cities.length} fortalezas · ${facs} impérios · você tem ${mine.length} ${mine.length===1?'cidade':'cidades'}${state.realmIncome?` (+${state.realmIncome}/horda)`:''}</div><div class="ds">Sua força: ataque ${F.atk.toFixed(0)} · defesa ${F.def.toFixed(0)}</div>`;
+  if(state.quest)h+=`<div class="ds">🎯 Objetivo ativo: <b>${state.quest.P.name}</b> (${state.quest.units.filter(e=>!e.dead).length} inimigos restantes)</div>`;
+  const A=REALM.selA;if(A&&REALM.armies.includes(A)){const eta=Math.hypot(A.to.x-A.x,A.to.y-A.y)/A.speed;const n=Math.round(A.power/3);h+=`<div class="rc"><b style="color:${hex(A.fac.color)}">⚔️ Exército de ${A.from.name}</b><div class="ds">Rumo a ${A.to.home?'<b>Fortrex (você!)</b>':A.to.name} · força ${Math.round(A.power)} · ~${n} guerreiros · chega em ${Math.ceil(eta)} s</div>`;
+    if(A.to.home){const o=battleOdds(A.from.lvl);h+=`<div class="ds">Se chegar, ergue uma fortaleza de cerco ao lado da sua.</div>${oddsHtml(o,'Chance de defender')}`}else h+=`<div class="ds">Defesa do alvo: ${Math.round(cityDef(A.to))} → ${A.power>cityDef(A.to)?'provável conquista':'provável derrota'}</div>`;h+='</div>'}
+  if(Q){const K=POI_KINDS[Q.kind];const o=questOdds(Q);h+=`<div class="rc"><b>${K.ico} ${Q.name}</b><div class="ds">Nível ${Q.lvl} · ${Q.kind==='boss'?`chefe: ${ETYPES[bossFor(Q.lvl)].n}`:`${Q.n} inimigos`} · some em ${Math.ceil(Q.ttl)} s</div><div class="ds">${K.d}</div><div class="ds">Recompensa: ${Q.kind==='ruins'?3:Q.kind==='boss'?2:1} tesouro(s) + ${(Q.kind==='boss'?20:Q.kind==='skirmish'?12:8)*Q.lvl} material</div>${oddsHtml(o)}
+    ${state.quest?'<div class="ds">Termine o objetivo atual primeiro.</div>':REALM.confirm===Q?`<button class="btn primary" id="realmGo">✅ Confirmar (${pctS(o.p)})</button><button class="btn" id="realmNo">Cancelar</button>`:`<button class="btn primary" id="realmAsk">Aceitar desafio</button>`}</div>`}
   if(c){const f=facOf(c);const war=battle();h+=`<div class="rc"><b style="color:${hex(f.color)}">${c.home?'👑 ':''}${c.name}</b><div class="ds">Nível ${c.lvl} · guarnição ${Math.round(c.garrison)} · império ${f.isMe?'seu':f.name} (${REALM.cities.filter(o=>o.fac===c.fac).length} cidades)</div>`;
-    if(!f.isMe)h+=war?`<div class="ds">Já em guerra com ${war.name}. Termine essa batalha primeiro.</div>`:`<button class="btn primary" id="realmAtk">⚔️ Declarar guerra</button><div class="ds">A fortaleza deles será erguida ao lado da sua. Destrua o núcleo vermelho para conquistá-la.</div>`;
-    h+='</div>'}else h+='<div class="ds" style="margin-top:8px">Clique numa fortaleza para ver detalhes. Linhas são exércitos em marcha; os números são a força.</div>';
-  el.innerHTML=h;const b=$('realmAtk');if(b)b.onclick=()=>{if(startBattle(c,'attack')){closeRealm()}}}
-function realmClick(ev){const r=rcv.getBoundingClientRect();const V=rView();const mx=(ev.clientX-r.left-V.ox)/V.s,my=(ev.clientY-r.top-V.oy)/V.s;
-  {let ba=null,bd=18;for(const A of REALM.armies){const d=Math.hypot(A.x-mx,A.y-my);if(d<bd){bd=d;ba=A}}if(ba){REALM.sel=null;REALM.selA=ba;renderRealmInfo();drawRealm();return}}REALM.selA=null;let best=null,bd=40;for(const c of REALM.cities){const d=Math.hypot(c.x-mx,c.y-my);if(d<bd){bd=d;best=c}}REALM.sel=best;renderRealmInfo();drawRealm()}
+    if(!f.isMe){const o=battleOdds(c.lvl);h+=`<div class="ds">Batalha definitiva: fortaleza contra fortaleza. Inimigo: ~${Math.round(4+c.lvl*2)} guardas, ${Math.min(8,3+c.lvl)} torres e o General. Você: ataque ${o.F.atk.toFixed(0)} + defesa ${o.F.def.toFixed(0)}.</div>${oddsHtml(o)}`;
+      h+=war?`<div class="ds">Já em guerra com ${war.name}. Termine essa batalha primeiro.</div>`:state.battleCd>0?`<div class="ds">Tropas descansando: ${Math.ceil(state.battleCd)} s</div>`:REALM.confirm===c?`<button class="btn primary" id="realmGo">⚔️ Confirmar guerra (${pctS(o.p)})</button><button class="btn" id="realmNo">Cancelar</button>`:`<button class="btn primary" id="realmAsk">⚔️ Declarar guerra…</button>`}
+    h+='</div>'}
+  if(!c&&!Q&&!A)h+='<div class="ds" style="margin-top:8px">Clique numa fortaleza, num exército ou num objetivo (💀 covil, ⚔️ escaramuça, 💎 ruínas). Antes de qualquer batalha você vê a chance de vitória.</div>';
+  el.innerHTML=h;const sel=REALM.sel;const ask=$('realmAsk');if(ask)ask.onclick=()=>{REALM.confirm=sel;renderRealmInfo()};const no=$('realmNo');if(no)no.onclick=()=>{REALM.confirm=null;renderRealmInfo()};
+  const go=$('realmGo');if(go)go.onclick=()=>{REALM.confirm=null;if(sel.kind){if(acceptPoi(sel)){REALM.sel=null;closeRealm()}}else if(startBattle(sel,'attack')){REALM.sel=null;closeRealm()}}}
+function realmClick(ev){const r=rcv.getBoundingClientRect();const V=rView();const mx=(ev.clientX-r.left-V.ox)/V.s,my=(ev.clientY-r.top-V.oy)/V.s;REALM.confirm=null;
+  {let ba=null,bd=18;for(const A of REALM.armies){const d=Math.hypot(A.x-mx,A.y-my);if(d<bd){bd=d;ba=A}}if(ba){REALM.sel=null;REALM.selA=ba;renderRealmInfo();drawRealm();return}}REALM.selA=null;
+  let best=null,bd=40;for(const c of [...REALM.cities,...REALM.pois]){const d=Math.hypot(c.x-mx,c.y-my);if(d<bd){bd=d;best=c}}REALM.sel=best;renderRealmInfo();drawRealm()}
 
 // ───────── after every wave the citadel mends itself: structural blueprint blocks regrow for free over a few seconds
 function startSelfRepair(){const q=[];for(const i of blueList){const b=blue[i];if(!b||SPECIAL_BLOCKS.includes(b)||b===5)continue;if(vox[i]===b&&hp[i]>=maxHpOf(b))continue;if(vox[i]&&vox[i]!==b&&!FLUID(vox[i]))continue;q.push(i)}
@@ -1255,8 +1356,33 @@ function selfRepairTick(dt){const q=state.healQ;if(!q||!q.length)return;const pe
     if(vox[i]&&!FLUID(vox[i]))continue;if(!supported(i)||cellBusy(i)){keep.push(i);continue}setVox(i,b);hp[i]=maxHpOf(b);state.healT-=1;n++;if(Math.random()<.12)sparkle(ix(i)+.5,iy(i)+.6,iz(i)+.5,0x9fe3ff,1)}
   state.healQ=keep.length&&n===0&&state.healT>=1?keep.slice(1):keep;if(n)SFX.build()}
 
+// ───────── purpose: renown, ranks and contracts. Growing in rank also makes the world answer harder.
+const RANKS=[{n:'Senhor de Aldeia',f:0},{n:'Barão',f:200},{n:'Visconde',f:650},{n:'Conde',f:1400},{n:'Marquês',f:2600},{n:'Duque',f:4300},{n:'Rei',f:6800},{n:'Imperador',f:10000},{n:'Lenda de Fortrex',f:15000}];
+function rankIdx(){let k=0;for(let i=0;i<RANKS.length;i++)if((state.fame||0)>=RANKS[i].f)k=i;return k}
+function addFame(n,why){const before=rankIdx();state.fame=(state.fame||0)+Math.round(n);const after=rankIdx();
+  if(after>before){state.rank=after;MAX_MINIONS_BONUS=after*6;toast(`👑 Novo título: ${RANKS[after].n}! +6 vagas de minion. O reino reage: inimigos mais fortes.`,'r4');SFX.open();slowmo=Math.max(slowmo,.8);for(const c of REALM.cities)if(!c.fac.isMe){c.garrison+=c.lvl*2}offerRewards()}
+  renderGoals()}
+let MAX_MINIONS_BONUS=0;
+const CONTRACT_T=[
+  r=>({k:'fort',n:1,lvl:Math.max(1,2+r),txt:`Destrua uma fortaleza nv ${Math.max(1,2+r)}+`,fame:60+r*30}),
+  r=>({k:'poi',n:1+Math.floor(r/3),txt:`Conclua ${1+Math.floor(r/3)} objetivo(s) do mapa`,fame:35+r*15}),
+  r=>({k:'boss',n:1,txt:'Derrote um chefe (horda ou covil)',fame:40+r*20}),
+  r=>({k:'wave',n:3+Math.floor(r/2),txt:`Vença ${3+Math.floor(r/2)} hordas`,fame:30+r*12}),
+  r=>({k:'flawless',n:1,txt:'Vença uma horda sem nenhum minion ferido',fame:45+r*18}),
+  r=>({k:'kills',n:150+r*120,txt:`Abata ${150+r*120} inimigos`,fame:30+r*15}),
+  r=>({k:'defend',n:1,txt:'Derrote uma fortaleza que sitia você',fame:70+r*30})];
+function newContract(){const r=rankIdx();const have=new Set((state.contracts||[]).map(c=>c.k));const pool=CONTRACT_T.map(f=>f(r)).filter(c=>!have.has(c.k));const c=pick(pool);c.p=0;return c}
+function initGoals(){state.fame=0;state.rank=0;MAX_MINIONS_BONUS=0;state.contracts=[];for(let k=0;k<3;k++)state.contracts.push(newContract());renderGoals()}
+function goalEvent(k,v=1,o={}){if(!state.contracts)return;let done=false;for(const c of state.contracts){if(c.k!==k)continue;if(k==='fort'&&(o.lvl||0)<c.lvl)continue;c.p=Math.min(c.n,c.p+v);if(c.p>=c.n&&!c.done){c.done=true;done=true;
+    toast(`📜 Contrato cumprido: ${c.txt} (+${c.fame} renome)`,'r4');spawnLoot(CHEST.x+rnd(-1,1),GY+2,CHEST.z+3,'treasure',Math.min(4,1+Math.floor(rankIdx()/2)),{});addFame(c.fame)}}
+  if(done)state.contracts=state.contracts.map(c=>c.done?newContract():c);if(done||k!=='kills'||Math.random()<.08)renderGoals()}
+function renderGoals(){const el=$('goals');if(!el||!state.contracts)return;const r=rankIdx(),nx=RANKS[r+1];
+  el.innerHTML=`<div class="gr">👑 ${RANKS[r].n} <span>${state.fame||0}${nx?` / ${nx.f}`:''} renome</span></div>`+state.contracts.map(c=>`<div class="gc"><div>${c.txt}</div><div class="gb"><i style="width:${Math.round(c.p/c.n*100)}%"></i></div><span>${Math.floor(c.p)}/${c.n} · +${c.fame}</span></div>`).join('')}
+
 // ───────── ui: toasts, world labels, HUD, build mode, arsenal, unit card, hire, upgrades, rewards, tooltip
-function toast(txt,cls){const box=$('toasts');const t=document.createElement('div');t.className='toast '+(cls||'');t.textContent=txt;box.appendChild(t);while(box.children.length>5)box.firstChild.remove();setTimeout(()=>t.remove(),2700)}
+// only important messages (rare/epic events, or feedback to something the player just did) are shown
+let lastInputT=-1e9;addEventListener('pointerdown',()=>lastInputT=performance.now(),true);addEventListener('keydown',()=>lastInputT=performance.now(),true);
+function toast(txt,cls,force){if(!force&&cls!=='r3'&&cls!=='r4'&&performance.now()-lastInputT>1500)return;const box=$('toasts');const t=document.createElement('div');t.className='toast '+(cls||'');t.textContent=txt;box.appendChild(t);while(box.children.length>5)box.firstChild.remove();setTimeout(()=>t.remove(),2700)}
 const labels=[];const _v=new THREE.Vector3();
 function label(pos,txt,color){if(labels.length>40)return;const el=document.createElement('div');el.className='lab';el.textContent=txt;el.style.color=color||'#2b2d4a';$('labels').appendChild(el);labels.push({el,x:pos.x,y:(pos.y||GY)+2,z:pos.z,t:1.2})}
 function updateLabels(dt){for(let i=labels.length-1;i>=0;i--){const L=labels[i];L.t-=dt;if(L.t<=0){L.el.remove();labels.splice(i,1);continue}_v.set(L.x,L.y,L.z).project(camera);L.el.style.left=((_v.x+1)/2*innerWidth)+'px';L.el.style.top=((1-_v.y)/2*innerHeight)+'px'}}
@@ -1269,7 +1395,7 @@ function updateHud(){$('wave').textContent=state.wave;$('mat').textContent=Math.
   $('focusCd').textContent=state.focusCd>0?Math.ceil(state.focusCd)+'s':'pronto';$('focus').classList.toggle('on',state.focusT>0);
   $('bombCd').textContent=state.bombCd>0?Math.ceil(state.bombCd)+'s':'25';$('bomb').classList.toggle('armed',state.bombMode);
   $('arsN').textContent=state.newItems?String(state.newItems):'';$('arsN').hidden=!state.newItems;
-  $('bBuild').classList.toggle('on',state.build.on);$('abBtn').classList.toggle('on',state.autoBuild);$('auBtn').classList.toggle('on',state.autoUp);
+  $('bBuild').classList.toggle('on',state.build.on);$('abBtn').classList.toggle('on',state.autoBuild);$('auBtn').classList.toggle('on',state.autoUp);$('arBtn').classList.toggle('on',!!state.autoReward);
   {const rp=raidPower();const c=$('rivalChip');if(rp){const w=rp.us/(rp.us+rp.them+.01);c.textContent=`⚔️ ${rp.R.name}: ${rp.us.toFixed(0)} vs ${rp.them.toFixed(0)} · núcleo ${rp.core}/8 · ${w>.6?'vantagem':w>.4?'equilibrado':'perigo!'}`;c.style.color=w>.6?'#2f9a5e':w>.4?'#c99a1a':'#d9414f'}else{c.style.color='';const B=battle();const inc=REALM.armies.filter(A=>A.to.home).length;c.textContent=B?`⚔️ Guerra: ${B.name} nv ${B.lvl} · núcleo ${B.core.filter(i=>vox[i]===21).length}/8`:`🗺️ ${REALM.cities.length} fortalezas${inc?` · ⚠️ ${inc} exército${inc>1?'s':''} vindo`:''}`;if(!B&&inc)c.style.color='#d9414f'}}
   if(state.card)renderCard()}
 
@@ -1371,7 +1497,7 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
 // ── hire
 function renderHire(){const el=$('hire');let h='';for(const r in ROLES){const R=ROLES[r];h+=`<button class="btn" data-h="${r}" ${state.material<R.cost?'disabled':''} title="${esc(R.d)}">${R.ico} ${R.n} <span class="cost">${R.cost}</span></button>`}el.innerHTML=h;
   for(const b of el.querySelectorAll('[data-h]'))b.onclick=()=>{hire(b.dataset.h);renderHire()}}
-function hire(role){const R=ROLES[role];if(minions.length>=MAX_MINIONS){toast(`Limite de ${MAX_MINIONS} minions: a cidadela está lotada`,'r0');return}if(state.material<R.cost)return;state.material-=R.cost;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);
+function hire(role){const R=ROLES[role];if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){toast(`Limite de ${MAX_MINIONS+MAX_MINIONS_BONUS} minions: a cidadela está lotada`,'r0');return}if(state.material<R.cost)return;state.material-=R.cost;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);
   toast(`${m.name}, ${R.n} ${RARITY[r].n}${m.trait?' · '+m.trait:''}`,RARITY[r].css);SFX.pop();if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);updateHud()}
 
 // ── upgrades
@@ -1407,10 +1533,12 @@ function rewardPool(){const w=state.wave,rr=()=>rollRarity(w*.006+state.luck),P=
   P.push(()=>{const r=rr();const n=25+r*15+w*3;return{r,ico:'📦',nm:'Carga de material',ds:`+${n} material no baú.`,go(){state.material+=n}}});
   if(minions.some(m=>m.wounded>0))P.push(()=>({r:1,ico:'💊',nm:'Enfermaria cheia',ds:'Todos os feridos voltam agora.',go(){for(const m of minions)if(m.wounded>0)m.wounded=.01}}));
   return P}
-function offerRewards(){state.choosing=true;const pool=rewardPool();const picks=[];while(picks.length<3&&pool.length){const i=Math.floor(Math.random()*pool.length);picks.push(pool.splice(i,1)[0]())}
+function offerRewards(){const pool=rewardPool();const picks=[];while(picks.length<3&&pool.length){const i=Math.floor(Math.random()*pool.length);const R=pool.splice(i,1)[0]();R.r=Math.min(4,R.r+(Math.random()<.5?1:0));picks.push(R)}
+  if(state.autoReward&&picks.length){const R=picks.sort((a,b)=>b.r-a.r)[0];R.go();SFX.loot(R.r);toast(`🎁 Recompensa automática: ${R.nm} (${RARITY[R.r].n})`,RARITY[R.r].css,true);refreshPanels();updateHud();return}state.choosing=true;
   const box=$('rewardCards');box.innerHTML='';$('rewardTitle').textContent=`Horda ${state.wave-1} vencida!`;
   for(const R of picks){const el=document.createElement('button');el.className='rcard '+RARITY[R.r].css;el.innerHTML=`<div class="ico">${R.ico}</div><div class="nm">${esc(R.nm)}</div><div class="ds">${esc(R.ds)}</div><div class="rr">${RARITY[R.r].n}</div>`;
     el.onclick=()=>{R.go();SFX.loot(R.r);$('reward').style.display='none';state.choosing=false;refreshPanels();updateHud()};box.appendChild(el)}
+  {const a=document.createElement('button');a.className='btn';a.style.cssText='margin-top:10px';a.textContent='🎁 Escolher automaticamente daqui pra frente';a.onclick=()=>{state.autoReward=true;const R=picks.slice().sort((x,y)=>y.r-x.r)[0];R.go();SFX.loot(R.r);$('reward').style.display='none';state.choosing=false;refreshPanels();updateHud()};box.appendChild(a)}
   $('reward').style.display='flex';SFX.loot(1)}
 
 // ── boss bar, tooltip
@@ -1426,7 +1554,7 @@ function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}
   else if(u.turret){const t=u.turret;showTip(cx,cy,`${t.T.n} ${RARITY[t.r].n}`,t.gunner?'Operada':'Sem artilheiro')}}
 
 // ───────── main: waves, events, game flow, input, loop
-function waveSpec(w){const list=[];const n=5+Math.floor(w*1.9+(w>10?(w-10)*1.5:0));for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
+function waveSpec(w){const list=[];const n=6+Math.floor(w*2.05+(w>10?(w-10)*1.6:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
   if(w>=3)for(let i=0;i<Math.floor((w-1)/2);i++)list.push('climber');if(w>=4)for(let i=0;i<Math.floor(w/3);i++)list.push('sapper');
   if(w>=6)for(let i=0;i<Math.floor((w-3)/3);i++)list.push('flyer');if(w>=6)for(let i=0;i<Math.floor((w-3)/4);i++)list.push('shaman');
   if(w>12)for(let i=0;i<(w-12)*2;i++)list.push(pick(['crawler','climber','ram','sapper','flyer']));
@@ -1453,7 +1581,7 @@ function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.len
   const e=makeEnemy(type,r,x,z);if(r>=2&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
-function endWave(){const ev=state.ev;state.wave++;realmWaveIncome();startSelfRepair();
+function endWave(){const ev=state.ev;state.wave++;realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
   if(ev==='siege'&&state.siege>1){state.siege--;state.phase='rest';toast(`Cerco: horda ${4-state.siege} de 3. Sem descanso!`,'r2');startWave();return}
   if(ev==='siege'){state.siege=0;spawnLoot(CHEST.x+3,GY+3,CHEST.z+4,'treasure',3,{})}
   state.phase='rest';state.restT=25;$('event').style.display='none';
@@ -1461,7 +1589,7 @@ function endWave(){const ev=state.ev;state.wave++;realmWaveIncome();startSelfRep
   if(ev==='ambush')spawnLoot(CHEST.x-2,GY+3,CHEST.z+3,'treasure',2,{});
   if(ev==='elite')spawnLoot(CHEST.x-2,GY+3,CHEST.z+3,'recruit',Math.max(1,rollRarity(.1)),{role:pick(['sol','gun','med'])});
   $('report').style.display='block';$('report').innerHTML=`Horda ${state.wave-1} vencida · melhor combo <b>×${state.comboBest}</b> · <b>${state.wk}</b> estilhaçados · <b>${state.wwound}</b> ferido${state.wwound===1?'':'s'} · <b>${loot.filter(L=>!L.carried).length}</b> itens no chão`;
-  offerRewards();updateHud()}
+  if((state.wave-1)%5===0)offerRewards();updateHud()}
 function gameOver(){state.running=false;saveRecord();if(window.__chestLog)window.__chestLog.push('GAMEOVER '+new Error().stack.split('\n').slice(1,6).join(' < '));$('over').style.display='flex';$('overStat').textContent=`A Fortaleza caiu na horda ${state.wave} · ${state.kills} Devoradores estilhaçados`;
   $('overTitle').textContent='A bruma venceu';$('overText').textContent='O baú foi devorado. Uma Fortaleza nunca morre de verdade: acorde de novo, com o que aprendeu.';$('start').textContent='Acordar de novo';showRecord()}
 
@@ -1477,7 +1605,7 @@ function updateBombs(dt){for(let i=bombs.length-1;i>=0;i--){const b=bombs[i];b.v
 // ───────── new game
 function newGame(){for(const e of enemies)scene.remove(e.group);enemies.length=0;for(const m of minions)scene.remove(m.group);minions.length=0;for(const L of loot)scene.remove(L.g);loot.length=0;
   for(const t of turrets)scene.remove(t.group);turrets.length=0;for(const p of projectiles)scene.remove(p.mesh);projectiles.length=0;for(const b of bombs)scene.remove(b.mesh);bombs.length=0;for(const s of shots)scene.remove(s.mesh);shots.length=0;for(const r of rings)scene.remove(r.m);rings.length=0;claimed.clear();fuses.length=0;
-  Object.assign(state,freshState());state.running=true;setCenter(80,80);rivals.length=0;initRealm();closeRealm();cam.target.set(CX,GY+1.5,CZ);hideBoss();closeCard();for(const id of ['reward','report'])$(id).style.display='none';$('event').style.display='none';for(const id of ['buildPanel','arsenal','shop'])$(id).style.display='none';
+  Object.assign(state,freshState());state.running=true;setCenter(80,80);rivals.length=0;initRealm();closeRealm();initGoals();cam.target.set(CX,GY+1.5,CZ);hideBoss();closeCard();for(const id of ['reward','report'])$(id).style.display='none';$('event').style.display='none';for(const id of ['buildPanel','arsenal','shop'])$(id).style.display='none';
   genWorld();snapshotNature();makeTurret('cannon',TOWER_ANCHORS[0],0);makeTurret('cannon',TOWER_ANCHORS[3],0);makeTurret('ballista',KEEP_ANCHORS[2],0);spawnRivalForces();updateModeUi();
   for(const [r,dx,dz] of [['rep',-3,4],['rep',3,4],['rep',0,-4],['col',-4,5],['col',4,5],['col',-5,3],['col',5,3],['gun',-5,-5],['gun',5,5],['sol',-2,6],['sol',2,6],['sol',0,7]])makeMinion(r,0,CX+dx,CZ+dz);
   state.inv.blocks={16:12,17:6,18:8,15:4,10:6,9:2,19:2};state.inv.turrets=[{type:'ballista',r:1},{type:'flamer',r:0},{type:'tesla',r:0}];
@@ -1521,6 +1649,7 @@ $('bShop').onclick=()=>openSide('shop');$('shopClose').onclick=()=>closeSide('sh
 $('bHire').onclick=()=>{const h=$('hire');const open=h.style.display!=='flex';h.style.display=open?'flex':'none';if(open)renderHire()};
 $('autoEq').onchange=e=>{state.autoEquip=e.target.checked;if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);renderArsenal()};
 $('abBtn').onclick=()=>{state.autoBuild=!state.autoBuild;toast(state.autoBuild?'Construção automática ligada: os minions decidem onde construir':'Construção automática desligada','r1');updateHud()};
+$('arBtn').onclick=()=>{state.autoReward=!state.autoReward;toast(state.autoReward?'Recompensas escolhidas automaticamente (a mais rara)':'Você escolhe as recompensas','r2',true);updateHud()};
 $('auBtn').onclick=()=>{state.autoUp=!state.autoUp;state.autoEquip=state.autoUp||state.autoEquip;toast(state.autoUp?'Upgrade automático ligado: o pior vira o melhor':'Upgrade automático desligado','r2');updateHud()};
 function cycleSpeed(){gameSpeed=SPEEDS[(SPEEDS.indexOf(gameSpeed)+1)%SPEEDS.length];$('speed').textContent=`⏩ ${gameSpeed}×`;$('speed').classList.toggle('on',gameSpeed>1);toast(`Velocidade ${gameSpeed}×`,'r0')}
 $('speed').onclick=cycleSpeed;
@@ -1549,7 +1678,7 @@ function simulate(dt){simTime+=dt;
     rivalTick(dt);heatTick(dt);lifeTick(dt);musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
-    if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.6);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':state.combo>=15?'r3':'r2');state.combo=0}
+    if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':state.combo>=15?'r3':'r2');state.combo=0}
     $('combo').hidden=!(state.combo>=3&&simTime-state.comboT<1.6);if(!$('combo').hidden)$('combo').textContent=`×${state.combo}`;
     if(state.autoBuild||state.autoUp){state.mgAcc+=dt;if(state.mgAcc>2.5){state.mgAcc=0;if(state.autoBuild)autoBuildTick();if(state.autoUp)autoUpgradeTick()}}
     hudAcc+=dt;if(hudAcc>.25){hudAcc=0;updateHud()}}
@@ -1573,7 +1702,7 @@ window.__dbg=()=>({wave:state.wave,mat:Math.floor(state.material),chest:chestAli
   turrets:turrets.map(t=>`${t.type}${t.gunner&&t.gunner.state==='man'?'*':''}:${Math.round(t.hp)}`),fluids:fluids.size,burning:burning.size,armory:state.inv.armory.length,inv:JSON.stringify(state.inv.blocks),ev:state.ev,plan:blueList.filter(i=>vox[i]!==blue[i]).length,planS:blueList.filter(i=>vox[i]!==blue[i]).slice(0,8).map(i=>`${ix(i)},${iy(i)},${iz(i)} v${vox[i]} b${blue[i]} s${+supported(i)} busy${+cellBusy(i)}`).join(' | '),kills:state.kills,cols:minions.filter(m=>m.role==='col').map(m=>`${m.state} t${m.timer.toFixed(1)} @${m.pos.x.toFixed(0)},${m.pos.z.toFixed(0)} y${m.group.position.y.toFixed(1)} wc${walkCell(Math.floor(m.pos.x),Math.floor(m.pos.z))} task${m.task&&m.task.L?Math.round(m.task.L.x)+','+Math.round(m.task.L.z):'-'} bag${m.bag.length}`),lootS:loot.filter(L=>!L.carried&&!L.claimed).slice(0,6).map(L=>`${L.kind}@${L.x.toFixed(0)},${L.y.toFixed(1)},${L.z.toFixed(0)} ok${+lootOK(L)} un${+(L.unreach>simTime)} rest${+L.rest}`)});
 genWorld();placeCamera();requestAnimationFrame(frame);
 // bot used by the headless test to exercise build/arsenal paths like a player would
-window.__bot=()=>{const out=[];state.autoBuild=true;state.autoUp=true;
+window.__bot=()=>{const out=[];state.autoBuild=true;state.autoUp=true;{const B=battle();if(B&&!minions.some(m=>m.raid)&&battleOdds(B.lvl).p>.45){sendRaid();out.push('raid')}if(!state.quest&&REALM.pois.length){const P=REALM.pois.find(q=>questOdds(q).p>.6);if(P&&acceptPoi(P))out.push('poi')}}
   if(state.phase==='wave'&&state.bombCd<=0&&state.material>60){const e=enemies.find(e=>!e.dead&&!e.fly&&!inside(e.pos.x,e.pos.z));if(e){dropBomb(e.pos.x,e.pos.z);out.push('bomb')}}
   for(const L of loot)if(L.kind==='treasure'&&!L.carried){openTreasure(L);out.push('open');break}
   return out.join(' ')};
@@ -1633,8 +1762,9 @@ window.__rdbg=(t)=>{if(t==='win'){conquer(battle());return 'won'}if(t===60)sendR
 window.__rpos=()=>({raiders:enemies.filter(e=>e.rival&&!e.dead&&e.rmode!=='guard').map(e=>e.type+'@'+e.pos.x.toFixed(0)+','+e.pos.z.toFixed(0)+' st'+e.state+(e.path?' p'+e.path.length:'')),sols:minions.filter(m=>m.role==='sol').map(m=>m.state+'@'+m.pos.x.toFixed(0)+','+m.pos.z.toFixed(0)+' w'+(m.wounded|0)+(m.raid?' R':'')),center:[CX,CZ]});
 window.__realm=()=>({cities:REALM.cities.map(c=>c.name.slice(0,6)+':'+c.lvl+(c.fac.isMe?'*':'')+':'+Math.round(c.garrison)).join(' '),armies:REALM.armies.length,facs:new Set(REALM.cities.map(c=>c.fac.id)).size,log:REALM.log.slice(0,3).map(l=>l.txt),battle:battle()?battle().name:null,chunks:enemies.filter(e=>!e.dead&&e.chunks).slice(0,3).map(e=>e.type+':'+e.lost+'/'+e.chunks.length+' hp'+Math.round(e.hp/e.maxhp*100))});
 window.__boss=(t,f)=>{const e=makeEnemy(t||'boss',2,CX+14,CZ+30);dmgEnemy(e,e.maxhp*(f||.55),true);cam.target.set(e.pos.x,GY+2,e.pos.z);cam.dist=26;return e.lost+'/'+e.chunks.length};
-window.__matTrace=()=>{let v=state.material;const big={};Object.defineProperty(state,'material',{configurable:true,get(){return v},set(n){const d=n-v;if(d>0){const k=(new Error().stack.split('\n')[2]||'').trim().slice(0,90);big[k]=(big[k]||0)+d}v=n}});window.__matBig=()=>Object.entries(big).sort((a,b)=>b[1]-a[1]).slice(0,6)};
+window.__matTrace=()=>{let v=state.material;const big={};Object.defineProperty(state,'material',{configurable:true,get(){return v},set(n){const d=n-v;if(d>0){const k=(new Error().stack.split('\n')[2]||'').trim().split(' (')[0];big[k]=(big[k]||0)+d}v=n}});window.__matBig=()=>Object.entries(big).sort((a,b)=>b[1]-a[1]).slice(0,6)};
 window.__lootTrace=()=>{const big={};const orig=spawnLoot;window.__lt=big;spawnLootHook=(x,y,z,kind,r,data)=>{if(kind==='material'){const k=(new Error().stack.split('\n')[3]||'').trim().split(' (')[0];big[k]=(big[k]||0)+data.amount}}};
+window.__fame=()=>({fame:state.fame,rank:RANKS[rankIdx()].n,c:state.contracts.map(c=>c.k+':'+Math.floor(c.p)+'/'+c.n)});
 
 })();
 </script>
