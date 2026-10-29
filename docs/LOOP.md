@@ -1,0 +1,37 @@
+# Fortrex — loop de melhoria contínua
+
+Artifact: https://claude.ai/artifact/1GT9715PPQGsP62FmowQhw (publicar sempre o mesmo arquivo `/home/claude/fortrex/index.html`)
+Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
+
+## Procedimento de cada rodada
+1. Escolher 2–4 itens do backlog (prioridade: diversão > caos > conteúdo > polimento).
+2. Editar `src/*.js` / `src/index.html` (ordem: core, world, entities, units, rival, ui, main) e rodar `python3 build.py`.
+3. `node --check` no bundle (build.py grava em scratchpad/game.js).
+4. Teste headless: `cd <scratchpad> && node t5.js 900` (bot joga; olhar erros, `plan` preso, minions presos, baú, economia).
+5. Screenshot renderizado: `node shot.js` → ler s1.png / s2.png.
+6. Publicar com Artifact (mesmo file_path), avisar o usuário em 1–2 linhas, atualizar este backlog, agendar a próxima rodada (send_later, ~1 min).
+
+## Feito
+- v0.5: código em módulos; sem fogo amigo (explosões/projéteis do jogador ignoram a base e os minions); modo Construir (blocos, especiais, fluidos, armas, remover, cavar); 6 armas (canhão, balista, lança-chamas, morteiro, Tesla, gelo); 15 equipamentos com raridade; 10 blocos especiais; baús do tesouro clicáveis; loot com prioridade por clique; Arsenal; ficha do minion com troca de função e equipamento; Curandeiro; Xamã; chuva de meteoros; reparadores aterram crateras.
+
+- v0.6: mapa 72×72×24 (terreno 5 camadas, morros, 3 lagos de lava, 3 lagos), unidades 1,6× (voxels menores relativamente), muralhas grossas com ameias, torres 5×5×10, renderização só de faces expostas; Construção automática e Upgrade automático (botões no topo); chefes com mecânicas (Devorador cospe ácido, Colosso pisa); combos com bônus de material; críticos e números de dano; forja 3→1; vapor (lava+água) e ponte de gelo; baú ancorado na rocha; drops e limites maiores; coletor "aspirador".
+- Testes: `AUTO=1 node nobot.js 4` (sem jogador, automações ligadas) chega à horda 27–28. `node t5.js 900` com bot.
+- v0.7.1: controle de velocidade 1×/2×/3×/5× (botão ⏩ e tecla F), simulação em subpassos.
+- v0.7: minions com XP e nível (até 30, bônus de dano/vida/trabalho, efeito dourado); evento Tempestade (raios + vento que espalha fogo, choque em quem está na água); upgrade Portal de coleta (loot esquecido voa ao baú); Voadores mergulham para atacar (soldados alcançam); artilheiros sem arma usam arco; anti-travamento de inimigos (pula ou esmaga o chão); projéteis fora do mapa somem; coletores extras quando há muito loot. Sem automação agora chega à horda 24–25; com automação 28.
+
+- v0.9: mapa 128×128×32; cidadela vertical (torre de menagem oca com portão, 2 andares, janelas, 4 pináculos com telhados e estandartes, casas); modos Hordas / Conquista (3 cidades rivais) / Duelo (1 rival, nações renascem); cidades rivais com guardas, torres que atiram nos minions, núcleo vermelho e reconstrução própria; raids rivais (cavaleiros, arqueiros, aríetes); ⚔️ Atacar / 🏳️ Recuar (expedição sai pelo portão, rompe muralhas, destrói núcleo → conquista com tesouro e armas capturadas; retirada automática se todos caírem); construção auto põe minas/espinhos/gelo/barris no caminho real dos inimigos (mapa de calor, barris longe da base); dia/noite (240 s, noites com mais inimigos); só blocos de ambiente se recuperam com o tempo — base e o que o jogador constrói/cava ficam por conta dos reparadores. Testes: `node t6.js` (MODE=conquista|duelo), `node t7.js` (posições), `node shotc.js`.
+
+- v0.10: guerras entre rivais (bandos marcham, lutam com guardas, rompem muralhas, tomam o núcleo; vencedor sobe de nível, tesouro fica no chão); nova geração de rivais 60 s após todos caírem (Conquista e Duelo); chip de força da expedição (nós vs guardas+torres, núcleo x/8, vantagem/perigo); à noite minions ociosos descansam dentro da torre de menagem e se curam; HUD compacto; noites mais escuras. Teste: `node t8.js` (nova rodada), `node t9.js` (descanso).
+- v0.10.1: 🎯 alterna a cidade-alvo (câmera + alvo do ⚔️ Atacar); trilha procedural (arpejos pentatônicos, menor à noite, mais rápida em horda/chefe).
+
+## Backlog (próximas rodadas)
+- [ ] Expedição: bandeira de rally
+- [ ] Diplomacia leve: tributo para adiar raid, aliança temporária contra o mais forte
+- [ ] Balanceamento: agora fácil demais (horda 25+ sem perder) → curva dura após 12, chefes novos a cada 15 (Rainha da Bruma que invoca, Titã de lava), modo Pesadelo
+- [ ] Mercador de barco: vende/compra itens; loja rotativa com raridades
+- [ ] Combos de elementos: água + Tesla já existe; óleo inflamável, vapor (água+lava fere), gelo sobre água vira ponte
+- [ ] Pets/monturas lendárias, minions com nível/XP e kill count visível
+- [ ] Juice: confete em lendário
+- [ ] Mobile: botões maiores, toque longo para remover
+- [ ] Salvar partida (localStorage) e recorde
+- [ ] Desempenho: medir FPS real com muitos inimigos; reduzir sombras se preciso
