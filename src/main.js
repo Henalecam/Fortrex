@@ -184,7 +184,7 @@ function autoBuildTick(){const reserve=reserveMat();let acted=false;
   if(acted)refreshPanels()}
 // upgrades: always replace the worst piece with a better one
 const TIER=[3,4,14,20];
-function autoUpgradeTick(){const reserve=reserveMat();let acted=false;
+function autoUpgradeTick(){{const res=reserveMat();if(state.material>res*2){const o=UPGRADES.filter(U=>isUnlocked('up',U.id)&&(state.ups[U.id]||0)<U.max).map(U=>({U,c:U.cost(state.ups[U.id]||0)})).sort((a,b)=>a.c-b.c)[0];if(o&&state.material-o.c>res){state.material-=o.c;state.ups[o.U.id]=(state.ups[o.U.id]||0)+1;o.U.go();label({x:CHEST.x,y:GY+3,z:CHEST.z},`${o.U.ico} ${o.U.nm}`,'#4f9cf2')}}}const reserve=reserveMat();let acted=false;
   // walls: worst material first, closest to the gate first
   const walls=blueList.filter(i=>TIER.includes(blue[i])&&(baseBlue[i]===3||baseBlue[i]===4||state.custom.has(i))&&iy(i)>=GY).sort((a,b)=>TIER.indexOf(blue[a])-TIER.indexOf(blue[b])||hd({x:ix(a),z:iz(a)},GATE)-hd({x:ix(b),z:iz(b)},GATE));
   let n=0;for(const i of walls){if(n>=6)break;const t=TIER.indexOf(blue[i]);const next=TIER[t+1];if(!next)continue;

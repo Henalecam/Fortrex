@@ -1,13 +1,13 @@
 // ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
 const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,frost:10,catapult:12},role:{rep:1,col:1,gun:1,sol:1,med:3},
   block:{16:1,17:1,10:1,18:4,15:5,9:7,8:7,14:9,19:10,20:14},
-  up:{platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
+  up:{forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
 function unlockWave(kind,k){return(UNLOCK[kind]&&UNLOCK[kind][k])||1}
 function isUnlocked(kind,k){return state.wave>=unlockWave(kind,k)}
 function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)if(UNLOCK.turret[k]===w)got.push(TURRETS[k].ico+' '+TURRETS[k].n);for(const k in UNLOCK.role)if(UNLOCK.role[k]===w)got.push(ROLES[k].ico+' '+ROLES[k].n);
   for(const k in UNLOCK.block)if(UNLOCK.block[k]===w)got.push(MAT[k].n);for(const k in UNLOCK.up)if(UNLOCK.up[k]===w){const U=UPGRADES.find(u=>u.id===k);if(U)got.push(U.ico+' '+U.nm)}
   if(w%8===0)got.push('+1 vaga de arma');if(got.length)toast(`🔓 Horda ${w}: ${got.join(', ')}`,'r4')}
-function turretCap(){return 6+2*(state.ups.platform||0)+Math.floor(state.wave/8)+((state.expStage||0)>=3?4:0)}
+function turretCap(){return 6+2*(state.ups.platform||0)+Math.floor(state.wave/8)+((state.expStage||0)>=3?4:0)+((state.expStage||0)>=6?3:0)}
 function turretCount(){return turrets.filter(t=>t.alive&&t.team!=='r').length}
 function canInstall(){if(turretCount()<turretCap())return true;toast(`Limite de ${turretCap()} armas. Compre 🧱 Plataformas de armas nos Upgrades.`,'r0');return false}
 const ROLE_BASE={rep:6,col:7,gun:4,sol:6,med:2};
@@ -28,7 +28,10 @@ const UPGRADES_EXTRA=[
   {id:'quartel',ico:'🏯',nm:'Quartel',ds:'+3 vagas de soldado e +1 de curandeiro.',max:5,cost:l=>60+l*60,go(){}},
   {id:'oficina',ico:'🏭',nm:'Oficina',ds:'+2 vagas de reparador e +2 de coletor.',max:5,cost:l=>50+l*50,go(){}},
   {id:'escola',ico:'🎓',nm:'Escola de artilharia',ds:'+2 vagas de artilheiro.',max:5,cost:l=>60+l*60,go(){}}];
-UPGRADES.unshift(...UPGRADES_EXTRA);
+const UPGRADES_LATE=[
+  {id:'forge',ico:'🔱',nm:'Forja real',ds:'+5% de dano em todas as armas. Sem limite.',max:99,cost:l=>180+l*140,go(){state.dmgMul*=1.05}},
+  {id:'bulwark',ico:'🛡️',nm:'Baluarte',ds:'Minions +8% de vida e armas +8% de integridade. Sem limite.',max:99,cost:l=>160+l*130,go(){state.turretHp*=1.08;for(const t of turrets){t.maxhp*=1.08;t.hp*=1.08}for(const m of minions){m.maxhp*=1.08}}}];
+UPGRADES.unshift(...UPGRADES_EXTRA);UPGRADES.push(...UPGRADES_LATE);
 // ───────── travelling merchant: shows up every 3 waves with a rotating stock; what you buy is unloaded at the gate
 function merchantArrive(){const w=state.wave,offers=[];let guard=0;while(offers.length<4&&guard++<30){const r=Math.min(4,rollRarity(.06+w*.008)+(offers.length===0?1:0));const [kind,data]=lootPick('any',r);if(kind==='material')continue;offers.push({kind,data,r,price:Math.round((25+r*r*30)*(1+w*.03)),sold:false})}
   state.merchant={offers,until:w+2};$('bMerch').hidden=false;toast('🛒 O mercador chegou ao portão! Ofertas por 2 hordas.','r3');renderMerch()}
@@ -58,22 +61,22 @@ function spawnHero(H){const m=makeMinion('sol',4,GATE.x+rnd(-1,1),GATE.z+2);m.he
   state.heroes=state.heroes||{};state.heroes[H.id]={m,cd:0};const b=$('bHero_'+H.id);if(b)b.hidden=false;toast(`${H.ico} ${H.name} se junta a você! ${H.ab} (tecla ${H.key}): ${H.d}.`,'r4')}
 function checkHeroes(){const n=relicCount();for(const H of HEROES)if(n>=H.need&&!(state.heroes&&state.heroes[H.id]))spawnHero(H)}
 function heroAbility(id){const H=HEROES.find(h=>h.id===id);const S=state.heroes&&state.heroes[id];if(!H||!S||!minions.includes(S.m)){toast('Este herói ainda não chegou','r0');return}const m=S.m;
-  if(m.wounded>0){toast(`${H.name.split(',')[0]} está ferido(a)`,'r0');return}if(S.cd>0){toast(`${H.ab} em ${Math.ceil(S.cd)} s`,'r0');return}S.cd=H.cd;const w=state.wave;
-  if(id==='paladin'){const r=7,dmg=120+w*8;for(const e of enemies){if(e.dead||e.fly)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r){dmgEnemy(e,dmg*(1-d/r*.5),true,true);e.stun=Math.max(e.stun||0,2)}}
+  if(m.wounded>0){toast(`${H.name.split(',')[0]} está ferido(a)`,'r0');return}if(S.cd>0){toast(`${H.ab} em ${Math.ceil(S.cd)} s`,'r0');return}const L=m.lvl||1,mul=1+(L-1)*.07;S.cd=H.cd*Math.max(.55,1-(L-1)*.02);const w=state.wave*mul;
+  if(id==='paladin'){const r=7+L*.08,dmg=120+w*8;for(const e of enemies){if(e.dead||e.fly)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r){dmgEnemy(e,dmg*(1-d/r*.5),true,true);e.stun=Math.max(e.stun||0,2)}}
     for(const o of minions){if(Math.hypot(o.pos.x-m.pos.x,o.pos.z-m.pos.z)<r){if(o.wounded>0)o.wounded=Math.min(o.wounded,1);else o.hp=o.maxhp}}ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,r,0xffcf3d)}
   if(id==='archer'){let best=null,bn=0;for(const e of enemies){if(e.dead||Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z)>45)continue;let n=0;for(const o of enemies)if(!o.dead&&Math.abs(o.pos.x-e.pos.x)<6&&Math.abs(o.pos.z-e.pos.z)<6)n++;if(n>bn){bn=n;best=e}}
     if(!best){S.cd=2;toast('Nenhum inimigo ao alcance','r0');return}const x=best.pos.x,z=best.pos.z;for(let k=0;k<3;k++)state.volleys.push({x,z,t:.35+k*.45,dmg:70+w*6})}
-  if(id==='mage'){const r=10;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r){dmgEnemy(e,(60+w*5)*(e.type==='titan'?2.5:1),true);e.slowT=Math.max(e.slowT,6);e.stun=Math.max(e.stun||0,1)}}freezeAround(m.pos.x,GY,m.pos.z,4);ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,r,0x8fe3ff);SFX.freeze()}
+  if(id==='mage'){const r=10+L*.1;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r){dmgEnemy(e,(60+w*5)*(e.type==='titan'?2.5:1),true);e.slowT=Math.max(e.slowT,6);e.stun=Math.max(e.stun||0,1)}}freezeAround(m.pos.x,GY,m.pos.z,4);ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,r,0x8fe3ff);SFX.freeze()}
   shake=Math.max(shake,.7);slowmo=Math.max(slowmo,.4);SFX.open();label({x:m.pos.x,y:m.group.position.y+3,z:m.pos.z},`${H.ico} ${H.ab}!`,'#e0a000')}
 function ringFx(x,y,z,r,c){for(let k=0;k<40;k++){const a=k/40*Math.PI*2;spawnDebris(x+Math.cos(a)*r*.8,y,z+Math.sin(a)*r*.8,c,1,.3)}}
 function heroTick(dt){state.volleys=state.volleys||[];for(let i=state.volleys.length-1;i>=0;i--){const V=state.volleys[i];V.t-=dt;if(V.t>0)continue;state.volleys.splice(i,1);
     for(let k=0;k<26;k++)spawnDebris(V.x+rnd(-5,5),GY+rnd(3,9),V.z+rnd(-5,5),0x8a6a45,1,.18);for(const e of enemies)if(!e.dead&&Math.abs(e.pos.x-V.x)<6&&Math.abs(e.pos.z-V.z)<6)dmgEnemy(e,V.dmg,true);SFX.twang()}
   checkHeroes();for(const H of HEROES){const S=state.heroes&&state.heroes[H.id];const b=$('bHero_'+H.id);if(!b)continue;if(!S){b.hidden=true;continue}if(S.cd>0)S.cd-=dt;if(!minions.includes(S.m)){b.hidden=true;continue}b.hidden=false;
-    b.querySelector('.cost').textContent=S.m.wounded>0?'ferido':S.cd>0?Math.ceil(S.cd)+'s':'pronto';b.classList.toggle('on',S.cd<=0&&!(S.m.wounded>0))}}
+    b.querySelector('.cost').textContent=(S.m.wounded>0?'ferido':S.cd>0?Math.ceil(S.cd)+'s':'pronto')+` · nv ${S.m.lvl||1}`;b.title=`${H.name} (nv ${S.m.lvl||1}): ${H.ab} (${H.key}) — ${H.d}. Sobe de nível lutando.`;b.classList.toggle('on',S.cd<=0&&!(S.m.wounded>0))}}
 
 // ───────── the citadel grows by itself: a new outer ring, bastions and a moat are drawn into the blueprint as waves go by.
 // Building is free (repairers' labour is the only limit); after each wave everything mends itself.
-const EXP_STAGES=[{w:3,n:'Paliçada de madeira'},{w:6,n:'Muralha externa de pedra'},{w:9,n:'Quatro bastiões com plataformas de armas'},{w:12,n:'Reforço de metal e portão externo'},{w:15,n:'Fosso de água'}];
+const EXP_STAGES=[{w:3,n:'Paliçada de madeira'},{w:6,n:'Muralha externa de pedra'},{w:9,n:'Quatro bastiões com plataformas de armas'},{w:12,n:'Reforço de metal e portão externo'},{w:15,n:'Fosso de água'},{w:18,n:'Torres de vigia nas muralhas externas'},{w:21,n:'Campo de espinhos além do fosso'},{w:24,n:'Base de obsidiana e ameias de aço rúnico'}];
 function ringCells(R,f){for(let x=CX-R;x<=CX+R;x++)for(let z=CZ-R;z<=CZ+R;z++){const edge=Math.max(Math.abs(x-CX),Math.abs(z-CZ));if(edge<R-1||edge>R)continue;f(x,z)}}
 function clearFor(i){if(vox[i]&&!blue[i]&&!rown[i]&&vox[i]!==5){removeVox(i,'dig')}if(natBlue)natBlue[i]=0}
 function expansionTick(){const st=state.expStage||0;if(st>=EXP_STAGES.length||state.wave<EXP_STAGES[st].w)return;state.expStage=st+1;const R=WR+8,gap=(x,z)=>z>CZ&&Math.abs(x-CX+.5)<2.6;
@@ -83,4 +86,7 @@ function expansionTick(){const st=state.expStage||0;if(st>=EXP_STAGES.length||st
   if(st===2){state.extraAnchors=[];for(const [sx,sz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){const bx=CX+sx*R,bz=CZ+sz*R;for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let y=0;y<9;y++)put(bx+dx,GY+y,bz+dz,6);state.extraAnchors.push(idx(bx,GY+8,bz))}}
   if(st===3){ringCells(R,(x,z)=>{if(gap(x,z))return;put(x,GY+4,z,4)});for(let x=CX-2;x<=CX+1;x++)for(let z=CZ+R-1;z<=CZ+R;z++)for(let y=0;y<4;y++)put(x,GY+y,z,7)}
   if(st===4){const Rm=R+3;ringCells(Rm,(x,z)=>{if(z>CZ&&Math.abs(x-CX+.5)<3.6)return;const i=idx(x,GY-1,z);if(blue[i]||rown[i]||vox[i]===5||vox[i]===8)return;for(let y=GY;y<GY+3;y++){const j=idx(x,y,z);if(vox[j]&&!blue[j])removeVox(j,'dig')}setVox(i,0);setFluid(i,9,4,true);if(natBlue)natBlue[i]=0})}
+  if(st===5){for(const [sx,sz] of [[0,-1],[-1,0],[1,0]]){const bx=CX+sx*R,bz=CZ+sz*R;for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)for(let y=0;y<11;y++)put(bx+dx,GY+y,bz+dz,6);(state.extraAnchors=state.extraAnchors||[]).push(idx(bx,GY+10,bz))}}
+  if(st===6){ringCells(R+5,(x,z)=>{if(z>CZ&&Math.abs(x-CX+.5)<4.6)return;if((x+z)%3)return;const i=idx(x,GY,z);if(vox[i]&&!blue[i])clearFor(i);if(!vox[i]&&!blue[i]){placeBlue(i,16);state.prepaid.add(i)}})}
+  if(st===7)ringCells(R,(x,z)=>{if(gap(x,z))return;put(x,GY,z,14);if((x+z)%2===0)put(x,GY+5,z,20)});
   toast(`🏗️ A cidadela cresce: ${EXP_STAGES[st].n}! Os reparadores constroem de graça.`,'r4')}
