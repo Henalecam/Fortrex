@@ -1,8 +1,8 @@
 'use strict';
 // ───────── core: grid, helpers, materials, rarity, shared state, sound
-const W=160,D=160,H=32,N=W*D*H,GY=5;
+const W=192,D=192,H=32,N=W*D*H,GY=5;
 // fortress layout (grid units, set per game mode) and unit scale: units are bigger than voxels so destruction is finer
-let CX=80,CZ=80,WA=64,WB=96;const WR=16,WT=3,TS=5,TOWER_H=12,US=1.6,KR=5,KH=15;
+let CX=96,CZ=96,WA=80,WB=112;const WR=16,WT=3,TS=5,TOWER_H=12,US=1.6,KR=5,KH=15;
 function setCenter(cx,cz){CX=cx;CZ=cz;WA=cx-WR;WB=cx+WR}
 const idx=(x,y,z)=>x+W*(z+D*y);
 const inb=(x,y,z)=>x>=0&&x<W&&y>=0&&y<H&&z>=0&&z<D;
@@ -54,7 +54,7 @@ function rollRarity(b=0){const r=Math.random()+b;if(r>1.02)return 4;if(r>.965)re
 const NAMES=['Bolota','Tijolo','Pipoca','Faísca','Migalha','Biscoito','Torresmo','Pudim','Cocada','Paçoca','Chiclete','Pirulito','Rabisco','Trovão','Tampinha','Bigode','Farofa','Quindim','Jujuba','Feijão','Pitoco','Zica','Brigadeiro','Caju','Moranga','Bacuri','Pequi','Graveto','Cascalho','Fuligem','Pamonha','Canjica','Mandioca','Tapioca','Sirigado','Xodó','Fubá','Gengibre','Dendê','Jabuti'];
 
 let simTime=0,shake=0,hitstop=0,gameSpeed=1,slowmo=0;const SPEEDS=[1,2,3,5];const MAX_MINIONS=60;
-function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:25,auto:false,
+function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:15,auto:false,
   focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,
   ev:null,siege:0,boss:null,wk:0,wwound:0,choosing:false,meteorT:0,
   wallH:7,mode:'reino',custom:new Map(),erased:new Set(),prepaid:new Set(),metalDoor:false,

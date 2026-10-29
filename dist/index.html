@@ -132,7 +132,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 
 <canvas id="c"></canvas>
 <div id="top" class="bar">
-  <span class="title">FORTREX<small>v0.14</small></span>
+  <span class="title">FORTREX<small>v0.15</small></span>
   <span class="chip"><span class="lbl">Horda</span><b id="wave">1</b></span>
   <span class="chip"><span class="lbl">Baú</span><b id="mat">0</b><span class="lbl hide-sm">material</span></span>
   <span class="chip"><span class="lbl">Minions</span><b id="mcount">0</b><span id="wounded" class="lbl" style="color:var(--bad)"></span></span>
@@ -141,6 +141,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <span class="chip" id="clock">☀️ Dia 1</span>
   <span class="chip" id="rivalChip" style="cursor:pointer" title="Abrir o mapa do reino">🗺️ Reino</span>
   <button class="btn" id="abBtn" title="Os minions decidem onde construir, onde instalar armas e blocos, e contratam">🏗️ Construção auto</button>
+  <button class="btn" id="asBtn" title="Vende sozinho equipamentos que ninguém usaria e armas que não cabem">💰 Venda auto</button>
   <button class="btn" id="arBtn" title="Escolhe sozinho a recompensa mais rara a cada 5 hordas">🎁 Recompensa auto</button>
   <button class="btn" id="auBtn" title="Troca o pior pelo melhor: blocos, armas instaladas, equipamentos e upgrades">✨ Upgrade auto</button>
 </div>
@@ -208,9 +209,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 (function(){
 'use strict';
 // ───────── core: grid, helpers, materials, rarity, shared state, sound
-const W=160,D=160,H=32,N=W*D*H,GY=5;
+const W=192,D=192,H=32,N=W*D*H,GY=5;
 // fortress layout (grid units, set per game mode) and unit scale: units are bigger than voxels so destruction is finer
-let CX=80,CZ=80,WA=64,WB=96;const WR=16,WT=3,TS=5,TOWER_H=12,US=1.6,KR=5,KH=15;
+let CX=96,CZ=96,WA=80,WB=112;const WR=16,WT=3,TS=5,TOWER_H=12,US=1.6,KR=5,KH=15;
 function setCenter(cx,cz){CX=cx;CZ=cz;WA=cx-WR;WB=cx+WR}
 const idx=(x,y,z)=>x+W*(z+D*y);
 const inb=(x,y,z)=>x>=0&&x<W&&y>=0&&y<H&&z>=0&&z<D;
@@ -262,7 +263,7 @@ function rollRarity(b=0){const r=Math.random()+b;if(r>1.02)return 4;if(r>.965)re
 const NAMES=['Bolota','Tijolo','Pipoca','Faísca','Migalha','Biscoito','Torresmo','Pudim','Cocada','Paçoca','Chiclete','Pirulito','Rabisco','Trovão','Tampinha','Bigode','Farofa','Quindim','Jujuba','Feijão','Pitoco','Zica','Brigadeiro','Caju','Moranga','Bacuri','Pequi','Graveto','Cascalho','Fuligem','Pamonha','Canjica','Mandioca','Tapioca','Sirigado','Xodó','Fubá','Gengibre','Dendê','Jabuti'];
 
 let simTime=0,shake=0,hitstop=0,gameSpeed=1,slowmo=0;const SPEEDS=[1,2,3,5];const MAX_MINIONS=60;
-function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:25,auto:false,
+function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:15,auto:false,
   focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,
   ev:null,siege:0,boss:null,wk:0,wwound:0,choosing:false,meteorT:0,
   wallH:7,mode:'reino',custom:new Map(),erased:new Set(),prepaid:new Set(),metalDoor:false,
@@ -318,7 +319,7 @@ const NB6=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]],NB4=[[1,0],[-1,0]
 const _m=new THREE.Matrix4(),_c=new THREE.Color(),_zero=new THREE.Matrix4().makeScale(0,0,0),BURN=new THREE.Color(0xff7a2a);
 const vox=new Uint8Array(N),hp=new Float32Array(N),blue=new Uint8Array(N),baseBlue=new Uint8Array(N),rown=new Uint8Array(N);
 const voxGeo=new THREE.BoxGeometry(1,1,1);
-const VCAP=240000;const voxMesh=new THREE.InstancedMesh(voxGeo,new THREE.MeshLambertMaterial(),VCAP);
+const VCAP=340000;const voxMesh=new THREE.InstancedMesh(voxGeo,new THREE.MeshLambertMaterial(),VCAP);
 voxMesh.castShadow=true;voxMesh.receiveShadow=true;voxMesh.frustumCulled=false;voxMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 voxMesh.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(VCAP*3),3);scene.add(voxMesh);
 const vslot=new Int32Array(N).fill(-1),slotVox=new Int32Array(VCAP).fill(-1);let vcount=0;
@@ -506,9 +507,9 @@ function genWorld(){vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.cl
   computeLayout();planRivals();buildBlueprint();
   const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);vox[i]=m;hp[i]=FLUID(m)?4:MAT[m].hp;if(FLUID(m)){fluids.add(i);fluidSrc.add(i)}};
   const zones=cityZones();const inZone=(x,z,r)=>zones.some(([zx,zz,zr])=>Math.abs(x-zx)<zr+r&&Math.abs(z-zz)<zr+r);
-  const LAVA=[],PONDS=[];for(let k=0;k<10;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(2.8,6);if(!inZone(x,z,r+2))LAVA.push([x,z,r])}for(let k=0;k<12;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(3,7);if(!inZone(x,z,r+2)&&!LAVA.some(([a,b,c])=>Math.hypot(a-x,b-z)<c+r+3))PONDS.push([x,z,r])}
+  const LAVA=[],PONDS=[];for(let k=0;k<14;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(2.8,6);if(!inZone(x,z,r+2))LAVA.push([x,z,r])}for(let k=0;k<17;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(3,7);if(!inZone(x,z,r+2)&&!LAVA.some(([a,b,c])=>Math.hypot(a-x,b-z)<c+r+3))PONDS.push([x,z,r])}
   const nearPool=(x,z,r)=>LAVA.some(([px,pz,pr])=>Math.hypot(x-px,z-pz)<pr+r)||PONDS.some(([px,pz,pr])=>Math.hypot(x-px,z-pz)<pr+r);
-  const HILLS=[];for(let k=0;k<26;k++){const x=rint(6,W-7),z=rint(6,D-7),hr=rnd(4,9);if(inZone(x,z,hr+2)||nearPool(x,z,hr))continue;HILLS.push([x,z,hr,rint(2,5)])}
+  const HILLS=[];for(let k=0;k<38;k++){const x=rint(6,W-7),z=rint(6,D-7),hr=rnd(4,9);if(inZone(x,z,hr+2)||nearPool(x,z,hr))continue;HILLS.push([x,z,hr,rint(2,5)])}
   for(let z=0;z<D;z++)for(let x=0;x<W;x++){put(x,0,z,1);for(let y=1;y<GY-1;y++)put(x,y,z,12);put(x,GY-1,z,13);
     for(const [hx,hz,hr,hh] of HILLS){const d=Math.hypot(x-hx,z-hz);if(d<hr){const h=Math.round(hh*(1-d/hr)+.4);for(let y=0;y<h;y++){put(x,GY-1+y,z,12);put(x,GY+y,z,y===h-1&&hh>=4&&d<hr*.35?3:13)}}}
     for(const [px,pz,pr] of LAVA){const d=Math.hypot(x-px,z-pz);if(d<pr){put(x,GY-1,z,8);put(x,GY-2,z,14);if(d<pr*.5){put(x,GY-2,z,8);put(x,GY-3,z,14)}}}
@@ -516,11 +517,11 @@ function genWorld(){vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.cl
   const free=(x,z,r)=>x>=2&&z>=2&&x<=W-3&&z<=D-3&&!inZone(x,z,r)&&!nearPool(x,z,1.5+r);
   const ground=(x,z)=>{let y=H-1;while(y>0&&!vox[idx(x,y,z)])y--;return y+1};
   let placed=0,tries=0;
-  while(placed<230&&tries++<6000){const x=rint(2,W-3),z=rint(2,D-3);if(!free(x,z,2))continue;const g=ground(x,z);if(vox[idx(x,g-1,z)]!==13)continue;const h=rint(3,6),big=Math.random()<.35;
+  while(placed<330&&tries++<9000){const x=rint(2,W-3),z=rint(2,D-3);if(!free(x,z,2))continue;const g=ground(x,z);if(vox[idx(x,g-1,z)]!==13)continue;const h=rint(3,6),big=Math.random()<.35;
     for(let y=0;y<h;y++)put(x,g+y,z,2);const R=big?2:1;for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++)for(let dy=-1;dy<=R;dy++){const yy=g+h-1+dy;if(Math.abs(dx)+Math.abs(dz)+Math.max(0,dy)>R+1)continue;if(inb(x+dx,yy,z+dz)&&!vox[idx(x+dx,yy,z+dz)])put(x+dx,yy,z+dz,11)}put(x,g+h+R,z,11);placed++}
-  placed=0;tries=0;while(placed<52&&tries++<2200){const x=rint(3,W-10),z=rint(3,D-10);if(!free(x,z,2)||!free(x+7,z+7,2))continue;const len=rint(4,10),dir=Math.random()<.5;for(let k=0;k<len;k++){const xx=dir?x+k:x,zz=dir?z:z+k;const g=ground(xx,zz);const h=rint(1,4);for(let y=0;y<h;y++)if(Math.random()<.85)put(xx,g+y,zz,3)}placed++}
-  placed=0;tries=0;while(placed<50&&tries++<2200){const x=rint(3,W-4),z=rint(3,D-4);if(!free(x,z,1))continue;const n=rint(3,7);for(let k=0;k<n;k++){const xx=x+rint(-1,1),zz=z+rint(-1,1);if(free(xx,zz,0))put(xx,ground(xx,zz),zz,10)}placed++}
-  placed=0;tries=0;while(placed<18&&tries++<1400){const x=rint(4,W-5),z=rint(4,D-5);if(!free(x,z,2))continue;const g=ground(x,z);for(let k=0;k<rint(3,7);k++)put(x+rint(-1,1),g+rint(0,2),z+rint(-1,1),15);placed++}
+  placed=0;tries=0;while(placed<75&&tries++<3200){const x=rint(3,W-10),z=rint(3,D-10);if(!free(x,z,2)||!free(x+7,z+7,2))continue;const len=rint(4,10),dir=Math.random()<.5;for(let k=0;k<len;k++){const xx=dir?x+k:x,zz=dir?z:z+k;const g=ground(xx,zz);const h=rint(1,4);for(let y=0;y<h;y++)if(Math.random()<.85)put(xx,g+y,zz,3)}placed++}
+  placed=0;tries=0;while(placed<70&&tries++<3200){const x=rint(3,W-4),z=rint(3,D-4);if(!free(x,z,1))continue;const n=rint(3,7);for(let k=0;k<n;k++){const xx=x+rint(-1,1),zz=z+rint(-1,1);if(free(xx,zz,0))put(xx,ground(xx,zz),zz,10)}placed++}
+  placed=0;tries=0;while(placed<26&&tries++<2000){const x=rint(4,W-5),z=rint(4,D-5);if(!free(x,z,2))continue;const g=ground(x,z);for(let k=0;k<rint(3,7);k++)put(x+rint(-1,1),g+rint(0,2),z+rint(-1,1),15);placed++}
   for(const i of _chestVox){const x=ix(i),z=iz(i);for(let y=1;y<GY;y++)put(x,y,z,1)}
   for(let i=0;i<N;i++)if(blue[i]){vox[i]=blue[i];hp[i]=maxHpOf(blue[i])}
   buildRivals(put);
@@ -590,7 +591,7 @@ function itemScore(it,role){if(!it)return 0;const w=ROLE_W[role];let s=0;for(con
 function autoEquip(it){let best=null,gain=.02;for(const m of minions){const g=itemScore(it,m.role)-itemScore(m.eq[it.slot],m.role);if(g>gain){gain=g;best=m}}if(best){equipItem(best,it);toast(`${best.name} equipou ${it.n}`,RARITY[it.r].css);return true}return false}
 function equipItem(m,it){const a=state.inv.armory,k=a.indexOf(it);if(k>=0)a.splice(k,1);const old=m.eq[it.slot];if(old)a.push(old);m.eq[it.slot]=it;recompute(m);sparkle(m.pos.x,m.group.position.y+1.2,m.pos.z,RARITY[it.r].c,6);SFX.pop()}
 function unequip(m,slot){const it=m.eq[slot];if(!it)return;m.eq[slot]=null;state.inv.armory.push(it);recompute(m)}
-function sellValue(it){return 6+it.r*it.r*8+it.r*6}
+function sellValue(it){return 3+it.r*it.r*4+it.r*3}
 
 // ───────── loot: everything that drops is physical, glows by rarity and is carried home
 const loot=[];
@@ -635,8 +636,8 @@ function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)
     if(L.kind==='treasure')L.main.rotation.y=Math.sin(L.t*1.5)*.3}}
 function lootPick(kind,r,big){const k=Math.random();
   if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:4+r*4}]}}
-function randBlockPack(r){const pool=r>=3?[16,17,18,15,10,14,19,20,9,8]:r>=2?[16,17,18,15,10,14,19,9]:r>=1?[16,17,18,15,10,14]:[16,17,18,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
-function randTurretType(){return pick(['ballista','flamer','mortar','tesla','frost','cannon','ballista','tesla'])}
+function randBlockPack(r){let pool=(r>=3?[16,17,18,15,10,14,19,20,9,8]:r>=2?[16,17,18,15,10,14,19,9]:r>=1?[16,17,18,15,10,14]:[16,17,18,10]).filter(m=>isUnlocked('block',m));if(!pool.length)pool=[16,17,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
+function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
 function openTreasure(L){removeLoot(L);const r=L.r;const n=2+Math.ceil(r*.7)+rint(0,1);
   for(let k=0;k<n;k++){const rr=k===0?r:Math.max(0,Math.min(r,rollRarity(r*.06+state.luck)));const [kind,data]=lootPick('any',rr);
     const it=spawnLoot(L.x,L.y+.6,L.z,kind,rr,data);if(it){const a=k/n*Math.PI*2;it.vx=Math.cos(a)*rnd(3,5);it.vz=Math.sin(a)*rnd(3,5);it.vy=rnd(6,9)}}
@@ -650,7 +651,7 @@ function deposit(L,m){const d=L.data;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treas
     case'equip':{state.inv.armory.push(d.item);state.newItems++;if(!(state.autoEquip&&autoEquip(d.item)))toast(`${d.item.n} ${RARITY[L.r].n} no arsenal`,RARITY[L.r].css);break}
     case'block':{addBlocks(d.m,d.n);state.newItems++;toast(`+${d.n} ${MAT[d.m].n} para construir`,RARITY[L.r].css);break}
     case'turret':{state.inv.turrets.push({type:d.type,r:L.r});state.newItems++;toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
-    case'recruit':{if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){const g=6*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
+    case'recruit':{if(!roleFree(d.role)){const alt=Object.keys(ROLES).filter(roleFree);if(alt.length)d.role=pick(alt)}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS||!roleFree(d.role)){const g=2*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
   if(L.r>=1)SFX.loot(L.r);refreshPanels()}
 
 // ───────── turrets: defensive weapons placed on any block
@@ -779,11 +780,14 @@ const ETYPES={
   colossus:{hp:1500,speed:.9,dmg:60,rate:1.4,color:0x3b2f5c,radius:2.4,n:'Colosso'},
   queen:{hp:950,speed:1.1,dmg:30,rate:1,color:0xa86fd9,radius:1.6,n:'Rainha da Bruma'},
   titan:{hp:2400,speed:.8,dmg:75,rate:1.5,color:0xc2410c,radius:2.2,n:'Titã de lava'},
+  golem:{hp:1700,speed:.9,dmg:65,rate:1.8,color:0x8d8578,radius:1.9,n:'Golem de Pedra'},
+  wyrm:{hp:1100,speed:2.6,dmg:40,rate:1.2,color:0xe0662c,radius:1.5,n:'Serpe de Fogo'},
+  necro:{hp:950,speed:1.4,dmg:35,rate:1.4,color:0x4b2e6b,radius:1.2,n:'Necromante da Bruma'},
 };
-const BIG=t=>t==='boss'||t==='colossus'||t==='queen'||t==='titan'||t==='general';
+const BIG=t=>t==='boss'||t==='colossus'||t==='queen'||t==='titan'||t==='general'||t==='golem'||t==='wyrm'||t==='necro';
 const enemies=[];const fuses=[];
 function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group();const col=new THREE.Color(T.color).lerp(new THREE.Color(RARITY[rarity].c),rarity?.35:0).getHex();
-  const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='general'?2.1:type==='ram'?1.35:type==='flyer'?.8:1);
+  const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='general'?2.1:type==='golem'?3.0:type==='wyrm'?2.0:type==='necro'?2.0:type==='ram'?1.35:type==='flyer'?.8:1);
   const body=box(.9*sc,.7*sc,1.1*sc,col,0,.5*sc,0,g);const head=box(.7*sc,.6*sc,.6*sc,col,0,.6*sc,.75*sc,g);eyes(head,.08*sc,.32*sc,.17*sc);
   const legs=[];for(const sx of [-1,1])for(const sz of [-1,1]){const lg=box(.22*sc,.4*sc,.22*sc,type==='colossus'?0xcfd6e3:0x2b2d4a,sx*.35*sc,.2*sc,sz*.35*sc,g);legs.push({mesh:lg,hp:150,alive:true,ox:sx*.35*sc,oz:sz*.35*sc})}
   if(type==='ram'||type==='rammer')box(.35*US,.35*US,.9*US,0xcfd6e3,0,.75*sc,1.2*sc/1.35,g);
@@ -794,6 +798,9 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(type==='climber'){box(.5*US,.15*US,.9*US,0x3f6b3c,0,.95*US,0,g);for(const s of[-1,1])box(.15*US,.5*US,.15*US,0x3f6b3c,s*.5*US,.9*US,.3*US,g)}
   if(type==='sapper'){const k=box(.5*US,.5*US,.5*US,0x2b2d4a,0,1.0*US,-.1*US,g);k.material.emissive.setHex(0xff5a3c);k.material.emissiveIntensity=.6;fuses.push(k)}
   if(type==='flyer'){const w1=box(1.1*US,.08*US,.4*US,0xd9ecf7,-.7*US,.75*US,0,g),w2=box(1.1*US,.08*US,.4*US,0xd9ecf7,.7*US,.75*US,0,g);g.userData.wings=[w1,w2]}
+  if(type==='golem'){for(const s of[-1,1]){box(.55*sc,.5*sc,.55*sc,0x6f8f55,s*.6*sc,.95*sc,.1*sc,g);box(.4*sc,.8*sc,.4*sc,0x75706a,s*.7*sc,.45*sc,.35*sc,g)}box(.3*sc,.15*sc,.1*sc,0xffb13d,0,.7*sc,1.06*sc,g).material.emissive.setHex(0xffb13d)}
+  if(type==='wyrm'){const w1=box(1.5*sc,.06*sc,.6*sc,0xb83a2e,-.95*sc,.65*sc,0,g),w2=box(1.5*sc,.06*sc,.6*sc,0xb83a2e,.95*sc,.65*sc,0,g);g.userData.wings=[w1,w2];box(.3*sc,.25*sc,.9*sc,0xe0662c,0,.45*sc,-.95*sc,g);box(.2*sc,.18*sc,.5*sc,0xffb13d,0,.4*sc,-1.55*sc,g);for(const s of[-1,1])box(.08*sc,.25*sc,.08*sc,0xfff2c0,s*.22*sc,1.0*sc,.8*sc,g)}
+  if(type==='necro'){box(1.0*sc,.6*sc,1.0*sc,0x2e1d45,0,.15*sc,0,g);box(.12*US,1.8*US,.12*US,0x3b2a20,.75*sc,.9*sc,.3*sc,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.3*US,0),lmat(0x7dff9a,.9));o.position.set(.75*sc,1.45*sc,.3*sc);g.add(o);head.material.color.setHex(0xe8e2d0)}
   if(type==='general'){box(.12*US,1.5*US,.12*US,0xffcf3d,.85*US,1.3*US,.4*US,g);box(1.2*US,.9*US,.12*US,0x2b2d4a,0,1.0*US,-.75*US,g);for(const s of[-1,1])box(.5*US,.35*US,.6*US,0x8a8fa6,s*.75*US,1.45*US,0,g);const cr=box(.6*US,.25*US,.6*US,0xffcf3d,0,1.95*US,.75*US,g);cr.material.emissive.setHex(0xffcf3d);cr.material.emissiveIntensity=.5}
   if(type==='knight'){box(.08*US,.9*US,.08*US,0xdfe6f0,.45*US,.9*US,.2*US,g);box(.5*US,.5*US,.1*US,0x5e5670,-.45*US,.6*US,.2*US,g);box(.75*US,.15*US,.65*US,0x5e5670,0,1.0*US,.75*US,g)}
   if(type==='archer'){box(.1*US,.9*US,.1*US,0x8a6a45,.4*US,.8*US,.3*US,g)}
@@ -802,11 +809,11 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   g.position.set(x,0,z);scene.add(g);
   const w=state.wave;const scale=(1+.135*(w-1))*(w>10?1+.075*(w-10):1)*(w>18?1+.06*(w-18):1)*(1+(state.rank||0)*.08);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?.8:1);
   const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US,state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
-    speed:T.speed*1.5*rnd(.9,1.1)*(state.ev==='elite'?1.15:1),parts:[body,head],sc,legs,fly:type==='flyer',alt:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
+    speed:T.speed*1.5*rnd(.9,1.1)*(state.ev==='elite'?1.15:1),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+15:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   setupChunks(e,body,head);
   e.gy=type==='climber'?topY(x,z):surfE(x,z);g.position.y=e.fly?e.alt:e.gy;g.userData.enemy=e;
   if(BIG(type))showBoss(e);enemies.push(e);return e}
-function dmgEnemy(e,d,flash,crit){if(e.dead)return;e.hp-=d;if(e.chunks&&e.hp>0)chipEnemy(e,d);if(flash&&(d>=14||crit)&&Math.random()<(crit?1:.5))label({x:e.pos.x+rnd(-.3,.3),y:e.group.position.y-.6+e.sc*.6,z:e.pos.z},crit?`${Math.round(d)}!`:String(Math.round(d)),crit?'#e0a000':'#6b6e8f');if(flash){e.hit=.1;for(const p of e.parts)p.material.emissive.setHex(0xffffff)}if(e.hp<=0)killEnemy(e)}
+function dmgEnemy(e,d,flash,crit){if(e.dead)return;if(e.type==='necro'&&e.summ&&e.summ.filter(s=>!s.dead).length>=3){d*=.3;if(Math.random()<.08)label({x:e.pos.x,y:e.gy+e.sc*1.5,z:e.pos.z},'escudo de ossos','#7dff9a')}e.hp-=d;if(e.chunks&&e.hp>0)chipEnemy(e,d);if(flash&&(d>=14||crit)&&Math.random()<(crit?1:.5))label({x:e.pos.x+rnd(-.3,.3),y:e.group.position.y-.6+e.sc*.6,z:e.pos.z},crit?`${Math.round(d)}!`:String(Math.round(d)),crit?'#e0a000':'#6b6e8f');if(flash){e.hit=.1;for(const p of e.parts)p.material.emissive.setHex(0xffffff)}if(e.hp<=0)killEnemy(e)}
 function hurtEnemy(e,d,at){if(e.dead)return;
   if(e.type==='colossus'){let leg=null;if(at){const c=Math.cos(e.group.rotation.y),s=Math.sin(e.group.rotation.y);for(const L of e.legs){if(!L.alive)continue;const lx=e.pos.x+L.ox*c+L.oz*s,lz=e.pos.z-L.ox*s+L.oz*c;if(Math.hypot(at.x-lx,at.z-lz)<1.9&&at.y<e.gy+4.4){leg=L;break}}}
     if(leg){leg.hp-=d*1.6;e.hit=.1;leg.mesh.material.emissive.setHex(0xffffff);SFX.hurt();if(leg.hp<=0){leg.alive=false;e.group.remove(leg.mesh);spawnDebris(e.pos.x+leg.ox,e.gy+1,e.pos.z+leg.oz,0xcfd6e3,14,.5);e.stun=3;shake=Math.max(shake,.6);SFX.boom(true);
@@ -820,10 +827,10 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   dropTable(e);state.kills++;state.wk++;addCombo(e)}
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
-  at('material',0,{amount:Math.max(1,Math.round(({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40})[t]*.6+r))});
+  if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round(({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22})[t]*.4+r*.5))});
   const luck=state.wave*.004+r*.04+state.luck+(state.ev==='golden'?.1:0);
-  const P=({crawler:.11,ram:.24,climber:.14,sapper:.12,flyer:.16,shaman:.45,boss:1,colossus:1,queen:1,titan:1,knight:.3,archer:.25,rammer:.35,general:1})[t];
-  const n=t==='titan'?7:t==='queen'||t==='colossus'?5:t==='boss'?3:1;for(let k=0;k<n;k++)if(Math.random()<P*(big?1:.6)){const rr=Math.max(Math.min(r,3),rollRarity(luck+(big?.15:0)));const [kind,data]=lootPick('any',rr);at(kind,rr,data)}
+  const P=({crawler:.11,ram:.24,climber:.14,sapper:.12,flyer:.16,shaman:.45,boss:1,colossus:1,queen:1,titan:1,knight:.3,archer:.25,rammer:.35,general:1,golem:1,wyrm:1,necro:1})[t];
+  const n=t==='titan'?7:t==='queen'||t==='colossus'?5:t==='boss'?3:1;for(let k=0;k<n;k++)if(Math.random()<P*(big?1:.4)){const rr=Math.max(Math.min(r,3),rollRarity(luck+(big?.15:0)));const [kind,data]=lootPick('any',rr);at(kind,rr,data)}
   if(Math.random()<(big?.7:r>=2?.18:.035))at('recruit',Math.max(1,rollRarity(luck)),{role:pick(['rep','col','gun','sol','med','sol'])});
   if(big||Math.random()<(r>=2?.35:.03))at('treasure',big?Math.max(t==='titan'?4:t==='colossus'||t==='queen'?3:2,rollRarity(luck+.1)):Math.max(1,rollRarity(luck)),{})}
 const _dir=new THREE.Vector3();
@@ -845,6 +852,9 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
   if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}
   if(e.rival&&rivalBrain(e,dt))return;
+  if(e.type==='golem'){e.thrT=(e.thrT??4)-dt;if(e.thrT<=0){e.thrT=Math.max(2.8,7.5-e.blvl*.35);let tg=null,bd=48;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd){bd=d;tg=t.pos}}if(!tg)tg={x:CHEST.x+rnd(-8,8),z:CHEST.z+rnd(-8,8)};throwRock(e,tg.x,tg.z,2.6+e.blvl*.12,55+e.blvl*14,0x75706a,false);label({x:e.pos.x,y:e.gy+e.sc*1.6,z:e.pos.z},'🪨','#75706a')}}
+  if(e.type==='wyrm'){e.fbT=(e.fbT??2)-dt;if(e.fbT<=0){e.fbT=Math.max(1.2,3.4-e.blvl*.14);throwRock(e,e.pos.x+rnd(-2,2),e.pos.z+rnd(-2,2),2+e.blvl*.08,30+e.blvl*8,0xff7a2a,true)}}
+  if(e.type==='necro'){e.raiseT=(e.raiseT??3)-dt;e.summ=(e.summ||[]).filter(s=>!s.dead);if(e.raiseT<=0){e.raiseT=Math.max(3,7-e.blvl*.3);if(enemies.length<160)for(let k=0;k<2+Math.floor(e.blvl/2);k++){const a=rnd(0,Math.PI*2);const s=makeEnemy('crawler',Math.min(3,Math.floor(e.blvl/3)),e.pos.x+Math.cos(a)*3,e.pos.z+Math.sin(a)*3);s.viaWall=true;for(const p of s.parts)p.material.color.setHex(0xe8e2d0);e.summ.push(s)}for(let k=0;k<10;k++)spawnDebris(e.pos.x,e.gy+2,e.pos.z,0x7dff9a,1,.3);label({x:e.pos.x,y:e.gy+3,z:e.pos.z},'💀 Erguei-vos!','#7dff9a')}}
   if(e.type==='queen'){e.sumT=(e.sumT??3)-dt;if(e.sumT<=0){e.sumT=5;const alive=enemies.filter(o=>!o.dead).length;if(alive<70){for(let k=0;k<3+Math.floor(state.wave/10);k++){const a=rnd(0,Math.PI*2);const s=makeEnemy(Math.random()<.25?'flyer':'crawler',rollRarity(state.wave*.004),e.pos.x+Math.cos(a)*3,e.pos.z+Math.sin(a)*3);s.viaWall=true}for(let k=0;k<12;k++)spawnDebris(e.pos.x,e.gy+2,e.pos.z,0xa86fd9,1,.3);label({x:e.pos.x,y:e.gy+3,z:e.pos.z},'👑 Enxame!','#a86fd9');SFX.zap()}}}
   if(e.type==='shaman'){for(const o of enemies){if(o===e||o.dead)continue;if(hd(o.pos,e.pos)<7&&o.hp<o.maxhp){o.hp=Math.min(o.maxhp,o.hp+10*dt);if(Math.random()<dt*2)spawnDebris(o.pos.x,o.group.position.y+1,o.pos.z,0x7dff9a,1,.15)}}}
   if(e.fuse>=0){e.fuse-=dt;e.group.scale.setScalar(1+Math.sin(e.fuse*40)*.08);if(e.fuse<=0){e.dead=true;scene.remove(e.group);explode(e.pos.x,e.gy+.5,e.pos.z,3.2+e.rarity*.3,115*(1+e.rarity*.3),{fire:true,src:'enemy'});state.kills++;state.wk++}return}
@@ -976,18 +986,18 @@ function updGun(m,dt){
     m.pos.x=t.pos.x-Math.sin(t.yaw)*1.25;m.pos.z=t.pos.z-Math.cos(t.yaw)*1.25;m.group.position.y=t.pos.y-.05;m.group.rotation.y=t.yaw;return}
   if(!m.turret||!m.turret.alive||m.turret.gunner!==m){m.turret=null;m.bowT=(m.bowT||0)-dt;if(m.bowT<=0){let tg=null,bd=20;for(const e of enemies){if(e.dead)continue;const d=hd(e.pos,m.pos);if(d<bd){bd=d;tg=e}}if(tg){m.bowT=.9/m.st.gun;const from=new THREE.Vector3(m.pos.x,m.group.position.y+1.6,m.pos.z),aim=enemyAim(tg);const vel=aim.sub(from).normalize().multiplyScalar(40);shoot(from,vel,2,9*m.st.gun*state.dmgMul,'bolt',{r:0,gunner:m});m.group.rotation.y=Math.atan2(tg.pos.x-m.pos.x,tg.pos.z-m.pos.z);SFX.twang()}}
     if(m.timer>0){idleWander(m,dt,CX-4,CZ-4);return}
-    let best=null,bs=-1e9;for(const t of turrets){if(!t.alive||t.gunner||!t.station||t.team==='r')continue;if((m.skip.get(t)||0)>simTime)continue;const s=TV(t)*6-hd(t.pos,m.pos)*.3;if(s>bs){bs=s;best=t}}
+    let best=null,bs=-1e9;for(const t of turrets){if(!t.alive||t.gunner||!t.station||t.team==='r')continue;if((m.skip.get(t)||0)>simTime)continue;const s=TV(t)*6-hd(t.pos,m.pos)*.3-postDist(m,t.pos.x,t.pos.z)*.6;if(s>bs){bs=s;best=t}}
     if(!best){m.timer=.8;return}best.gunner=m;m.turret=best;m.bestD=1e9;m.stuckT=0}
   const t=m.turret,st=t.station;if(!st){t.gunner=null;m.turret=null;return}const d=hd(st,m.pos);
   if(walkTo(m,st.x,st.z,dt,.6)||d<.8){m.state='man';SFX.pop();label(m.pos,'🎯','#ec5f6b')}else progress(m,d,dt,()=>{m.skip.set(t,simTime+15);t.gunner=null;m.turret=null})}
-function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+30||(e.fly&&e.group.position.y>m.group.position.y+3.2)||(!e.fly&&e.gy>GY+3))continue;const d=hd(e.pos,m.pos);const pri=(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+d;if(pri<bd){bd=pri;tgt=e}}
+function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+30||(e.fly&&e.group.position.y>m.group.position.y+3.2)||(!e.fly&&e.gy>GY+3))continue;const d=hd(e.pos,m.pos);const pri=postDist(m,e.pos.x,e.pos.z)*.6+(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+d;if(pri<bd){bd=pri;tgt=e}}
   if(tgt&&(inside(tgt.pos.x,tgt.pos.z)||state.phase!=='wave'||tgt.state==='attack'||hd(tgt.pos,m.pos)<14)){const reach=tgt.radius+1.3+m.st.reach;
     if(walkTo(m,tgt.pos.x,tgt.pos.z,dt,reach)||hd(tgt.pos,m.pos)<reach+.1){m.group.rotation.y=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);
       if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk;hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
         if(tgt.dead)gainXP(m,6+tgt.maxhp/12);if(m.st.stun&&Math.random()<m.st.stun)tgt.stun=Math.max(tgt.stun,.6);if(m.st.burn)tgt.afire=Math.max(tgt.afire,2);m.wpn.rotation.x=-1.2;spawnDebris(tgt.pos.x,tgt.gy+.8,tgt.pos.z,tgt.T.color,2,.2)}}
     m.wpn.rotation.x*=.85;return}
   // soldiers hold the field outside the walls, in front of the gate
-  idleWander(m,dt,CX+(((m.bob*13)|0)%9-4)*1.6,WB+9+(((m.bob*7)|0)%3)*1.5)}
+  {const p=postPos(m.post);const sideways=m.post==='leste'||m.post==='oeste';idleWander(m,dt,p.x+(sideways?(((m.bob*7)|0)%3)*1.5:(((m.bob*13)|0)%9-4)*1.6),p.z+(sideways?(((m.bob*13)|0)%9-4)*1.6:(((m.bob*7)|0)%3)*1.5))}}
 function updMed(m,dt){let tgt=null,bd=1e9;for(const o of minions){if(o===m)continue;if(o.wounded>0){const d=hd(o.pos,m.pos);if(d<bd){bd=d;tgt=o}}}
   if(!tgt)for(const o of minions){if(o===m||o.state==='man')continue;if(o.hp<o.maxhp*.75){const d=hd(o.pos,m.pos)+8;if(d<bd&&d<45){bd=d;tgt=o}}}
   if(!tgt&&m.raid){const s=minions.find(o=>o.raid===m.raid&&o.role==='sol');if(s){walkTo(m,s.pos.x-1.5,s.pos.z-1.5,dt,1.5);return}m.raid=null}
@@ -1028,6 +1038,10 @@ function detachChunk(e,m){if(!m.parent)return;m.getWorldPosition(_cv);const gp=m
   const big=BIG(e.type);spawnDebris(_cv.x,_cv.y,_cv.z,col,big?4:2,clamp(s*.55,.12,big?.9:.4));if(big&&Math.random()<.35){shake=Math.max(shake,.25);SFX.crunch(true)}
   const leg=e.legs.find(L=>L.mesh===m);if(leg&&e.type!=='colossus'){leg.alive=false;e.speed*=.82;if(Math.random()<.5)label({x:e.pos.x,y:e.group.position.y+e.sc,z:e.pos.z},'manco!','#ec5f6b')}
   if(e.parts[1]===m){e.T={...e.T,dmg:e.T.dmg*.8};if(big)toast(`${e.T.n}: cabeça rachada! Ataques mais fracos.`,'r2')}}
+
+// boss projectiles: boulders and fireballs lobbed onto the base (explode with 'enemy' source)
+function throwRock(e,tx,tz,r,dmg,color,fire){const sx=e.pos.x,sy=e.gy+e.sc*1.4,sz=e.pos.z;const T=e.fly?.7:1.5;const ty=Math.min(topY(tx,tz),GY+12);const m=new THREE.Mesh(new THREE.DodecahedronGeometry(fire?.55:.8,0),lmat(color,fire?.9:.4));m.position.set(sx,sy,sz);scene.add(m);
+  bombs.push({mesh:m,x:tx,z:tz,vx:(tx-sx)/T,vz:(tz-sz)/T,vy:(ty-sy+.5*30*T*T)/T,enemy:true,r,dmg,fire});if(!fire)SFX.thud();else SFX.whoosh()}
 
 // ───────── rival cities, raids, expeditions, game modes, smart traps, day/night and world regrowth
 const rivals=[];
@@ -1166,7 +1180,7 @@ function musicTick(dt){if(!soundOn||!AC||window.__headless)return;musT-=dt;if(mu
 const REALM={cities:[],armies:[],facs:[],pois:[],log:[],t:0,spawnT:70,sel:null,open:false,nextId:1,deco:null};
 const FAC_COLORS=[0xe8a21f,0xd9414f,0x8e5bd6,0x2f9a5e,0x2aa7b8,0xc4497f,0x7a7f3a,0x9b5a35,0x3d5bd6,0xe0662c,0x3f8f8a,0x6b4f9e];
 const CITY_NAMES=['Cinzaforte','Garra Rubra','Pico do Corvo','Muralha Negra','Ponte de Ossos','Vale Sombrio','Trono de Ferro','Forja Rubra','Ninho de Vespas','Rocha Uivante','Dente de Lobo','Brasa Eterna','Torre Partida','Fosso Frio','Coroa de Espinhos','Lâmina Cinza','Olho da Tormenta','Bastião Velho','Cripta Dourada','Penhasco Rubro'];
-const BATTLE_SLOTS=()=>[[CX+56,CZ],[CX-56,CZ],[CX,CZ+56],[CX,CZ-56]];
+const BATTLE_SLOTS=()=>[[CX+66,CZ],[CX-66,CZ],[CX,CZ+66],[CX,CZ-66]];
 function rName(){const used=new Set(REALM.cities.map(c=>c.name));const free=CITY_NAMES.filter(n=>!used.has(n));return free.length?pick(free):pick(CITY_NAMES)+' '+['II','III','IV','V'][rint(0,3)]}
 function newFac(color,name,isMe){const f={id:REALM.facs.length,color,name,isMe:!!isMe};REALM.facs.push(f);return f}
 function addCity(x,y,lvl,fac,o={}){const c={id:REALM.nextId++,name:o.name||rName(),x,y,lvl,fac,garrison:6+lvl*4,home:!!o.home,raidT:rnd(40,110)};REALM.cities.push(c);return c}
@@ -1175,8 +1189,8 @@ function cityDef(c){return c.lvl*4+c.garrison*.8}
 function rlog(txt,css='r0'){REALM.log.unshift({txt,css,t:simTime});REALM.log.length=Math.min(REALM.log.length,7)}
 function initRealm(){REALM.cities.length=0;REALM.armies.length=0;REALM.pois.length=0;REALM.poiT=45;REALM.deco=null;REALM.selA=null;REALM.confirm=null;state.quest=null;REALM.facs.length=0;REALM.log.length=0;REALM.t=0;REALM.spawnT=150;REALM.sel=null;REALM.nextId=1;
   const me=newFac(0xe8a21f,'Fortrex',true);addCity(500,500,1,me,{name:'Fortrex',home:true});
-  const n=10;for(let k=0;k<n;k++){const a=k/n*Math.PI*2+rnd(-.2,.2),r=k%2?rnd(170,260):rnd(300,430);const f=newFac(FAC_COLORS[1+k%(FAC_COLORS.length-1)],'');const c=addCity(500+Math.cos(a)*r,500+Math.sin(a)*r*.82,r<280?rint(1,2):rint(2,3),f);f.name=c.name}
-  rlog('Dez fortalezas dividem o reino. Observe, cresça, conquiste.','r2')}
+  const n=13;for(let k=0;k<n;k++){const a=k/n*Math.PI*2+rnd(-.2,.2),r=k%2?rnd(170,260):rnd(300,430);const f=newFac(FAC_COLORS[1+k%(FAC_COLORS.length-1)],'');const c=addCity(500+Math.cos(a)*r,500+Math.sin(a)*r*.82,r<280?rint(1,2):rint(2,3),f);f.name=c.name}
+  rlog('Treze fortalezas dividem o reino. Observe, cresça, conquiste.','r2')}
 function facOf(c){return REALM.facs[c.fac.id]||c.fac}
 function realmTick(dt){if(!REALM.cities.length)return;REALM.t+=dt;if(state.battleCd>0)state.battleCd-=dt;const H0=homeCity();
   for(const c of REALM.cities){const cap=c.lvl*22;if(c.garrison<cap)c.garrison=Math.min(cap,c.garrison+dt*(.04+c.lvl*.03));
@@ -1232,25 +1246,31 @@ function oddsHtml(o,label){const col=o.p>=.6?'#2f9a5e':o.p>=.35?'#c99a1a':'#d941
 // ───────── secondary objectives on the realm map: boss lairs, skirmishes, ancient ruins
 const POI_KINDS={boss:{ico:'💀',n:'Covil',d:'Um chefe colossal desperta e marcha até a sua cidadela. Derrote-o para saquear o covil.'},
   skirmish:{ico:'⚔️',n:'Escaramuça',d:'Um bando de saqueadores acampou nas suas terras. Batalha aberta, sem muralhas.'},
-  ruins:{ico:'💎',n:'Ruínas',d:'Ruínas antigas cheias de tesouro, guardadas por criaturas da bruma.'}};
-function bossFor(l){return l<=3?'boss':l<=6?'colossus':l<=9?'queen':'titan'}
-function spawnPoi(){const kinds=['boss','skirmish','skirmish','ruins','ruins'];const kind=pick(kinds);const top=Math.max(1,...REALM.cities.filter(c=>!c.fac.isMe).map(c=>c.lvl));const lvl=Math.max(1,Math.min(14,Math.round(top*rnd(.5,1))+(kind==='boss'?1:0)));
+  ruins:{ico:'💎',n:'Ruínas',d:'Ruínas antigas cheias de tesouro, guardadas por criaturas da bruma.'},
+  elite:{ico:'🏆',n:'Desafio',d:'Poucos inimigos lendários, muito fortes. Recompensa rara.'},
+  meteor:{ico:'☄️',n:'Chuva de estrelas',d:'Por 45 s meteoros caem pelo mapa: destroem tudo, mas deixam cristais e loot.'},
+  blitz:{ico:'🌪️',n:'Cerco relâmpago',d:'Uma enxurrada de criaturas da bruma vinda de um só lado, sem aviso.'}};
+function bossFor(l){return ['boss','golem','wyrm','necro','colossus','queen','titan'][Math.min(6,Math.floor((l-1)/2))]}
+function spawnPoi(){const kinds=['boss','boss','skirmish','skirmish','ruins','ruins','elite','meteor','blitz','blitz'];const kind=pick(kinds);const top=Math.max(1,...REALM.cities.filter(c=>!c.fac.isMe).map(c=>c.lvl));const lvl=Math.max(1,Math.min(14,Math.round(top*rnd(.5,1))+(kind==='boss'?1:0)));
   let x,y,ok=false;for(let t=0;t<40&&!ok;t++){const a=rnd(0,Math.PI*2),r=rnd(120,420);x=500+Math.cos(a)*r;y=500+Math.sin(a)*r*.85;ok=REALM.cities.every(c=>Math.hypot(c.x-x,c.y-y)>60)&&REALM.pois.every(p=>Math.hypot(p.x-x,p.y-y)>60)}if(!ok)return;
-  const names={boss:['do Devorador Antigo','da Fera de Lava','da Rainha Pálida','do Colosso Adormecido'],skirmish:['dos Lobos Rubros','da Lâmina Cega','dos Saqueadores Cinza','do Corvo Faminto'],ruins:['de Velhoforte','do Templo Afundado','da Torre Caída','de Ouro Antigo']};
-  const n=kind==='skirmish'?5+lvl*2:kind==='ruins'?8+lvl*2:1;const E=kind==='boss'?8+lvl*4:kind==='skirmish'?n*(1+lvl*.12):n*.55;
+  const names={boss:['do Devorador Antigo','da Fera de Lava','da Rainha Pálida','do Colosso Adormecido'],skirmish:['dos Lobos Rubros','da Lâmina Cega','dos Saqueadores Cinza','do Corvo Faminto'],ruins:['de Velhoforte','do Templo Afundado','da Torre Caída','de Ouro Antigo'],elite:['dos Campeões','da Arena Rubra','dos Cinco Reis'],meteor:['do Céu Partido','das Estrelas Cadentes'],blitz:['da Bruma Uivante','do Vento Negro']};
+  const n=kind==='skirmish'?5+lvl*2:kind==='ruins'?8+lvl*2:kind==='elite'?3+Math.floor(lvl/3):kind==='blitz'?14+lvl*4:1;const E=kind==='boss'?8+lvl*4:kind==='skirmish'?n*(1+lvl*.12):kind==='elite'?n*(2.2+lvl*.35):kind==='meteor'?6+lvl*1.5:kind==='blitz'?n*.5:n*.55;
   const P={id:REALM.nextId++,kind,lvl,x,y,ttl:rnd(200,300),n,E,name:`${POI_KINDS[kind].n} ${pick(names[kind])}`};REALM.pois.push(P);rlog(`${POI_KINDS[kind].ico} ${P.name} (nv ${lvl}) apareceu no mapa`,'r2')}
 function edgePos(px,py){const H0=homeCity();const a=Math.atan2(py-H0.y,px-H0.x);return[clamp(CX+Math.cos(a)*(W*.45),4,W-5),clamp(CZ+Math.sin(a)*(D*.45),4,D-5)]}
 function acceptPoi(P){if(state.quest){toast('Termine o objetivo atual primeiro','r0');return false}const [x,z]=edgePos(P.x,P.y);const units=[];
   if(P.kind==='boss'){const e=makeEnemy(bossFor(P.lvl),Math.min(4,1+Math.floor(P.lvl/3)),x,z);e.maxhp*=1+P.lvl*.12;e.hp=e.maxhp;units.push(e);toast(`💀 ${P.name}: ${e.T.n} vem aí!`,'r4')}
   else if(P.kind==='skirmish'){const fake={alive:true,lvl:P.lvl,name:P.name,guards:[],cx:x,cz:z,wr:0,core:[],edge:true};for(let k=0;k<P.n;k++){const e=makeEnemy(pick(['knight','knight','archer','rammer']),Math.min(4,rollRarity(P.lvl*.04)),x+rnd(-4,4),z+rnd(-4,4));e.rival=fake;e.rmode='raid';e.home={x,z};units.push(e)}toast(`⚔️ ${P.name}: ${P.n} saqueadores avançam!`,'r3')}
+  else if(P.kind==='elite'){for(let k=0;k<P.n;k++){const e=makeEnemy(pick(['ram','climber','shaman','sapper','ram']),k===0?4:3,x+rnd(-4,4),z+rnd(-4,4));e.maxhp*=2+P.lvl*.15;e.hp=e.maxhp;e.speed*=1.15;units.push(e)}toast(`🏆 ${P.name}: campeões lendários entram em campo!`,'r4')}
+  else if(P.kind==='meteor'){state.starfall=45;state.meteorT=1;toast(`☄️ ${P.name}: o céu se parte por 45 s!`,'r4')}
+  else if(P.kind==='blitz'){for(let k=0;k<P.n;k++){const e=makeEnemy(pick(['crawler','crawler','climber','ram','flyer','sapper']),Math.min(4,rollRarity(P.lvl*.05)),x+rnd(-8,8),z+rnd(-8,8));e.viaWall=Math.random()<.5;units.push(e)}toast(`🌪️ ${P.name}: ${P.n} criaturas de uma vez!`,'r4')}
   else{for(let k=0;k<P.n;k++)units.push(makeEnemy(pick(['crawler','climber','crawler','sapper','flyer']),Math.min(4,rollRarity(P.lvl*.05)),x+rnd(-5,5),z+rnd(-5,5)));toast(`💎 ${P.name}: os guardiões da bruma despertam!`,'r2')}
   state.quest={P,units,last:{x,z}};REALM.pois.splice(REALM.pois.indexOf(P),1);rlog(`Fortrex aceita: ${P.name}`,'r2');cam.target.set((x+CX)/2,GY+1.5,(z+CZ)/2);return true}
-function questTick(){const q=state.quest;if(!q)return;let alive=0;for(const e of q.units){if(!e.dead){alive++;q.last={x:e.pos.x,z:e.pos.z}}}if(alive)return;state.quest=null;const P=q.P,L=q.last;
-  const nt=P.kind==='ruins'?3:P.kind==='boss'?2:1;for(let k=0;k<nt;k++)spawnLoot(L.x+rnd(-1.5,1.5),GY+2,L.z+rnd(-1.5,1.5),'treasure',Math.min(4,(P.kind==='boss'?2:1)+Math.floor(P.lvl/3)+(k===0?1:0)),{});
-  const g=(P.kind==='boss'?20:P.kind==='skirmish'?12:8)*P.lvl;spawnLoot(L.x,GY+2,L.z,'material',0,{amount:g});state.conquests=(state.conquests||0)+(P.kind==='boss'?1:0);
+function questTick(dt){const q=state.quest;if(!q)return;if(q.P.kind==='meteor'){state.starfall-=dt;meteorTick(dt);if(state.starfall>0)return;q.last={x:CHEST.x+rnd(-12,12),z:CHEST.z+rnd(14,20)}}let alive=0;for(const e of q.units){if(!e.dead){alive++;q.last={x:e.pos.x,z:e.pos.z}}}if(alive)return;state.quest=null;const P=q.P,L=q.last;
+  const nt=P.kind==='ruins'?3:P.kind==='boss'||P.kind==='elite'?2:1;for(let k=0;k<nt;k++)spawnLoot(L.x+rnd(-1.5,1.5),GY+2,L.z+rnd(-1.5,1.5),'treasure',Math.min(4,(P.kind==='boss'?2:1)+Math.floor(P.lvl/3)+(k===0?1:0)),{});
+  const g=(P.kind==='boss'?20:P.kind==='skirmish'||P.kind==='blitz'?12:P.kind==='elite'?18:8)*P.lvl;spawnLoot(L.x,GY+2,L.z,'material',0,{amount:g});state.conquests=(state.conquests||0)+(P.kind==='boss'?1:0);
   addFame((P.kind==='boss'?15:10)*P.lvl);goalEvent('poi');
   toast(`${POI_KINDS[P.kind].ico} ${P.name} concluído! Tesouro no campo.`,'r4');rlog(`Fortrex venceu ${P.name}`,'r4');slowmo=Math.max(slowmo,.8)}
-function poiTick(dt){REALM.poiT=(REALM.poiT??50)-dt;if(REALM.poiT<=0){REALM.poiT=rnd(55,95);if(REALM.pois.length<4)spawnPoi()}for(let i=REALM.pois.length-1;i>=0;i--){const P=REALM.pois[i];P.ttl-=dt;if(P.ttl<=0){REALM.pois.splice(i,1);if(REALM.sel===P)REALM.sel=null}}questTick()}
+function poiTick(dt){REALM.poiT=(REALM.poiT??50)-dt;if(REALM.poiT<=0){REALM.poiT=rnd(40,70);if(REALM.pois.length<6)spawnPoi()}for(let i=REALM.pois.length-1;i>=0;i--){const P=REALM.pois[i];P.ttl-=dt;if(P.ttl<=0){REALM.pois.splice(i,1);if(REALM.sel===P)REALM.sel=null}}questTick(dt)}
 // when a fortress falls, another one grows
 function riseAfterFall(T,by){const others=REALM.cities.filter(c=>c!==T&&c!==by&&!c.fac.isMe&&c.fac!==(by&&by.fac));if(Math.random()<.5&&others.length){const c=pick(others);c.lvl=Math.min(14,c.lvl+1);c.garrison+=c.lvl*5;c.flash=simTime;rlog(`Com a queda de ${T.name}, ${c.name} se fortalece (nv ${c.lvl})`,'r3')}
   if(REALM.cities.filter(c=>!c.fac.isMe).length<8||(REALM.cities.length<14&&Math.random()<.5)){const a=Math.atan2(T.y-500,T.x-500)+rnd(-1.2,1.2);const f=newFac(FAC_COLORS[1+REALM.facs.length%(FAC_COLORS.length-1)],'');let x=clamp(500+Math.cos(a)*rnd(330,450),50,950),y=clamp(500+Math.sin(a)*rnd(300,400),50,950);const c=addCity(x,y,Math.min(14,T.lvl+1),f);f.name=c.name;c.flash=simTime;rlog(`Das cinzas de ${T.name} surge ${c.name} (nv ${c.lvl})`,'r3')}}
@@ -1335,7 +1355,7 @@ function renderRealmInfo(){const el=$('realmInfo');if(!el)return;const c=REALM.s
   if(state.quest)h+=`<div class="ds">🎯 Objetivo ativo: <b>${state.quest.P.name}</b> (${state.quest.units.filter(e=>!e.dead).length} inimigos restantes)</div>`;
   const A=REALM.selA;if(A&&REALM.armies.includes(A)){const eta=Math.hypot(A.to.x-A.x,A.to.y-A.y)/A.speed;const n=Math.round(A.power/3);h+=`<div class="rc"><b style="color:${hex(A.fac.color)}">⚔️ Exército de ${A.from.name}</b><div class="ds">Rumo a ${A.to.home?'<b>Fortrex (você!)</b>':A.to.name} · força ${Math.round(A.power)} · ~${n} guerreiros · chega em ${Math.ceil(eta)} s</div>`;
     if(A.to.home){const o=battleOdds(A.from.lvl);h+=`<div class="ds">Se chegar, ergue uma fortaleza de cerco ao lado da sua.</div>${oddsHtml(o,'Chance de defender')}`}else h+=`<div class="ds">Defesa do alvo: ${Math.round(cityDef(A.to))} → ${A.power>cityDef(A.to)?'provável conquista':'provável derrota'}</div>`;h+='</div>'}
-  if(Q){const K=POI_KINDS[Q.kind];const o=questOdds(Q);h+=`<div class="rc"><b>${K.ico} ${Q.name}</b><div class="ds">Nível ${Q.lvl} · ${Q.kind==='boss'?`chefe: ${ETYPES[bossFor(Q.lvl)].n}`:`${Q.n} inimigos`} · some em ${Math.ceil(Q.ttl)} s</div><div class="ds">${K.d}</div><div class="ds">Recompensa: ${Q.kind==='ruins'?3:Q.kind==='boss'?2:1} tesouro(s) + ${(Q.kind==='boss'?20:Q.kind==='skirmish'?12:8)*Q.lvl} material</div>${oddsHtml(o)}
+  if(Q){const K=POI_KINDS[Q.kind];const o=questOdds(Q);h+=`<div class="rc"><b>${K.ico} ${Q.name}</b><div class="ds">Nível ${Q.lvl} · ${Q.kind==='boss'?`chefe: ${ETYPES[bossFor(Q.lvl)].n} nv ${Q.lvl}`:Q.kind==='meteor'?'45 s de meteoros':`${Q.n} inimigos`} · some em ${Math.ceil(Q.ttl)} s</div><div class="ds">${K.d}</div><div class="ds">Recompensa: ${Q.kind==='ruins'?3:Q.kind==='boss'||Q.kind==='elite'?2:1} tesouro(s) + ${(Q.kind==='boss'?20:Q.kind==='skirmish'||Q.kind==='blitz'?12:Q.kind==='elite'?18:8)*Q.lvl} material</div>${oddsHtml(o)}
     ${state.quest?'<div class="ds">Termine o objetivo atual primeiro.</div>':REALM.confirm===Q?`<button class="btn primary" id="realmGo">✅ Confirmar (${pctS(o.p)})</button><button class="btn" id="realmNo">Cancelar</button>`:`<button class="btn primary" id="realmAsk">Aceitar desafio</button>`}</div>`}
   if(c){const f=facOf(c);const war=battle();h+=`<div class="rc"><b style="color:${hex(f.color)}">${c.home?'👑 ':''}${c.name}</b><div class="ds">Nível ${c.lvl} · guarnição ${Math.round(c.garrison)} · império ${f.isMe?'seu':f.name} (${REALM.cities.filter(o=>o.fac===c.fac).length} cidades)</div>`;
     if(!f.isMe){const o=battleOdds(c.lvl);h+=`<div class="ds">Batalha definitiva: fortaleza contra fortaleza. Inimigo: ~${Math.round(4+c.lvl*2)} guardas, ${Math.min(8,3+c.lvl)} torres e o General. Você: ataque ${o.F.atk.toFixed(0)} + defesa ${o.F.def.toFixed(0)}.</div>${oddsHtml(o)}`;
@@ -1395,7 +1415,7 @@ function updateHud(){$('wave').textContent=state.wave;$('mat').textContent=Math.
   $('focusCd').textContent=state.focusCd>0?Math.ceil(state.focusCd)+'s':'pronto';$('focus').classList.toggle('on',state.focusT>0);
   $('bombCd').textContent=state.bombCd>0?Math.ceil(state.bombCd)+'s':'25';$('bomb').classList.toggle('armed',state.bombMode);
   $('arsN').textContent=state.newItems?String(state.newItems):'';$('arsN').hidden=!state.newItems;
-  $('bBuild').classList.toggle('on',state.build.on);$('abBtn').classList.toggle('on',state.autoBuild);$('auBtn').classList.toggle('on',state.autoUp);$('arBtn').classList.toggle('on',!!state.autoReward);
+  $('bBuild').classList.toggle('on',state.build.on);$('abBtn').classList.toggle('on',state.autoBuild);$('auBtn').classList.toggle('on',state.autoUp);$('asBtn').classList.toggle('on',!!state.autoSell);$('arBtn').classList.toggle('on',!!state.autoReward);
   {const rp=raidPower();const c=$('rivalChip');if(rp){const w=rp.us/(rp.us+rp.them+.01);c.textContent=`⚔️ ${rp.R.name}: ${rp.us.toFixed(0)} vs ${rp.them.toFixed(0)} · núcleo ${rp.core}/8 · ${w>.6?'vantagem':w>.4?'equilibrado':'perigo!'}`;c.style.color=w>.6?'#2f9a5e':w>.4?'#c99a1a':'#d9414f'}else{c.style.color='';const B=battle();const inc=REALM.armies.filter(A=>A.to.home).length;c.textContent=B?`⚔️ Guerra: ${B.name} nv ${B.lvl} · núcleo ${B.core.filter(i=>vox[i]===21).length}/8`:`🗺️ ${REALM.cities.length} fortalezas${inc?` · ⚠️ ${inc} exército${inc>1?'s':''} vindo`:''}`;if(!B&&inc)c.style.color='#d9414f'}}
   if(state.card)renderCard()}
 
@@ -1445,7 +1465,7 @@ function doBuild(cx,cy,forceRemove){const B=state.build;const tool=B.tool;if(for
     if(blue[i]){const b=blue[i];const wasPre=state.prepaid.has(i);eraseBlue(i);if(m===b){removeVox(i,'dig');if(SPECIAL_BLOCKS.includes(b))addBlocks(b,1);else state.material+=1}else if(wasPre&&SPECIAL_BLOCKS.includes(b))addBlocks(b,1);toast(`${MAT[b].n} removido da planta`,'r0')}
     else if(FLUID(m)){if(fluidSrc.has(i)&&state.placed&&state.placed.has(i)){addBlocks(m,1);state.placed.delete(i)}setVox(i,0);settleDirty=true}
     else{state.material-=1;removeVox(i,'dig')}SFX.crunch(false)}
-  else if(T.kind==='turret'){const it=state.inv.turrets.splice(B.tsel,1)[0];makeTurret(it.type,T.i,it.r);sparkle(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5,RARITY[it.r].c,8);SFX.build();toast(`${TURRETS[it.type].n} instalada`,'r1');if(!state.inv.turrets.length)B.tool='remove';else B.tsel=clamp(B.tsel,0,state.inv.turrets.length-1)}
+  else if(T.kind==='turret'){if(!canInstall())return;const it=state.inv.turrets.splice(B.tsel,1)[0];makeTurret(it.type,T.i,it.r);sparkle(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5,RARITY[it.r].c,8);SFX.build();toast(`${TURRETS[it.type].n} instalada`,'r1');if(!state.inv.turrets.length)B.tool='remove';else B.tsel=clamp(B.tsel,0,state.inv.turrets.length-1)}
   else{const m=T.m;if(FLUID(m)){state.inv.blocks[m]--;setFluid(T.i,m,4,true);(state.placed=state.placed||new Set()).add(T.i)}
     else{placeBlue(T.i,m);if(!BASIC_BLOCKS.includes(m)){state.inv.blocks[m]--;state.prepaid.add(T.i)}}SFX.build();if(!BASIC_BLOCKS.includes(m)&&!state.inv.blocks[m])B.sel=3}
   renderBuild();updateHud()}
@@ -1483,7 +1503,8 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
     h+='<div class="slots">';for(const sl of ['arma','armadura','acessorio']){const it=m.eq[sl];h+=`<button class="slot ${it?'r'+it.r:''} ${cardSlot===sl?'sel':''}" data-sl="${sl}">${it?`<span class="ico">${itemIco(it)}</span>${esc(it.n)}`:`<span class="ct">${SLOT_N[sl]}</span>vazio`}</button>`}h+='</div>';
     if(cardSlot){const opts=state.inv.armory.filter(i=>i.slot===cardSlot).sort((a,b)=>itemScore(b,m.role)-itemScore(a,m.role));h+='<div class="mlist">';if(m.eq[cardSlot])h+=`<button class="mrow" data-un="1"><span>Tirar ${esc(m.eq[cardSlot].n)}</span></button>`;
       for(const it of opts.slice(0,6))h+=`<button class="mrow" data-it="${it.id}"><span style="color:var(--${RARITY[it.r].css})">${itemIco(it)} ${esc(it.n)}</span><span class="ct">${esc(itemLines(it).slice(0,2).join(' · '))}</span></button>`;if(!opts.length)h+='<div class="ds">Nada no arsenal para este espaço.</div>';h+='</div>'}
-    h+='<div class="ds" style="margin-top:6px">Função</div><div class="roles">';for(const r in ROLES)h+=`<button class="btn sm ${m.role===r?'on':''}" data-role="${r}" title="${esc(ROLES[r].d)}">${ROLES[r].ico} ${ROLES[r].n}</button>`;h+='</div>'}
+    h+='<div class="ds" style="margin-top:6px">Função</div><div class="roles">';for(const r in ROLES)h+=`<button class="btn sm ${m.role===r?'on':''}" data-role="${r}" title="${esc(ROLES[r].d)}">${ROLES[r].ico} ${ROLES[r].n}</button>`;h+='</div>';
+    h+='<div class="ds" style="margin-top:6px">Posto</div><div class="roles">';for(const k in POSTS)h+=`<button class="btn sm ${(m.post||'auto')===k?'on':''}" data-mpost="${k}">${POSTS[k].ico} ${POSTS[k].n}</button>`;h+='</div>'}
   else if(c.t){const t=c.t;if(!t.alive){closeCard();return}h+=`<div class="ch"><b>${t.T.ico} ${esc(t.T.n)}</b><button class="btn x" id="cClose">✕</button></div><div class="ds"><span style="color:var(--${RARITY[t.r].css})">${RARITY[t.r].n}</span> · ${esc(t.T.d)}</div>`;
     h+=`<div class="hpbar"><i style="width:${Math.round(t.hp/t.maxhp*100)}%"></i></div><div class="ds">Integridade ${Math.ceil(t.hp)}/${Math.ceil(t.maxhp)} · Alcance ${turretRange(t).toFixed(0)} · ${t.gunner?(t.gunner.state==='man'?'Operada por '+esc(t.gunner.name):esc(t.gunner.name)+' a caminho'):'Sem artilheiro (metade da cadência)'}</div>`;
     h+=`<div class="roles"><button class="btn sm" id="tPick">Recolher ao arsenal</button></div>`}
@@ -1491,13 +1512,15 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
   for(const b of el.querySelectorAll('[data-sl]'))b.onclick=()=>{cardSlot=cardSlot===b.dataset.sl?null:b.dataset.sl;renderCard(true)};
   for(const b of el.querySelectorAll('[data-it]'))b.onclick=()=>{const it=state.inv.armory.find(i=>i.id===+b.dataset.it);if(it)equipItem(c.m,it);cardSlot=null;renderCard(true);refreshPanels()};
   for(const b of el.querySelectorAll('[data-un]'))b.onclick=()=>{unequip(c.m,cardSlot);cardSlot=null;renderCard(true);refreshPanels()};
-  for(const b of el.querySelectorAll('[data-role]'))b.onclick=()=>{setRole(c.m,b.dataset.role);toast(`${c.m.name} agora é ${ROLES[b.dataset.role].n}`,'r1');renderCard(true)};
+  for(const b of el.querySelectorAll('[data-mpost]'))b.onclick=()=>{c.m.post=b.dataset.mpost;c.m.path=null;renderCard(true)};
+  for(const b of el.querySelectorAll('[data-role]'))b.onclick=()=>{if(c.m.role!==b.dataset.role){const blk=roleBlock(b.dataset.role);if(blk){toast(blk,'r0');return}}setRole(c.m,b.dataset.role);toast(`${c.m.name} agora é ${ROLES[b.dataset.role].n}`,'r1');renderCard(true)};
   const tp=$('tPick');if(tp)tp.onclick=()=>{killTurret(c.t,false);state.inv.turrets.push({type:c.t.type,r:c.t.r});toast(`${c.t.T.n} recolhida`,'r0');closeCard();refreshPanels()}}
 
 // ── hire
-function renderHire(){const el=$('hire');let h='';for(const r in ROLES){const R=ROLES[r];h+=`<button class="btn" data-h="${r}" ${state.material<R.cost?'disabled':''} title="${esc(R.d)}">${R.ico} ${R.n} <span class="cost">${R.cost}</span></button>`}el.innerHTML=h;
-  for(const b of el.querySelectorAll('[data-h]'))b.onclick=()=>{hire(b.dataset.h);renderHire()}}
-function hire(role){const R=ROLES[role];if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){toast(`Limite de ${MAX_MINIONS+MAX_MINIONS_BONUS} minions: a cidadela está lotada`,'r0');return}if(state.material<R.cost)return;state.material-=R.cost;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);
+function renderHire(){const el=$('hire');const hp=state.hirePost||'auto';let h=`<div class="ds" style="width:100%">Posto dos novos minions:</div><div class="roles">${Object.entries(POSTS).map(([k,P])=>`<button class="btn sm ${hp===k?'on':''}" data-post="${k}">${P.ico} ${P.n}</button>`).join('')}</div>`;
+  for(const r in ROLES){const R=ROLES[r];const lock=!isUnlocked('role',r);h+=`<button class="btn" data-h="${r}" ${state.material<R.cost||lock||!roleFree(r)?'disabled':''} title="${esc(roleBlock(r)||R.d)}">${R.ico} ${R.n} ${lock?`<span class="cost">🔒 h${unlockWave('role',r)}</span>`:`<span class="cost">${roleCount(r)}/${roleCap(r)} · ${R.cost}</span>`}</button>`}el.innerHTML=h;
+  for(const b of el.querySelectorAll('[data-h]'))b.onclick=()=>{hire(b.dataset.h);renderHire()};for(const b of el.querySelectorAll('[data-post]'))b.onclick=()=>{state.hirePost=b.dataset.post;renderHire()}}
+function hire(role){const R=ROLES[role];const blk=roleBlock(role);if(blk){toast(blk,'r0');return false}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){toast(`Limite de ${MAX_MINIONS+MAX_MINIONS_BONUS} minions: a cidadela está lotada`,'r0');return}if(state.material<R.cost)return;state.material-=R.cost;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);m.post=state.hirePost||'auto';
   toast(`${m.name}, ${R.n} ${RARITY[r].n}${m.trait?' · '+m.trait:''}`,RARITY[r].css);SFX.pop();if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);updateHud()}
 
 // ── upgrades
@@ -1519,9 +1542,9 @@ const UPGRADES=[
   {id:'crit',ico:'🎯',nm:'Pontaria crítica',ds:'+5% de chance de crítico (dano dobrado).',max:4,cost:l=>50+l*50,go(){state.critBonus+=.05}},
   {id:'general',ico:'🎖️',nm:'General veterano',ds:'Fogo Concentrado dura 8 s e recarrega em 10 s.',max:1,cost:()=>120,go(){state.focusLong=true}},
 ];
-function renderShop(){const box=$('shopList');box.innerHTML='';for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const el=document.createElement('div');el.className='up';
-  el.innerHTML=`<div class="ico">${U.ico}</div><div><div class="nm">${U.nm}</div><div class="ds">${U.ds}</div><div class="lv">${Array.from({length:U.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')} ${lv}/${U.max}</div></div><button class="btn buy" ${maxed||state.material<cost?'disabled':''}>${maxed?'máx':cost}</button>`;
-  el.querySelector('button').onclick=()=>{if(maxed||state.material<cost)return;state.material-=cost;state.ups[U.id]=lv+1;U.go();SFX.loot(1);toast(`${U.nm} nível ${lv+1}`,'r1');renderShop();updateHud()};box.appendChild(el)}}
+function renderShop(){const box=$('shopList');box.innerHTML='';for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const lock=!isUnlocked('up',U.id);const el=document.createElement('div');el.className='up';
+  el.innerHTML=`<div class="ico">${U.ico}</div><div><div class="nm">${U.nm}</div><div class="ds">${U.ds}</div><div class="lv">${Array.from({length:U.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')} ${lv}/${U.max}</div></div><button class="btn buy" ${maxed||lock||state.material<cost?'disabled':''}>${lock?`🔒 h${unlockWave('up',U.id)}`:maxed?'máx':cost}</button>`;
+  el.querySelector('button').onclick=()=>{if(maxed||lock||state.material<cost)return;state.material-=cost;state.ups[U.id]=lv+1;U.go();SFX.loot(1);toast(`${U.nm} nível ${lv+1}`,'r1');renderShop();updateHud()};box.appendChild(el)}}
 
 // ── rewards: pick 1 of 3
 function rewardPool(){const w=state.wave,rr=()=>rollRarity(w*.006+state.luck),P=[];
@@ -1542,7 +1565,7 @@ function offerRewards(){const pool=rewardPool();const picks=[];while(picks.lengt
   $('reward').style.display='flex';SFX.loot(1)}
 
 // ── boss bar, tooltip
-function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName').textContent=`${e.T.n} ${RARITY[e.rarity].n}`;$('bossName').style.color=`var(--${RARITY[e.rarity].css})`}
+function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName').textContent=`${e.T.n} ${RARITY[e.rarity].n}${e.blvl?` · nv ${e.blvl}`:''}`;$('bossName').style.color=`var(--${RARITY[e.rarity].css})`}
 function hideBoss(){state.boss=null;$('bossbar').style.display='none'}
 function showTip(cx,cy,t,s){const el=$('tip');el.innerHTML=esc(t)+(s?`<small>${esc(s)}</small>`:'');el.style.left=cx+'px';el.style.top=cy+'px';el.style.display='block'}
 function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}
@@ -1553,12 +1576,45 @@ function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}
   else if(u.enemy){const e=u.enemy;showTip(cx,cy,`${e.T.n} ${RARITY[e.rarity].n}`,`${Math.ceil(e.hp)}/${Math.ceil(e.maxhp)} · clique: Fogo Concentrado`)}
   else if(u.turret){const t=u.turret;showTip(cx,cy,`${t.T.n} ${RARITY[t.r].n}`,t.gunner?'Operada':'Sem artilheiro')}}
 
+// ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
+const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,frost:10},role:{rep:1,col:1,gun:1,sol:1,med:3},
+  block:{16:1,17:1,10:1,18:4,15:5,9:7,8:7,14:9,19:10,20:14},
+  up:{platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
+function unlockWave(kind,k){return(UNLOCK[kind]&&UNLOCK[kind][k])||1}
+function isUnlocked(kind,k){return state.wave>=unlockWave(kind,k)}
+function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)if(UNLOCK.turret[k]===w)got.push(TURRETS[k].ico+' '+TURRETS[k].n);for(const k in UNLOCK.role)if(UNLOCK.role[k]===w)got.push(ROLES[k].ico+' '+ROLES[k].n);
+  for(const k in UNLOCK.block)if(UNLOCK.block[k]===w)got.push(MAT[k].n);for(const k in UNLOCK.up)if(UNLOCK.up[k]===w){const U=UPGRADES.find(u=>u.id===k);if(U)got.push(U.ico+' '+U.nm)}
+  if(w%8===0)got.push('+1 vaga de arma');if(got.length)toast(`🔓 Horda ${w}: ${got.join(', ')}`,'r4')}
+function turretCap(){return 6+2*(state.ups.platform||0)+Math.floor(state.wave/8)}
+function turretCount(){return turrets.filter(t=>t.alive&&t.team!=='r').length}
+function canInstall(){if(turretCount()<turretCap())return true;toast(`Limite de ${turretCap()} armas. Compre 🧱 Plataformas de armas nos Upgrades.`,'r0');return false}
+const ROLE_BASE={rep:5,col:5,gun:4,sol:6,med:2};
+function roleCap(r){const u=state.ups;return ROLE_BASE[r]+(r==='sol'?3*(u.quartel||0):r==='med'?(u.quartel||0):r==='rep'||r==='col'?2*(u.oficina||0):r==='gun'?2*(u.escola||0):0)}
+function roleCount(r){return minions.filter(m=>m.role===r).length}
+function roleFree(r){return isUnlocked('role',r)&&roleCount(r)<roleCap(r)}
+function roleBlock(r){if(!isUnlocked('role',r))return`🔒 ${ROLES[r].n} libera na horda ${unlockWave('role',r)}`;if(roleCount(r)>=roleCap(r))return`Limite de ${roleCap(r)} ${ROLES[r].n}s. ${r==='sol'||r==='med'?'Compre 🏯 Quartel':r==='gun'?'Compre 🎓 Escola de artilharia':'Compre 🏭 Oficina'} nos Upgrades.`;return''}
+const POSTS={auto:{n:'Livre',ico:'🔄'},sul:{n:'Portão (sul)',ico:'⬇️'},norte:{n:'Norte',ico:'⬆️'},leste:{n:'Leste',ico:'➡️'},oeste:{n:'Oeste',ico:'⬅️'},torre:{n:'Torre',ico:'🏰'}};
+function postPos(p){switch(p){case'norte':return{x:CX,z:WA-7};case'leste':return{x:WB+8,z:CZ};case'oeste':return{x:WA-8,z:CZ};case'torre':return{x:CX,z:CZ+3};default:return{x:CX,z:WB+9}}}
+function postDist(m,x,z){if(!m.post||m.post==='auto')return 0;const p=postPos(m.post);return Math.hypot(x-p.x,z-p.z)}
+// auto-sell: equipment nobody would upgrade to, and spare weapons that do not fit the walls
+function autoSellTick(dt){if(!state.autoSell)return;state.sellT=(state.sellT||0)-dt;if(state.sellT>0)return;state.sellT=4;let g=0,n=0;const A=state.inv.armory;
+  for(const it of A.slice()){const useful=minions.some(m=>itemScore(it,m.role)>itemScore(m.eq[it.slot],m.role)+.02);if(!useful&&it.r<=2){A.splice(A.indexOf(it),1);g+=Math.ceil(sellValue(it)*.25);n++}}
+  const T=state.inv.turrets;const keep=Math.max(0,turretCap()-turretCount())+2;if(T.length>keep){T.sort((a,b)=>TURRETS[b.type].v+b.r-(TURRETS[a.type].v+a.r));for(const t of T.splice(keep)){g+=2+t.r*t.r*2;n++}}
+  if(n){state.material+=g;label({x:CHEST.x,y:GY+3,z:CHEST.z},`💰 +${g}`,'#c99a1a');SFX.coin();refreshPanels()}}
+const UPGRADES_EXTRA=[
+  {id:'platform',ico:'🧱',nm:'Plataformas de armas',ds:'+2 armas instaladas na fortaleza.',max:6,cost:l=>70+l*70,go(){}},
+  {id:'quartel',ico:'🏯',nm:'Quartel',ds:'+3 vagas de soldado e +1 de curandeiro.',max:5,cost:l=>60+l*60,go(){}},
+  {id:'oficina',ico:'🏭',nm:'Oficina',ds:'+2 vagas de reparador e +2 de coletor.',max:5,cost:l=>50+l*50,go(){}},
+  {id:'escola',ico:'🎓',nm:'Escola de artilharia',ds:'+2 vagas de artilheiro.',max:5,cost:l=>60+l*60,go(){}}];
+UPGRADES.unshift(...UPGRADES_EXTRA);
+
 // ───────── main: waves, events, game flow, input, loop
 function waveSpec(w){const list=[];const n=6+Math.floor(w*2.05+(w>10?(w-10)*1.6:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
   if(w>=3)for(let i=0;i<Math.floor((w-1)/2);i++)list.push('climber');if(w>=4)for(let i=0;i<Math.floor(w/3);i++)list.push('sapper');
   if(w>=6)for(let i=0;i<Math.floor((w-3)/3);i++)list.push('flyer');if(w>=6)for(let i=0;i<Math.floor((w-3)/4);i++)list.push('shaman');
   if(w>12)for(let i=0;i<(w-12)*2;i++)list.push(pick(['crawler','climber','ram','sapper','flyer']));
-  shuffle(list);if(w%20===0)list.push('titan');else if(w%15===0)list.push('queen');else if(w%10===0)list.push('colossus');else if(w%5===0)list.push('boss');if(w>=25&&w%5===0)list.push('boss');return list}
+  shuffle(list);if(w%5===0){list.push(bossOfWave(w));if(w>=25)list.push(BOSS_ROT[(w/5+3)%BOSS_ROT.length])}return list}
+const BOSS_ROT=['boss','golem','wyrm','colossus','necro','queen','titan'];function bossOfWave(w){return BOSS_ROT[(w/5-1)%BOSS_ROT.length]}
 const EVENTS={
   elite:{n:'Horda de elite',d:'Devoradores mais fortes e rápidos. Recruta garantido.',css:'r1',w:3},
   mist:{n:'Noite de bruma',d:'Armas enxergam menos; Devoradores surgem perto. Material em dobro.',css:'r1',w:4},
@@ -1573,18 +1629,19 @@ function startWave(){if(state.choosing||state.phase==='wave')return;state.phase=
   if(state.ev==='siege'&&state.siege===0)state.siege=3;if(state.ev==='golden')state.queue=state.queue.slice(0,Math.ceil(state.queue.length*.5));
   state.spawnT=0;$('report').style.display='none';
   if(state.ev){const E=EVENTS[state.ev];toast(`${E.n}: ${E.d}`,E.css);$('event').style.display='inline-flex';$('event').textContent=E.n+(state.ev==='siege'?` ${4-state.siege}/3`:'');$('event').style.color=`var(--${E.css})`}else $('event').style.display='none';
-  const w=state.wave;toast(w%20===0?`Horda ${w}: o TITÃ DE LAVA desperta! Use água e gelo.`:w%15===0?`Horda ${w}: a RAINHA DA BRUMA invoca enxames!`:w%10===0?`Horda ${w}: o COLOSSO chegou. Mire nas pernas!`:w%5===0?`Horda ${w}: um Devorador se aproxima!`:`Horda ${w}`,w%10===0||w%15===0?'r4':w%5===0?'r3':'r0');updateHud()}
-function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.length)return;state.spawnT=rnd(.2,.55);const type=state.queue.shift();const side=rint(0,3),mg=state.ev==='mist'?6:1;let x,z;
-  if(side===0){x=rnd(2,W-2);z=mg}else if(side===1){x=rnd(2,W-2);z=D-mg}else if(side===2){x=mg;z=rnd(2,D-2)}else{x=W-mg;z=rnd(2,D-2)}{const B=battle();if(B&&Math.abs(x-B.cx)<B.wr+6&&Math.abs(z-B.cz)<B.wr+6){x=W-x;z=D-z}}
+  const w=state.wave;if(w%5===0){const b=bossOfWave(w);const tip={boss:'cospe ácido',golem:'arremessa rochas nas armas',wyrm:'voa e solta bolas de fogo',colossus:'mire nas pernas',necro:'ergue mortos: mate os esqueletos para quebrar o escudo',queen:'invoca enxames',titan:'use água e gelo'}[b];toast(`Horda ${w}: ${ETYPES[b].n} nv ${1+Math.floor(w/5)} — ${tip}!`,'r4')}updateHud()}
+function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.length)return;state.spawnT=rnd(.14,.4);const type=state.queue.shift();const side=rint(0,3),mg=state.ev==='mist'?6:1;let x,z;
+  // waves come out of the mist on a ring around the citadel (the big map stays for battles, lairs and fortresses)
+  {const a=rnd(0,Math.PI*2),r=rnd(54,72)*(state.ev==='mist'?.85:1);x=clamp(CX+Math.cos(a)*r,3,W-4);z=clamp(CZ+Math.sin(a)*r,3,D-4)}{const B=battle();if(B&&Math.abs(x-B.cx)<B.wr+6&&Math.abs(z-B.cz)<B.wr+6){x=W-x;z=D-z}}
   if(state.ev==='ambush'&&Math.random()<.5&&!BIG(type)){x=rnd(5,16);z=rnd(5,D-5);if(Math.random()<.5)x=W-x}
   let r=type==='titan'||type==='queen'?Math.max(3,rollRarity(.15)):type==='colossus'?Math.max(2,rollRarity(.1)):type==='boss'?Math.max(1,rollRarity(.05)):rollRarity(state.wave*.004);if(state.ev==='elite')r=Math.min(4,r+1);if(state.ev==='golden')r=Math.max(2,r);
   const e=makeEnemy(type,r,x,z);if(r>=2&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
-function endWave(){const ev=state.ev;state.wave++;realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
+function endWave(){const ev=state.ev;state.wave++;checkUnlocks();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
   if(ev==='siege'&&state.siege>1){state.siege--;state.phase='rest';toast(`Cerco: horda ${4-state.siege} de 3. Sem descanso!`,'r2');startWave();return}
   if(ev==='siege'){state.siege=0;spawnLoot(CHEST.x+3,GY+3,CHEST.z+4,'treasure',3,{})}
-  state.phase='rest';state.restT=25;$('event').style.display='none';
+  state.phase='rest';state.restT=15;$('event').style.display='none';
   if(ev==='mist'){const got=Math.floor(12+state.wave*1.5);state.material+=got;toast(`Noite de bruma: +${got} material`,'r1')}
   if(ev==='ambush')spawnLoot(CHEST.x-2,GY+3,CHEST.z+3,'treasure',2,{});
   if(ev==='elite')spawnLoot(CHEST.x-2,GY+3,CHEST.z+3,'recruit',Math.max(1,rollRarity(.1)),{role:pick(['sol','gun','med'])});
@@ -1600,15 +1657,16 @@ function updateBombs(dt){for(let i=bombs.length-1;i>=0;i--){const b=bombs[i];b.v
     if(b.meteor&&Math.random()<.7)spawnFlame(b.mesh.position.x,b.mesh.position.y,b.mesh.position.z,1.1);
     const p=b.mesh.position;if(p.y<=topY(p.x,p.z)+.3||p.y<GY-2){scene.remove(b.mesh);bombs.splice(i,1);const gy=Math.min(topY(p.x,p.z),GY);
       if(b.meteor){explode(p.x,gy+.2,p.z,3.4,85,{fire:true,src:'env'});spawnLoot(p.x,gy+1.5,p.z,'material',0,{amount:4});if(Math.random()<.35){const rr=Math.max(1,rollRarity(.1+state.luck));const [k,d]=lootPick('any',rr);spawnLoot(p.x,gy+1.5,p.z,k,rr,d)}}
+      else if(b.enemy){explode(p.x,gy+.2,p.z,b.r,b.dmg,{fire:!!b.fire,src:'enemy'});shake=Math.max(shake,.35)}
       else explode(p.x,gy+.2,p.z,state.bombR,170,{fire:true,src:'player'})}}}
 
 // ───────── new game
 function newGame(){for(const e of enemies)scene.remove(e.group);enemies.length=0;for(const m of minions)scene.remove(m.group);minions.length=0;for(const L of loot)scene.remove(L.g);loot.length=0;
   for(const t of turrets)scene.remove(t.group);turrets.length=0;for(const p of projectiles)scene.remove(p.mesh);projectiles.length=0;for(const b of bombs)scene.remove(b.mesh);bombs.length=0;for(const s of shots)scene.remove(s.mesh);shots.length=0;for(const r of rings)scene.remove(r.m);rings.length=0;claimed.clear();fuses.length=0;
-  Object.assign(state,freshState());state.running=true;setCenter(80,80);rivals.length=0;initRealm();closeRealm();initGoals();cam.target.set(CX,GY+1.5,CZ);hideBoss();closeCard();for(const id of ['reward','report'])$(id).style.display='none';$('event').style.display='none';for(const id of ['buildPanel','arsenal','shop'])$(id).style.display='none';
+  Object.assign(state,freshState());state.running=true;setCenter(96,96);rivals.length=0;initRealm();closeRealm();initGoals();cam.target.set(CX,GY+1.5,CZ);hideBoss();closeCard();for(const id of ['reward','report'])$(id).style.display='none';$('event').style.display='none';for(const id of ['buildPanel','arsenal','shop'])$(id).style.display='none';
   genWorld();snapshotNature();makeTurret('cannon',TOWER_ANCHORS[0],0);makeTurret('cannon',TOWER_ANCHORS[3],0);makeTurret('ballista',KEEP_ANCHORS[2],0);spawnRivalForces();updateModeUi();
   for(const [r,dx,dz] of [['rep',-3,4],['rep',3,4],['rep',0,-4],['col',-4,5],['col',4,5],['col',-5,3],['col',5,3],['gun',-5,-5],['gun',5,5],['sol',-2,6],['sol',2,6],['sol',0,7]])makeMinion(r,0,CX+dx,CZ+dz);
-  state.inv.blocks={16:12,17:6,18:8,15:4,10:6,9:2,19:2};state.inv.turrets=[{type:'ballista',r:1},{type:'flamer',r:0},{type:'tesla',r:0}];
+  state.inv.blocks={16:12,17:6,18:8,15:4,10:6,9:2,19:2};state.inv.turrets=[{type:'ballista',r:1},{type:'cannon',r:0}];
   state.inv.armory=[makeEquip(1,'espada'),makeEquip(0,'couro'),makeEquip(1,'luvas'),makeEquip(0,'botas')];for(const it of state.inv.armory.slice())autoEquip(it);
   toast('Fortaleza acordada. Abra Construir para editar a base.','r1');updateHud()}
 
@@ -1622,7 +1680,7 @@ canvas.addEventListener('pointermove',e=>{const now=performance.now();if(now-las
 canvas.addEventListener('pointerup',e=>{dragging=false;if(moved<6)clickAt(e.clientX,e.clientY,downBtn===2)});
 canvas.addEventListener('pointerleave',()=>{$('tip').style.display='none'});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
-canvas.addEventListener('wheel',e=>{e.preventDefault();cam.dist=clamp(cam.dist*(1+Math.sign(e.deltaY)*.08),14,160)},{passive:false});
+canvas.addEventListener('wheel',e=>{e.preventDefault();cam.dist=clamp(cam.dist*(1+Math.sign(e.deltaY)*.08),14,200)},{passive:false});
 canvas.addEventListener('touchstart',e=>{if(e.touches.length===2)pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)},{passive:true});
 canvas.addEventListener('touchmove',e=>{if(e.touches.length===2){const p=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);cam.dist=clamp(cam.dist*(pinch/p),14,130);pinch=p;moved=99}},{passive:true});
 function clickAt(cx,cy,right){if(!state.running)return;
@@ -1649,6 +1707,7 @@ $('bShop').onclick=()=>openSide('shop');$('shopClose').onclick=()=>closeSide('sh
 $('bHire').onclick=()=>{const h=$('hire');const open=h.style.display!=='flex';h.style.display=open?'flex':'none';if(open)renderHire()};
 $('autoEq').onchange=e=>{state.autoEquip=e.target.checked;if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);renderArsenal()};
 $('abBtn').onclick=()=>{state.autoBuild=!state.autoBuild;toast(state.autoBuild?'Construção automática ligada: os minions decidem onde construir':'Construção automática desligada','r1');updateHud()};
+$('asBtn').onclick=()=>{state.autoSell=!state.autoSell;toast(state.autoSell?'Venda automática ligada: equipamentos sem uso e armas sobrando viram material':'Venda automática desligada','r2',true);updateHud()};
 $('arBtn').onclick=()=>{state.autoReward=!state.autoReward;toast(state.autoReward?'Recompensas escolhidas automaticamente (a mais rara)':'Você escolhe as recompensas','r2',true);updateHud()};
 $('auBtn').onclick=()=>{state.autoUp=!state.autoUp;state.autoEquip=state.autoUp||state.autoEquip;toast(state.autoUp?'Upgrade automático ligado: o pior vira o melhor':'Upgrade automático desligado','r2');updateHud()};
 function cycleSpeed(){gameSpeed=SPEEDS[(SPEEDS.indexOf(gameSpeed)+1)%SPEEDS.length];$('speed').textContent=`⏩ ${gameSpeed}×`;$('speed').classList.toggle('on',gameSpeed>1);toast(`Velocidade ${gameSpeed}×`,'r0')}
@@ -1675,7 +1734,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':state.combo>=15?'r3':'r2');state.combo=0}
@@ -1702,7 +1761,7 @@ window.__dbg=()=>({wave:state.wave,mat:Math.floor(state.material),chest:chestAli
   turrets:turrets.map(t=>`${t.type}${t.gunner&&t.gunner.state==='man'?'*':''}:${Math.round(t.hp)}`),fluids:fluids.size,burning:burning.size,armory:state.inv.armory.length,inv:JSON.stringify(state.inv.blocks),ev:state.ev,plan:blueList.filter(i=>vox[i]!==blue[i]).length,planS:blueList.filter(i=>vox[i]!==blue[i]).slice(0,8).map(i=>`${ix(i)},${iy(i)},${iz(i)} v${vox[i]} b${blue[i]} s${+supported(i)} busy${+cellBusy(i)}`).join(' | '),kills:state.kills,cols:minions.filter(m=>m.role==='col').map(m=>`${m.state} t${m.timer.toFixed(1)} @${m.pos.x.toFixed(0)},${m.pos.z.toFixed(0)} y${m.group.position.y.toFixed(1)} wc${walkCell(Math.floor(m.pos.x),Math.floor(m.pos.z))} task${m.task&&m.task.L?Math.round(m.task.L.x)+','+Math.round(m.task.L.z):'-'} bag${m.bag.length}`),lootS:loot.filter(L=>!L.carried&&!L.claimed).slice(0,6).map(L=>`${L.kind}@${L.x.toFixed(0)},${L.y.toFixed(1)},${L.z.toFixed(0)} ok${+lootOK(L)} un${+(L.unreach>simTime)} rest${+L.rest}`)});
 genWorld();placeCamera();requestAnimationFrame(frame);
 // bot used by the headless test to exercise build/arsenal paths like a player would
-window.__bot=()=>{const out=[];state.autoBuild=true;state.autoUp=true;{const B=battle();if(B&&!minions.some(m=>m.raid)&&battleOdds(B.lvl).p>.45){sendRaid();out.push('raid')}if(!state.quest&&REALM.pois.length){const P=REALM.pois.find(q=>questOdds(q).p>.6);if(P&&acceptPoi(P))out.push('poi')}}
+window.__bot=()=>{const out=[];state.autoBuild=true;state.autoUp=true;state.autoSell=true;{const B=battle();if(B&&!minions.some(m=>m.raid)&&battleOdds(B.lvl).p>.45){sendRaid();out.push('raid')}if(!state.quest&&REALM.pois.length){const P=REALM.pois.find(q=>questOdds(q).p>.6);if(P&&acceptPoi(P))out.push('poi')}}
   if(state.phase==='wave'&&state.bombCd<=0&&state.material>60){const e=enemies.find(e=>!e.dead&&!e.fly&&!inside(e.pos.x,e.pos.z));if(e){dropBomb(e.pos.x,e.pos.z);out.push('bomb')}}
   for(const L of loot)if(L.kind==='treasure'&&!L.carried){openTreasure(L);out.push('open');break}
   return out.join(' ')};
@@ -1715,7 +1774,7 @@ const MID_ANCHORS=()=>MID_TOWERS().map(([x,z])=>idx(x+1,GY+TOWER_H-1,z+1));
 const reserveMat=()=>40+state.wave*4;
 // construction: decide where turrets, traps and new towers go, hire who is missing
 function autoBuildTick(){const reserve=reserveMat();let acted=false;
-  if(state.inv.turrets.length){state.inv.turrets.sort((a,b)=>TURRETS[b.type].v+b.r-(TURRETS[a.type].v+a.r));const spot=[...TURRET_SPOTS(),...MID_ANCHORS()].find(a=>vox[a]&&blue[a]&&!turretAt(a)&&!vox[a+W*D]);if(spot!==undefined){const t=state.inv.turrets.shift();makeTurret(t.type,spot,t.r);sparkle(ix(spot)+.5,iy(spot)+1.5,iz(spot)+.5,RARITY[t.r].c,8);toast(`Construção auto: ${TURRETS[t.type].n} instalada`,'r1');acted=true}}
+  if(state.inv.turrets.length){state.inv.turrets.sort((a,b)=>TURRETS[b.type].v+b.r-(TURRETS[a.type].v+a.r));const spot=turretCount()<turretCap()?[...TURRET_SPOTS(),...MID_ANCHORS()].find(a=>vox[a]&&blue[a]&&!turretAt(a)&&!vox[a+W*D]):undefined;if(spot!==undefined){const t=state.inv.turrets.shift();makeTurret(t.type,spot,t.r);sparkle(ix(spot)+.5,iy(spot)+1.5,iz(spot)+.5,RARITY[t.r].c,8);toast(`Construção auto: ${TURRETS[t.type].n} instalada`,'r1');acted=true}}
   for(const m of [17,16,18,10]){if(!(state.inv.blocks[m]>0))continue;let sp=smartTrapSpot(m);if(sp<0&&m!==10)sp=TRAP_SPOTS().find(i=>!vox[i]&&!blue[i]&&!cellBusy(i));if(sp===undefined||sp<0)continue;placeBlue(sp,m);state.inv.blocks[m]--;state.prepaid.add(sp);acted=true;if(Math.random()<.15)toast(`Construção auto: ${MAT[m].n} no caminho dos Devoradores`,'r1');break}
   if(state.inv.blocks[19]>0){const sp=[idx(WA+5,GY,WA+5),idx(WB-5,GY,WA+5),idx(WA+5,GY,WB-5),idx(WB-5,GY,WB-5),idx(WA+6,GY,WA+5),idx(WB-6,GY,WB-5)].find(i=>!vox[i]&&!blue[i]&&!cellBusy(i));if(sp!==undefined){placeBlue(sp,19);state.inv.blocks[19]--;state.prepaid.add(sp);acted=true}}
   for(const m of [9]){if(!(state.inv.blocks[m]>0))continue;const sp=[idx(CX-6,GY-1,CZ+5),idx(CX+6,GY-1,CZ+5),idx(CX-6,GY-1,CZ-5),idx(CX+6,GY-1,CZ-5)].find(i=>vox[i]===13);if(sp!==undefined){setVox(sp,0);setFluid(sp,9,4,true);state.inv.blocks[m]--;acted=true}}
@@ -1723,7 +1782,7 @@ function autoBuildTick(){const reserve=reserveMat();let acted=false;
   if(state.material>reserve+70&&state.wave>=3){for(const [x,z] of MID_TOWERS()){const top=idx(x+1,GY+TOWER_H-1,z+1);if(blue[top])continue;for(let dx=0;dx<4;dx++)for(let dz=0;dz<4;dz++)for(let y=0;y<TOWER_H;y++){const i=idx(x+dx,GY+y,z+dz);if(!blue[i]||blue[i]===3)placeBlue(i,6)}toast('Construção auto: nova torre na muralha','r1');acted=true;break}}
   const want=Math.min(60,10+Math.floor(state.wave*1.3));if(minions.length<want){const n={};for(const m of minions)n[m.role]=(n[m.role]||0)+1;const guns=turrets.filter(t=>t.alive).length;
     const need=[['gun',guns-(n.gun||0)],['sol',Math.ceil(minions.length*.3)-(n.sol||0)],['rep',Math.ceil(minions.length*.2)-(n.rep||0)],['col',Math.max(4,Math.ceil(minions.length*.25))+Math.floor(loot.filter(L=>!L.carried&&!L.claimed).length/25)-(n.col||0)],['med',Math.floor(minions.length/8)-(n.med||0)]].sort((a,b)=>b[1]-a[1]);
-    const role=need[0][1]>0?need[0][0]:'sol';if(state.material>=ROLES[role].cost+reserve){hire(role);acted=true}}
+    const nf=need.filter(([r])=>roleFree(r));const role=nf.length&&nf[0][1]>0?nf[0][0]:roleFree('sol')?'sol':null;if(role&&state.material>=ROLES[role].cost+reserve){hire(role);acted=true}}
   if(acted)refreshPanels()}
 // upgrades: always replace the worst piece with a better one
 const TIER=[3,4,14,20];
@@ -1765,6 +1824,7 @@ window.__boss=(t,f)=>{const e=makeEnemy(t||'boss',2,CX+14,CZ+30);dmgEnemy(e,e.ma
 window.__matTrace=()=>{let v=state.material;const big={};Object.defineProperty(state,'material',{configurable:true,get(){return v},set(n){const d=n-v;if(d>0){const k=(new Error().stack.split('\n')[2]||'').trim().split(' (')[0];big[k]=(big[k]||0)+d}v=n}});window.__matBig=()=>Object.entries(big).sort((a,b)=>b[1]-a[1]).slice(0,6)};
 window.__lootTrace=()=>{const big={};const orig=spawnLoot;window.__lt=big;spawnLootHook=(x,y,z,kind,r,data)=>{if(kind==='material'){const k=(new Error().stack.split('\n')[3]||'').trim().split(' (')[0];big[k]=(big[k]||0)+data.amount}}};
 window.__fame=()=>({fame:state.fame,rank:RANKS[rankIdx()].n,c:state.contracts.map(c=>c.k+':'+Math.floor(c.p)+'/'+c.n)});
+window.__matTrace2=()=>{window.__matTrace()};
 
 })();
 </script>

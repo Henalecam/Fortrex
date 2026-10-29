@@ -14,7 +14,7 @@ function updateHud(){$('wave').textContent=state.wave;$('mat').textContent=Math.
   $('focusCd').textContent=state.focusCd>0?Math.ceil(state.focusCd)+'s':'pronto';$('focus').classList.toggle('on',state.focusT>0);
   $('bombCd').textContent=state.bombCd>0?Math.ceil(state.bombCd)+'s':'25';$('bomb').classList.toggle('armed',state.bombMode);
   $('arsN').textContent=state.newItems?String(state.newItems):'';$('arsN').hidden=!state.newItems;
-  $('bBuild').classList.toggle('on',state.build.on);$('abBtn').classList.toggle('on',state.autoBuild);$('auBtn').classList.toggle('on',state.autoUp);$('arBtn').classList.toggle('on',!!state.autoReward);
+  $('bBuild').classList.toggle('on',state.build.on);$('abBtn').classList.toggle('on',state.autoBuild);$('auBtn').classList.toggle('on',state.autoUp);$('asBtn').classList.toggle('on',!!state.autoSell);$('arBtn').classList.toggle('on',!!state.autoReward);
   {const rp=raidPower();const c=$('rivalChip');if(rp){const w=rp.us/(rp.us+rp.them+.01);c.textContent=`⚔️ ${rp.R.name}: ${rp.us.toFixed(0)} vs ${rp.them.toFixed(0)} · núcleo ${rp.core}/8 · ${w>.6?'vantagem':w>.4?'equilibrado':'perigo!'}`;c.style.color=w>.6?'#2f9a5e':w>.4?'#c99a1a':'#d9414f'}else{c.style.color='';const B=battle();const inc=REALM.armies.filter(A=>A.to.home).length;c.textContent=B?`⚔️ Guerra: ${B.name} nv ${B.lvl} · núcleo ${B.core.filter(i=>vox[i]===21).length}/8`:`🗺️ ${REALM.cities.length} fortalezas${inc?` · ⚠️ ${inc} exército${inc>1?'s':''} vindo`:''}`;if(!B&&inc)c.style.color='#d9414f'}}
   if(state.card)renderCard()}
 
@@ -64,7 +64,7 @@ function doBuild(cx,cy,forceRemove){const B=state.build;const tool=B.tool;if(for
     if(blue[i]){const b=blue[i];const wasPre=state.prepaid.has(i);eraseBlue(i);if(m===b){removeVox(i,'dig');if(SPECIAL_BLOCKS.includes(b))addBlocks(b,1);else state.material+=1}else if(wasPre&&SPECIAL_BLOCKS.includes(b))addBlocks(b,1);toast(`${MAT[b].n} removido da planta`,'r0')}
     else if(FLUID(m)){if(fluidSrc.has(i)&&state.placed&&state.placed.has(i)){addBlocks(m,1);state.placed.delete(i)}setVox(i,0);settleDirty=true}
     else{state.material-=1;removeVox(i,'dig')}SFX.crunch(false)}
-  else if(T.kind==='turret'){const it=state.inv.turrets.splice(B.tsel,1)[0];makeTurret(it.type,T.i,it.r);sparkle(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5,RARITY[it.r].c,8);SFX.build();toast(`${TURRETS[it.type].n} instalada`,'r1');if(!state.inv.turrets.length)B.tool='remove';else B.tsel=clamp(B.tsel,0,state.inv.turrets.length-1)}
+  else if(T.kind==='turret'){if(!canInstall())return;const it=state.inv.turrets.splice(B.tsel,1)[0];makeTurret(it.type,T.i,it.r);sparkle(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5,RARITY[it.r].c,8);SFX.build();toast(`${TURRETS[it.type].n} instalada`,'r1');if(!state.inv.turrets.length)B.tool='remove';else B.tsel=clamp(B.tsel,0,state.inv.turrets.length-1)}
   else{const m=T.m;if(FLUID(m)){state.inv.blocks[m]--;setFluid(T.i,m,4,true);(state.placed=state.placed||new Set()).add(T.i)}
     else{placeBlue(T.i,m);if(!BASIC_BLOCKS.includes(m)){state.inv.blocks[m]--;state.prepaid.add(T.i)}}SFX.build();if(!BASIC_BLOCKS.includes(m)&&!state.inv.blocks[m])B.sel=3}
   renderBuild();updateHud()}
@@ -102,7 +102,8 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
     h+='<div class="slots">';for(const sl of ['arma','armadura','acessorio']){const it=m.eq[sl];h+=`<button class="slot ${it?'r'+it.r:''} ${cardSlot===sl?'sel':''}" data-sl="${sl}">${it?`<span class="ico">${itemIco(it)}</span>${esc(it.n)}`:`<span class="ct">${SLOT_N[sl]}</span>vazio`}</button>`}h+='</div>';
     if(cardSlot){const opts=state.inv.armory.filter(i=>i.slot===cardSlot).sort((a,b)=>itemScore(b,m.role)-itemScore(a,m.role));h+='<div class="mlist">';if(m.eq[cardSlot])h+=`<button class="mrow" data-un="1"><span>Tirar ${esc(m.eq[cardSlot].n)}</span></button>`;
       for(const it of opts.slice(0,6))h+=`<button class="mrow" data-it="${it.id}"><span style="color:var(--${RARITY[it.r].css})">${itemIco(it)} ${esc(it.n)}</span><span class="ct">${esc(itemLines(it).slice(0,2).join(' · '))}</span></button>`;if(!opts.length)h+='<div class="ds">Nada no arsenal para este espaço.</div>';h+='</div>'}
-    h+='<div class="ds" style="margin-top:6px">Função</div><div class="roles">';for(const r in ROLES)h+=`<button class="btn sm ${m.role===r?'on':''}" data-role="${r}" title="${esc(ROLES[r].d)}">${ROLES[r].ico} ${ROLES[r].n}</button>`;h+='</div>'}
+    h+='<div class="ds" style="margin-top:6px">Função</div><div class="roles">';for(const r in ROLES)h+=`<button class="btn sm ${m.role===r?'on':''}" data-role="${r}" title="${esc(ROLES[r].d)}">${ROLES[r].ico} ${ROLES[r].n}</button>`;h+='</div>';
+    h+='<div class="ds" style="margin-top:6px">Posto</div><div class="roles">';for(const k in POSTS)h+=`<button class="btn sm ${(m.post||'auto')===k?'on':''}" data-mpost="${k}">${POSTS[k].ico} ${POSTS[k].n}</button>`;h+='</div>'}
   else if(c.t){const t=c.t;if(!t.alive){closeCard();return}h+=`<div class="ch"><b>${t.T.ico} ${esc(t.T.n)}</b><button class="btn x" id="cClose">✕</button></div><div class="ds"><span style="color:var(--${RARITY[t.r].css})">${RARITY[t.r].n}</span> · ${esc(t.T.d)}</div>`;
     h+=`<div class="hpbar"><i style="width:${Math.round(t.hp/t.maxhp*100)}%"></i></div><div class="ds">Integridade ${Math.ceil(t.hp)}/${Math.ceil(t.maxhp)} · Alcance ${turretRange(t).toFixed(0)} · ${t.gunner?(t.gunner.state==='man'?'Operada por '+esc(t.gunner.name):esc(t.gunner.name)+' a caminho'):'Sem artilheiro (metade da cadência)'}</div>`;
     h+=`<div class="roles"><button class="btn sm" id="tPick">Recolher ao arsenal</button></div>`}
@@ -110,13 +111,15 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
   for(const b of el.querySelectorAll('[data-sl]'))b.onclick=()=>{cardSlot=cardSlot===b.dataset.sl?null:b.dataset.sl;renderCard(true)};
   for(const b of el.querySelectorAll('[data-it]'))b.onclick=()=>{const it=state.inv.armory.find(i=>i.id===+b.dataset.it);if(it)equipItem(c.m,it);cardSlot=null;renderCard(true);refreshPanels()};
   for(const b of el.querySelectorAll('[data-un]'))b.onclick=()=>{unequip(c.m,cardSlot);cardSlot=null;renderCard(true);refreshPanels()};
-  for(const b of el.querySelectorAll('[data-role]'))b.onclick=()=>{setRole(c.m,b.dataset.role);toast(`${c.m.name} agora é ${ROLES[b.dataset.role].n}`,'r1');renderCard(true)};
+  for(const b of el.querySelectorAll('[data-mpost]'))b.onclick=()=>{c.m.post=b.dataset.mpost;c.m.path=null;renderCard(true)};
+  for(const b of el.querySelectorAll('[data-role]'))b.onclick=()=>{if(c.m.role!==b.dataset.role){const blk=roleBlock(b.dataset.role);if(blk){toast(blk,'r0');return}}setRole(c.m,b.dataset.role);toast(`${c.m.name} agora é ${ROLES[b.dataset.role].n}`,'r1');renderCard(true)};
   const tp=$('tPick');if(tp)tp.onclick=()=>{killTurret(c.t,false);state.inv.turrets.push({type:c.t.type,r:c.t.r});toast(`${c.t.T.n} recolhida`,'r0');closeCard();refreshPanels()}}
 
 // ── hire
-function renderHire(){const el=$('hire');let h='';for(const r in ROLES){const R=ROLES[r];h+=`<button class="btn" data-h="${r}" ${state.material<R.cost?'disabled':''} title="${esc(R.d)}">${R.ico} ${R.n} <span class="cost">${R.cost}</span></button>`}el.innerHTML=h;
-  for(const b of el.querySelectorAll('[data-h]'))b.onclick=()=>{hire(b.dataset.h);renderHire()}}
-function hire(role){const R=ROLES[role];if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){toast(`Limite de ${MAX_MINIONS+MAX_MINIONS_BONUS} minions: a cidadela está lotada`,'r0');return}if(state.material<R.cost)return;state.material-=R.cost;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);
+function renderHire(){const el=$('hire');const hp=state.hirePost||'auto';let h=`<div class="ds" style="width:100%">Posto dos novos minions:</div><div class="roles">${Object.entries(POSTS).map(([k,P])=>`<button class="btn sm ${hp===k?'on':''}" data-post="${k}">${P.ico} ${P.n}</button>`).join('')}</div>`;
+  for(const r in ROLES){const R=ROLES[r];const lock=!isUnlocked('role',r);h+=`<button class="btn" data-h="${r}" ${state.material<R.cost||lock||!roleFree(r)?'disabled':''} title="${esc(roleBlock(r)||R.d)}">${R.ico} ${R.n} ${lock?`<span class="cost">🔒 h${unlockWave('role',r)}</span>`:`<span class="cost">${roleCount(r)}/${roleCap(r)} · ${R.cost}</span>`}</button>`}el.innerHTML=h;
+  for(const b of el.querySelectorAll('[data-h]'))b.onclick=()=>{hire(b.dataset.h);renderHire()};for(const b of el.querySelectorAll('[data-post]'))b.onclick=()=>{state.hirePost=b.dataset.post;renderHire()}}
+function hire(role){const R=ROLES[role];const blk=roleBlock(role);if(blk){toast(blk,'r0');return false}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){toast(`Limite de ${MAX_MINIONS+MAX_MINIONS_BONUS} minions: a cidadela está lotada`,'r0');return}if(state.material<R.cost)return;state.material-=R.cost;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);m.post=state.hirePost||'auto';
   toast(`${m.name}, ${R.n} ${RARITY[r].n}${m.trait?' · '+m.trait:''}`,RARITY[r].css);SFX.pop();if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);updateHud()}
 
 // ── upgrades
@@ -138,9 +141,9 @@ const UPGRADES=[
   {id:'crit',ico:'🎯',nm:'Pontaria crítica',ds:'+5% de chance de crítico (dano dobrado).',max:4,cost:l=>50+l*50,go(){state.critBonus+=.05}},
   {id:'general',ico:'🎖️',nm:'General veterano',ds:'Fogo Concentrado dura 8 s e recarrega em 10 s.',max:1,cost:()=>120,go(){state.focusLong=true}},
 ];
-function renderShop(){const box=$('shopList');box.innerHTML='';for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const el=document.createElement('div');el.className='up';
-  el.innerHTML=`<div class="ico">${U.ico}</div><div><div class="nm">${U.nm}</div><div class="ds">${U.ds}</div><div class="lv">${Array.from({length:U.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')} ${lv}/${U.max}</div></div><button class="btn buy" ${maxed||state.material<cost?'disabled':''}>${maxed?'máx':cost}</button>`;
-  el.querySelector('button').onclick=()=>{if(maxed||state.material<cost)return;state.material-=cost;state.ups[U.id]=lv+1;U.go();SFX.loot(1);toast(`${U.nm} nível ${lv+1}`,'r1');renderShop();updateHud()};box.appendChild(el)}}
+function renderShop(){const box=$('shopList');box.innerHTML='';for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const lock=!isUnlocked('up',U.id);const el=document.createElement('div');el.className='up';
+  el.innerHTML=`<div class="ico">${U.ico}</div><div><div class="nm">${U.nm}</div><div class="ds">${U.ds}</div><div class="lv">${Array.from({length:U.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')} ${lv}/${U.max}</div></div><button class="btn buy" ${maxed||lock||state.material<cost?'disabled':''}>${lock?`🔒 h${unlockWave('up',U.id)}`:maxed?'máx':cost}</button>`;
+  el.querySelector('button').onclick=()=>{if(maxed||lock||state.material<cost)return;state.material-=cost;state.ups[U.id]=lv+1;U.go();SFX.loot(1);toast(`${U.nm} nível ${lv+1}`,'r1');renderShop();updateHud()};box.appendChild(el)}}
 
 // ── rewards: pick 1 of 3
 function rewardPool(){const w=state.wave,rr=()=>rollRarity(w*.006+state.luck),P=[];
@@ -161,7 +164,7 @@ function offerRewards(){const pool=rewardPool();const picks=[];while(picks.lengt
   $('reward').style.display='flex';SFX.loot(1)}
 
 // ── boss bar, tooltip
-function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName').textContent=`${e.T.n} ${RARITY[e.rarity].n}`;$('bossName').style.color=`var(--${RARITY[e.rarity].css})`}
+function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName').textContent=`${e.T.n} ${RARITY[e.rarity].n}${e.blvl?` · nv ${e.blvl}`:''}`;$('bossName').style.color=`var(--${RARITY[e.rarity].css})`}
 function hideBoss(){state.boss=null;$('bossbar').style.display='none'}
 function showTip(cx,cy,t,s){const el=$('tip');el.innerHTML=esc(t)+(s?`<small>${esc(s)}</small>`:'');el.style.left=cx+'px';el.style.top=cy+'px';el.style.display='block'}
 function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}

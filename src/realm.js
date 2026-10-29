@@ -3,7 +3,7 @@
 const REALM={cities:[],armies:[],facs:[],pois:[],log:[],t:0,spawnT:70,sel:null,open:false,nextId:1,deco:null};
 const FAC_COLORS=[0xe8a21f,0xd9414f,0x8e5bd6,0x2f9a5e,0x2aa7b8,0xc4497f,0x7a7f3a,0x9b5a35,0x3d5bd6,0xe0662c,0x3f8f8a,0x6b4f9e];
 const CITY_NAMES=['Cinzaforte','Garra Rubra','Pico do Corvo','Muralha Negra','Ponte de Ossos','Vale Sombrio','Trono de Ferro','Forja Rubra','Ninho de Vespas','Rocha Uivante','Dente de Lobo','Brasa Eterna','Torre Partida','Fosso Frio','Coroa de Espinhos','Lâmina Cinza','Olho da Tormenta','Bastião Velho','Cripta Dourada','Penhasco Rubro'];
-const BATTLE_SLOTS=()=>[[CX+56,CZ],[CX-56,CZ],[CX,CZ+56],[CX,CZ-56]];
+const BATTLE_SLOTS=()=>[[CX+66,CZ],[CX-66,CZ],[CX,CZ+66],[CX,CZ-66]];
 function rName(){const used=new Set(REALM.cities.map(c=>c.name));const free=CITY_NAMES.filter(n=>!used.has(n));return free.length?pick(free):pick(CITY_NAMES)+' '+['II','III','IV','V'][rint(0,3)]}
 function newFac(color,name,isMe){const f={id:REALM.facs.length,color,name,isMe:!!isMe};REALM.facs.push(f);return f}
 function addCity(x,y,lvl,fac,o={}){const c={id:REALM.nextId++,name:o.name||rName(),x,y,lvl,fac,garrison:6+lvl*4,home:!!o.home,raidT:rnd(40,110)};REALM.cities.push(c);return c}
@@ -12,8 +12,8 @@ function cityDef(c){return c.lvl*4+c.garrison*.8}
 function rlog(txt,css='r0'){REALM.log.unshift({txt,css,t:simTime});REALM.log.length=Math.min(REALM.log.length,7)}
 function initRealm(){REALM.cities.length=0;REALM.armies.length=0;REALM.pois.length=0;REALM.poiT=45;REALM.deco=null;REALM.selA=null;REALM.confirm=null;state.quest=null;REALM.facs.length=0;REALM.log.length=0;REALM.t=0;REALM.spawnT=150;REALM.sel=null;REALM.nextId=1;
   const me=newFac(0xe8a21f,'Fortrex',true);addCity(500,500,1,me,{name:'Fortrex',home:true});
-  const n=10;for(let k=0;k<n;k++){const a=k/n*Math.PI*2+rnd(-.2,.2),r=k%2?rnd(170,260):rnd(300,430);const f=newFac(FAC_COLORS[1+k%(FAC_COLORS.length-1)],'');const c=addCity(500+Math.cos(a)*r,500+Math.sin(a)*r*.82,r<280?rint(1,2):rint(2,3),f);f.name=c.name}
-  rlog('Dez fortalezas dividem o reino. Observe, cresça, conquiste.','r2')}
+  const n=13;for(let k=0;k<n;k++){const a=k/n*Math.PI*2+rnd(-.2,.2),r=k%2?rnd(170,260):rnd(300,430);const f=newFac(FAC_COLORS[1+k%(FAC_COLORS.length-1)],'');const c=addCity(500+Math.cos(a)*r,500+Math.sin(a)*r*.82,r<280?rint(1,2):rint(2,3),f);f.name=c.name}
+  rlog('Treze fortalezas dividem o reino. Observe, cresça, conquiste.','r2')}
 function facOf(c){return REALM.facs[c.fac.id]||c.fac}
 function realmTick(dt){if(!REALM.cities.length)return;REALM.t+=dt;if(state.battleCd>0)state.battleCd-=dt;const H0=homeCity();
   for(const c of REALM.cities){const cap=c.lvl*22;if(c.garrison<cap)c.garrison=Math.min(cap,c.garrison+dt*(.04+c.lvl*.03));
@@ -69,25 +69,31 @@ function oddsHtml(o,label){const col=o.p>=.6?'#2f9a5e':o.p>=.35?'#c99a1a':'#d941
 // ───────── secondary objectives on the realm map: boss lairs, skirmishes, ancient ruins
 const POI_KINDS={boss:{ico:'💀',n:'Covil',d:'Um chefe colossal desperta e marcha até a sua cidadela. Derrote-o para saquear o covil.'},
   skirmish:{ico:'⚔️',n:'Escaramuça',d:'Um bando de saqueadores acampou nas suas terras. Batalha aberta, sem muralhas.'},
-  ruins:{ico:'💎',n:'Ruínas',d:'Ruínas antigas cheias de tesouro, guardadas por criaturas da bruma.'}};
-function bossFor(l){return l<=3?'boss':l<=6?'colossus':l<=9?'queen':'titan'}
-function spawnPoi(){const kinds=['boss','skirmish','skirmish','ruins','ruins'];const kind=pick(kinds);const top=Math.max(1,...REALM.cities.filter(c=>!c.fac.isMe).map(c=>c.lvl));const lvl=Math.max(1,Math.min(14,Math.round(top*rnd(.5,1))+(kind==='boss'?1:0)));
+  ruins:{ico:'💎',n:'Ruínas',d:'Ruínas antigas cheias de tesouro, guardadas por criaturas da bruma.'},
+  elite:{ico:'🏆',n:'Desafio',d:'Poucos inimigos lendários, muito fortes. Recompensa rara.'},
+  meteor:{ico:'☄️',n:'Chuva de estrelas',d:'Por 45 s meteoros caem pelo mapa: destroem tudo, mas deixam cristais e loot.'},
+  blitz:{ico:'🌪️',n:'Cerco relâmpago',d:'Uma enxurrada de criaturas da bruma vinda de um só lado, sem aviso.'}};
+function bossFor(l){return ['boss','golem','wyrm','necro','colossus','queen','titan'][Math.min(6,Math.floor((l-1)/2))]}
+function spawnPoi(){const kinds=['boss','boss','skirmish','skirmish','ruins','ruins','elite','meteor','blitz','blitz'];const kind=pick(kinds);const top=Math.max(1,...REALM.cities.filter(c=>!c.fac.isMe).map(c=>c.lvl));const lvl=Math.max(1,Math.min(14,Math.round(top*rnd(.5,1))+(kind==='boss'?1:0)));
   let x,y,ok=false;for(let t=0;t<40&&!ok;t++){const a=rnd(0,Math.PI*2),r=rnd(120,420);x=500+Math.cos(a)*r;y=500+Math.sin(a)*r*.85;ok=REALM.cities.every(c=>Math.hypot(c.x-x,c.y-y)>60)&&REALM.pois.every(p=>Math.hypot(p.x-x,p.y-y)>60)}if(!ok)return;
-  const names={boss:['do Devorador Antigo','da Fera de Lava','da Rainha Pálida','do Colosso Adormecido'],skirmish:['dos Lobos Rubros','da Lâmina Cega','dos Saqueadores Cinza','do Corvo Faminto'],ruins:['de Velhoforte','do Templo Afundado','da Torre Caída','de Ouro Antigo']};
-  const n=kind==='skirmish'?5+lvl*2:kind==='ruins'?8+lvl*2:1;const E=kind==='boss'?8+lvl*4:kind==='skirmish'?n*(1+lvl*.12):n*.55;
+  const names={boss:['do Devorador Antigo','da Fera de Lava','da Rainha Pálida','do Colosso Adormecido'],skirmish:['dos Lobos Rubros','da Lâmina Cega','dos Saqueadores Cinza','do Corvo Faminto'],ruins:['de Velhoforte','do Templo Afundado','da Torre Caída','de Ouro Antigo'],elite:['dos Campeões','da Arena Rubra','dos Cinco Reis'],meteor:['do Céu Partido','das Estrelas Cadentes'],blitz:['da Bruma Uivante','do Vento Negro']};
+  const n=kind==='skirmish'?5+lvl*2:kind==='ruins'?8+lvl*2:kind==='elite'?3+Math.floor(lvl/3):kind==='blitz'?14+lvl*4:1;const E=kind==='boss'?8+lvl*4:kind==='skirmish'?n*(1+lvl*.12):kind==='elite'?n*(2.2+lvl*.35):kind==='meteor'?6+lvl*1.5:kind==='blitz'?n*.5:n*.55;
   const P={id:REALM.nextId++,kind,lvl,x,y,ttl:rnd(200,300),n,E,name:`${POI_KINDS[kind].n} ${pick(names[kind])}`};REALM.pois.push(P);rlog(`${POI_KINDS[kind].ico} ${P.name} (nv ${lvl}) apareceu no mapa`,'r2')}
 function edgePos(px,py){const H0=homeCity();const a=Math.atan2(py-H0.y,px-H0.x);return[clamp(CX+Math.cos(a)*(W*.45),4,W-5),clamp(CZ+Math.sin(a)*(D*.45),4,D-5)]}
 function acceptPoi(P){if(state.quest){toast('Termine o objetivo atual primeiro','r0');return false}const [x,z]=edgePos(P.x,P.y);const units=[];
   if(P.kind==='boss'){const e=makeEnemy(bossFor(P.lvl),Math.min(4,1+Math.floor(P.lvl/3)),x,z);e.maxhp*=1+P.lvl*.12;e.hp=e.maxhp;units.push(e);toast(`💀 ${P.name}: ${e.T.n} vem aí!`,'r4')}
   else if(P.kind==='skirmish'){const fake={alive:true,lvl:P.lvl,name:P.name,guards:[],cx:x,cz:z,wr:0,core:[],edge:true};for(let k=0;k<P.n;k++){const e=makeEnemy(pick(['knight','knight','archer','rammer']),Math.min(4,rollRarity(P.lvl*.04)),x+rnd(-4,4),z+rnd(-4,4));e.rival=fake;e.rmode='raid';e.home={x,z};units.push(e)}toast(`⚔️ ${P.name}: ${P.n} saqueadores avançam!`,'r3')}
+  else if(P.kind==='elite'){for(let k=0;k<P.n;k++){const e=makeEnemy(pick(['ram','climber','shaman','sapper','ram']),k===0?4:3,x+rnd(-4,4),z+rnd(-4,4));e.maxhp*=2+P.lvl*.15;e.hp=e.maxhp;e.speed*=1.15;units.push(e)}toast(`🏆 ${P.name}: campeões lendários entram em campo!`,'r4')}
+  else if(P.kind==='meteor'){state.starfall=45;state.meteorT=1;toast(`☄️ ${P.name}: o céu se parte por 45 s!`,'r4')}
+  else if(P.kind==='blitz'){for(let k=0;k<P.n;k++){const e=makeEnemy(pick(['crawler','crawler','climber','ram','flyer','sapper']),Math.min(4,rollRarity(P.lvl*.05)),x+rnd(-8,8),z+rnd(-8,8));e.viaWall=Math.random()<.5;units.push(e)}toast(`🌪️ ${P.name}: ${P.n} criaturas de uma vez!`,'r4')}
   else{for(let k=0;k<P.n;k++)units.push(makeEnemy(pick(['crawler','climber','crawler','sapper','flyer']),Math.min(4,rollRarity(P.lvl*.05)),x+rnd(-5,5),z+rnd(-5,5)));toast(`💎 ${P.name}: os guardiões da bruma despertam!`,'r2')}
   state.quest={P,units,last:{x,z}};REALM.pois.splice(REALM.pois.indexOf(P),1);rlog(`Fortrex aceita: ${P.name}`,'r2');cam.target.set((x+CX)/2,GY+1.5,(z+CZ)/2);return true}
-function questTick(){const q=state.quest;if(!q)return;let alive=0;for(const e of q.units){if(!e.dead){alive++;q.last={x:e.pos.x,z:e.pos.z}}}if(alive)return;state.quest=null;const P=q.P,L=q.last;
-  const nt=P.kind==='ruins'?3:P.kind==='boss'?2:1;for(let k=0;k<nt;k++)spawnLoot(L.x+rnd(-1.5,1.5),GY+2,L.z+rnd(-1.5,1.5),'treasure',Math.min(4,(P.kind==='boss'?2:1)+Math.floor(P.lvl/3)+(k===0?1:0)),{});
-  const g=(P.kind==='boss'?20:P.kind==='skirmish'?12:8)*P.lvl;spawnLoot(L.x,GY+2,L.z,'material',0,{amount:g});state.conquests=(state.conquests||0)+(P.kind==='boss'?1:0);
+function questTick(dt){const q=state.quest;if(!q)return;if(q.P.kind==='meteor'){state.starfall-=dt;meteorTick(dt);if(state.starfall>0)return;q.last={x:CHEST.x+rnd(-12,12),z:CHEST.z+rnd(14,20)}}let alive=0;for(const e of q.units){if(!e.dead){alive++;q.last={x:e.pos.x,z:e.pos.z}}}if(alive)return;state.quest=null;const P=q.P,L=q.last;
+  const nt=P.kind==='ruins'?3:P.kind==='boss'||P.kind==='elite'?2:1;for(let k=0;k<nt;k++)spawnLoot(L.x+rnd(-1.5,1.5),GY+2,L.z+rnd(-1.5,1.5),'treasure',Math.min(4,(P.kind==='boss'?2:1)+Math.floor(P.lvl/3)+(k===0?1:0)),{});
+  const g=(P.kind==='boss'?20:P.kind==='skirmish'||P.kind==='blitz'?12:P.kind==='elite'?18:8)*P.lvl;spawnLoot(L.x,GY+2,L.z,'material',0,{amount:g});state.conquests=(state.conquests||0)+(P.kind==='boss'?1:0);
   addFame((P.kind==='boss'?15:10)*P.lvl);goalEvent('poi');
   toast(`${POI_KINDS[P.kind].ico} ${P.name} concluído! Tesouro no campo.`,'r4');rlog(`Fortrex venceu ${P.name}`,'r4');slowmo=Math.max(slowmo,.8)}
-function poiTick(dt){REALM.poiT=(REALM.poiT??50)-dt;if(REALM.poiT<=0){REALM.poiT=rnd(55,95);if(REALM.pois.length<4)spawnPoi()}for(let i=REALM.pois.length-1;i>=0;i--){const P=REALM.pois[i];P.ttl-=dt;if(P.ttl<=0){REALM.pois.splice(i,1);if(REALM.sel===P)REALM.sel=null}}questTick()}
+function poiTick(dt){REALM.poiT=(REALM.poiT??50)-dt;if(REALM.poiT<=0){REALM.poiT=rnd(40,70);if(REALM.pois.length<6)spawnPoi()}for(let i=REALM.pois.length-1;i>=0;i--){const P=REALM.pois[i];P.ttl-=dt;if(P.ttl<=0){REALM.pois.splice(i,1);if(REALM.sel===P)REALM.sel=null}}questTick(dt)}
 // when a fortress falls, another one grows
 function riseAfterFall(T,by){const others=REALM.cities.filter(c=>c!==T&&c!==by&&!c.fac.isMe&&c.fac!==(by&&by.fac));if(Math.random()<.5&&others.length){const c=pick(others);c.lvl=Math.min(14,c.lvl+1);c.garrison+=c.lvl*5;c.flash=simTime;rlog(`Com a queda de ${T.name}, ${c.name} se fortalece (nv ${c.lvl})`,'r3')}
   if(REALM.cities.filter(c=>!c.fac.isMe).length<8||(REALM.cities.length<14&&Math.random()<.5)){const a=Math.atan2(T.y-500,T.x-500)+rnd(-1.2,1.2);const f=newFac(FAC_COLORS[1+REALM.facs.length%(FAC_COLORS.length-1)],'');let x=clamp(500+Math.cos(a)*rnd(330,450),50,950),y=clamp(500+Math.sin(a)*rnd(300,400),50,950);const c=addCity(x,y,Math.min(14,T.lvl+1),f);f.name=c.name;c.flash=simTime;rlog(`Das cinzas de ${T.name} surge ${c.name} (nv ${c.lvl})`,'r3')}}
@@ -172,7 +178,7 @@ function renderRealmInfo(){const el=$('realmInfo');if(!el)return;const c=REALM.s
   if(state.quest)h+=`<div class="ds">🎯 Objetivo ativo: <b>${state.quest.P.name}</b> (${state.quest.units.filter(e=>!e.dead).length} inimigos restantes)</div>`;
   const A=REALM.selA;if(A&&REALM.armies.includes(A)){const eta=Math.hypot(A.to.x-A.x,A.to.y-A.y)/A.speed;const n=Math.round(A.power/3);h+=`<div class="rc"><b style="color:${hex(A.fac.color)}">⚔️ Exército de ${A.from.name}</b><div class="ds">Rumo a ${A.to.home?'<b>Fortrex (você!)</b>':A.to.name} · força ${Math.round(A.power)} · ~${n} guerreiros · chega em ${Math.ceil(eta)} s</div>`;
     if(A.to.home){const o=battleOdds(A.from.lvl);h+=`<div class="ds">Se chegar, ergue uma fortaleza de cerco ao lado da sua.</div>${oddsHtml(o,'Chance de defender')}`}else h+=`<div class="ds">Defesa do alvo: ${Math.round(cityDef(A.to))} → ${A.power>cityDef(A.to)?'provável conquista':'provável derrota'}</div>`;h+='</div>'}
-  if(Q){const K=POI_KINDS[Q.kind];const o=questOdds(Q);h+=`<div class="rc"><b>${K.ico} ${Q.name}</b><div class="ds">Nível ${Q.lvl} · ${Q.kind==='boss'?`chefe: ${ETYPES[bossFor(Q.lvl)].n}`:`${Q.n} inimigos`} · some em ${Math.ceil(Q.ttl)} s</div><div class="ds">${K.d}</div><div class="ds">Recompensa: ${Q.kind==='ruins'?3:Q.kind==='boss'?2:1} tesouro(s) + ${(Q.kind==='boss'?20:Q.kind==='skirmish'?12:8)*Q.lvl} material</div>${oddsHtml(o)}
+  if(Q){const K=POI_KINDS[Q.kind];const o=questOdds(Q);h+=`<div class="rc"><b>${K.ico} ${Q.name}</b><div class="ds">Nível ${Q.lvl} · ${Q.kind==='boss'?`chefe: ${ETYPES[bossFor(Q.lvl)].n} nv ${Q.lvl}`:Q.kind==='meteor'?'45 s de meteoros':`${Q.n} inimigos`} · some em ${Math.ceil(Q.ttl)} s</div><div class="ds">${K.d}</div><div class="ds">Recompensa: ${Q.kind==='ruins'?3:Q.kind==='boss'||Q.kind==='elite'?2:1} tesouro(s) + ${(Q.kind==='boss'?20:Q.kind==='skirmish'||Q.kind==='blitz'?12:Q.kind==='elite'?18:8)*Q.lvl} material</div>${oddsHtml(o)}
     ${state.quest?'<div class="ds">Termine o objetivo atual primeiro.</div>':REALM.confirm===Q?`<button class="btn primary" id="realmGo">✅ Confirmar (${pctS(o.p)})</button><button class="btn" id="realmNo">Cancelar</button>`:`<button class="btn primary" id="realmAsk">Aceitar desafio</button>`}</div>`}
   if(c){const f=facOf(c);const war=battle();h+=`<div class="rc"><b style="color:${hex(f.color)}">${c.home?'👑 ':''}${c.name}</b><div class="ds">Nível ${c.lvl} · guarnição ${Math.round(c.garrison)} · império ${f.isMe?'seu':f.name} (${REALM.cities.filter(o=>o.fac===c.fac).length} cidades)</div>`;
     if(!f.isMe){const o=battleOdds(c.lvl);h+=`<div class="ds">Batalha definitiva: fortaleza contra fortaleza. Inimigo: ~${Math.round(4+c.lvl*2)} guardas, ${Math.min(8,3+c.lvl)} torres e o General. Você: ataque ${o.F.atk.toFixed(0)} + defesa ${o.F.def.toFixed(0)}.</div>${oddsHtml(o)}`;

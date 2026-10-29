@@ -2,7 +2,7 @@
 #   index.html       → page fragment published as the Claude artifact
 #   dist/index.html  → full standalone document for static hosting (Coolify/nginx)
 import os
-order=['core','world','entities','units','rival','realm','ui','main']
+order=['core','world','entities','units','rival','realm','ui','progress','main']
 js='\n'.join(open(f'src/{n}.js').read() for n in order)
 html=open('src/index.html').read().replace('/*JS*/','(function(){\n'+js+'\n})();')
 open('index.html','w').write(html)

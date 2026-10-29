@@ -61,7 +61,7 @@ function itemScore(it,role){if(!it)return 0;const w=ROLE_W[role];let s=0;for(con
 function autoEquip(it){let best=null,gain=.02;for(const m of minions){const g=itemScore(it,m.role)-itemScore(m.eq[it.slot],m.role);if(g>gain){gain=g;best=m}}if(best){equipItem(best,it);toast(`${best.name} equipou ${it.n}`,RARITY[it.r].css);return true}return false}
 function equipItem(m,it){const a=state.inv.armory,k=a.indexOf(it);if(k>=0)a.splice(k,1);const old=m.eq[it.slot];if(old)a.push(old);m.eq[it.slot]=it;recompute(m);sparkle(m.pos.x,m.group.position.y+1.2,m.pos.z,RARITY[it.r].c,6);SFX.pop()}
 function unequip(m,slot){const it=m.eq[slot];if(!it)return;m.eq[slot]=null;state.inv.armory.push(it);recompute(m)}
-function sellValue(it){return 6+it.r*it.r*8+it.r*6}
+function sellValue(it){return 3+it.r*it.r*4+it.r*3}
 
 // ───────── loot: everything that drops is physical, glows by rarity and is carried home
 const loot=[];
@@ -106,8 +106,8 @@ function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)
     if(L.kind==='treasure')L.main.rotation.y=Math.sin(L.t*1.5)*.3}}
 function lootPick(kind,r,big){const k=Math.random();
   if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:4+r*4}]}}
-function randBlockPack(r){const pool=r>=3?[16,17,18,15,10,14,19,20,9,8]:r>=2?[16,17,18,15,10,14,19,9]:r>=1?[16,17,18,15,10,14]:[16,17,18,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
-function randTurretType(){return pick(['ballista','flamer','mortar','tesla','frost','cannon','ballista','tesla'])}
+function randBlockPack(r){let pool=(r>=3?[16,17,18,15,10,14,19,20,9,8]:r>=2?[16,17,18,15,10,14,19,9]:r>=1?[16,17,18,15,10,14]:[16,17,18,10]).filter(m=>isUnlocked('block',m));if(!pool.length)pool=[16,17,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
+function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
 function openTreasure(L){removeLoot(L);const r=L.r;const n=2+Math.ceil(r*.7)+rint(0,1);
   for(let k=0;k<n;k++){const rr=k===0?r:Math.max(0,Math.min(r,rollRarity(r*.06+state.luck)));const [kind,data]=lootPick('any',rr);
     const it=spawnLoot(L.x,L.y+.6,L.z,kind,rr,data);if(it){const a=k/n*Math.PI*2;it.vx=Math.cos(a)*rnd(3,5);it.vz=Math.sin(a)*rnd(3,5);it.vy=rnd(6,9)}}
@@ -121,7 +121,7 @@ function deposit(L,m){const d=L.data;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treas
     case'equip':{state.inv.armory.push(d.item);state.newItems++;if(!(state.autoEquip&&autoEquip(d.item)))toast(`${d.item.n} ${RARITY[L.r].n} no arsenal`,RARITY[L.r].css);break}
     case'block':{addBlocks(d.m,d.n);state.newItems++;toast(`+${d.n} ${MAT[d.m].n} para construir`,RARITY[L.r].css);break}
     case'turret':{state.inv.turrets.push({type:d.type,r:L.r});state.newItems++;toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
-    case'recruit':{if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){const g=6*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
+    case'recruit':{if(!roleFree(d.role)){const alt=Object.keys(ROLES).filter(roleFree);if(alt.length)d.role=pick(alt)}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS||!roleFree(d.role)){const g=2*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
   if(L.r>=1)SFX.loot(L.r);refreshPanels()}
 
 // ───────── turrets: defensive weapons placed on any block

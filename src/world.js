@@ -19,7 +19,7 @@ const NB6=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]],NB4=[[1,0],[-1,0]
 const _m=new THREE.Matrix4(),_c=new THREE.Color(),_zero=new THREE.Matrix4().makeScale(0,0,0),BURN=new THREE.Color(0xff7a2a);
 const vox=new Uint8Array(N),hp=new Float32Array(N),blue=new Uint8Array(N),baseBlue=new Uint8Array(N),rown=new Uint8Array(N);
 const voxGeo=new THREE.BoxGeometry(1,1,1);
-const VCAP=240000;const voxMesh=new THREE.InstancedMesh(voxGeo,new THREE.MeshLambertMaterial(),VCAP);
+const VCAP=340000;const voxMesh=new THREE.InstancedMesh(voxGeo,new THREE.MeshLambertMaterial(),VCAP);
 voxMesh.castShadow=true;voxMesh.receiveShadow=true;voxMesh.frustumCulled=false;voxMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 voxMesh.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(VCAP*3),3);scene.add(voxMesh);
 const vslot=new Int32Array(N).fill(-1),slotVox=new Int32Array(VCAP).fill(-1);let vcount=0;
@@ -207,9 +207,9 @@ function genWorld(){vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.cl
   computeLayout();planRivals();buildBlueprint();
   const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);vox[i]=m;hp[i]=FLUID(m)?4:MAT[m].hp;if(FLUID(m)){fluids.add(i);fluidSrc.add(i)}};
   const zones=cityZones();const inZone=(x,z,r)=>zones.some(([zx,zz,zr])=>Math.abs(x-zx)<zr+r&&Math.abs(z-zz)<zr+r);
-  const LAVA=[],PONDS=[];for(let k=0;k<10;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(2.8,6);if(!inZone(x,z,r+2))LAVA.push([x,z,r])}for(let k=0;k<12;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(3,7);if(!inZone(x,z,r+2)&&!LAVA.some(([a,b,c])=>Math.hypot(a-x,b-z)<c+r+3))PONDS.push([x,z,r])}
+  const LAVA=[],PONDS=[];for(let k=0;k<14;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(2.8,6);if(!inZone(x,z,r+2))LAVA.push([x,z,r])}for(let k=0;k<17;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(3,7);if(!inZone(x,z,r+2)&&!LAVA.some(([a,b,c])=>Math.hypot(a-x,b-z)<c+r+3))PONDS.push([x,z,r])}
   const nearPool=(x,z,r)=>LAVA.some(([px,pz,pr])=>Math.hypot(x-px,z-pz)<pr+r)||PONDS.some(([px,pz,pr])=>Math.hypot(x-px,z-pz)<pr+r);
-  const HILLS=[];for(let k=0;k<26;k++){const x=rint(6,W-7),z=rint(6,D-7),hr=rnd(4,9);if(inZone(x,z,hr+2)||nearPool(x,z,hr))continue;HILLS.push([x,z,hr,rint(2,5)])}
+  const HILLS=[];for(let k=0;k<38;k++){const x=rint(6,W-7),z=rint(6,D-7),hr=rnd(4,9);if(inZone(x,z,hr+2)||nearPool(x,z,hr))continue;HILLS.push([x,z,hr,rint(2,5)])}
   for(let z=0;z<D;z++)for(let x=0;x<W;x++){put(x,0,z,1);for(let y=1;y<GY-1;y++)put(x,y,z,12);put(x,GY-1,z,13);
     for(const [hx,hz,hr,hh] of HILLS){const d=Math.hypot(x-hx,z-hz);if(d<hr){const h=Math.round(hh*(1-d/hr)+.4);for(let y=0;y<h;y++){put(x,GY-1+y,z,12);put(x,GY+y,z,y===h-1&&hh>=4&&d<hr*.35?3:13)}}}
     for(const [px,pz,pr] of LAVA){const d=Math.hypot(x-px,z-pz);if(d<pr){put(x,GY-1,z,8);put(x,GY-2,z,14);if(d<pr*.5){put(x,GY-2,z,8);put(x,GY-3,z,14)}}}
@@ -217,11 +217,11 @@ function genWorld(){vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.cl
   const free=(x,z,r)=>x>=2&&z>=2&&x<=W-3&&z<=D-3&&!inZone(x,z,r)&&!nearPool(x,z,1.5+r);
   const ground=(x,z)=>{let y=H-1;while(y>0&&!vox[idx(x,y,z)])y--;return y+1};
   let placed=0,tries=0;
-  while(placed<230&&tries++<6000){const x=rint(2,W-3),z=rint(2,D-3);if(!free(x,z,2))continue;const g=ground(x,z);if(vox[idx(x,g-1,z)]!==13)continue;const h=rint(3,6),big=Math.random()<.35;
+  while(placed<330&&tries++<9000){const x=rint(2,W-3),z=rint(2,D-3);if(!free(x,z,2))continue;const g=ground(x,z);if(vox[idx(x,g-1,z)]!==13)continue;const h=rint(3,6),big=Math.random()<.35;
     for(let y=0;y<h;y++)put(x,g+y,z,2);const R=big?2:1;for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++)for(let dy=-1;dy<=R;dy++){const yy=g+h-1+dy;if(Math.abs(dx)+Math.abs(dz)+Math.max(0,dy)>R+1)continue;if(inb(x+dx,yy,z+dz)&&!vox[idx(x+dx,yy,z+dz)])put(x+dx,yy,z+dz,11)}put(x,g+h+R,z,11);placed++}
-  placed=0;tries=0;while(placed<52&&tries++<2200){const x=rint(3,W-10),z=rint(3,D-10);if(!free(x,z,2)||!free(x+7,z+7,2))continue;const len=rint(4,10),dir=Math.random()<.5;for(let k=0;k<len;k++){const xx=dir?x+k:x,zz=dir?z:z+k;const g=ground(xx,zz);const h=rint(1,4);for(let y=0;y<h;y++)if(Math.random()<.85)put(xx,g+y,zz,3)}placed++}
-  placed=0;tries=0;while(placed<50&&tries++<2200){const x=rint(3,W-4),z=rint(3,D-4);if(!free(x,z,1))continue;const n=rint(3,7);for(let k=0;k<n;k++){const xx=x+rint(-1,1),zz=z+rint(-1,1);if(free(xx,zz,0))put(xx,ground(xx,zz),zz,10)}placed++}
-  placed=0;tries=0;while(placed<18&&tries++<1400){const x=rint(4,W-5),z=rint(4,D-5);if(!free(x,z,2))continue;const g=ground(x,z);for(let k=0;k<rint(3,7);k++)put(x+rint(-1,1),g+rint(0,2),z+rint(-1,1),15);placed++}
+  placed=0;tries=0;while(placed<75&&tries++<3200){const x=rint(3,W-10),z=rint(3,D-10);if(!free(x,z,2)||!free(x+7,z+7,2))continue;const len=rint(4,10),dir=Math.random()<.5;for(let k=0;k<len;k++){const xx=dir?x+k:x,zz=dir?z:z+k;const g=ground(xx,zz);const h=rint(1,4);for(let y=0;y<h;y++)if(Math.random()<.85)put(xx,g+y,zz,3)}placed++}
+  placed=0;tries=0;while(placed<70&&tries++<3200){const x=rint(3,W-4),z=rint(3,D-4);if(!free(x,z,1))continue;const n=rint(3,7);for(let k=0;k<n;k++){const xx=x+rint(-1,1),zz=z+rint(-1,1);if(free(xx,zz,0))put(xx,ground(xx,zz),zz,10)}placed++}
+  placed=0;tries=0;while(placed<26&&tries++<2000){const x=rint(4,W-5),z=rint(4,D-5);if(!free(x,z,2))continue;const g=ground(x,z);for(let k=0;k<rint(3,7);k++)put(x+rint(-1,1),g+rint(0,2),z+rint(-1,1),15);placed++}
   for(const i of _chestVox){const x=ix(i),z=iz(i);for(let y=1;y<GY;y++)put(x,y,z,1)}
   for(let i=0;i<N;i++)if(blue[i]){vox[i]=blue[i];hp[i]=maxHpOf(blue[i])}
   buildRivals(put);
