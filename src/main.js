@@ -1,5 +1,5 @@
 // ───────── main: waves, events, game flow, input, loop
-function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i=0;i<Math.floor((w-from+2)*k);i++)list.push(t)};extra('wolf',2,.5);extra('imp',4,.6);extra('spider',4,.45);extra('slime',5,.35);extra('brute',7,.3);extra('beetle',9,.3);const n=-Math.floor(list.length*.5)+6+Math.floor(w*2.05+(w>10?(w-10)*1.6:0)+(w>15?(w-15)*1.6:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
+function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i=0;i<Math.floor((w-from+2)*k);i++)list.push(t)};extra('wolf',2,.5);extra('imp',4,.6);extra('spider',4,.45);extra('slime',5,.35);extra('brute',7,.3);extra('beetle',9,.3);const n=-Math.floor(list.length*.5)+6+Math.floor(w*2.05+(w>10?(w-10)*1.6:0)+(w>15?(w-15)*1.6:0)+(w>18?(w-18)*2:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
   if(w>=3)for(let i=0;i<Math.floor((w-1)/2);i++)list.push('climber');if(w>=4)for(let i=0;i<Math.floor(w/3);i++)list.push('sapper');
   if(w>=6)for(let i=0;i<Math.floor((w-3)/3);i++)list.push('flyer');if(w>=6)for(let i=0;i<Math.floor((w-3)/4);i++)list.push('shaman');
   if(w>12)for(let i=0;i<(w-12)*2;i++)list.push(pick(['crawler','climber','ram','sapper','flyer']));
@@ -234,3 +234,5 @@ function weatherTick(dt){const ev=state.ev;if(ev!=='blizzard'&&ev!=='quake'&&ev!
   if(ev==='quake'&&wxT<=0){wxT=rnd(6,9);shake=Math.max(shake,1.3);SFX.boom(true);for(let k=0;k<3;k++){const a=rnd(0,Math.PI*2),r=rnd(12,50);const x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;explode(x,GY,z,2.2,35,{src:'env'})}
     for(const e of enemies)if(!e.dead&&!e.fly&&Math.hypot(e.pos.x-CX,e.pos.z-CZ)<60)e.stun=Math.max(e.stun||0,1.2)}}
 window.__ev=(k)=>{state.ev=k;$('event').style.display='inline-flex';$('event').textContent=EVENTS[k].n;state.phase='wave';state.queue=waveSpec(state.wave+3)};
+
+window.__relic=t=>grantRelic(t);

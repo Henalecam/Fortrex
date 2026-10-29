@@ -1,5 +1,5 @@
 // ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
-const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,frost:10,catapult:12},role:{rep:1,col:1,gun:1,sol:1,med:3},
+const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,frost:10,catapult:12,sunray:15},role:{rep:1,col:1,gun:1,sol:1,med:3},
   block:{16:1,17:1,10:1,18:4,15:5,9:7,8:7,14:9,19:10,20:14},
   up:{forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
 function unlockWave(kind,k){return(UNLOCK[kind]&&UNLOCK[kind][k])||1}
@@ -64,7 +64,7 @@ function spawnHero(H){const m=makeMinion('sol',4,GATE.x+rnd(-1,1),GATE.z+2);m.he
   state.heroes=state.heroes||{};state.heroes[H.id]={m,cd:0};const b=$('bHero_'+H.id);if(b)b.hidden=false;toast(`${H.ico} ${H.name} se junta a você! ${H.ab} (tecla ${H.key}): ${H.d}.`,'r4')}
 function checkHeroes(){if(state.heroOffer||state.choosing)return;const n=relicCount(),k=Object.keys(state.heroes||{}).length;if(k>=HERO_SLOTS.length||n<HERO_SLOTS[k])return;const left=HEROES.filter(H=>!(state.heroes&&state.heroes[H.id]));if(!left.length)return;
   const opts=shuffle(left.slice()).slice(0,2);if(opts.length===1||state.autoReward||window.__headless){spawnHero(opts[0]);return}state.heroOffer=true;state.choosing=true;
-  const box=$('rewardCards');box.innerHTML='';$('rewardTitle').textContent='Um herói quer se juntar à sua causa!';
+  const box=$('rewardCards');box.innerHTML='';$('rewardTitle').textContent='Um herói quer se juntar à sua causa!';$('reward').querySelector('.sub').textContent='Escolha um herói. O outro segue seu caminho.';
   for(const H of opts){const el=document.createElement('button');el.className='rcard r4';el.innerHTML=`<div class="ico">${H.ico}</div><div class="nm">${esc(H.name)}</div><div class="ds"><b>${H.ab}</b> (tecla ${H.key}): ${esc(H.d)}.</div><div class="rr">Herói lendário</div>`;el.onclick=()=>{spawnHero(H);$('reward').style.display='none';state.choosing=false;state.heroOffer=false;updateHud()};box.appendChild(el)}
   $('reward').style.display='flex';SFX.open()}
 function heroAbility(id){const H=HEROES.find(h=>h.id===id);const S=state.heroes&&state.heroes[id];if(!H||!S||!minions.includes(S.m)){toast('Este herói ainda não chegou','r0');return}const m=S.m;

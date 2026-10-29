@@ -48,11 +48,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.22: ao juntar 1, 3 e 5 relíquias você ESCOLHE 1 de 2 heróis (Recompensa auto escolhe sozinho); novos heróis: 🔧 Bruna, a Engenheira (G: reergue até 160 blocos e conserta todas as armas) e 🪓 Thor, o Berserker (Y: 8 s de fúria, soldados próximos com dano triplo). Desempenho: A* com carimbo de geração (sem limpar 37 mil células por busca) + atalho em linha reta, regeneração do terreno com varredura limitada, partículas sem Euler, dia/noite a 10 Hz → cena pesada de 9,9 s caiu para 5,7 s.
 
+- v0.23: ☀️ Torre de raio-sol (horda 15): feixe contínuo que esquenta no mesmo alvo (até 4× de dano, incendeia). Tela de escolha de herói revisada (subtítulo próprio). Dificuldade tardia: vida dos inimigos ×1,07 por horda após a 14, mais inimigos após a 18, armadura até 45% (2,5%/horda após a 14) e +1,5% de velocidade por horda após a 12. Bot (todas as automações + heróis): horda 27 em 30 min, base cedendo a partir da 24–27.
+
 ## Backlog (próximas rodadas)
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
 - [ ] Diabretes em enxame no fogo; lobos flanqueando pelos lados
 - [ ] Tela de herói (nível, equipamento, história)
-- [ ] Armas novas: torre de raio-sol (feixe contínuo)
 - [ ] Ficha do minion e Arsenal no estilo HUD v0.16; tooltips de comparação
 - [ ] Reino: mensagens de embaixada (tributo/aliança)
 - [ ] Mercador de barco com loja rotativa

@@ -158,7 +158,7 @@ function rewardPool(){const w=state.wave,rr=()=>rollRarity(w*.006+state.luck),P=
   return P}
 function offerRewards(){const pool=rewardPool();const picks=[];while(picks.length<3&&pool.length){const i=Math.floor(Math.random()*pool.length);const R=pool.splice(i,1)[0]();R.r=Math.min(4,R.r+(Math.random()<.5?1:0));picks.push(R)}
   if(state.autoReward&&picks.length){const R=picks.sort((a,b)=>b.r-a.r)[0];R.go();SFX.loot(R.r);toast(`🎁 Recompensa automática: ${R.nm} (${RARITY[R.r].n})`,RARITY[R.r].css,true);refreshPanels();updateHud();return}state.choosing=true;
-  const box=$('rewardCards');box.innerHTML='';$('rewardTitle').textContent=`Horda ${state.wave-1} vencida!`;
+  const box=$('rewardCards');box.innerHTML='';$('rewardTitle').textContent=`Horda ${state.wave-1} vencida!`;$('reward').querySelector('.sub').textContent='Escolha uma recompensa.';
   for(const R of picks){const el=document.createElement('button');el.className='rcard '+RARITY[R.r].css;el.innerHTML=`<div class="ico">${R.ico}</div><div class="nm">${esc(R.nm)}</div><div class="ds">${esc(R.ds)}</div><div class="rr">${RARITY[R.r].n}</div>`;
     el.onclick=()=>{R.go();SFX.loot(R.r);$('reward').style.display='none';state.choosing=false;refreshPanels();updateHud()};box.appendChild(el)}
   {const a=document.createElement('button');a.className='btn';a.style.cssText='margin-top:10px';a.textContent='🎁 Escolher automaticamente daqui pra frente';a.onclick=()=>{state.autoReward=true;const R=picks.slice().sort((x,y)=>y.r-x.r)[0];R.go();SFX.loot(R.r);$('reward').style.display='none';state.choosing=false;refreshPanels();updateHud()};box.appendChild(a)}
