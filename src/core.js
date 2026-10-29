@@ -58,7 +58,7 @@ let simTime=0,shake=0,hitstop=0,gameSpeed=1,slowmo=0;const SPEEDS=[1,2,3,5];cons
 function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:15,auto:false,
   focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,
   ev:null,siege:0,boss:null,wk:0,wwound:0,choosing:false,meteorT:0,
-  wallH:7,mode:'reino',custom:new Map(),erased:new Set(),prepaid:new Set(),metalDoor:false,
+  wallH:7,mode:'reino',morale:60,custom:new Map(),erased:new Set(),prepaid:new Set(),metalDoor:false,
   dmgMul:1,reloadMul:1,explosive:0,greek:0,repMul:1,healMul:1,bladeMul:1,turretHp:1,lootMag:0,luck:0,ups:{},
   inv:{blocks:{},turrets:[],armory:[]},autoEquip:true,newItems:0,
   autoBuild:false,autoUp:false,mgAcc:0,combo:0,comboT:-9,comboBest:0,critBonus:0,build:{on:false,tab:'blocks',sel:3,tool:'place',tsel:0},card:null,goldAcc:0}}

@@ -101,3 +101,7 @@ function expansionTick(){const st=state.expStage||0;if(st>=EXP_STAGES.length||st
   if(st===6){ringCells(R+5,(x,z)=>{if(z>CZ&&Math.abs(x-CX+.5)<4.6)return;if((x+z)%3)return;const i=idx(x,GY,z);if(vox[i]&&!blue[i])clearFor(i);if(!vox[i]&&!blue[i]){placeBlue(i,16);state.prepaid.add(i)}})}
   if(st===7)ringCells(R,(x,z)=>{if(gap(x,z))return;put(x,GY,z,14);if((x+z)%2===0)put(x,GY+5,z,20)});
   toast(`🏗️ A cidadela cresce: ${EXP_STAGES[st].n}! Os reparadores constroem de graça.`,'r4')}
+
+// ───────── morale: victories and night rest lift it, wounds and endless waves wear it down; it speeds up or slows every minion (±20%)
+function moraleTick(dt){let m=state.morale??60;if(state.phase==='wave'){state.waveT=(state.waveT||0)+dt;if(state.waveT>90)m-=dt*.35}else{state.waveT=0;if(isNight())m+=dt*1.2;else m+=dt*.15}
+  state.morale=clamp(m,0,100);const el=$('morale');if(el){const v=Math.round(state.morale);el.textContent=`${v>=70?'😄':v>=40?'🙂':v>=20?'😟':'😩'} ${v}`;el.title=`Moral ${v}%: minions ${v>=50?'+':''}${Math.round((v/100*.4-.2)*100)}% de rendimento. Sobe vencendo hordas, chefes e descansando à noite; cai com feridos e hordas longas.`;el.style.color=v<25?'var(--bad)':''}}

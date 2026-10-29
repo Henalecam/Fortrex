@@ -1,5 +1,5 @@
 // ───────── main: waves, events, game flow, input, loop
-function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i=0;i<Math.floor((w-from+2)*k);i++)list.push(t)};extra('wolf',2,.5);extra('imp',4,.6);extra('spider',4,.45);extra('slime',5,.35);extra('brute',7,.3);extra('beetle',9,.3);const n=-Math.floor(list.length*.5)+6+Math.floor(w*2.05+(w>10?(w-10)*1.6:0)+(w>15?(w-15)*1.6:0)+(w>18?(w-18)*2:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
+function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i=0;i<Math.floor((w-from+2)*k);i++)list.push(t)};extra('wolf',2,.5);extra('imp',4,.6);extra('spider',4,.45);extra('slime',5,.35);extra('brute',7,.3);extra('beetle',9,.3);const n=-Math.floor(list.length*.5)+6+Math.floor(w*2.6+(w>10?(w-10)*1.6:0)+(w>15?(w-15)*1.6:0)+(w>18?(w-18)*2:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
   if(w>=3)for(let i=0;i<Math.floor((w-1)/2);i++)list.push('climber');if(w>=4)for(let i=0;i<Math.floor(w/3);i++)list.push('sapper');
   if(w>=6)for(let i=0;i<Math.floor((w-3)/3);i++)list.push('flyer');if(w>=6)for(let i=0;i<Math.floor((w-3)/4);i++)list.push('shaman');
   if(w>12)for(let i=0;i<(w-12)*2;i++)list.push(pick(['crawler','climber','ram','sapper','flyer']));
@@ -33,7 +33,7 @@ function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.len
   const e=makeEnemy(type,r,x,z);if(r>=2&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
-function endWave(){const ev=state.ev;state.wave++;checkUnlocks();expansionTick();if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
+function endWave(){const ev=state.ev;state.wave++;state.morale=Math.min(100,(state.morale??60)+8);checkUnlocks();expansionTick();if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
   if(ev==='siege'&&state.siege>1){state.siege--;state.phase='rest';toast(`Cerco: horda ${4-state.siege} de 3. Sem descanso!`,'r2');startWave();return}
   if(ev==='siege'){state.siege=0;spawnLoot(CHEST.x+3,GY+3,CHEST.z+4,'treasure',3,{})}
   state.phase='rest';state.restT=15;$('event').style.display='none';
@@ -133,7 +133,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':state.combo>=15?'r3':'r2');state.combo=0}

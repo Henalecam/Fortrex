@@ -78,7 +78,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(type==='shaman'){box(.1*US,1.4*US,.1*US,0x6b5235,.45*US,.9*US,.2*US,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.2*US,0),lmat(0x7dff9a,.8));o.position.set(.45*US,1.7*US,.2*US);g.add(o)}
   if(rarity>=2){head.material.emissive.setHex(RARITY[rarity].c);head.material.emissiveIntensity=.5;head.userData.em=RARITY[rarity].c}
   g.position.set(x,0,z);scene.add(g);
-  const w=state.wave;const scale=(1+.135*(w-1))*(w>10?1+.075*(w-10):1)*(w>15?1+.06*(w-15):1)*(w>14?Math.pow(1.07,w-14):1)*(w>20?1+.05*(w-20):1)*(w>18?1+.06*(w-18):1)*(1+(state.rank||0)*.08);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?.8:1);
+  const w=state.wave;const scale=(1+.16*(w-1))*(w>10?1+.09*(w-10):1)*(w>15?1+.06*(w-15):1)*(w>14?Math.pow(1.07,w-14):1)*(w>20?1+.05*(w-20):1)*(w>18?1+.06*(w-18):1)*(1+(state.rank||0)*.08);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?.8:1);
   const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US,state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
     speed:T.speed*1.5*rnd(.9,1.1)*(state.ev==='elite'?1.15:1)*Math.min(1.3,1+Math.max(0,state.wave-12)*.015),armor:Math.min(.45,Math.max(0,state.wave-14)*.025),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+12:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   setupChunks(e,body,head);
@@ -93,7 +93,7 @@ function hurtEnemy(e,d,at){if(e.dead)return;
   const crit=Math.random()<.1+state.critBonus;if(crit)d*=2;if(Math.random()<.35)SFX.hurt();dmgEnemy(e,d,true,crit)}
 function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t=e.type,big=BIG(t);
   if(t==='slime'&&!e.small){for(let k=0;k<2;k++){const s=makeEnemy('slime',e.rarity,e.pos.x+rnd(-.8,.8),e.pos.z+rnd(-.8,.8));s.small=true;s.group.scale.setScalar(.6);s.maxhp*=.35;s.hp=s.maxhp;s.speed*=1.25;s.radius*=.6}}
-  if(t==='imp')pendingBooms.push({x:e.pos.x,y:e.gy+.5,z:e.pos.z,r:1.8,dmg:22,o:{src:'enemy',fire:true},t:.05});goalEvent('kills');if(big)goalEvent('boss');if(big&&t!=='general'){grantRelic(t);if(!OPTS.noCine&&!window.__headless)state.cine={x:e.pos.x,z:e.pos.z,t:2.6,d0:(state.cine&&state.cine.d0)||cam.dist}}
+  if(t==='imp')pendingBooms.push({x:e.pos.x,y:e.gy+.5,z:e.pos.z,r:1.8,dmg:22,o:{src:'enemy',fire:true},t:.05});goalEvent('kills');if(big)goalEvent('boss');if(big&&t!=='general'){state.morale=Math.min(100,(state.morale??60)+15);grantRelic(t);if(!OPTS.noCine&&!window.__headless)state.cine={x:e.pos.x,z:e.pos.z,t:2.6,d0:(state.cine&&state.cine.d0)||cam.dist}}
   spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?140:t==='boss'?60:t==='ram'?18:10,big?.8:.4);SFX.shatter(t!=='crawler');
   hitstop=Math.max(hitstop,t==='colossus'?.22:t==='boss'?.14:.05);shake=Math.max(shake,t==='colossus'?1.4:t==='boss'?.9:.22);if(big){hideBoss();slowmo=1.3;toast(`${e.T.n} derrotado!`,'r4')}
   if(t==='colossus'){const fx=e.pos.x+Math.sin(e.group.rotation.y)*3,fz=e.pos.z+Math.cos(e.group.rotation.y)*3;pendingBooms.push({x:fx,y:GY+.5,z:fz,r:3.6,dmg:230,o:{src:'env'},t:.25});toast('O Colosso desabou!','r4')}
@@ -202,7 +202,7 @@ function recompute(m){const st={atk:1,def:0,spd:1,hp:1,gun:1,work:1,cap:0,rate:1
 function setRole(m,role){if(m.role===role)return;if(m.turret){m.turret.gunner=null;m.turret=null}dropBag(m);releaseTask(m);m.role=role;m.R=ROLES[role];for(const h of m.hats)h.material.color.setHex(m.R.hat);buildProp(m.prop,role);m.state='idle';recompute(m)}
 function dropBag(m){for(const L of m.bag){L.carried=null;L.claimed=null;L.y=m.group.position.y+1;L.x=m.pos.x+rnd(-.5,.5);L.z=m.pos.z+rnd(-.5,.5);L.vy=3;L.rest=false}m.bag=[]}
 function releaseTask(m){if(m.task&&m.task.i!==undefined&&claimed.get(m.task.i)===m)claimed.delete(m.task.i);if(m.task&&m.task.L&&m.task.L.claimed===m)m.task.L.claimed=null;m.task=null}
-function hurtMinion(m,d,from){if(m.wounded>0)return;d*=(1-m.st.def);if(from&&m.st.thorns)dmgEnemy(from,d*m.st.thorns*3,true);m.hp-=d;SFX.hurt();
+function hurtMinion(m,d,from){if(m.wounded>0)return;if(m.hp-d*(1-m.st.def)<=0)state.morale=Math.max(0,(state.morale??60)-3);d*=(1-m.st.def);if(from&&m.st.thorns)dmgEnemy(from,d*m.st.thorns*3,true);m.hp-=d;SFX.hurt();
   if(m.hp<=0){m.wounded=24;m.hp=0;dropBag(m);releaseTask(m);if(m.turret){m.turret.gunner=null;if(m.state==='man'&&m.turret.station){m.pos.x=m.turret.station.x;m.pos.z=m.turret.station.z}m.turret=null}
     m.state='wounded';m.group.rotation.z=Math.PI/2;m.group.position.y=standY(m.pos.x,m.pos.z)+.35;m.path=null;toast(`${m.name} ferido`,'r0');state.wwound++}}
 function supported(i){const x=ix(i),y=iy(i),z=iz(i);if(y===0||SOLIDM(vox[idx(x,y-1,z)]))return true;for(const [dx,dz] of NB4){if(inb(x+dx,y,z+dz)&&SOLIDM(vox[idx(x+dx,y,z+dz)]))return true}return false}
@@ -219,7 +219,7 @@ function findRepairTask(m){let best=null,bs=1e9;const mx=m.pos.x,mz=m.pos.z;
 function progress(m,d,dt,onStuck){if(d<m.bestD-.15){m.bestD=d;m.stuckT=0}else m.stuckT+=dt;if(m.stuckT>4){m.stuckT=0;m.bestD=1e9;onStuck();return false}return true}
 function lootOK(L,m){if(L.claimed||L.carried||L.unreach>simTime)return false;if(L.kind==='treasure'&&L.age<40)return false;const fx=Math.floor(L.x),fy=Math.floor(L.y-.5),fz=Math.floor(L.z);
   if(inb(fx,fy,fz)&&vox[idx(fx,fy,fz)]===8)return false;if(state.phase!=='wave'||inside(L.x,L.z))return true;for(const e of enemies)if(!e.dead&&!e.fly&&Math.abs(e.pos.x-L.x)<7&&Math.abs(e.pos.z-L.z)<7)return false;return true}
-function updateMinion(m,dt){
+function updateMinion(m,dt0){const dt=dt0*(.8+(state.morale??60)/100*.4);
   if(m.state==='wounded'||m.wounded>0){if(m.state!=='wounded'){m.state='wounded';m.group.rotation.z=Math.PI/2}m.wounded-=dt*state.healMul;if(m.wounded<=0){m.wounded=0;m.hp=m.maxhp*.6;m.state='idle';m.group.rotation.z=0;m.group.position.y=standY(m.pos.x,m.pos.z);toast(`${m.name} voltou!`,'r1')}return}
   m.timer-=dt;m.legs[0].rotation.x*=.9;m.legs[1].rotation.x*=.9;
   if(m.state!=='man'){const fx=Math.floor(m.pos.x),fz=Math.floor(m.pos.z),s=surf(m.pos.x,m.pos.z);if(inb(fx,s,fz)&&(vox[idx(fx,s,fz)]===8||(s>0&&vox[idx(fx,s-1,fz)]===8))){m.burn+=dt*14;if(Math.random()<dt*8)spawnFlame(m.pos.x,m.group.position.y+.3,m.pos.z,.5);if(m.burn>6){m.burn=0;hurtMinion(m,10)}}
