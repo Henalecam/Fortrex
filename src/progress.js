@@ -37,3 +37,22 @@ function offerName(o){const d=o.data;return o.kind==='equip'?`${itemIco(d.item)}
 function renderMerch(){const el=$('merch');if(!el)return;const M=state.merchant;if(!M){el.innerHTML='';return}
   el.innerHTML=`<div class="ds" style="width:100%;text-align:center">🛒 Mercador itinerante · fica até a horda ${M.until} · as compras chegam pelo portão</div>`+M.offers.map((o,k)=>`<button class="btn" data-buy="${k}" ${o.sold||state.material<o.price?'disabled':''} title="${esc(o.kind==='equip'?itemLines(o.data.item).join(' · '):'')}"><span style="color:var(--${RARITY[o.r].css})">${offerName(o)}</span> <span class="cost">${o.sold?'vendido':o.price}</span></button>`).join('');
   for(const b of el.querySelectorAll('[data-buy]'))b.onclick=()=>{const o=M.offers[+b.dataset.buy];if(o.sold||state.material<o.price)return;state.material-=o.price;o.sold=true;spawnLoot(GATE.x+rnd(-1,1),GY+1.5,GATE.z+3,o.kind,o.r,o.data);SFX.coin();SFX.loot(o.r);renderMerch();updateHud()}}
+// ───────── relics: every boss you bring down leaves a permanent bonus (they stack)
+const RELICS={boss:{ico:'🦷',n:'Dente do Devorador',d:'+8% de dano das armas',go(){state.dmgMul*=1.08}},
+  golem:{ico:'🪨',n:'Coração de Pedra',d:'Reparadores 15% mais rápidos',go(){state.repMul*=1.15}},
+  wyrm:{ico:'🐉',n:'Escama da Serpe',d:'Projéteis incendeiam (+1 Fogo grego)',go(){state.greek++}},
+  colossus:{ico:'🦶',n:'Pata do Colosso',d:'+0,8 de raio da Bomba',go(){state.bombR+=.8}},
+  necro:{ico:'📕',n:'Tomo do Necromante',d:'Feridos voltam 30% mais rápido',go(){state.healMul*=1.3}},
+  queen:{ico:'👑',n:'Coroa da Rainha',d:'Drops mais raros',go(){state.luck+=.03}},
+  titan:{ico:'🌋',n:'Núcleo de Lava',d:'+5% de chance de crítico',go(){state.critBonus+=.05}}};
+function grantRelic(t){const R=RELICS[t];if(!R)return;state.relics=state.relics||{};state.relics[t]=(state.relics[t]||0)+1;R.go();toast(`${R.ico} Relíquia: ${R.n} — ${R.d}`,'r4');renderGoals();if(!state.hero)spawnHero()}
+function relicsHtml(){const r=state.relics||{};const k=Object.keys(r);if(!k.length)return'';return`<div class="rel">${k.map(t=>`<span title="${RELICS[t].n}: ${RELICS[t].d}">${RELICS[t].ico}${r[t]>1?`<sub>×${r[t]}</sub>`:''}</span>`).join('')}</div>`}
+// ───────── the hero: a unique legendary paladin who joins after the first boss; active ability on a cooldown
+function spawnHero(){const m=makeMinion('sol',4,GATE.x,GATE.z+2);m.hero=true;m.name='Aurora, a Paladina';m.group.scale.setScalar(1.35);m.maxhp*=2.5;m.hp=m.maxhp;state.hero=m;state.heroCd=0;
+  const halo=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,16),new THREE.MeshBasicMaterial({color:0xffcf3d}));halo.rotation.x=Math.PI/2;halo.position.y=2.35;m.group.add(halo);
+  $('bHero').hidden=false;toast('⭐ Aurora, a Paladina, se junta a você! Use ⭐ Martelo Sagrado (tecla Q).','r4')}
+function heroAbility(){const m=state.hero;if(!m||!minions.includes(m)){toast('A heroína não está entre nós','r0');return}if(m.wounded>0){toast('Aurora está ferida','r0');return}if(state.heroCd>0){toast(`Martelo Sagrado em ${Math.ceil(state.heroCd)} s`,'r0');return}
+  state.heroCd=40;const r=7,dmg=120+state.wave*8;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r&&!e.fly){dmgEnemy(e,dmg*(1-d/r*.5),true,true);e.stun=Math.max(e.stun||0,2)}}
+  for(const o of minions){if(Math.hypot(o.pos.x-m.pos.x,o.pos.z-m.pos.z)<r){if(o.wounded>0)o.wounded=Math.min(o.wounded,1);else o.hp=o.maxhp}}
+  for(let k=0;k<40;k++){const a=k/40*Math.PI*2;spawnDebris(m.pos.x+Math.cos(a)*r*.8,m.group.position.y+.5,m.pos.z+Math.sin(a)*r*.8,0xffcf3d,1,.3)}shake=Math.max(shake,.7);slowmo=Math.max(slowmo,.5);SFX.open();label({x:m.pos.x,y:m.group.position.y+3,z:m.pos.z},'⭐ Martelo Sagrado!','#e0a000')}
+function heroTick(dt){if(state.heroCd>0)state.heroCd-=dt;const b=$('bHero');if(!b||b.hidden)return;const m=state.hero;if(!m||!minions.includes(m)){b.hidden=true;state.hero=null;return}b.querySelector('.cost').textContent=m.wounded>0?'ferida':state.heroCd>0?Math.ceil(state.heroCd)+'s':'pronto';b.classList.toggle('on',state.heroCd<=0&&!(m.wounded>0))}
