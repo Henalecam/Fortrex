@@ -89,7 +89,7 @@ function spawnLoot(x,y,z,kind,r,data={}){if(spawnLootHook)spawnLootHook(x,y,z,ki
   return L}
 function removeLoot(L){scene.remove(L.g);const i=loot.indexOf(L);if(i>=0)loot.splice(i,1)}
 function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)continue;if(L.home){L.home.t+=dt;const f=Math.min(1,L.home.t/1.3),h=L.home;L.x=h.x+(CHEST.x-h.x)*f;L.z=h.z+(CHEST.z-h.z)*f;L.y=h.y+(GY+2-h.y)*f+Math.sin(f*Math.PI)*8;L.g.position.set(L.x,L.y,L.z);L.main.rotation.y+=dt*8;if(Math.random()<.5)spawnFlame(L.x,L.y,L.z,.35,true);if(f>=1)deposit(L,null);continue}
-    if(state.portal&&L.kind!=='treasure'&&!L.carried&&!L.claimed&&L.age>30-state.portal*8&&L.rest){L.home={t:0,x:L.x,y:L.y,z:L.z};continue}}
+    if(L.kind!=='treasure'&&!L.carried&&!L.claimed&&L.age>(state.portal?30-state.portal*8:75)&&L.rest){L.home={t:0,x:L.x,y:L.y,z:L.z};continue}}
   for(const L of loot){if(L.home)continue;L.t+=dt;L.age+=dt;
     if(L.carried){const m=L.carried;const k=L.slot||0;L.g.position.set(m.pos.x,m.group.position.y+1.55+k*.42+Math.sin(L.t*6)*.05,m.pos.z);L.main.rotation.y+=dt*2;continue}
     if(!L.rest){L.vy-=20*dt;L.x+=L.vx*dt;L.z+=L.vz*dt;L.y+=L.vy*dt;L.x=clamp(L.x,.3,W-.3);L.z=clamp(L.z,.3,D-.3);

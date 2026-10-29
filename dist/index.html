@@ -128,22 +128,78 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #over .stat{font-family:var(--display);font-size:20px;font-weight:700;margin-bottom:12px}
 @media (max-width:620px){.chip,.btn{font-size:12px;padding:5px 9px}.title{font-size:16px}.title small,.sep,.hide-sm{display:none}}
 @media (prefers-reduced-motion:reduce){.toast,.lab{animation-duration:.01s}}
+
+/* ── HUD v2: one stat strip, right-aligned realm + automation menu, single dock */
+:root{--dock:62px}
+#top{align-items:center;gap:8px}
+#top .grow{flex:1}
+.stats{display:flex;align-items:center;pointer-events:auto;background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;padding:3px 6px;box-shadow:0 2px 10px rgba(43,45,74,.08)}
+.stats .st{display:inline-flex;align-items:baseline;gap:5px;padding:4px 10px;font-family:var(--display);white-space:nowrap;border-right:1px solid var(--line)}
+.stats .st:last-child{border-right:0}
+.stats .st i{font-style:normal;font-size:14px}.stats .st b{font-size:16px;font-variant-numeric:tabular-nums}.stats .st em{font-style:normal;font-size:11px;color:var(--ink-soft);font-weight:500}.stats .st em.bad{color:var(--bad)}
+#clock{font-size:13px;font-weight:600}
+.chip.link{cursor:pointer;font:inherit;font-family:var(--display);font-weight:600;font-size:13.5px;color:var(--ink)}
+.chip.link:hover{transform:translateY(-1px)}
+.btn .lb{margin-left:2px}
+.menu{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:calc(56px + env(safe-area-inset-top,0px));width:min(340px,calc(100vw - 32px));background:var(--card);border-radius:18px;box-shadow:0 14px 40px rgba(43,45,74,.2);padding:12px;display:none;flex-direction:column;gap:6px;z-index:9}
+.menu.open{display:flex}
+.menu .mh{font-family:var(--display);font-weight:700;font-size:16px;display:flex;flex-direction:column;gap:2px;padding:2px 4px 6px}.menu .mh span{font-family:var(--body);font-weight:500;font-size:12px;color:var(--ink-soft)}
+.opt{display:flex;align-items:center;gap:10px;text-align:left;background:var(--bg);border:0;border-radius:12px;padding:10px;cursor:pointer;font:inherit;color:var(--ink)}
+.opt:hover{background:#d2ebf3}.opt i{font-style:normal;font-size:20px}.opt div{flex:1;display:flex;flex-direction:column;gap:1px}.opt b{font-family:var(--display);font-size:14px}.opt span{font-size:11.5px;color:var(--ink-soft);line-height:1.3}
+.opt u{width:36px;height:20px;border-radius:99px;background:rgba(43,45,74,.18);position:relative;flex:none;transition:background .15s}
+.opt u::after{content:"";position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.opt.on u{background:var(--good)}.opt.on u::after{left:19px}
+#bottom{justify-content:center}
+.dock{display:flex;align-items:center;gap:5px;pointer-events:auto;background:var(--panel);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:20px;padding:6px;box-shadow:0 6px 24px rgba(43,45,74,.12);max-width:100%;overflow-x:auto;scrollbar-width:none}
+.dock::-webkit-scrollbar{display:none}
+.dock .btn{box-shadow:none;border-color:transparent;background:transparent;flex:none}
+.dock .btn:hover{background:rgba(43,45,74,.06)}
+.dock .btn.on{background:#e3f5ea;box-shadow:inset 0 0 0 2px var(--good)}
+.dock .btn.primary{background:var(--accent)}.dock .btn.primary:disabled{opacity:.6}
+.dock .btn.war{background:#ffe9e2;color:#b8322b}
+.side{bottom:calc(var(--dock) + 18px + env(safe-area-inset-bottom,0px))!important}
+.pop{bottom:calc(var(--dock) + 20px + env(safe-area-inset-bottom,0px))!important}
+#mcard{bottom:calc(var(--dock) + 20px + env(safe-area-inset-bottom,0px))!important}
+#goals{top:calc(64px + env(safe-area-inset-top,0px))!important;pointer-events:auto!important;cursor:pointer}
+#goals.min .gc{display:none}
+#bossbar{top:calc(66px + env(safe-area-inset-top,0px))!important}
+@media (max-width:1380px){.dock .btn .lb{display:none}}
+@media (max-width:1180px){.stats .st em{display:none}.stats .st{padding:4px 8px}}
+@media (max-width:760px){
+  :root{--dock:52px}
+  #top{flex-wrap:wrap;row-gap:6px}.title{display:none}
+  .stats{order:1;width:100%;justify-content:space-between}.stats .st{padding:3px 6px}.stats .st b{font-size:14px}#clock{font-size:11px}
+  #top .grow{display:none}#rivalChip{order:2;flex:1;justify-content:center;font-size:12px}#autoMenu{order:3}#event{order:4}
+  :root{--dock:92px}
+  .dock{gap:2px;padding:4px;border-radius:16px;flex-wrap:wrap;justify-content:center;overflow:visible}.dock .btn{padding:6px 8px;font-size:15px}.dock .sep{display:none}
+  .dock #next{font-size:12px;padding:6px 10px;flex:1;order:9}.dock #auto,.dock #speed,.dock #snd{order:10}
+  .side{top:auto!important;left:0!important;right:0!important;width:auto!important;height:min(62vh,520px);border-radius:20px 20px 0 0!important}
+  #mcard{left:8px!important;right:8px;width:auto!important}
+  #bossbar{top:calc(100px + env(safe-area-inset-top,0px))!important}
+}
 </style>
 
 <canvas id="c"></canvas>
 <div id="top" class="bar">
-  <span class="title">FORTREX<small>v0.15</small></span>
-  <span class="chip"><span class="lbl">Horda</span><b id="wave">1</b></span>
-  <span class="chip"><span class="lbl">Baú</span><b id="mat">0</b><span class="lbl hide-sm">material</span></span>
-  <span class="chip"><span class="lbl">Minions</span><b id="mcount">0</b><span id="wounded" class="lbl" style="color:var(--bad)"></span></span>
-  <span class="chip"><span class="lbl">Devoradores</span><b id="alive">0</b></span>
+  <span class="title">FORTREX</span>
+  <div class="stats">
+    <span class="st" title="Horda atual"><i>🌊</i><b id="wave">1</b><em>horda</em></span>
+    <span class="st" title="Material no baú"><i>💰</i><b id="mat">0</b><em>material</em></span>
+    <span class="st" title="Minions (feridos)"><i>👥</i><b id="mcount">0</b><em id="wounded" class="bad"></em></span>
+    <span class="st" title="Inimigos vivos e na fila"><i>👾</i><b id="alive">0</b></span>
+    <span class="st" id="clock">☀️ Dia 1</span>
+  </div>
   <span class="chip" id="event"></span>
-  <span class="chip" id="clock">☀️ Dia 1</span>
-  <span class="chip" id="rivalChip" style="cursor:pointer" title="Abrir o mapa do reino">🗺️ Reino</span>
-  <button class="btn" id="abBtn" title="Os minions decidem onde construir, onde instalar armas e blocos, e contratam">🏗️ Construção auto</button>
-  <button class="btn" id="asBtn" title="Vende sozinho equipamentos que ninguém usaria e armas que não cabem">💰 Venda auto</button>
-  <button class="btn" id="arBtn" title="Escolhe sozinho a recompensa mais rara a cada 5 hordas">🎁 Recompensa auto</button>
-  <button class="btn" id="auBtn" title="Troca o pior pelo melhor: blocos, armas instaladas, equipamentos e upgrades">✨ Upgrade auto</button>
+  <span class="grow"></span>
+  <button class="chip link" id="rivalChip" title="Abrir o mapa do reino (M). Em guerra: mostra a fortaleza inimiga">🗺️ Reino</button>
+  <button class="btn" id="autoMenu" title="Automação">⚙️<span class="lb">Automação</span><span class="cost" id="autoN">0/4</span></button>
+</div>
+<div id="autoPop" class="menu">
+  <div class="mh">Automação<span>Ligue o que quiser e só mexa quando tiver vontade.</span></div>
+  <button class="opt" id="abBtn"><i>🏗️</i><div><b>Construção</b><span>Decidem onde construir, instalar armas e armadilhas; contratam quem falta</span></div><u></u></button>
+  <button class="opt" id="auBtn"><i>✨</i><div><b>Upgrade</b><span>Troca o pior pelo melhor: blocos, armas e equipamentos</span></div><u></u></button>
+  <button class="opt" id="asBtn"><i>💰</i><div><b>Venda</b><span>Vende equipamento sem uso e armas que não cabem</span></div><u></u></button>
+  <button class="opt" id="arBtn"><i>🎁</i><div><b>Recompensa</b><span>Escolhe a recompensa mais rara a cada 5 hordas</span></div><u></u></button>
 </div>
 <div id="toasts"></div>
 <div id="labels"></div>
@@ -171,25 +227,24 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 <div id="mcard"></div>
 <div id="hire" class="pop"></div>
 
-<div id="bottom" class="bar">
-  <button class="btn" id="bBuild">🧱 Construir</button>
-  <button class="btn" id="bArs">🎒 Arsenal <span class="badge" id="arsN" hidden></span></button>
-  <button class="btn" id="bHire">🧑‍🔧 Contratar</button>
-  <button class="btn" id="bShop">⬆️ Upgrades</button>
+<div id="bottom" class="bar"><div class="dock">
+  <button class="btn" id="bBuild" title="Construir (B)">🧱<span class="lb">Construir</span></button>
+  <button class="btn" id="bArs" title="Arsenal (I)">🎒<span class="lb">Arsenal</span><span class="badge" id="arsN" hidden></span></button>
+  <button class="btn" id="bHire" title="Contratar">👥<span class="lb">Contratar</span></button>
+  <button class="btn" id="bShop" title="Upgrades (U)">⬆️<span class="lb">Upgrades</span></button>
+  <button class="btn" id="bRealm" title="Mapa do reino (M)">🗺️<span class="lb">Reino</span></button>
   <span class="sep"></span>
-  <button class="btn" id="focus">🔥 Fogo <span class="cost" id="focusCd">pronto</span></button>
-  <button class="btn" id="bomb">💣 Bomba <span class="cost" id="bombCd">25</span></button>
-  <button class="btn" id="raidBtn" hidden title="Envia soldados e curandeiros para atacar a cidade rival mais próxima">⚔️ Atacar</button>
-  <button class="btn" id="recallBtn" hidden title="Chama a expedição de volta">🏳️ Recuar</button>
-  <button class="btn" id="bRealm" title="Mapa do reino (tecla M)">🗺️ Reino</button>
-  <button class="btn" id="camHome" title="Câmera na sua cidadela">🏰</button>
-  <button class="btn" id="camRival" hidden title="Câmera na cidade rival">🎯</button>
+  <button class="btn" id="bomb" title="Bombardeio: 25 material">💣<span class="lb">Bomba</span><span class="cost" id="bombCd">25</span></button>
+  <button class="btn war" id="raidBtn" hidden title="Envia soldados e curandeiros contra a fortaleza inimiga">⚔️<span class="lb">Atacar</span></button>
+  <button class="btn" id="recallBtn" hidden title="Chama a expedição de volta">🏳️<span class="lb">Recuar</span></button>
+  <button class="btn" id="camHome" title="Centralizar na cidadela (H)">🏰</button>
   <span class="sep"></span>
   <button class="btn primary" id="next">Chamar horda</button>
-  <button class="btn" id="auto">Auto</button>
-  <button class="btn" id="speed" title="Velocidade do jogo (tecla F)">⏩ 1×</button>
+  <button class="btn" id="auto" title="Hordas automáticas">Auto</button>
+  <button class="btn" id="speed" title="Velocidade (F)">⏩ 1×</button>
   <button class="btn" id="snd" aria-label="Som">🔇</button>
-</div>
+</div></div>
+<span id="focus" hidden></span><span id="focusCd" hidden></span><button id="camRival" hidden></button>
 
 <div id="reward"><h2 id="rewardTitle">Horda vencida!</h2><div class="sub">Escolha uma recompensa.</div><div class="cards" id="rewardCards"></div></div>
 <div id="goals"></div>
@@ -619,7 +674,7 @@ function spawnLoot(x,y,z,kind,r,data={}){if(spawnLootHook)spawnLootHook(x,y,z,ki
   return L}
 function removeLoot(L){scene.remove(L.g);const i=loot.indexOf(L);if(i>=0)loot.splice(i,1)}
 function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)continue;if(L.home){L.home.t+=dt;const f=Math.min(1,L.home.t/1.3),h=L.home;L.x=h.x+(CHEST.x-h.x)*f;L.z=h.z+(CHEST.z-h.z)*f;L.y=h.y+(GY+2-h.y)*f+Math.sin(f*Math.PI)*8;L.g.position.set(L.x,L.y,L.z);L.main.rotation.y+=dt*8;if(Math.random()<.5)spawnFlame(L.x,L.y,L.z,.35,true);if(f>=1)deposit(L,null);continue}
-    if(state.portal&&L.kind!=='treasure'&&!L.carried&&!L.claimed&&L.age>30-state.portal*8&&L.rest){L.home={t:0,x:L.x,y:L.y,z:L.z};continue}}
+    if(L.kind!=='treasure'&&!L.carried&&!L.claimed&&L.age>(state.portal?30-state.portal*8:75)&&L.rest){L.home={t:0,x:L.x,y:L.y,z:L.z};continue}}
   for(const L of loot){if(L.home)continue;L.t+=dt;L.age+=dt;
     if(L.carried){const m=L.carried;const k=L.slot||0;L.g.position.set(m.pos.x,m.group.position.y+1.55+k*.42+Math.sin(L.t*6)*.05,m.pos.z);L.main.rotation.y+=dt*2;continue}
     if(!L.rest){L.vy-=20*dt;L.x+=L.vx*dt;L.z+=L.vz*dt;L.y+=L.vy*dt;L.x=clamp(L.x,.3,W-.3);L.z=clamp(L.z,.3,D-.3);
@@ -1396,7 +1451,7 @@ function initGoals(){state.fame=0;state.rank=0;MAX_MINIONS_BONUS=0;state.contrac
 function goalEvent(k,v=1,o={}){if(!state.contracts)return;let done=false;for(const c of state.contracts){if(c.k!==k)continue;if(k==='fort'&&(o.lvl||0)<c.lvl)continue;c.p=Math.min(c.n,c.p+v);if(c.p>=c.n&&!c.done){c.done=true;done=true;
     toast(`📜 Contrato cumprido: ${c.txt} (+${c.fame} renome)`,'r4');spawnLoot(CHEST.x+rnd(-1,1),GY+2,CHEST.z+3,'treasure',Math.min(4,1+Math.floor(rankIdx()/2)),{});addFame(c.fame)}}
   if(done)state.contracts=state.contracts.map(c=>c.done?newContract():c);if(done||k!=='kills'||Math.random()<.08)renderGoals()}
-function renderGoals(){const el=$('goals');if(!el||!state.contracts)return;const r=rankIdx(),nx=RANKS[r+1];
+function renderGoals(){const el=$('goals');if(!el||!state.contracts)return;el.onclick=()=>el.classList.toggle('min');const r=rankIdx(),nx=RANKS[r+1];
   el.innerHTML=`<div class="gr">👑 ${RANKS[r].n} <span>${state.fame||0}${nx?` / ${nx.f}`:''} renome</span></div>`+state.contracts.map(c=>`<div class="gc"><div>${c.txt}</div><div class="gb"><i style="width:${Math.round(c.p/c.n*100)}%"></i></div><span>${Math.floor(c.p)}/${c.n} · +${c.fame}</span></div>`).join('')}
 
 // ───────── ui: toasts, world labels, HUD, build mode, arsenal, unit card, hire, upgrades, rewards, tooltip
@@ -1415,7 +1470,7 @@ function updateHud(){$('wave').textContent=state.wave;$('mat').textContent=Math.
   $('focusCd').textContent=state.focusCd>0?Math.ceil(state.focusCd)+'s':'pronto';$('focus').classList.toggle('on',state.focusT>0);
   $('bombCd').textContent=state.bombCd>0?Math.ceil(state.bombCd)+'s':'25';$('bomb').classList.toggle('armed',state.bombMode);
   $('arsN').textContent=state.newItems?String(state.newItems):'';$('arsN').hidden=!state.newItems;
-  $('bBuild').classList.toggle('on',state.build.on);$('abBtn').classList.toggle('on',state.autoBuild);$('auBtn').classList.toggle('on',state.autoUp);$('asBtn').classList.toggle('on',!!state.autoSell);$('arBtn').classList.toggle('on',!!state.autoReward);
+  $('bBuild').classList.toggle('on',state.build.on);$('abBtn').classList.toggle('on',state.autoBuild);$('auBtn').classList.toggle('on',state.autoUp);$('asBtn').classList.toggle('on',!!state.autoSell);$('arBtn').classList.toggle('on',!!state.autoReward);$('autoN').textContent=`${[state.autoBuild,state.autoUp,state.autoSell,state.autoReward].filter(Boolean).length}/4`;{const B=battle();$('raidBtn').hidden=!B;$('recallBtn').hidden=!minions.some(m=>m.raid)}
   {const rp=raidPower();const c=$('rivalChip');if(rp){const w=rp.us/(rp.us+rp.them+.01);c.textContent=`⚔️ ${rp.R.name}: ${rp.us.toFixed(0)} vs ${rp.them.toFixed(0)} · núcleo ${rp.core}/8 · ${w>.6?'vantagem':w>.4?'equilibrado':'perigo!'}`;c.style.color=w>.6?'#2f9a5e':w>.4?'#c99a1a':'#d9414f'}else{c.style.color='';const B=battle();const inc=REALM.armies.filter(A=>A.to.home).length;c.textContent=B?`⚔️ Guerra: ${B.name} nv ${B.lvl} · núcleo ${B.core.filter(i=>vox[i]===21).length}/8`:`🗺️ ${REALM.cities.length} fortalezas${inc?` · ⚠️ ${inc} exército${inc>1?'s':''} vindo`:''}`;if(!B&&inc)c.style.color='#d9414f'}}
   if(state.card)renderCard()}
 
@@ -1435,6 +1490,7 @@ function renderBuild(){const B=state.build,body=$('buildBody');for(const t of do
     for(const p of palBlocks()){const M=MAT[p.m];h+=`<button class="pi ${B.tool==='place'&&B.sel===p.m?'sel':''}" data-m="${p.m}" title="${esc(M.special||'')}"><span class="sw" style="background:${hex(M.c)}"></span>${esc(M.n)}<span class="ct">${p.count===Infinity?`${M.cost} material`:'×'+p.count}</span></button>`}
     h+='</div>';const sm=MAT[B.sel];h+=`<div class="detail"><div class="nm">${B.tool==='remove'?'Remover':esc(sm.n)}</div><div class="ds">${B.tool==='remove'?'Bloco da planta: volta para você. Terreno: cava por 1 material. Arma: volta ao arsenal.':esc(sm.special||'Bloco básico. O reparador constrói gastando material do baú.')}</div></div>`}
   else{h+='<div class="pal">';h+=`<button class="pi ${B.tool==='remove'?'sel':''}" data-rm="1"><span class="sw" style="background:repeating-linear-gradient(45deg,#ec5f6b 0 4px,#fff 4px 8px)"></span>Recolher<span class="ct">volta ao arsenal</span></button>`;
+    h+=`<div class="ds" style="grid-column:1/-1">Armas instaladas <b>${turretCount()}/${turretCap()}</b> · +2 vagas por 🧱 Plataformas de armas</div>`;
     state.inv.turrets.forEach((t,k)=>{const T=TURRETS[t.type];h+=`<button class="pi ${B.tool==='turret'&&B.tsel===k?'sel':''} rr${t.r}" data-t="${k}"><span class="sw ico">${T.ico}</span>${esc(T.n)}<span class="ct" style="color:var(--${RARITY[t.r].css})">${RARITY[t.r].n}</span></button>`});
     h+='</div>';h+=`<button class="btn wide" id="buyCannon" ${state.material<40?'disabled':''}>Comprar Canhão <span class="cost">40 material</span></button>`;
     const sel=B.tool==='turret'&&state.inv.turrets[B.tsel];h+=sel?`<div class="detail"><div class="nm">${esc(TURRETS[sel.type].n)} ${RARITY[sel.r].n}</div><div class="ds">${esc(TURRETS[sel.type].d)} Clique no topo de qualquer bloco para instalar. Com artilheiro, atira o dobro.</div></div>`:(state.inv.turrets.length?'':'<div class="ds">Nenhuma arma guardada. Elas caem de Devoradores, baús e recompensas.</div>')}
@@ -1517,10 +1573,10 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
   const tp=$('tPick');if(tp)tp.onclick=()=>{killTurret(c.t,false);state.inv.turrets.push({type:c.t.type,r:c.t.r});toast(`${c.t.T.n} recolhida`,'r0');closeCard();refreshPanels()}}
 
 // ── hire
-function renderHire(){const el=$('hire');const hp=state.hirePost||'auto';let h=`<div class="ds" style="width:100%">Posto dos novos minions:</div><div class="roles">${Object.entries(POSTS).map(([k,P])=>`<button class="btn sm ${hp===k?'on':''}" data-post="${k}">${P.ico} ${P.n}</button>`).join('')}</div>`;
+function renderHire(){const el=$('hire');let h=`<div class="ds" style="width:100%;text-align:center">${minions.length}/${MAX_MINIONS+MAX_MINIONS_BONUS} minions · vagas por função sobem com Quartel, Oficina e Escola</div>`;
   for(const r in ROLES){const R=ROLES[r];const lock=!isUnlocked('role',r);h+=`<button class="btn" data-h="${r}" ${state.material<R.cost||lock||!roleFree(r)?'disabled':''} title="${esc(roleBlock(r)||R.d)}">${R.ico} ${R.n} ${lock?`<span class="cost">🔒 h${unlockWave('role',r)}</span>`:`<span class="cost">${roleCount(r)}/${roleCap(r)} · ${R.cost}</span>`}</button>`}el.innerHTML=h;
-  for(const b of el.querySelectorAll('[data-h]'))b.onclick=()=>{hire(b.dataset.h);renderHire()};for(const b of el.querySelectorAll('[data-post]'))b.onclick=()=>{state.hirePost=b.dataset.post;renderHire()}}
-function hire(role){const R=ROLES[role];const blk=roleBlock(role);if(blk){toast(blk,'r0');return false}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){toast(`Limite de ${MAX_MINIONS+MAX_MINIONS_BONUS} minions: a cidadela está lotada`,'r0');return}if(state.material<R.cost)return;state.material-=R.cost;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);m.post=state.hirePost||'auto';
+  for(const b of el.querySelectorAll('[data-h]'))b.onclick=()=>{hire(b.dataset.h);renderHire()}}
+function hire(role){const R=ROLES[role];const blk=roleBlock(role);if(blk){toast(blk,'r0');return false}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){toast(`Limite de ${MAX_MINIONS+MAX_MINIONS_BONUS} minions: a cidadela está lotada`,'r0');return}if(state.material<R.cost)return;state.material-=R.cost;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);
   toast(`${m.name}, ${R.n} ${RARITY[r].n}${m.trait?' · '+m.trait:''}`,RARITY[r].css);SFX.pop();if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);updateHud()}
 
 // ── upgrades
@@ -1588,7 +1644,7 @@ function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)i
 function turretCap(){return 6+2*(state.ups.platform||0)+Math.floor(state.wave/8)}
 function turretCount(){return turrets.filter(t=>t.alive&&t.team!=='r').length}
 function canInstall(){if(turretCount()<turretCap())return true;toast(`Limite de ${turretCap()} armas. Compre 🧱 Plataformas de armas nos Upgrades.`,'r0');return false}
-const ROLE_BASE={rep:5,col:5,gun:4,sol:6,med:2};
+const ROLE_BASE={rep:6,col:7,gun:4,sol:6,med:2};
 function roleCap(r){const u=state.ups;return ROLE_BASE[r]+(r==='sol'?3*(u.quartel||0):r==='med'?(u.quartel||0):r==='rep'||r==='col'?2*(u.oficina||0):r==='gun'?2*(u.escola||0):0)}
 function roleCount(r){return minions.filter(m=>m.role===r).length}
 function roleFree(r){return isUnlocked('role',r)&&roleCount(r)<roleCap(r)}
@@ -1693,7 +1749,7 @@ function clickAt(cx,cy,right){if(!state.running)return;
   if(u.loot){const L=u.loot;if(L.kind==='treasure')openTreasure(L);else{L.prio=!L.prio;if(L.prio){label({x:L.x,y:L.y-1,z:L.z},'📌','#ff8a5c');if(L.claimed){L.claimed.task=null;L.claimed.state=L.claimed.bag.length?'haul':'idle';L.claimed=null}}}SFX.pop();return}
   if(u.minion){cardSlot=null;openCard({m:u.minion});return}
   if(u.turret){openCard({t:u.turret})}}
-window.addEventListener('keydown',e=>{if(e.key==='m'||e.key==='M'){REALM.open?closeRealm():openRealm();return}if(e.key==='Escape'&&REALM.open){closeRealm();return}if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();
+window.addEventListener('keydown',e=>{if(e.key==='h'||e.key==='H'){cam.target.set(CX,GY+1.5,CZ);return}if(e.key==='m'||e.key==='M'){REALM.open?closeRealm():openRealm();return}if(e.key==='Escape'&&REALM.open){closeRealm();return}if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();
   if(k===' '&&state.running&&state.phase==='rest'&&!state.choosing){e.preventDefault();startWave()}
   else if(k==='b'&&state.running)openSide('buildPanel');else if(k==='i'&&state.running)openSide('arsenal');else if(k==='u'&&state.running)openSide('shop');
   else if(k==='escape'){state.bombMode=false;closeCard();$('hire').style.display='none';if(state.build.on)closeSide('buildPanel');updateHud()}
@@ -1706,17 +1762,18 @@ $('bArs').onclick=()=>openSide('arsenal');$('arsClose').onclick=()=>closeSide('a
 $('bShop').onclick=()=>openSide('shop');$('shopClose').onclick=()=>closeSide('shop');
 $('bHire').onclick=()=>{const h=$('hire');const open=h.style.display!=='flex';h.style.display=open?'flex':'none';if(open)renderHire()};
 $('autoEq').onchange=e=>{state.autoEquip=e.target.checked;if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);renderArsenal()};
-$('abBtn').onclick=()=>{state.autoBuild=!state.autoBuild;toast(state.autoBuild?'Construção automática ligada: os minions decidem onde construir':'Construção automática desligada','r1');updateHud()};
-$('asBtn').onclick=()=>{state.autoSell=!state.autoSell;toast(state.autoSell?'Venda automática ligada: equipamentos sem uso e armas sobrando viram material':'Venda automática desligada','r2',true);updateHud()};
-$('arBtn').onclick=()=>{state.autoReward=!state.autoReward;toast(state.autoReward?'Recompensas escolhidas automaticamente (a mais rara)':'Você escolhe as recompensas','r2',true);updateHud()};
-$('auBtn').onclick=()=>{state.autoUp=!state.autoUp;state.autoEquip=state.autoUp||state.autoEquip;toast(state.autoUp?'Upgrade automático ligado: o pior vira o melhor':'Upgrade automático desligado','r2');updateHud()};
+$('abBtn').onclick=()=>{state.autoBuild=!state.autoBuild;updateHud()};
+$('asBtn').onclick=()=>{state.autoSell=!state.autoSell;updateHud()};
+$('arBtn').onclick=()=>{state.autoReward=!state.autoReward;updateHud()};
+$('auBtn').onclick=()=>{state.autoUp=!state.autoUp;state.autoEquip=state.autoUp||state.autoEquip;updateHud()};
 function cycleSpeed(){gameSpeed=SPEEDS[(SPEEDS.indexOf(gameSpeed)+1)%SPEEDS.length];$('speed').textContent=`⏩ ${gameSpeed}×`;$('speed').classList.toggle('on',gameSpeed>1);toast(`Velocidade ${gameSpeed}×`,'r0')}
 $('speed').onclick=cycleSpeed;
 $('next').onclick=()=>{if(state.phase==='rest'&&!state.choosing)startWave()};
 $('raidBtn').onclick=sendRaid;$('recallBtn').onclick=recallRaid;
 $('camHome').onclick=()=>{cam.target.set(CX,GY+1.5,CZ)};$('camRival').onclick=()=>{const R=battle();if(R)cam.target.set(R.cx,GY+1.5,R.cz)};
-function updateModeUi(){const r=!!battle();for(const id of ['raidBtn','recallBtn','camRival'])$(id).hidden=!r}
-$('bRealm').onclick=()=>REALM.open?closeRealm():openRealm();$('rivalChip').onclick=openRealm;$('realmClose').onclick=closeRealm;$('realmCanvas').addEventListener('click',realmClick);
+function updateModeUi(){$('raidBtn').hidden=!battle()}
+$('bRealm').onclick=()=>REALM.open?closeRealm():openRealm();$('rivalChip').onclick=()=>{const B=battle();if(B&&!REALM.open){cam.target.set(B.cx,GY+1.5,B.cz)}else openRealm()};
+$('autoMenu').onclick=e=>{e.stopPropagation();$('autoPop').classList.toggle('open')};addEventListener('pointerdown',e=>{const p=$('autoPop');if(p.classList.contains('open')&&!p.contains(e.target)&&e.target.id!=='autoMenu'&&!$('autoMenu').contains(e.target))p.classList.remove('open')});$('realmClose').onclick=closeRealm;$('realmCanvas').addEventListener('click',realmClick);
 setInterval(()=>{if(REALM.open){drawRealm();if(Math.random()<.2)renderRealmInfo()}},120);
 $('auto').onclick=()=>{state.auto=!state.auto;updateHud()};
 $('snd').onclick=()=>{soundOn=!soundOn;if(soundOn)ac();$('snd').textContent=soundOn?'🔊':'🔇'};

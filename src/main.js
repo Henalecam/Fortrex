@@ -83,7 +83,7 @@ function clickAt(cx,cy,right){if(!state.running)return;
   if(u.loot){const L=u.loot;if(L.kind==='treasure')openTreasure(L);else{L.prio=!L.prio;if(L.prio){label({x:L.x,y:L.y-1,z:L.z},'📌','#ff8a5c');if(L.claimed){L.claimed.task=null;L.claimed.state=L.claimed.bag.length?'haul':'idle';L.claimed=null}}}SFX.pop();return}
   if(u.minion){cardSlot=null;openCard({m:u.minion});return}
   if(u.turret){openCard({t:u.turret})}}
-window.addEventListener('keydown',e=>{if(e.key==='m'||e.key==='M'){REALM.open?closeRealm():openRealm();return}if(e.key==='Escape'&&REALM.open){closeRealm();return}if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();
+window.addEventListener('keydown',e=>{if(e.key==='h'||e.key==='H'){cam.target.set(CX,GY+1.5,CZ);return}if(e.key==='m'||e.key==='M'){REALM.open?closeRealm():openRealm();return}if(e.key==='Escape'&&REALM.open){closeRealm();return}if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();
   if(k===' '&&state.running&&state.phase==='rest'&&!state.choosing){e.preventDefault();startWave()}
   else if(k==='b'&&state.running)openSide('buildPanel');else if(k==='i'&&state.running)openSide('arsenal');else if(k==='u'&&state.running)openSide('shop');
   else if(k==='escape'){state.bombMode=false;closeCard();$('hire').style.display='none';if(state.build.on)closeSide('buildPanel');updateHud()}
@@ -96,17 +96,18 @@ $('bArs').onclick=()=>openSide('arsenal');$('arsClose').onclick=()=>closeSide('a
 $('bShop').onclick=()=>openSide('shop');$('shopClose').onclick=()=>closeSide('shop');
 $('bHire').onclick=()=>{const h=$('hire');const open=h.style.display!=='flex';h.style.display=open?'flex':'none';if(open)renderHire()};
 $('autoEq').onchange=e=>{state.autoEquip=e.target.checked;if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);renderArsenal()};
-$('abBtn').onclick=()=>{state.autoBuild=!state.autoBuild;toast(state.autoBuild?'Construção automática ligada: os minions decidem onde construir':'Construção automática desligada','r1');updateHud()};
-$('asBtn').onclick=()=>{state.autoSell=!state.autoSell;toast(state.autoSell?'Venda automática ligada: equipamentos sem uso e armas sobrando viram material':'Venda automática desligada','r2',true);updateHud()};
-$('arBtn').onclick=()=>{state.autoReward=!state.autoReward;toast(state.autoReward?'Recompensas escolhidas automaticamente (a mais rara)':'Você escolhe as recompensas','r2',true);updateHud()};
-$('auBtn').onclick=()=>{state.autoUp=!state.autoUp;state.autoEquip=state.autoUp||state.autoEquip;toast(state.autoUp?'Upgrade automático ligado: o pior vira o melhor':'Upgrade automático desligado','r2');updateHud()};
+$('abBtn').onclick=()=>{state.autoBuild=!state.autoBuild;updateHud()};
+$('asBtn').onclick=()=>{state.autoSell=!state.autoSell;updateHud()};
+$('arBtn').onclick=()=>{state.autoReward=!state.autoReward;updateHud()};
+$('auBtn').onclick=()=>{state.autoUp=!state.autoUp;state.autoEquip=state.autoUp||state.autoEquip;updateHud()};
 function cycleSpeed(){gameSpeed=SPEEDS[(SPEEDS.indexOf(gameSpeed)+1)%SPEEDS.length];$('speed').textContent=`⏩ ${gameSpeed}×`;$('speed').classList.toggle('on',gameSpeed>1);toast(`Velocidade ${gameSpeed}×`,'r0')}
 $('speed').onclick=cycleSpeed;
 $('next').onclick=()=>{if(state.phase==='rest'&&!state.choosing)startWave()};
 $('raidBtn').onclick=sendRaid;$('recallBtn').onclick=recallRaid;
 $('camHome').onclick=()=>{cam.target.set(CX,GY+1.5,CZ)};$('camRival').onclick=()=>{const R=battle();if(R)cam.target.set(R.cx,GY+1.5,R.cz)};
-function updateModeUi(){const r=!!battle();for(const id of ['raidBtn','recallBtn','camRival'])$(id).hidden=!r}
-$('bRealm').onclick=()=>REALM.open?closeRealm():openRealm();$('rivalChip').onclick=openRealm;$('realmClose').onclick=closeRealm;$('realmCanvas').addEventListener('click',realmClick);
+function updateModeUi(){$('raidBtn').hidden=!battle()}
+$('bRealm').onclick=()=>REALM.open?closeRealm():openRealm();$('rivalChip').onclick=()=>{const B=battle();if(B&&!REALM.open){cam.target.set(B.cx,GY+1.5,B.cz)}else openRealm()};
+$('autoMenu').onclick=e=>{e.stopPropagation();$('autoPop').classList.toggle('open')};addEventListener('pointerdown',e=>{const p=$('autoPop');if(p.classList.contains('open')&&!p.contains(e.target)&&e.target.id!=='autoMenu'&&!$('autoMenu').contains(e.target))p.classList.remove('open')});$('realmClose').onclick=closeRealm;$('realmCanvas').addEventListener('click',realmClick);
 setInterval(()=>{if(REALM.open){drawRealm();if(Math.random()<.2)renderRealmInfo()}},120);
 $('auto').onclick=()=>{state.auto=!state.auto;updateHud()};
 $('snd').onclick=()=>{soundOn=!soundOn;if(soundOn)ac();$('snd').textContent=soundOn?'🔊':'🔇'};

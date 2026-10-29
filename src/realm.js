@@ -219,5 +219,5 @@ function initGoals(){state.fame=0;state.rank=0;MAX_MINIONS_BONUS=0;state.contrac
 function goalEvent(k,v=1,o={}){if(!state.contracts)return;let done=false;for(const c of state.contracts){if(c.k!==k)continue;if(k==='fort'&&(o.lvl||0)<c.lvl)continue;c.p=Math.min(c.n,c.p+v);if(c.p>=c.n&&!c.done){c.done=true;done=true;
     toast(`📜 Contrato cumprido: ${c.txt} (+${c.fame} renome)`,'r4');spawnLoot(CHEST.x+rnd(-1,1),GY+2,CHEST.z+3,'treasure',Math.min(4,1+Math.floor(rankIdx()/2)),{});addFame(c.fame)}}
   if(done)state.contracts=state.contracts.map(c=>c.done?newContract():c);if(done||k!=='kills'||Math.random()<.08)renderGoals()}
-function renderGoals(){const el=$('goals');if(!el||!state.contracts)return;const r=rankIdx(),nx=RANKS[r+1];
+function renderGoals(){const el=$('goals');if(!el||!state.contracts)return;el.onclick=()=>el.classList.toggle('min');const r=rankIdx(),nx=RANKS[r+1];
   el.innerHTML=`<div class="gr">👑 ${RANKS[r].n} <span>${state.fame||0}${nx?` / ${nx.f}`:''} renome</span></div>`+state.contracts.map(c=>`<div class="gc"><div>${c.txt}</div><div class="gb"><i style="width:${Math.round(c.p/c.n*100)}%"></i></div><span>${Math.floor(c.p)}/${c.n} · +${c.fame}</span></div>`).join('')}

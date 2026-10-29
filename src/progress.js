@@ -10,7 +10,7 @@ function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)i
 function turretCap(){return 6+2*(state.ups.platform||0)+Math.floor(state.wave/8)}
 function turretCount(){return turrets.filter(t=>t.alive&&t.team!=='r').length}
 function canInstall(){if(turretCount()<turretCap())return true;toast(`Limite de ${turretCap()} armas. Compre 🧱 Plataformas de armas nos Upgrades.`,'r0');return false}
-const ROLE_BASE={rep:5,col:5,gun:4,sol:6,med:2};
+const ROLE_BASE={rep:6,col:7,gun:4,sol:6,med:2};
 function roleCap(r){const u=state.ups;return ROLE_BASE[r]+(r==='sol'?3*(u.quartel||0):r==='med'?(u.quartel||0):r==='rep'||r==='col'?2*(u.oficina||0):r==='gun'?2*(u.escola||0):0)}
 function roleCount(r){return minions.filter(m=>m.role===r).length}
 function roleFree(r){return isUnlocked('role',r)&&roleCount(r)<roleCap(r)}

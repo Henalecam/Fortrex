@@ -121,22 +121,78 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #over .stat{font-family:var(--display);font-size:20px;font-weight:700;margin-bottom:12px}
 @media (max-width:620px){.chip,.btn{font-size:12px;padding:5px 9px}.title{font-size:16px}.title small,.sep,.hide-sm{display:none}}
 @media (prefers-reduced-motion:reduce){.toast,.lab{animation-duration:.01s}}
+
+/* ── HUD v2: one stat strip, right-aligned realm + automation menu, single dock */
+:root{--dock:62px}
+#top{align-items:center;gap:8px}
+#top .grow{flex:1}
+.stats{display:flex;align-items:center;pointer-events:auto;background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;padding:3px 6px;box-shadow:0 2px 10px rgba(43,45,74,.08)}
+.stats .st{display:inline-flex;align-items:baseline;gap:5px;padding:4px 10px;font-family:var(--display);white-space:nowrap;border-right:1px solid var(--line)}
+.stats .st:last-child{border-right:0}
+.stats .st i{font-style:normal;font-size:14px}.stats .st b{font-size:16px;font-variant-numeric:tabular-nums}.stats .st em{font-style:normal;font-size:11px;color:var(--ink-soft);font-weight:500}.stats .st em.bad{color:var(--bad)}
+#clock{font-size:13px;font-weight:600}
+.chip.link{cursor:pointer;font:inherit;font-family:var(--display);font-weight:600;font-size:13.5px;color:var(--ink)}
+.chip.link:hover{transform:translateY(-1px)}
+.btn .lb{margin-left:2px}
+.menu{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:calc(56px + env(safe-area-inset-top,0px));width:min(340px,calc(100vw - 32px));background:var(--card);border-radius:18px;box-shadow:0 14px 40px rgba(43,45,74,.2);padding:12px;display:none;flex-direction:column;gap:6px;z-index:9}
+.menu.open{display:flex}
+.menu .mh{font-family:var(--display);font-weight:700;font-size:16px;display:flex;flex-direction:column;gap:2px;padding:2px 4px 6px}.menu .mh span{font-family:var(--body);font-weight:500;font-size:12px;color:var(--ink-soft)}
+.opt{display:flex;align-items:center;gap:10px;text-align:left;background:var(--bg);border:0;border-radius:12px;padding:10px;cursor:pointer;font:inherit;color:var(--ink)}
+.opt:hover{background:#d2ebf3}.opt i{font-style:normal;font-size:20px}.opt div{flex:1;display:flex;flex-direction:column;gap:1px}.opt b{font-family:var(--display);font-size:14px}.opt span{font-size:11.5px;color:var(--ink-soft);line-height:1.3}
+.opt u{width:36px;height:20px;border-radius:99px;background:rgba(43,45,74,.18);position:relative;flex:none;transition:background .15s}
+.opt u::after{content:"";position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.opt.on u{background:var(--good)}.opt.on u::after{left:19px}
+#bottom{justify-content:center}
+.dock{display:flex;align-items:center;gap:5px;pointer-events:auto;background:var(--panel);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:20px;padding:6px;box-shadow:0 6px 24px rgba(43,45,74,.12);max-width:100%;overflow-x:auto;scrollbar-width:none}
+.dock::-webkit-scrollbar{display:none}
+.dock .btn{box-shadow:none;border-color:transparent;background:transparent;flex:none}
+.dock .btn:hover{background:rgba(43,45,74,.06)}
+.dock .btn.on{background:#e3f5ea;box-shadow:inset 0 0 0 2px var(--good)}
+.dock .btn.primary{background:var(--accent)}.dock .btn.primary:disabled{opacity:.6}
+.dock .btn.war{background:#ffe9e2;color:#b8322b}
+.side{bottom:calc(var(--dock) + 18px + env(safe-area-inset-bottom,0px))!important}
+.pop{bottom:calc(var(--dock) + 20px + env(safe-area-inset-bottom,0px))!important}
+#mcard{bottom:calc(var(--dock) + 20px + env(safe-area-inset-bottom,0px))!important}
+#goals{top:calc(64px + env(safe-area-inset-top,0px))!important;pointer-events:auto!important;cursor:pointer}
+#goals.min .gc{display:none}
+#bossbar{top:calc(66px + env(safe-area-inset-top,0px))!important}
+@media (max-width:1380px){.dock .btn .lb{display:none}}
+@media (max-width:1180px){.stats .st em{display:none}.stats .st{padding:4px 8px}}
+@media (max-width:760px){
+  :root{--dock:52px}
+  #top{flex-wrap:wrap;row-gap:6px}.title{display:none}
+  .stats{order:1;width:100%;justify-content:space-between}.stats .st{padding:3px 6px}.stats .st b{font-size:14px}#clock{font-size:11px}
+  #top .grow{display:none}#rivalChip{order:2;flex:1;justify-content:center;font-size:12px}#autoMenu{order:3}#event{order:4}
+  :root{--dock:92px}
+  .dock{gap:2px;padding:4px;border-radius:16px;flex-wrap:wrap;justify-content:center;overflow:visible}.dock .btn{padding:6px 8px;font-size:15px}.dock .sep{display:none}
+  .dock #next{font-size:12px;padding:6px 10px;flex:1;order:9}.dock #auto,.dock #speed,.dock #snd{order:10}
+  .side{top:auto!important;left:0!important;right:0!important;width:auto!important;height:min(62vh,520px);border-radius:20px 20px 0 0!important}
+  #mcard{left:8px!important;right:8px;width:auto!important}
+  #bossbar{top:calc(100px + env(safe-area-inset-top,0px))!important}
+}
 </style>
 
 <canvas id="c"></canvas>
 <div id="top" class="bar">
-  <span class="title">FORTREX<small>v0.15</small></span>
-  <span class="chip"><span class="lbl">Horda</span><b id="wave">1</b></span>
-  <span class="chip"><span class="lbl">Baú</span><b id="mat">0</b><span class="lbl hide-sm">material</span></span>
-  <span class="chip"><span class="lbl">Minions</span><b id="mcount">0</b><span id="wounded" class="lbl" style="color:var(--bad)"></span></span>
-  <span class="chip"><span class="lbl">Devoradores</span><b id="alive">0</b></span>
+  <span class="title">FORTREX</span>
+  <div class="stats">
+    <span class="st" title="Horda atual"><i>🌊</i><b id="wave">1</b><em>horda</em></span>
+    <span class="st" title="Material no baú"><i>💰</i><b id="mat">0</b><em>material</em></span>
+    <span class="st" title="Minions (feridos)"><i>👥</i><b id="mcount">0</b><em id="wounded" class="bad"></em></span>
+    <span class="st" title="Inimigos vivos e na fila"><i>👾</i><b id="alive">0</b></span>
+    <span class="st" id="clock">☀️ Dia 1</span>
+  </div>
   <span class="chip" id="event"></span>
-  <span class="chip" id="clock">☀️ Dia 1</span>
-  <span class="chip" id="rivalChip" style="cursor:pointer" title="Abrir o mapa do reino">🗺️ Reino</span>
-  <button class="btn" id="abBtn" title="Os minions decidem onde construir, onde instalar armas e blocos, e contratam">🏗️ Construção auto</button>
-  <button class="btn" id="asBtn" title="Vende sozinho equipamentos que ninguém usaria e armas que não cabem">💰 Venda auto</button>
-  <button class="btn" id="arBtn" title="Escolhe sozinho a recompensa mais rara a cada 5 hordas">🎁 Recompensa auto</button>
-  <button class="btn" id="auBtn" title="Troca o pior pelo melhor: blocos, armas instaladas, equipamentos e upgrades">✨ Upgrade auto</button>
+  <span class="grow"></span>
+  <button class="chip link" id="rivalChip" title="Abrir o mapa do reino (M). Em guerra: mostra a fortaleza inimiga">🗺️ Reino</button>
+  <button class="btn" id="autoMenu" title="Automação">⚙️<span class="lb">Automação</span><span class="cost" id="autoN">0/4</span></button>
+</div>
+<div id="autoPop" class="menu">
+  <div class="mh">Automação<span>Ligue o que quiser e só mexa quando tiver vontade.</span></div>
+  <button class="opt" id="abBtn"><i>🏗️</i><div><b>Construção</b><span>Decidem onde construir, instalar armas e armadilhas; contratam quem falta</span></div><u></u></button>
+  <button class="opt" id="auBtn"><i>✨</i><div><b>Upgrade</b><span>Troca o pior pelo melhor: blocos, armas e equipamentos</span></div><u></u></button>
+  <button class="opt" id="asBtn"><i>💰</i><div><b>Venda</b><span>Vende equipamento sem uso e armas que não cabem</span></div><u></u></button>
+  <button class="opt" id="arBtn"><i>🎁</i><div><b>Recompensa</b><span>Escolhe a recompensa mais rara a cada 5 hordas</span></div><u></u></button>
 </div>
 <div id="toasts"></div>
 <div id="labels"></div>
@@ -164,25 +220,24 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 <div id="mcard"></div>
 <div id="hire" class="pop"></div>
 
-<div id="bottom" class="bar">
-  <button class="btn" id="bBuild">🧱 Construir</button>
-  <button class="btn" id="bArs">🎒 Arsenal <span class="badge" id="arsN" hidden></span></button>
-  <button class="btn" id="bHire">🧑‍🔧 Contratar</button>
-  <button class="btn" id="bShop">⬆️ Upgrades</button>
+<div id="bottom" class="bar"><div class="dock">
+  <button class="btn" id="bBuild" title="Construir (B)">🧱<span class="lb">Construir</span></button>
+  <button class="btn" id="bArs" title="Arsenal (I)">🎒<span class="lb">Arsenal</span><span class="badge" id="arsN" hidden></span></button>
+  <button class="btn" id="bHire" title="Contratar">👥<span class="lb">Contratar</span></button>
+  <button class="btn" id="bShop" title="Upgrades (U)">⬆️<span class="lb">Upgrades</span></button>
+  <button class="btn" id="bRealm" title="Mapa do reino (M)">🗺️<span class="lb">Reino</span></button>
   <span class="sep"></span>
-  <button class="btn" id="focus">🔥 Fogo <span class="cost" id="focusCd">pronto</span></button>
-  <button class="btn" id="bomb">💣 Bomba <span class="cost" id="bombCd">25</span></button>
-  <button class="btn" id="raidBtn" hidden title="Envia soldados e curandeiros para atacar a cidade rival mais próxima">⚔️ Atacar</button>
-  <button class="btn" id="recallBtn" hidden title="Chama a expedição de volta">🏳️ Recuar</button>
-  <button class="btn" id="bRealm" title="Mapa do reino (tecla M)">🗺️ Reino</button>
-  <button class="btn" id="camHome" title="Câmera na sua cidadela">🏰</button>
-  <button class="btn" id="camRival" hidden title="Câmera na cidade rival">🎯</button>
+  <button class="btn" id="bomb" title="Bombardeio: 25 material">💣<span class="lb">Bomba</span><span class="cost" id="bombCd">25</span></button>
+  <button class="btn war" id="raidBtn" hidden title="Envia soldados e curandeiros contra a fortaleza inimiga">⚔️<span class="lb">Atacar</span></button>
+  <button class="btn" id="recallBtn" hidden title="Chama a expedição de volta">🏳️<span class="lb">Recuar</span></button>
+  <button class="btn" id="camHome" title="Centralizar na cidadela (H)">🏰</button>
   <span class="sep"></span>
   <button class="btn primary" id="next">Chamar horda</button>
-  <button class="btn" id="auto">Auto</button>
-  <button class="btn" id="speed" title="Velocidade do jogo (tecla F)">⏩ 1×</button>
+  <button class="btn" id="auto" title="Hordas automáticas">Auto</button>
+  <button class="btn" id="speed" title="Velocidade (F)">⏩ 1×</button>
   <button class="btn" id="snd" aria-label="Som">🔇</button>
-</div>
+</div></div>
+<span id="focus" hidden></span><span id="focusCd" hidden></span><button id="camRival" hidden></button>
 
 <div id="reward"><h2 id="rewardTitle">Horda vencida!</h2><div class="sub">Escolha uma recompensa.</div><div class="cards" id="rewardCards"></div></div>
 <div id="goals"></div>
