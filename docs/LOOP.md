@@ -10,6 +10,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 4. Teste headless: `cd <scratchpad> && node t5.js 900` (bot joga; olhar erros, `plan` preso, minions presos, baú, economia).
 5. Screenshot renderizado: `node shot.js` → ler s1.png / s2.png.
 6. Publicar com Artifact (mesmo file_path), avisar o usuário em 1–2 linhas, atualizar este backlog, agendar a próxima rodada (send_later, ~1 min).
+7. GitHub (Coolify faz deploy de `main`): `rsync -a --delete src/ ../fortrex-repo/src/ && cp build.py ../fortrex-repo/ && cp -r dist ../fortrex-repo/ && cp LOOP.md ../fortrex-repo/docs/` → commit (autor Henalecam, linhas Co-Authored-By/Claude-Session) → `git push`.
+   Build: `FORTREX_SCRATCH=<scratchpad> python3 build.py` (gera index.html, dist/index.html e scratchpad/game.js).
 
 ## Feito
 - v0.5: código em módulos; sem fogo amigo (explosões/projéteis do jogador ignoram a base e os minions); modo Construir (blocos, especiais, fluidos, armas, remover, cavar); 6 armas (canhão, balista, lança-chamas, morteiro, Tesla, gelo); 15 equipamentos com raridade; 10 blocos especiais; baús do tesouro clicáveis; loot com prioridade por clique; Arsenal; ficha do minion com troca de função e equipamento; Curandeiro; Xamã; chuva de meteoros; reparadores aterram crateras.
@@ -24,7 +26,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.10: guerras entre rivais (bandos marcham, lutam com guardas, rompem muralhas, tomam o núcleo; vencedor sobe de nível, tesouro fica no chão); nova geração de rivais 60 s após todos caírem (Conquista e Duelo); chip de força da expedição (nós vs guardas+torres, núcleo x/8, vantagem/perigo); à noite minions ociosos descansam dentro da torre de menagem e se curam; HUD compacto; noites mais escuras. Teste: `node t8.js` (nova rodada), `node t9.js` (descanso).
 - v0.10.1: 🎯 alterna a cidade-alvo (câmera + alvo do ⚔️ Atacar); trilha procedural (arpejos pentatônicos, menor à noite, mais rápida em horda/chefe).
 
+- v0.11: um só jogo (sem modos). Mapa 160×160; cidadela no centro. 🗺️ Reino (tecla M): ~10 fortalezas com impérios, guarnição e nível; exércitos marcham, conquistam e fortalecem quem vence; novas fortalezas mais fortes surgem nas bordas. Quando um exército chega até nós (após 220 s de trégua) → fortaleza de cerco ergue-se num dos 4 lados (fortaleza vs fortaleza); declarar guerra pelo mapa faz o mesmo. Conquista → cidade vira sua (+tributo por horda), ruínas somem em 30 s, 160 s de trégua. Inimigos têm corpo em pedaços (voxels) que se soltam com o dano; pernas perdidas = mais lento, cabeça = mais fraco; chefes -20% de vida. Após cada horda a base se reconstrói sozinha (blocos estruturais, grátis); reparadores servem durante a batalha. Soldados ficam fora das muralhas, na frente do portão. Limite de 60 minions. Blocos da base não soltam material (sem farm).
+
 ## Backlog (próximas rodadas)
+- [ ] Reino: clicar no exército para ver composição; mensagens de embaixada (tributo/aliança)
+- [ ] Batalha: fortaleza inimiga com estilo/cores do império, chefe-general por nível
+- [ ] Desempenho no mapa 160: medir FPS real; LOD de sombras
 - [ ] Expedição: bandeira de rally
 - [ ] Diplomacia leve: tributo para adiar raid, aliança temporária contra o mais forte
 - [ ] Balanceamento: agora fácil demais (horda 25+ sem perder) → curva dura após 12, chefes novos a cada 15 (Rainha da Bruma que invoca, Titã de lava), modo Pesadelo
