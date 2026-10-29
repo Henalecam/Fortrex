@@ -1,5 +1,5 @@
 // ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
-const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,frost:10},role:{rep:1,col:1,gun:1,sol:1,med:3},
+const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,frost:10,catapult:12},role:{rep:1,col:1,gun:1,sol:1,med:3},
   block:{16:1,17:1,10:1,18:4,15:5,9:7,8:7,14:9,19:10,20:14},
   up:{platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
 function unlockWave(kind,k){return(UNLOCK[kind]&&UNLOCK[kind][k])||1}
@@ -7,7 +7,7 @@ function isUnlocked(kind,k){return state.wave>=unlockWave(kind,k)}
 function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)if(UNLOCK.turret[k]===w)got.push(TURRETS[k].ico+' '+TURRETS[k].n);for(const k in UNLOCK.role)if(UNLOCK.role[k]===w)got.push(ROLES[k].ico+' '+ROLES[k].n);
   for(const k in UNLOCK.block)if(UNLOCK.block[k]===w)got.push(MAT[k].n);for(const k in UNLOCK.up)if(UNLOCK.up[k]===w){const U=UPGRADES.find(u=>u.id===k);if(U)got.push(U.ico+' '+U.nm)}
   if(w%8===0)got.push('+1 vaga de arma');if(got.length)toast(`🔓 Horda ${w}: ${got.join(', ')}`,'r4')}
-function turretCap(){return 6+2*(state.ups.platform||0)+Math.floor(state.wave/8)}
+function turretCap(){return 6+2*(state.ups.platform||0)+Math.floor(state.wave/8)+((state.expStage||0)>=3?4:0)}
 function turretCount(){return turrets.filter(t=>t.alive&&t.team!=='r').length}
 function canInstall(){if(turretCount()<turretCap())return true;toast(`Limite de ${turretCap()} armas. Compre 🧱 Plataformas de armas nos Upgrades.`,'r0');return false}
 const ROLE_BASE={rep:6,col:7,gun:4,sol:6,med:2};
@@ -20,8 +20,8 @@ function postPos(p){switch(p){case'norte':return{x:CX,z:WA-7};case'leste':return
 function postDist(m,x,z){if(!m.post||m.post==='auto')return 0;const p=postPos(m.post);return Math.hypot(x-p.x,z-p.z)}
 // auto-sell: equipment nobody would upgrade to, and spare weapons that do not fit the walls
 function autoSellTick(dt){if(!state.autoSell)return;state.sellT=(state.sellT||0)-dt;if(state.sellT>0)return;state.sellT=4;let g=0,n=0;const A=state.inv.armory;
-  for(const it of A.slice()){const useful=minions.some(m=>itemScore(it,m.role)>itemScore(m.eq[it.slot],m.role)+.02);if(!useful&&it.r<=2){A.splice(A.indexOf(it),1);g+=Math.ceil(sellValue(it)*.25);n++}}
-  const T=state.inv.turrets;const keep=Math.max(0,turretCap()-turretCount())+2;if(T.length>keep){T.sort((a,b)=>TURRETS[b.type].v+b.r-(TURRETS[a.type].v+a.r));for(const t of T.splice(keep)){g+=2+t.r*t.r*2;n++}}
+  for(const it of A.slice()){const useful=minions.some(m=>itemScore(it,m.role)>itemScore(m.eq[it.slot],m.role)+.02);if(!useful&&it.r<=2){A.splice(A.indexOf(it),1);g+=Math.ceil(sellValue(it)*.12);n++}}
+  const T=state.inv.turrets;const keep=Math.max(0,turretCap()-turretCount())+2;if(T.length>keep){T.sort((a,b)=>TURRETS[b.type].v+b.r-(TURRETS[a.type].v+a.r));for(const t of T.splice(keep)){g+=1+t.r*t.r;n++}}
   if(n){state.material+=g;label({x:CHEST.x,y:GY+3,z:CHEST.z},`💰 +${g}`,'#c99a1a');SFX.coin();refreshPanels()}}
 const UPGRADES_EXTRA=[
   {id:'platform',ico:'🧱',nm:'Plataformas de armas',ds:'+2 armas instaladas na fortaleza.',max:6,cost:l=>70+l*70,go(){}},
@@ -45,14 +45,42 @@ const RELICS={boss:{ico:'🦷',n:'Dente do Devorador',d:'+8% de dano das armas',
   necro:{ico:'📕',n:'Tomo do Necromante',d:'Feridos voltam 30% mais rápido',go(){state.healMul*=1.3}},
   queen:{ico:'👑',n:'Coroa da Rainha',d:'Drops mais raros',go(){state.luck+=.03}},
   titan:{ico:'🌋',n:'Núcleo de Lava',d:'+5% de chance de crítico',go(){state.critBonus+=.05}}};
-function grantRelic(t){const R=RELICS[t];if(!R)return;state.relics=state.relics||{};state.relics[t]=(state.relics[t]||0)+1;R.go();toast(`${R.ico} Relíquia: ${R.n} — ${R.d}`,'r4');renderGoals();if(!state.hero)spawnHero()}
+function grantRelic(t){const R=RELICS[t];if(!R)return;state.relics=state.relics||{};state.relics[t]=(state.relics[t]||0)+1;R.go();toast(`${R.ico} Relíquia: ${R.n} — ${R.d}`,'r4');renderGoals();checkHeroes()}
 function relicsHtml(){const r=state.relics||{};const k=Object.keys(r);if(!k.length)return'';return`<div class="rel">${k.map(t=>`<span title="${RELICS[t].n}: ${RELICS[t].d}">${RELICS[t].ico}${r[t]>1?`<sub>×${r[t]}</sub>`:''}</span>`).join('')}</div>`}
-// ───────── the hero: a unique legendary paladin who joins after the first boss; active ability on a cooldown
-function spawnHero(){const m=makeMinion('sol',4,GATE.x,GATE.z+2);m.hero=true;m.name='Aurora, a Paladina';m.group.scale.setScalar(1.35);m.maxhp*=2.5;m.hp=m.maxhp;state.hero=m;state.heroCd=0;
-  const halo=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,16),new THREE.MeshBasicMaterial({color:0xffcf3d}));halo.rotation.x=Math.PI/2;halo.position.y=2.35;m.group.add(halo);
-  $('bHero').hidden=false;toast('⭐ Aurora, a Paladina, se junta a você! Use ⭐ Martelo Sagrado (tecla Q).','r4')}
-function heroAbility(){const m=state.hero;if(!m||!minions.includes(m)){toast('A heroína não está entre nós','r0');return}if(m.wounded>0){toast('Aurora está ferida','r0');return}if(state.heroCd>0){toast(`Martelo Sagrado em ${Math.ceil(state.heroCd)} s`,'r0');return}
-  state.heroCd=40;const r=7,dmg=120+state.wave*8;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r&&!e.fly){dmgEnemy(e,dmg*(1-d/r*.5),true,true);e.stun=Math.max(e.stun||0,2)}}
-  for(const o of minions){if(Math.hypot(o.pos.x-m.pos.x,o.pos.z-m.pos.z)<r){if(o.wounded>0)o.wounded=Math.min(o.wounded,1);else o.hp=o.maxhp}}
-  for(let k=0;k<40;k++){const a=k/40*Math.PI*2;spawnDebris(m.pos.x+Math.cos(a)*r*.8,m.group.position.y+.5,m.pos.z+Math.sin(a)*r*.8,0xffcf3d,1,.3)}shake=Math.max(shake,.7);slowmo=Math.max(slowmo,.5);SFX.open();label({x:m.pos.x,y:m.group.position.y+3,z:m.pos.z},'⭐ Martelo Sagrado!','#e0a000')}
-function heroTick(dt){if(state.heroCd>0)state.heroCd-=dt;const b=$('bHero');if(!b||b.hidden)return;const m=state.hero;if(!m||!minions.includes(m)){b.hidden=true;state.hero=null;return}b.querySelector('.cost').textContent=m.wounded>0?'ferida':state.heroCd>0?Math.ceil(state.heroCd)+'s':'pronto';b.classList.toggle('on',state.heroCd<=0&&!(m.wounded>0))}
+// ───────── heroes: unique legendaries who join as you collect relics (1, 3 and 5), each with an active ability
+const HEROES=[
+  {id:'paladin',name:'Aurora, a Paladina',ico:'⭐',ab:'Martelo Sagrado',key:'Q',cd:40,col:0xffcf3d,need:1,d:'dano e atordoamento em área, cura minions próximos'},
+  {id:'archer',name:'Lyra, a Arqueira',ico:'🏹',ab:'Chuva de Flechas',key:'E',cd:32,col:0x5cc08c,need:3,d:'três rajadas no maior grupo de inimigos ao alcance'},
+  {id:'mage',name:'Orin, o Mago do Gelo',ico:'❄️',ab:'Nova de Gelo',key:'T',cd:45,col:0x8fe3ff,need:5,d:'congela e fere tudo ao redor, transforma lava em obsidiana'}];
+function relicCount(){return Object.values(state.relics||{}).reduce((a,b)=>a+b,0)}
+function spawnHero(H){const m=makeMinion('sol',4,GATE.x+rnd(-1,1),GATE.z+2);m.hero=H.id;m.name=H.name;m.group.scale.setScalar(1.35);m.maxhp*=2.5;m.hp=m.maxhp;
+  const halo=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,16),new THREE.MeshBasicMaterial({color:H.col}));halo.rotation.x=Math.PI/2;halo.position.y=2.35;m.group.add(halo);
+  state.heroes=state.heroes||{};state.heroes[H.id]={m,cd:0};const b=$('bHero_'+H.id);if(b)b.hidden=false;toast(`${H.ico} ${H.name} se junta a você! ${H.ab} (tecla ${H.key}): ${H.d}.`,'r4')}
+function checkHeroes(){const n=relicCount();for(const H of HEROES)if(n>=H.need&&!(state.heroes&&state.heroes[H.id]))spawnHero(H)}
+function heroAbility(id){const H=HEROES.find(h=>h.id===id);const S=state.heroes&&state.heroes[id];if(!H||!S||!minions.includes(S.m)){toast('Este herói ainda não chegou','r0');return}const m=S.m;
+  if(m.wounded>0){toast(`${H.name.split(',')[0]} está ferido(a)`,'r0');return}if(S.cd>0){toast(`${H.ab} em ${Math.ceil(S.cd)} s`,'r0');return}S.cd=H.cd;const w=state.wave;
+  if(id==='paladin'){const r=7,dmg=120+w*8;for(const e of enemies){if(e.dead||e.fly)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r){dmgEnemy(e,dmg*(1-d/r*.5),true,true);e.stun=Math.max(e.stun||0,2)}}
+    for(const o of minions){if(Math.hypot(o.pos.x-m.pos.x,o.pos.z-m.pos.z)<r){if(o.wounded>0)o.wounded=Math.min(o.wounded,1);else o.hp=o.maxhp}}ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,r,0xffcf3d)}
+  if(id==='archer'){let best=null,bn=0;for(const e of enemies){if(e.dead||Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z)>45)continue;let n=0;for(const o of enemies)if(!o.dead&&Math.abs(o.pos.x-e.pos.x)<6&&Math.abs(o.pos.z-e.pos.z)<6)n++;if(n>bn){bn=n;best=e}}
+    if(!best){S.cd=2;toast('Nenhum inimigo ao alcance','r0');return}const x=best.pos.x,z=best.pos.z;for(let k=0;k<3;k++)state.volleys.push({x,z,t:.35+k*.45,dmg:70+w*6})}
+  if(id==='mage'){const r=10;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r){dmgEnemy(e,(60+w*5)*(e.type==='titan'?2.5:1),true);e.slowT=Math.max(e.slowT,6);e.stun=Math.max(e.stun||0,1)}}freezeAround(m.pos.x,GY,m.pos.z,4);ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,r,0x8fe3ff);SFX.freeze()}
+  shake=Math.max(shake,.7);slowmo=Math.max(slowmo,.4);SFX.open();label({x:m.pos.x,y:m.group.position.y+3,z:m.pos.z},`${H.ico} ${H.ab}!`,'#e0a000')}
+function ringFx(x,y,z,r,c){for(let k=0;k<40;k++){const a=k/40*Math.PI*2;spawnDebris(x+Math.cos(a)*r*.8,y,z+Math.sin(a)*r*.8,c,1,.3)}}
+function heroTick(dt){state.volleys=state.volleys||[];for(let i=state.volleys.length-1;i>=0;i--){const V=state.volleys[i];V.t-=dt;if(V.t>0)continue;state.volleys.splice(i,1);
+    for(let k=0;k<26;k++)spawnDebris(V.x+rnd(-5,5),GY+rnd(3,9),V.z+rnd(-5,5),0x8a6a45,1,.18);for(const e of enemies)if(!e.dead&&Math.abs(e.pos.x-V.x)<6&&Math.abs(e.pos.z-V.z)<6)dmgEnemy(e,V.dmg,true);SFX.twang()}
+  checkHeroes();for(const H of HEROES){const S=state.heroes&&state.heroes[H.id];const b=$('bHero_'+H.id);if(!b)continue;if(!S){b.hidden=true;continue}if(S.cd>0)S.cd-=dt;if(!minions.includes(S.m)){b.hidden=true;continue}b.hidden=false;
+    b.querySelector('.cost').textContent=S.m.wounded>0?'ferido':S.cd>0?Math.ceil(S.cd)+'s':'pronto';b.classList.toggle('on',S.cd<=0&&!(S.m.wounded>0))}}
+
+// ───────── the citadel grows by itself: a new outer ring, bastions and a moat are drawn into the blueprint as waves go by.
+// Building is free (repairers' labour is the only limit); after each wave everything mends itself.
+const EXP_STAGES=[{w:3,n:'Paliçada de madeira'},{w:6,n:'Muralha externa de pedra'},{w:9,n:'Quatro bastiões com plataformas de armas'},{w:12,n:'Reforço de metal e portão externo'},{w:15,n:'Fosso de água'}];
+function ringCells(R,f){for(let x=CX-R;x<=CX+R;x++)for(let z=CZ-R;z<=CZ+R;z++){const edge=Math.max(Math.abs(x-CX),Math.abs(z-CZ));if(edge<R-1||edge>R)continue;f(x,z)}}
+function clearFor(i){if(vox[i]&&!blue[i]&&!rown[i]&&vox[i]!==5){removeVox(i,'dig')}if(natBlue)natBlue[i]=0}
+function expansionTick(){const st=state.expStage||0;if(st>=EXP_STAGES.length||state.wave<EXP_STAGES[st].w)return;state.expStage=st+1;const R=WR+8,gap=(x,z)=>z>CZ&&Math.abs(x-CX+.5)<2.6;
+  const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);if(blue[i]===5)return;clearFor(i);placeBlue(i,m)};
+  if(st===0)ringCells(R,(x,z)=>{if(gap(x,z))return;for(let y=0;y<3;y++)put(x,GY+y,z,2)});
+  if(st===1)ringCells(R,(x,z)=>{if(gap(x,z))return;for(let y=0;y<5;y++)put(x,GY+y,z,3);if((x+z)%2===0)put(x,GY+5,z,3)});
+  if(st===2){state.extraAnchors=[];for(const [sx,sz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){const bx=CX+sx*R,bz=CZ+sz*R;for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let y=0;y<9;y++)put(bx+dx,GY+y,bz+dz,6);state.extraAnchors.push(idx(bx,GY+8,bz))}}
+  if(st===3){ringCells(R,(x,z)=>{if(gap(x,z))return;put(x,GY+4,z,4)});for(let x=CX-2;x<=CX+1;x++)for(let z=CZ+R-1;z<=CZ+R;z++)for(let y=0;y<4;y++)put(x,GY+y,z,7)}
+  if(st===4){const Rm=R+3;ringCells(Rm,(x,z)=>{if(z>CZ&&Math.abs(x-CX+.5)<3.6)return;const i=idx(x,GY-1,z);if(blue[i]||rown[i]||vox[i]===5||vox[i]===8)return;for(let y=GY;y<GY+3;y++){const j=idx(x,y,z);if(vox[j]&&!blue[j])removeVox(j,'dig')}setVox(i,0);setFluid(i,9,4,true);if(natBlue)natBlue[i]=0})}
+  toast(`🏗️ A cidadela cresce: ${EXP_STAGES[st].n}! Os reparadores constroem de graça.`,'r4')}

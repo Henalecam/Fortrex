@@ -42,12 +42,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.19: Relíquias — cada chefe derrotado dá um bônus permanente que acumula (🦷 Devorador +8% dano, 🪨 Golem reparo +15%, 🐉 Serpe fogo grego, 🦶 Colosso raio de bomba, 📕 Necromante cura +30%, 👑 Rainha sorte, 🌋 Titã crítico), mostradas no painel de contratos. Heroína Aurora, a Paladina (lendária, 2,5× vida, auréola) chega após o 1º chefe; ⭐ Martelo Sagrado (tecla Q, 40 s): dano + atordoamento em área e cura minions próximos. Bot usa a habilidade com 4+ inimigos perto.
 
+- v0.20: eventos de clima (❄️ Nevasca: tudo 30% mais lento, lagos viram gelo; 🌍 Terremoto: tremores, crateras e inimigos derrubados; 🌑 Eclipse: escuro, inimigos +1 raridade, loot melhor). 🛢️ Catapulta (horda 12): barris explosivos em arco com área enorme e fogo. Heróis: Aurora (⭐ Q, 1 relíquia), Lyra a Arqueira (🏹 E, 3 relíquias: 3 rajadas no maior grupo), Orin o Mago (❄️ T, 5 relíquias: nova de gelo). Opção Tremor de tela no menu ⚙️ (salva no navegador). Construção e reparo de graça (só a mão de obra limita); a cidadela cresce sozinha: paliçada (h3) → muralha externa de pedra (h6) → 4 bastiões com +4 vagas de arma (h9) → metal e portão externo (h12) → fosso de água (h15). Venda auto 12%, baús e objetivos dão menos material. Bot: horda 20 em 25 min, material ~1,6k.
+
 ## Backlog (próximas rodadas)
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
 - [ ] Diabretes em enxame no fogo; lobos flanqueando pelos lados
-- [ ] Clima/eventos do mapa: nevasca (lentidão, lagos congelam), eclipse (inimigos sombrios), terremoto (rachaduras no chão)
-- [ ] Mais heróis (Arqueira: chuva de flechas; Mago: congelar área) escolhidos em recompensas
-- [ ] Armas novas: catapulta de barris, torre de raio-sol (feixe contínuo), canhão de gelo em área
+- [ ] Heróis: subir de nível, equipar, escolher 1 de 2 ao chegar
+- [ ] Armas novas: torre de raio-sol (feixe contínuo)
 - [ ] Ficha do minion e Arsenal no estilo HUD v0.16; tooltips de comparação
 - [ ] Desempenho com 150+ criaturas (pooling de geometrias/materiais)
 - [ ] Reino: mensagens de embaixada (tributo/aliança)

@@ -97,7 +97,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
   if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22})[t]??2)*.4+r*.5))});
-  const luck=state.wave*.004+r*.04+state.luck+(state.ev==='golden'?.1:0);
+  const luck=state.wave*.004+r*.04+state.luck+(state.ev==='golden'||state.ev==='eclipse'?.1:0);
   const P=({crawler:.11,ram:.24,climber:.14,sapper:.12,flyer:.16,shaman:.45,boss:1,colossus:1,queen:1,titan:1,knight:.3,archer:.25,rammer:.35,general:1,golem:1,wyrm:1,necro:1})[t]??.15;
   const n=t==='titan'?7:t==='queen'||t==='colossus'?5:t==='boss'?3:1;for(let k=0;k<n;k++)if(Math.random()<P*(big?1:.4)){const rr=Math.max(Math.min(r,3),rollRarity(luck+(big?.15:0)));const [kind,data]=lootPick('any',rr);at(kind,rr,data)}
   if(Math.random()<(big?.7:r>=2?.18:.035))at('recruit',Math.max(1,rollRarity(luck)),{role:pick(['rep','col','gun','sol','med','sol'])});
@@ -116,7 +116,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
   if(e.afire>0){e.afire-=dt;if(e.inWater||e.type==='titan')e.afire=0;dmgEnemy(e,5*dt,false);if(Math.random()<dt*10)spawnFlame(e.pos.x+rnd(-.4,.4),e.group.position.y+rnd(.3,1.2)*e.sc,e.pos.z+rnd(-.4,.4),.6);if(e.dead)return}
   e.iceT-=dt;if(e.iceT<=0&&!e.fly){e.iceT=.3;const y0=Math.floor(e.gy+.05);for(const [dx,dz] of NB4){for(let y=y0;y<y0+2;y++){const x=fx+dx,z=fz+dz;if(inb(x,y,z)&&vox[idx(x,y,z)]===18){e.slowT=Math.max(e.slowT,.8)}}}}
   if(e.slowT>0){e.slowT-=dt;if(Math.random()<dt*4)spawnFlame(e.pos.x+rnd(-.4,.4),e.group.position.y+.8,e.pos.z+rnd(-.4,.4),.4,true)}
-  const sf=(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1);e.timer-=dt*(e.slowT>0?.5:1);
+  const sf=(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1)*(state.ev==='blizzard'?.7:1);e.timer-=dt*(e.slowT>0?.5:1);
   if(e.stun>0){e.stun-=dt;e.vel.set(0,0,0);e.group.rotation.z=Math.sin(e.stun*9)*.12;if(e.stun<=0)e.group.rotation.z=0;return}
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
   if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}
@@ -202,7 +202,7 @@ function cellBusy(i){const x=ix(i),y=iy(i),z=iz(i);for(const m of minions)if(Mat
   for(const e of enemies)if(!e.dead&&!e.fly&&Math.abs(e.pos.x-x-.5)<e.radius+.5&&Math.abs(e.pos.z-z-.5)<e.radius+.5&&Math.abs(e.gy-y)<1.8)return true;for(const L of loot)if(!L.carried&&Math.floor(L.x)===x&&Math.floor(L.z)===z&&Math.abs(L.y-y-.5)<1)return false;return false}
 function findRepairTask(m){let best=null,bs=1e9;const mx=m.pos.x,mz=m.pos.z;
   for(const i of blueList){const b=blue[i];if(!b||vox[i]===b)continue;if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;
-    const cost=state.prepaid.has(i)?0:(MAT[b].cost||1);if(state.material<cost)continue;
+    const cost=0;
     let ti=i,kind='build';if(!supported(i)){if(iy(i)>GY+1)continue;const x=ix(i),z=iz(i);let y=1;while(y<iy(i)&&vox[idx(x,y,z)]&&!FLUID(vox[idx(x,y,z)]))y++;if(y>=iy(i))continue;ti=idx(x,y,z);kind='fill';if((m.skip.get(ti)||0)>simTime)continue}
     const s=(b===5?-80:0)+(iy(i)-GY)*4+Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:kind,i:ti}}}
   for(const t of turrets){if(!t.alive||t.hp>=t.maxhp*.85||t.team==='r')continue;const cl=t.fixer;if(cl&&cl!==m)continue;const s=hd(t.pos,m.pos)-6;if(s<bs){bs=s;best={k:'turret',t}}}
@@ -232,8 +232,8 @@ function updRep(m,dt){
     else progress(m,d,dt,()=>{if(T.i!==undefined)m.skip.set(T.i,simTime+12);if(T.t)T.t.fixer=null;releaseTask(m)});return}
   m.group.position.y=standY(m.pos.x,m.pos.z)+Math.abs(Math.sin(m.timer*25))*.08;
   if(m.timer>0)return;
-  if(T.k==='fill'){const i=T.i;if(!cellBusy(i)&&state.material>=1){state.material-=1;setVox(i,iy(i)===GY-1?13:12);settleDirty=true;SFX.build();spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[12].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';return}
-  if(T.k==='build'){const i=T.i,b=blue[i];const cost=state.prepaid.has(i)?0:(MAT[b].cost||1);if(!cellBusy(i)&&state.material>=cost&&supported(i)){state.material-=cost;state.prepaid.delete(i);setVox(i,b);settleDirty=true;SFX.build();gainXP(m,1);spawnDebris(ix(i)+.5,y+.5,iz(i)+.5,MAT[b].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';
+  if(T.k==='fill'){const i=T.i;if(!cellBusy(i)){setVox(i,iy(i)===GY-1?13:12);settleDirty=true;SFX.build();spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[12].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';return}
+  if(T.k==='build'){const i=T.i,b=blue[i];const cost=0;if(!cellBusy(i)&&state.material>=cost&&supported(i)){state.material-=cost;state.prepaid.delete(i);setVox(i,b);settleDirty=true;SFX.build();gainXP(m,1);spawnDebris(ix(i)+.5,y+.5,iz(i)+.5,MAT[b].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';
     // keep building nearby blocks without going idle
     const nx=findRepairTask(m);if(nx&&(nx.i===undefined||Math.hypot(ix(nx.i)+.5-m.pos.x,iz(nx.i)+.5-m.pos.z)<3.2)){m.task=nx;m.state='work';m.timer=.5/(m.work*state.repMul)}else if(nx){m.task=nx;m.state='go';m.bestD=1e9}return}
   if(T.k==='fix'){const i=T.i;if(vox[i]){hp[i]=Math.min(maxHpOf(vox[i]),hp[i]+maxHpOf(vox[i])*.5);if(hp[i]>=maxHpOf(vox[i]))damaged.delete(i);paint(i);SFX.pop()}releaseTask(m);m.state='idle';return}

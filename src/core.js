@@ -53,6 +53,7 @@ const RARITY=[
 function rollRarity(b=0){const r=Math.random()+b;if(r>1.02)return 4;if(r>.965)return 3;if(r>.87)return 2;if(r>.66)return 1;return 0}
 const NAMES=['Bolota','Tijolo','Pipoca','Faísca','Migalha','Biscoito','Torresmo','Pudim','Cocada','Paçoca','Chiclete','Pirulito','Rabisco','Trovão','Tampinha','Bigode','Farofa','Quindim','Jujuba','Feijão','Pitoco','Zica','Brigadeiro','Caju','Moranga','Bacuri','Pequi','Graveto','Cascalho','Fuligem','Pamonha','Canjica','Mandioca','Tapioca','Sirigado','Xodó','Fubá','Gengibre','Dendê','Jabuti'];
 
+const OPTS=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_opts')||'{}')}catch(e){return{}}})();function saveOpts(){try{localStorage.setItem('fortrex_opts',JSON.stringify(OPTS))}catch(e){}}
 let simTime=0,shake=0,hitstop=0,gameSpeed=1,slowmo=0;const SPEEDS=[1,2,3,5];const MAX_MINIONS=60;
 function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:15,auto:false,
   focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,

@@ -195,6 +195,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <button class="opt" id="auBtn"><i>✨</i><div><b>Upgrade</b><span>Troca o pior pelo melhor: blocos, armas e equipamentos</span></div><u></u></button>
   <button class="opt" id="asBtn"><i>💰</i><div><b>Venda</b><span>Vende equipamento sem uso e armas que não cabem</span></div><u></u></button>
   <button class="opt" id="arBtn"><i>🎁</i><div><b>Recompensa</b><span>Escolhe a recompensa mais rara a cada 5 hordas</span></div><u></u></button>
+  <div class="mh" style="margin-top:6px">Opções</div>
+  <button class="opt on" id="optShake"><i>📳</i><div><b>Tremor de tela</b><span>Câmera treme em explosões e chefes</span></div><u></u></button>
 </div>
 <div id="toasts"></div>
 <div id="labels"></div>
@@ -231,7 +233,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <button class="btn" id="bRealm" title="Mapa do reino (M)">🗺️<span class="lb">Reino</span></button>
   <button class="btn war" id="bMerch" hidden title="Mercador itinerante">🛒<span class="lb">Mercador</span></button>
   <span class="sep"></span>
-  <button class="btn" id="bHero" hidden title="Martelo Sagrado da heroína (Q): dano e atordoamento em área, cura os minions próximos">⭐<span class="lb">Martelo</span><span class="cost">pronto</span></button>
+  <button class="btn" id="bHero_paladin" hidden title="Aurora: Martelo Sagrado (Q)">⭐<span class="lb">Martelo</span><span class="cost">pronto</span></button>
+  <button class="btn" id="bHero_archer" hidden title="Lyra: Chuva de Flechas (E)">🏹<span class="lb">Flechas</span><span class="cost">pronto</span></button>
+  <button class="btn" id="bHero_mage" hidden title="Orin: Nova de Gelo (T)">❄️<span class="lb">Nova</span><span class="cost">pronto</span></button>
   <button class="btn" id="bomb" title="Bombardeio: 25 material">💣<span class="lb">Bomba</span><span class="cost" id="bombCd">25</span></button>
   <button class="btn war" id="raidBtn" hidden title="Envia soldados e curandeiros contra a fortaleza inimiga">⚔️<span class="lb">Atacar</span></button>
   <button class="btn" id="recallBtn" hidden title="Chama a expedição de volta">🏳️<span class="lb">Recuar</span></button>

@@ -202,6 +202,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <button class="opt" id="auBtn"><i>✨</i><div><b>Upgrade</b><span>Troca o pior pelo melhor: blocos, armas e equipamentos</span></div><u></u></button>
   <button class="opt" id="asBtn"><i>💰</i><div><b>Venda</b><span>Vende equipamento sem uso e armas que não cabem</span></div><u></u></button>
   <button class="opt" id="arBtn"><i>🎁</i><div><b>Recompensa</b><span>Escolhe a recompensa mais rara a cada 5 hordas</span></div><u></u></button>
+  <div class="mh" style="margin-top:6px">Opções</div>
+  <button class="opt on" id="optShake"><i>📳</i><div><b>Tremor de tela</b><span>Câmera treme em explosões e chefes</span></div><u></u></button>
 </div>
 <div id="toasts"></div>
 <div id="labels"></div>
@@ -238,7 +240,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <button class="btn" id="bRealm" title="Mapa do reino (M)">🗺️<span class="lb">Reino</span></button>
   <button class="btn war" id="bMerch" hidden title="Mercador itinerante">🛒<span class="lb">Mercador</span></button>
   <span class="sep"></span>
-  <button class="btn" id="bHero" hidden title="Martelo Sagrado da heroína (Q): dano e atordoamento em área, cura os minions próximos">⭐<span class="lb">Martelo</span><span class="cost">pronto</span></button>
+  <button class="btn" id="bHero_paladin" hidden title="Aurora: Martelo Sagrado (Q)">⭐<span class="lb">Martelo</span><span class="cost">pronto</span></button>
+  <button class="btn" id="bHero_archer" hidden title="Lyra: Chuva de Flechas (E)">🏹<span class="lb">Flechas</span><span class="cost">pronto</span></button>
+  <button class="btn" id="bHero_mage" hidden title="Orin: Nova de Gelo (T)">❄️<span class="lb">Nova</span><span class="cost">pronto</span></button>
   <button class="btn" id="bomb" title="Bombardeio: 25 material">💣<span class="lb">Bomba</span><span class="cost" id="bombCd">25</span></button>
   <button class="btn war" id="raidBtn" hidden title="Envia soldados e curandeiros contra a fortaleza inimiga">⚔️<span class="lb">Atacar</span></button>
   <button class="btn" id="recallBtn" hidden title="Chama a expedição de volta">🏳️<span class="lb">Recuar</span></button>
@@ -322,6 +326,7 @@ const RARITY=[
 function rollRarity(b=0){const r=Math.random()+b;if(r>1.02)return 4;if(r>.965)return 3;if(r>.87)return 2;if(r>.66)return 1;return 0}
 const NAMES=['Bolota','Tijolo','Pipoca','Faísca','Migalha','Biscoito','Torresmo','Pudim','Cocada','Paçoca','Chiclete','Pirulito','Rabisco','Trovão','Tampinha','Bigode','Farofa','Quindim','Jujuba','Feijão','Pitoco','Zica','Brigadeiro','Caju','Moranga','Bacuri','Pequi','Graveto','Cascalho','Fuligem','Pamonha','Canjica','Mandioca','Tapioca','Sirigado','Xodó','Fubá','Gengibre','Dendê','Jabuti'];
 
+const OPTS=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_opts')||'{}')}catch(e){return{}}})();function saveOpts(){try{localStorage.setItem('fortrex_opts',JSON.stringify(OPTS))}catch(e){}}
 let simTime=0,shake=0,hitstop=0,gameSpeed=1,slowmo=0;const SPEEDS=[1,2,3,5];const MAX_MINIONS=60;
 function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:15,auto:false,
   focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,
@@ -696,9 +701,9 @@ function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)
     if(L.ring){const p=L.prio?1.3+Math.sin(L.t*8)*.25:1;L.ring.scale.set(p,p,p)}if(L.bm)L.bm.material.opacity=.14+Math.sin(L.t*3)*.08;
     if(L.kind==='treasure')L.main.rotation.y=Math.sin(L.t*1.5)*.3}}
 function lootPick(kind,r,big){const k=Math.random();
-  if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:4+r*4}]}}
+  if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:2+r*2}]}}
 function randBlockPack(r){let pool=(r>=3?[16,17,18,15,10,14,19,20,9,8]:r>=2?[16,17,18,15,10,14,19,9]:r>=1?[16,17,18,15,10,14]:[16,17,18,10]).filter(m=>isUnlocked('block',m));if(!pool.length)pool=[16,17,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
-function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
+function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon','catapult'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
 function openTreasure(L){removeLoot(L);const r=L.r;const n=2+Math.ceil(r*.7)+rint(0,1);
   for(let k=0;k<n;k++){const rr=k===0?r:Math.max(0,Math.min(r,rollRarity(r*.06+state.luck)));const [kind,data]=lootPick('any',rr);
     const it=spawnLoot(L.x,L.y+.6,L.z,kind,rr,data);if(it){const a=k/n*Math.PI*2;it.vx=Math.cos(a)*rnd(3,5);it.vz=Math.sin(a)*rnd(3,5);it.vy=rnd(6,9)}}
@@ -722,14 +727,16 @@ const TURRETS={
   flamer:{n:'Lança-chamas',ico:'🔥',range:11,reload:.1,dmg:3.4,hp:130,v:2,d:'Curto alcance, incendeia tudo à frente.'},
   mortar:{n:'Morteiro',ico:'🎇',range:48,minRange:7,reload:3.1,dmg:50,hp:120,v:3,d:'Tiro em arco que abre crateras. Não acerta Voadores.'},
   tesla:{n:'Torre Tesla',ico:'⚡',range:20,reload:1.5,dmg:22,hp:110,v:2,d:'Raio que salta entre 4 alvos; dobra na água.'},
+  catapult:{n:'Catapulta',ico:'🛢️',range:58,minRange:10,reload:5.2,dmg:95,hp:140,v:4,d:'Arremessa barris explosivos em arco: área enorme e fogo. Não acerta Voadores.'},
   frost:{n:'Canhão de gelo',ico:'❄️',range:28,reload:1.1,dmg:9,hp:120,v:2,d:'Congela Devoradores e transforma lava em obsidiana.'},
 };
-const turrets=[];
+const turrets=[];const LOB=t=>t==='mortar'||t==='catapult';const BARREL_MAT=new THREE.MeshLambertMaterial({color:0xc9413b,emissive:0x5a1a10});
 function turretAt(anchor){return turrets.find(t=>t.alive&&t.anchor===anchor)}
 function buildTurretModel(type,r,g,pivot){const dark=0x4a4866,mid=0x6d6a8a;
   if(type==='cannon'){box(.9,.35,.9,mid,0,.17,0,g);box(.38,.38,1.25,dark,0,.1,.45,pivot);box(.5,.5,.3,0x7d7a9e,0,.1,-.1,pivot)}
   else if(type==='ballista'){box(.8,.3,.8,0x8a6a45,0,.15,0,g);box(1.3,.1,.12,0xb5895a,0,.15,.25,pivot);box(.12,.12,1.1,0x6b5235,0,.12,.1,pivot);box(.06,.06,.9,0xdfe6f0,0,.22,.2,pivot)}
   else if(type==='flamer'){box(.8,.3,.8,mid,0,.15,0,g);const t=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.6,10),new THREE.MeshLambertMaterial({color:0xc9413b}));t.position.set(0,.25,-.1);t.castShadow=true;pivot.add(t);box(.18,.18,.8,0x3a3a4a,0,.2,.45,pivot)}
+  else if(type==='catapult'){box(1.1,.3,1.1,0x8a6a45,0,.15,0,g);for(const s of[-1,1])box(.12,.7,.12,0x6b5235,s*.4,.5,0,g);const arm=box(.12,.12,1.4,0xb5895a,0,.55,.1,pivot);arm.rotation.x=-.5;box(.4,.35,.4,0xc9413b,0,.95,-.45,pivot)}
   else if(type==='mortar'){box(1,.3,1,mid,0,.15,0,g);const b=box(.6,.6,.8,dark,0,.25,.1,pivot);b.rotation.x=-.8}
   else if(type==='tesla'){box(.7,.3,.7,0x5b6fae,0,.15,0,g);box(.3,1.1,.3,0x8ea9c6,0,.85,0,g);const s=new THREE.Mesh(new THREE.SphereGeometry(.3,10,10),lmat(0x9fe8ff,.8));s.position.y=1.55;g.add(s)}
   else if(type==='frost'){box(.8,.3,.8,0xbcd6e8,0,.15,0,g);box(.4,.4,1.1,0x9fd6f2,0,.12,.4,pivot);const c=new THREE.Mesh(new THREE.OctahedronGeometry(.22,0),lmat(0xd8f3ff,.6));c.position.set(0,.45,0);pivot.add(c)}
@@ -753,8 +760,8 @@ function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRiva
   const range=turretRange(t),dmg=t.T.dmg*(1+t.r*.25)*state.dmgMul*(man?1+g.rarity*.1:1);
   t.reload-=dt*rate;
   let tgt=null,bd=1e9;
-  if(state.focus&&!state.focus.dead&&state.focusT>0){const d=hd(state.focus.pos,t.pos);if(d<range*1.3&&!(t.type==='mortar'&&state.focus.fly))tgt=state.focus}
-  if(!tgt)for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard'&&hd(e.pos,t.pos)>range*.8))continue;if(t.type==='mortar'&&(e.fly||hd(e.pos,t.pos)<t.T.minRange))continue;let d=hd(e.pos,t.pos);if(d>range)continue;
+  if(state.focus&&!state.focus.dead&&state.focusT>0){const d=hd(state.focus.pos,t.pos);if(d<range*1.3&&!(LOB(t.type)&&state.focus.fly))tgt=state.focus}
+  if(!tgt)for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard'&&hd(e.pos,t.pos)>range*.8))continue;if(LOB(t.type)&&(e.fly||hd(e.pos,t.pos)<t.T.minRange))continue;let d=hd(e.pos,t.pos);if(d>range)continue;
     if(t.type==='ballista'&&e.fly)d-=10;if(e.type==='shaman')d-=4;if(e.type==='sapper')d-=3;if(d<bd){bd=d;tgt=e}}
   if(!tgt)return;const aim=enemyAim(tgt);const dx=aim.x-t.pos.x,dz=aim.z-t.pos.z;t.yaw=Math.atan2(dx,dz);
   let dy=t.yaw-t.group.rotation.y;while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;t.group.rotation.y+=dy*Math.min(1,dt*7);
@@ -765,7 +772,7 @@ function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRiva
     if(Math.random()<.15){const s=rnd(2,range);const x=Math.floor(t.pos.x+fx*s),z=Math.floor(t.pos.z+fz*s);for(let y=GY-1;y<GY+5;y++)if(inb(x,y,z))ignite(idx(x,y,z),'player')}SFX.whoosh();return}
   if(t.type==='tesla'){const hit=[tgt];let cur=tgt;const n=4+Math.floor(t.r/2);for(let k=1;k<n;k++){let nx=null,nd=8;for(const e of enemies){if(e.dead||hit.includes(e))continue;const d=hd(e.pos,cur.pos);if(d<nd||(cur.inWater&&e.inWater&&d<13)){nd=d;nx=e}}if(!nx)break;hit.push(nx);cur=nx}
     let a=new THREE.Vector3(t.pos.x,t.pos.y+1.55*US,t.pos.z),m=1;for(const e of hit){const b=enemyAim(e);beam(a,b);hurtEnemy(e,dmg*m*(e.inWater?2:1),b);if(e.dead&&g)gainXP(g,3);e.stun=Math.max(e.stun,.35);a=b;m*=.85}SFX.zap();return}
-  if(t.type==='mortar'){const T=clamp(Math.hypot(dx,dz)/15,1.1,2.8);const gr=20;const vel=new THREE.Vector3(dx/T,(aim.y-from.y+.5*gr*T*T)/T,dz/T);shoot(from,vel,gr,dmg,'shell',t);SFX.thud();return}
+  if(LOB(t.type)){const cat=t.type==='catapult';const T=clamp(Math.hypot(dx,dz)/(cat?17:15),1.1,cat?3.4:2.8);const gr=20;const vel=new THREE.Vector3(dx/T,(aim.y-from.y+.5*gr*T*T)/T,dz/T);shoot(from,vel,gr,dmg,'shell',t);if(cat){const P=projectiles[projectiles.length-1];P.cat=true;P.mesh.material=BARREL_MAT;P.mesh.scale.setScalar(1.9)}SFX.thud();return}
   const sp=t.type==='ballista'?52:t.type==='frost'?32:34,gr=t.type==='ballista'?2:t.type==='frost'?5:6;const dist=from.distanceTo(aim);const lead=aim.clone().addScaledVector(tgt.vel,dist/sp);lead.y+=gr*(dist/sp)*(dist/sp)*.5;
   const vel=lead.sub(from).normalize().multiplyScalar(sp);shoot(from,vel,gr,dmg,t.type==='ballista'?'bolt':t.type==='frost'?'ice':'ball',t);
   if(t.type==='cannon'){t.pivot.rotation.x=-.5;SFX.boom(false);shake=Math.max(shake,.12)}else if(t.type==='ballista')SFX.twang();else SFX.freeze()}
@@ -794,7 +801,7 @@ function updateProjectiles(dt){for(let i=projectiles.length-1;i>=0;i--){const p=
       if(pos.y<-2||p.life<=0||pos.x<-4||pos.z<-4||pos.x>W+4||pos.z>D+4)done=true}
     if(done){scene.remove(p.mesh);projectiles.splice(i,1)}}}
 function impact(p,pos,e,cell){const fire=state.greek>0;if(e)setTimeout(()=>{},0);const credit=()=>{if(e&&e.dead&&p.t&&p.t.gunner)gainXP(p.t.gunner,4+e.maxhp/15)};
-  if(p.kind==='shell'){explode(pos.x,pos.y,pos.z,3+state.explosive*.35+p.r*.2,p.dmg,{src:'player',fire});return}
+  if(p.kind==='shell'){explode(pos.x,pos.y,pos.z,3+state.explosive*.35+p.r*.2+(p.cat?1.9:0),p.dmg,{src:'player',fire:fire||p.cat});if(p.cat)shake=Math.max(shake,.4);return}
   if(p.kind==='ice'){if(e){hurtEnemy(e,p.dmg*(e.type==='titan'?2.5:1),pos);e.slowT=Math.max(e.slowT,3+p.r*.5)}freezeAround(pos.x,pos.y,pos.z,2.2+p.r*.25);for(const o of enemies){if(o.dead||o===e)continue;if(o.pos.distanceTo(pos)<2.6)o.slowT=Math.max(o.slowT,1.5)}spawnDebris(pos.x,pos.y,pos.z,0xd8f3ff,4,.2);return}
   if(e){hurtEnemy(e,p.dmg,pos);credit();if(fire&&!e.fly&&Math.random()<.35*state.greek)e.afire=Math.max(e.afire,3);
     if(p.kind==='ball'){for(const o of enemies){if(o.dead||o===e)continue;if(o.pos.distanceTo(pos)<2.4)hurtEnemy(o,p.dmg*.45,pos)}spawnDebris(pos.x,pos.y,pos.z,0xff8a5c,4,.25)}}
@@ -900,7 +907,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
   if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22})[t]??2)*.4+r*.5))});
-  const luck=state.wave*.004+r*.04+state.luck+(state.ev==='golden'?.1:0);
+  const luck=state.wave*.004+r*.04+state.luck+(state.ev==='golden'||state.ev==='eclipse'?.1:0);
   const P=({crawler:.11,ram:.24,climber:.14,sapper:.12,flyer:.16,shaman:.45,boss:1,colossus:1,queen:1,titan:1,knight:.3,archer:.25,rammer:.35,general:1,golem:1,wyrm:1,necro:1})[t]??.15;
   const n=t==='titan'?7:t==='queen'||t==='colossus'?5:t==='boss'?3:1;for(let k=0;k<n;k++)if(Math.random()<P*(big?1:.4)){const rr=Math.max(Math.min(r,3),rollRarity(luck+(big?.15:0)));const [kind,data]=lootPick('any',rr);at(kind,rr,data)}
   if(Math.random()<(big?.7:r>=2?.18:.035))at('recruit',Math.max(1,rollRarity(luck)),{role:pick(['rep','col','gun','sol','med','sol'])});
@@ -919,7 +926,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
   if(e.afire>0){e.afire-=dt;if(e.inWater||e.type==='titan')e.afire=0;dmgEnemy(e,5*dt,false);if(Math.random()<dt*10)spawnFlame(e.pos.x+rnd(-.4,.4),e.group.position.y+rnd(.3,1.2)*e.sc,e.pos.z+rnd(-.4,.4),.6);if(e.dead)return}
   e.iceT-=dt;if(e.iceT<=0&&!e.fly){e.iceT=.3;const y0=Math.floor(e.gy+.05);for(const [dx,dz] of NB4){for(let y=y0;y<y0+2;y++){const x=fx+dx,z=fz+dz;if(inb(x,y,z)&&vox[idx(x,y,z)]===18){e.slowT=Math.max(e.slowT,.8)}}}}
   if(e.slowT>0){e.slowT-=dt;if(Math.random()<dt*4)spawnFlame(e.pos.x+rnd(-.4,.4),e.group.position.y+.8,e.pos.z+rnd(-.4,.4),.4,true)}
-  const sf=(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1);e.timer-=dt*(e.slowT>0?.5:1);
+  const sf=(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1)*(state.ev==='blizzard'?.7:1);e.timer-=dt*(e.slowT>0?.5:1);
   if(e.stun>0){e.stun-=dt;e.vel.set(0,0,0);e.group.rotation.z=Math.sin(e.stun*9)*.12;if(e.stun<=0)e.group.rotation.z=0;return}
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
   if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}
@@ -1005,7 +1012,7 @@ function cellBusy(i){const x=ix(i),y=iy(i),z=iz(i);for(const m of minions)if(Mat
   for(const e of enemies)if(!e.dead&&!e.fly&&Math.abs(e.pos.x-x-.5)<e.radius+.5&&Math.abs(e.pos.z-z-.5)<e.radius+.5&&Math.abs(e.gy-y)<1.8)return true;for(const L of loot)if(!L.carried&&Math.floor(L.x)===x&&Math.floor(L.z)===z&&Math.abs(L.y-y-.5)<1)return false;return false}
 function findRepairTask(m){let best=null,bs=1e9;const mx=m.pos.x,mz=m.pos.z;
   for(const i of blueList){const b=blue[i];if(!b||vox[i]===b)continue;if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;
-    const cost=state.prepaid.has(i)?0:(MAT[b].cost||1);if(state.material<cost)continue;
+    const cost=0;
     let ti=i,kind='build';if(!supported(i)){if(iy(i)>GY+1)continue;const x=ix(i),z=iz(i);let y=1;while(y<iy(i)&&vox[idx(x,y,z)]&&!FLUID(vox[idx(x,y,z)]))y++;if(y>=iy(i))continue;ti=idx(x,y,z);kind='fill';if((m.skip.get(ti)||0)>simTime)continue}
     const s=(b===5?-80:0)+(iy(i)-GY)*4+Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:kind,i:ti}}}
   for(const t of turrets){if(!t.alive||t.hp>=t.maxhp*.85||t.team==='r')continue;const cl=t.fixer;if(cl&&cl!==m)continue;const s=hd(t.pos,m.pos)-6;if(s<bs){bs=s;best={k:'turret',t}}}
@@ -1035,8 +1042,8 @@ function updRep(m,dt){
     else progress(m,d,dt,()=>{if(T.i!==undefined)m.skip.set(T.i,simTime+12);if(T.t)T.t.fixer=null;releaseTask(m)});return}
   m.group.position.y=standY(m.pos.x,m.pos.z)+Math.abs(Math.sin(m.timer*25))*.08;
   if(m.timer>0)return;
-  if(T.k==='fill'){const i=T.i;if(!cellBusy(i)&&state.material>=1){state.material-=1;setVox(i,iy(i)===GY-1?13:12);settleDirty=true;SFX.build();spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[12].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';return}
-  if(T.k==='build'){const i=T.i,b=blue[i];const cost=state.prepaid.has(i)?0:(MAT[b].cost||1);if(!cellBusy(i)&&state.material>=cost&&supported(i)){state.material-=cost;state.prepaid.delete(i);setVox(i,b);settleDirty=true;SFX.build();gainXP(m,1);spawnDebris(ix(i)+.5,y+.5,iz(i)+.5,MAT[b].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';
+  if(T.k==='fill'){const i=T.i;if(!cellBusy(i)){setVox(i,iy(i)===GY-1?13:12);settleDirty=true;SFX.build();spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[12].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';return}
+  if(T.k==='build'){const i=T.i,b=blue[i];const cost=0;if(!cellBusy(i)&&state.material>=cost&&supported(i)){state.material-=cost;state.prepaid.delete(i);setVox(i,b);settleDirty=true;SFX.build();gainXP(m,1);spawnDebris(ix(i)+.5,y+.5,iz(i)+.5,MAT[b].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';
     // keep building nearby blocks without going idle
     const nx=findRepairTask(m);if(nx&&(nx.i===undefined||Math.hypot(ix(nx.i)+.5-m.pos.x,iz(nx.i)+.5-m.pos.z)<3.2)){m.task=nx;m.state='work';m.timer=.5/(m.work*state.repMul)}else if(nx){m.task=nx;m.state='go';m.bestD=1e9}return}
   if(T.k==='fix'){const i=T.i;if(vox[i]){hp[i]=Math.min(maxHpOf(vox[i]),hp[i]+maxHpOf(vox[i])*.5);if(hp[i]>=maxHpOf(vox[i]))damaged.delete(i);paint(i);SFX.pop()}releaseTask(m);m.state='idle';return}
@@ -1369,7 +1376,7 @@ function acceptPoi(P){if(state.quest){toast('Termine o objetivo atual primeiro',
   state.quest={P,units,last:{x,z}};REALM.pois.splice(REALM.pois.indexOf(P),1);rlog(`Fortrex aceita: ${P.name}`,'r2');cam.target.set((x+CX)/2,GY+1.5,(z+CZ)/2);return true}
 function questTick(dt){const q=state.quest;if(!q)return;if(q.P.kind==='meteor'){state.starfall-=dt;meteorTick(dt);if(state.starfall>0)return;q.last={x:CHEST.x+rnd(-12,12),z:CHEST.z+rnd(14,20)}}let alive=0;for(const e of q.units){if(!e.dead){alive++;q.last={x:e.pos.x,z:e.pos.z}}}if(alive)return;state.quest=null;const P=q.P,L=q.last;
   const nt=P.kind==='ruins'?3:P.kind==='boss'||P.kind==='elite'?2:1;for(let k=0;k<nt;k++)spawnLoot(L.x+rnd(-1.5,1.5),GY+2,L.z+rnd(-1.5,1.5),'treasure',Math.min(4,(P.kind==='boss'?2:1)+Math.floor(P.lvl/3)+(k===0?1:0)),{});
-  const g=(P.kind==='boss'?20:P.kind==='skirmish'||P.kind==='blitz'?12:P.kind==='elite'?18:8)*P.lvl;spawnLoot(L.x,GY+2,L.z,'material',0,{amount:g});state.conquests=(state.conquests||0)+(P.kind==='boss'?1:0);
+  const g=(P.kind==='boss'?10:P.kind==='skirmish'||P.kind==='blitz'?6:P.kind==='elite'?9:4)*P.lvl;spawnLoot(L.x,GY+2,L.z,'material',0,{amount:g});state.conquests=(state.conquests||0)+(P.kind==='boss'?1:0);
   addFame((P.kind==='boss'?15:10)*P.lvl);goalEvent('poi');
   toast(`${POI_KINDS[P.kind].ico} ${P.name} concluído! Tesouro no campo.`,'r4');rlog(`Fortrex venceu ${P.name}`,'r4');slowmo=Math.max(slowmo,.8)}
 function poiTick(dt){REALM.poiT=(REALM.poiT??50)-dt;if(REALM.poiT<=0){REALM.poiT=rnd(40,70);if(REALM.pois.length<6)spawnPoi()}for(let i=REALM.pois.length-1;i>=0;i--){const P=REALM.pois[i];P.ttl-=dt;if(P.ttl<=0){REALM.pois.splice(i,1);if(REALM.sel===P)REALM.sel=null}}questTick(dt)}
@@ -1457,7 +1464,7 @@ function renderRealmInfo(){const el=$('realmInfo');if(!el)return;const c=REALM.s
   if(state.quest)h+=`<div class="ds">🎯 Objetivo ativo: <b>${state.quest.P.name}</b> (${state.quest.units.filter(e=>!e.dead).length} inimigos restantes)</div>`;
   const A=REALM.selA;if(A&&REALM.armies.includes(A)){const eta=Math.hypot(A.to.x-A.x,A.to.y-A.y)/A.speed;const n=Math.round(A.power/3);h+=`<div class="rc"><b style="color:${hex(A.fac.color)}">⚔️ Exército de ${A.from.name}</b><div class="ds">Rumo a ${A.to.home?'<b>Fortrex (você!)</b>':A.to.name} · força ${Math.round(A.power)} · ~${n} guerreiros · chega em ${Math.ceil(eta)} s</div>`;
     if(A.to.home){const o=battleOdds(A.from.lvl);h+=`<div class="ds">Se chegar, ergue uma fortaleza de cerco ao lado da sua.</div>${oddsHtml(o,'Chance de defender')}`}else h+=`<div class="ds">Defesa do alvo: ${Math.round(cityDef(A.to))} → ${A.power>cityDef(A.to)?'provável conquista':'provável derrota'}</div>`;h+='</div>'}
-  if(Q){const K=POI_KINDS[Q.kind];const o=questOdds(Q);h+=`<div class="rc"><b>${K.ico} ${Q.name}</b><div class="ds">Nível ${Q.lvl} · ${Q.kind==='boss'?`chefe: ${ETYPES[bossFor(Q.lvl)].n} nv ${Q.lvl}`:Q.kind==='meteor'?'45 s de meteoros':`${Q.n} inimigos`} · some em ${Math.ceil(Q.ttl)} s</div><div class="ds">${K.d}</div><div class="ds">Recompensa: ${Q.kind==='ruins'?3:Q.kind==='boss'||Q.kind==='elite'?2:1} tesouro(s) + ${(Q.kind==='boss'?20:Q.kind==='skirmish'||Q.kind==='blitz'?12:Q.kind==='elite'?18:8)*Q.lvl} material</div>${oddsHtml(o)}
+  if(Q){const K=POI_KINDS[Q.kind];const o=questOdds(Q);h+=`<div class="rc"><b>${K.ico} ${Q.name}</b><div class="ds">Nível ${Q.lvl} · ${Q.kind==='boss'?`chefe: ${ETYPES[bossFor(Q.lvl)].n} nv ${Q.lvl}`:Q.kind==='meteor'?'45 s de meteoros':`${Q.n} inimigos`} · some em ${Math.ceil(Q.ttl)} s</div><div class="ds">${K.d}</div><div class="ds">Recompensa: ${Q.kind==='ruins'?3:Q.kind==='boss'||Q.kind==='elite'?2:1} tesouro(s) + ${(Q.kind==='boss'?10:Q.kind==='skirmish'||Q.kind==='blitz'?6:Q.kind==='elite'?9:4)*Q.lvl} material</div>${oddsHtml(o)}
     ${state.quest?'<div class="ds">Termine o objetivo atual primeiro.</div>':REALM.confirm===Q?`<button class="btn primary" id="realmGo">✅ Confirmar (${pctS(o.p)})</button><button class="btn" id="realmNo">Cancelar</button>`:`<button class="btn primary" id="realmAsk">Aceitar desafio</button>`}</div>`}
   if(c){const f=facOf(c);const war=battle();h+=`<div class="rc"><b style="color:${hex(f.color)}">${c.home?'👑 ':''}${c.name}</b><div class="ds">Nível ${c.lvl} · guarnição ${Math.round(c.garrison)} · império ${f.isMe?'seu':f.name} (${REALM.cities.filter(o=>o.fac===c.fac).length} cidades)</div>`;
     if(!f.isMe){const o=battleOdds(c.lvl);h+=`<div class="ds">Batalha definitiva: fortaleza contra fortaleza. Inimigo: ~${Math.round(4+c.lvl*2)} guardas, ${Math.min(8,3+c.lvl)} torres e o General. Você: ataque ${o.F.atk.toFixed(0)} + defesa ${o.F.def.toFixed(0)}.</div>${oddsHtml(o)}`;
@@ -1516,7 +1523,7 @@ function updateHud(){$('wave').textContent=state.wave;$('mat').textContent=Math.
   $('next').disabled=state.phase!=='rest'||state.choosing;$('auto').classList.toggle('on',state.auto);
   $('focusCd').textContent=state.focusCd>0?Math.ceil(state.focusCd)+'s':'pronto';$('focus').classList.toggle('on',state.focusT>0);
   $('bombCd').textContent=state.bombCd>0?Math.ceil(state.bombCd)+'s':'25';$('bomb').classList.toggle('armed',state.bombMode);
-  $('arsN').textContent=state.newItems?String(state.newItems):'';$('arsN').hidden=!state.newItems;
+  $('arsN').textContent=state.newItems?(state.newItems>99?'99+':String(state.newItems)):'';$('arsN').hidden=!state.newItems;
   $('bBuild').classList.toggle('on',state.build.on);$('abBtn').classList.toggle('on',state.autoBuild);$('auBtn').classList.toggle('on',state.autoUp);$('asBtn').classList.toggle('on',!!state.autoSell);$('arBtn').classList.toggle('on',!!state.autoReward);$('autoN').textContent=`${[state.autoBuild,state.autoUp,state.autoSell,state.autoReward].filter(Boolean).length}/4`;{const B=battle();$('raidBtn').hidden=!B;$('recallBtn').hidden=!minions.some(m=>m.raid)}
   {const rp=raidPower();const c=$('rivalChip');if(rp){const w=rp.us/(rp.us+rp.them+.01);c.textContent=`⚔️ ${rp.R.name}: ${rp.us.toFixed(0)} vs ${rp.them.toFixed(0)} · núcleo ${rp.core}/8 · ${w>.6?'vantagem':w>.4?'equilibrado':'perigo!'}`;c.style.color=w>.6?'#2f9a5e':w>.4?'#c99a1a':'#d9414f'}else{c.style.color='';const B=battle();const inc=REALM.armies.filter(A=>A.to.home).length;c.textContent=B?`⚔️ Guerra: ${B.name} nv ${B.lvl} · núcleo ${B.core.filter(i=>vox[i]===21).length}/8`:`🗺️ ${REALM.cities.length} fortalezas${inc?` · ⚠️ ${inc} exército${inc>1?'s':''} vindo`:''}`;if(!B&&inc)c.style.color='#d9414f'}}
   if(state.card)renderCard()}
@@ -1680,7 +1687,7 @@ function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}
   else if(u.turret){const t=u.turret;showTip(cx,cy,`${t.T.n} ${RARITY[t.r].n}`,t.gunner?'Operada':'Sem artilheiro')}}
 
 // ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
-const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,frost:10},role:{rep:1,col:1,gun:1,sol:1,med:3},
+const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,frost:10,catapult:12},role:{rep:1,col:1,gun:1,sol:1,med:3},
   block:{16:1,17:1,10:1,18:4,15:5,9:7,8:7,14:9,19:10,20:14},
   up:{platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
 function unlockWave(kind,k){return(UNLOCK[kind]&&UNLOCK[kind][k])||1}
@@ -1688,7 +1695,7 @@ function isUnlocked(kind,k){return state.wave>=unlockWave(kind,k)}
 function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)if(UNLOCK.turret[k]===w)got.push(TURRETS[k].ico+' '+TURRETS[k].n);for(const k in UNLOCK.role)if(UNLOCK.role[k]===w)got.push(ROLES[k].ico+' '+ROLES[k].n);
   for(const k in UNLOCK.block)if(UNLOCK.block[k]===w)got.push(MAT[k].n);for(const k in UNLOCK.up)if(UNLOCK.up[k]===w){const U=UPGRADES.find(u=>u.id===k);if(U)got.push(U.ico+' '+U.nm)}
   if(w%8===0)got.push('+1 vaga de arma');if(got.length)toast(`🔓 Horda ${w}: ${got.join(', ')}`,'r4')}
-function turretCap(){return 6+2*(state.ups.platform||0)+Math.floor(state.wave/8)}
+function turretCap(){return 6+2*(state.ups.platform||0)+Math.floor(state.wave/8)+((state.expStage||0)>=3?4:0)}
 function turretCount(){return turrets.filter(t=>t.alive&&t.team!=='r').length}
 function canInstall(){if(turretCount()<turretCap())return true;toast(`Limite de ${turretCap()} armas. Compre 🧱 Plataformas de armas nos Upgrades.`,'r0');return false}
 const ROLE_BASE={rep:6,col:7,gun:4,sol:6,med:2};
@@ -1701,8 +1708,8 @@ function postPos(p){switch(p){case'norte':return{x:CX,z:WA-7};case'leste':return
 function postDist(m,x,z){if(!m.post||m.post==='auto')return 0;const p=postPos(m.post);return Math.hypot(x-p.x,z-p.z)}
 // auto-sell: equipment nobody would upgrade to, and spare weapons that do not fit the walls
 function autoSellTick(dt){if(!state.autoSell)return;state.sellT=(state.sellT||0)-dt;if(state.sellT>0)return;state.sellT=4;let g=0,n=0;const A=state.inv.armory;
-  for(const it of A.slice()){const useful=minions.some(m=>itemScore(it,m.role)>itemScore(m.eq[it.slot],m.role)+.02);if(!useful&&it.r<=2){A.splice(A.indexOf(it),1);g+=Math.ceil(sellValue(it)*.25);n++}}
-  const T=state.inv.turrets;const keep=Math.max(0,turretCap()-turretCount())+2;if(T.length>keep){T.sort((a,b)=>TURRETS[b.type].v+b.r-(TURRETS[a.type].v+a.r));for(const t of T.splice(keep)){g+=2+t.r*t.r*2;n++}}
+  for(const it of A.slice()){const useful=minions.some(m=>itemScore(it,m.role)>itemScore(m.eq[it.slot],m.role)+.02);if(!useful&&it.r<=2){A.splice(A.indexOf(it),1);g+=Math.ceil(sellValue(it)*.12);n++}}
+  const T=state.inv.turrets;const keep=Math.max(0,turretCap()-turretCount())+2;if(T.length>keep){T.sort((a,b)=>TURRETS[b.type].v+b.r-(TURRETS[a.type].v+a.r));for(const t of T.splice(keep)){g+=1+t.r*t.r;n++}}
   if(n){state.material+=g;label({x:CHEST.x,y:GY+3,z:CHEST.z},`💰 +${g}`,'#c99a1a');SFX.coin();refreshPanels()}}
 const UPGRADES_EXTRA=[
   {id:'platform',ico:'🧱',nm:'Plataformas de armas',ds:'+2 armas instaladas na fortaleza.',max:6,cost:l=>70+l*70,go(){}},
@@ -1726,17 +1733,45 @@ const RELICS={boss:{ico:'🦷',n:'Dente do Devorador',d:'+8% de dano das armas',
   necro:{ico:'📕',n:'Tomo do Necromante',d:'Feridos voltam 30% mais rápido',go(){state.healMul*=1.3}},
   queen:{ico:'👑',n:'Coroa da Rainha',d:'Drops mais raros',go(){state.luck+=.03}},
   titan:{ico:'🌋',n:'Núcleo de Lava',d:'+5% de chance de crítico',go(){state.critBonus+=.05}}};
-function grantRelic(t){const R=RELICS[t];if(!R)return;state.relics=state.relics||{};state.relics[t]=(state.relics[t]||0)+1;R.go();toast(`${R.ico} Relíquia: ${R.n} — ${R.d}`,'r4');renderGoals();if(!state.hero)spawnHero()}
+function grantRelic(t){const R=RELICS[t];if(!R)return;state.relics=state.relics||{};state.relics[t]=(state.relics[t]||0)+1;R.go();toast(`${R.ico} Relíquia: ${R.n} — ${R.d}`,'r4');renderGoals();checkHeroes()}
 function relicsHtml(){const r=state.relics||{};const k=Object.keys(r);if(!k.length)return'';return`<div class="rel">${k.map(t=>`<span title="${RELICS[t].n}: ${RELICS[t].d}">${RELICS[t].ico}${r[t]>1?`<sub>×${r[t]}</sub>`:''}</span>`).join('')}</div>`}
-// ───────── the hero: a unique legendary paladin who joins after the first boss; active ability on a cooldown
-function spawnHero(){const m=makeMinion('sol',4,GATE.x,GATE.z+2);m.hero=true;m.name='Aurora, a Paladina';m.group.scale.setScalar(1.35);m.maxhp*=2.5;m.hp=m.maxhp;state.hero=m;state.heroCd=0;
-  const halo=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,16),new THREE.MeshBasicMaterial({color:0xffcf3d}));halo.rotation.x=Math.PI/2;halo.position.y=2.35;m.group.add(halo);
-  $('bHero').hidden=false;toast('⭐ Aurora, a Paladina, se junta a você! Use ⭐ Martelo Sagrado (tecla Q).','r4')}
-function heroAbility(){const m=state.hero;if(!m||!minions.includes(m)){toast('A heroína não está entre nós','r0');return}if(m.wounded>0){toast('Aurora está ferida','r0');return}if(state.heroCd>0){toast(`Martelo Sagrado em ${Math.ceil(state.heroCd)} s`,'r0');return}
-  state.heroCd=40;const r=7,dmg=120+state.wave*8;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r&&!e.fly){dmgEnemy(e,dmg*(1-d/r*.5),true,true);e.stun=Math.max(e.stun||0,2)}}
-  for(const o of minions){if(Math.hypot(o.pos.x-m.pos.x,o.pos.z-m.pos.z)<r){if(o.wounded>0)o.wounded=Math.min(o.wounded,1);else o.hp=o.maxhp}}
-  for(let k=0;k<40;k++){const a=k/40*Math.PI*2;spawnDebris(m.pos.x+Math.cos(a)*r*.8,m.group.position.y+.5,m.pos.z+Math.sin(a)*r*.8,0xffcf3d,1,.3)}shake=Math.max(shake,.7);slowmo=Math.max(slowmo,.5);SFX.open();label({x:m.pos.x,y:m.group.position.y+3,z:m.pos.z},'⭐ Martelo Sagrado!','#e0a000')}
-function heroTick(dt){if(state.heroCd>0)state.heroCd-=dt;const b=$('bHero');if(!b||b.hidden)return;const m=state.hero;if(!m||!minions.includes(m)){b.hidden=true;state.hero=null;return}b.querySelector('.cost').textContent=m.wounded>0?'ferida':state.heroCd>0?Math.ceil(state.heroCd)+'s':'pronto';b.classList.toggle('on',state.heroCd<=0&&!(m.wounded>0))}
+// ───────── heroes: unique legendaries who join as you collect relics (1, 3 and 5), each with an active ability
+const HEROES=[
+  {id:'paladin',name:'Aurora, a Paladina',ico:'⭐',ab:'Martelo Sagrado',key:'Q',cd:40,col:0xffcf3d,need:1,d:'dano e atordoamento em área, cura minions próximos'},
+  {id:'archer',name:'Lyra, a Arqueira',ico:'🏹',ab:'Chuva de Flechas',key:'E',cd:32,col:0x5cc08c,need:3,d:'três rajadas no maior grupo de inimigos ao alcance'},
+  {id:'mage',name:'Orin, o Mago do Gelo',ico:'❄️',ab:'Nova de Gelo',key:'T',cd:45,col:0x8fe3ff,need:5,d:'congela e fere tudo ao redor, transforma lava em obsidiana'}];
+function relicCount(){return Object.values(state.relics||{}).reduce((a,b)=>a+b,0)}
+function spawnHero(H){const m=makeMinion('sol',4,GATE.x+rnd(-1,1),GATE.z+2);m.hero=H.id;m.name=H.name;m.group.scale.setScalar(1.35);m.maxhp*=2.5;m.hp=m.maxhp;
+  const halo=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,16),new THREE.MeshBasicMaterial({color:H.col}));halo.rotation.x=Math.PI/2;halo.position.y=2.35;m.group.add(halo);
+  state.heroes=state.heroes||{};state.heroes[H.id]={m,cd:0};const b=$('bHero_'+H.id);if(b)b.hidden=false;toast(`${H.ico} ${H.name} se junta a você! ${H.ab} (tecla ${H.key}): ${H.d}.`,'r4')}
+function checkHeroes(){const n=relicCount();for(const H of HEROES)if(n>=H.need&&!(state.heroes&&state.heroes[H.id]))spawnHero(H)}
+function heroAbility(id){const H=HEROES.find(h=>h.id===id);const S=state.heroes&&state.heroes[id];if(!H||!S||!minions.includes(S.m)){toast('Este herói ainda não chegou','r0');return}const m=S.m;
+  if(m.wounded>0){toast(`${H.name.split(',')[0]} está ferido(a)`,'r0');return}if(S.cd>0){toast(`${H.ab} em ${Math.ceil(S.cd)} s`,'r0');return}S.cd=H.cd;const w=state.wave;
+  if(id==='paladin'){const r=7,dmg=120+w*8;for(const e of enemies){if(e.dead||e.fly)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r){dmgEnemy(e,dmg*(1-d/r*.5),true,true);e.stun=Math.max(e.stun||0,2)}}
+    for(const o of minions){if(Math.hypot(o.pos.x-m.pos.x,o.pos.z-m.pos.z)<r){if(o.wounded>0)o.wounded=Math.min(o.wounded,1);else o.hp=o.maxhp}}ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,r,0xffcf3d)}
+  if(id==='archer'){let best=null,bn=0;for(const e of enemies){if(e.dead||Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z)>45)continue;let n=0;for(const o of enemies)if(!o.dead&&Math.abs(o.pos.x-e.pos.x)<6&&Math.abs(o.pos.z-e.pos.z)<6)n++;if(n>bn){bn=n;best=e}}
+    if(!best){S.cd=2;toast('Nenhum inimigo ao alcance','r0');return}const x=best.pos.x,z=best.pos.z;for(let k=0;k<3;k++)state.volleys.push({x,z,t:.35+k*.45,dmg:70+w*6})}
+  if(id==='mage'){const r=10;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r){dmgEnemy(e,(60+w*5)*(e.type==='titan'?2.5:1),true);e.slowT=Math.max(e.slowT,6);e.stun=Math.max(e.stun||0,1)}}freezeAround(m.pos.x,GY,m.pos.z,4);ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,r,0x8fe3ff);SFX.freeze()}
+  shake=Math.max(shake,.7);slowmo=Math.max(slowmo,.4);SFX.open();label({x:m.pos.x,y:m.group.position.y+3,z:m.pos.z},`${H.ico} ${H.ab}!`,'#e0a000')}
+function ringFx(x,y,z,r,c){for(let k=0;k<40;k++){const a=k/40*Math.PI*2;spawnDebris(x+Math.cos(a)*r*.8,y,z+Math.sin(a)*r*.8,c,1,.3)}}
+function heroTick(dt){state.volleys=state.volleys||[];for(let i=state.volleys.length-1;i>=0;i--){const V=state.volleys[i];V.t-=dt;if(V.t>0)continue;state.volleys.splice(i,1);
+    for(let k=0;k<26;k++)spawnDebris(V.x+rnd(-5,5),GY+rnd(3,9),V.z+rnd(-5,5),0x8a6a45,1,.18);for(const e of enemies)if(!e.dead&&Math.abs(e.pos.x-V.x)<6&&Math.abs(e.pos.z-V.z)<6)dmgEnemy(e,V.dmg,true);SFX.twang()}
+  checkHeroes();for(const H of HEROES){const S=state.heroes&&state.heroes[H.id];const b=$('bHero_'+H.id);if(!b)continue;if(!S){b.hidden=true;continue}if(S.cd>0)S.cd-=dt;if(!minions.includes(S.m)){b.hidden=true;continue}b.hidden=false;
+    b.querySelector('.cost').textContent=S.m.wounded>0?'ferido':S.cd>0?Math.ceil(S.cd)+'s':'pronto';b.classList.toggle('on',S.cd<=0&&!(S.m.wounded>0))}}
+
+// ───────── the citadel grows by itself: a new outer ring, bastions and a moat are drawn into the blueprint as waves go by.
+// Building is free (repairers' labour is the only limit); after each wave everything mends itself.
+const EXP_STAGES=[{w:3,n:'Paliçada de madeira'},{w:6,n:'Muralha externa de pedra'},{w:9,n:'Quatro bastiões com plataformas de armas'},{w:12,n:'Reforço de metal e portão externo'},{w:15,n:'Fosso de água'}];
+function ringCells(R,f){for(let x=CX-R;x<=CX+R;x++)for(let z=CZ-R;z<=CZ+R;z++){const edge=Math.max(Math.abs(x-CX),Math.abs(z-CZ));if(edge<R-1||edge>R)continue;f(x,z)}}
+function clearFor(i){if(vox[i]&&!blue[i]&&!rown[i]&&vox[i]!==5){removeVox(i,'dig')}if(natBlue)natBlue[i]=0}
+function expansionTick(){const st=state.expStage||0;if(st>=EXP_STAGES.length||state.wave<EXP_STAGES[st].w)return;state.expStage=st+1;const R=WR+8,gap=(x,z)=>z>CZ&&Math.abs(x-CX+.5)<2.6;
+  const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);if(blue[i]===5)return;clearFor(i);placeBlue(i,m)};
+  if(st===0)ringCells(R,(x,z)=>{if(gap(x,z))return;for(let y=0;y<3;y++)put(x,GY+y,z,2)});
+  if(st===1)ringCells(R,(x,z)=>{if(gap(x,z))return;for(let y=0;y<5;y++)put(x,GY+y,z,3);if((x+z)%2===0)put(x,GY+5,z,3)});
+  if(st===2){state.extraAnchors=[];for(const [sx,sz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){const bx=CX+sx*R,bz=CZ+sz*R;for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let y=0;y<9;y++)put(bx+dx,GY+y,bz+dz,6);state.extraAnchors.push(idx(bx,GY+8,bz))}}
+  if(st===3){ringCells(R,(x,z)=>{if(gap(x,z))return;put(x,GY+4,z,4)});for(let x=CX-2;x<=CX+1;x++)for(let z=CZ+R-1;z<=CZ+R;z++)for(let y=0;y<4;y++)put(x,GY+y,z,7)}
+  if(st===4){const Rm=R+3;ringCells(Rm,(x,z)=>{if(z>CZ&&Math.abs(x-CX+.5)<3.6)return;const i=idx(x,GY-1,z);if(blue[i]||rown[i]||vox[i]===5||vox[i]===8)return;for(let y=GY;y<GY+3;y++){const j=idx(x,y,z);if(vox[j]&&!blue[j])removeVox(j,'dig')}setVox(i,0);setFluid(i,9,4,true);if(natBlue)natBlue[i]=0})}
+  toast(`🏗️ A cidadela cresce: ${EXP_STAGES[st].n}! Os reparadores constroem de graça.`,'r4')}
 
 // ───────── main: waves, events, game flow, input, loop
 function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i=0;i<Math.floor((w-from+2)*k);i++)list.push(t)};extra('wolf',2,.5);extra('imp',4,.6);extra('spider',4,.45);extra('slime',5,.35);extra('brute',7,.3);extra('beetle',9,.3);const n=-Math.floor(list.length*.5)+6+Math.floor(w*2.05+(w>10?(w-10)*1.6:0)+(w>15?(w-15)*1.6:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
@@ -1752,6 +1787,9 @@ const EVENTS={
   meteor:{n:'Chuva de meteoros',d:'Meteoros caem na ilha. Crateras, fogo e loot raro onde caem.',css:'r3',w:6},
   siege:{n:'Cerco',d:'Três hordas seguidas sem descanso. Peça Épica garantida.',css:'r2',w:7},
   storm:{n:'Tempestade',d:'Raios caem na ilha e o vento espalha o fogo. Devoradores na água viram condutores.',css:'r2',w:5},
+  blizzard:{n:'Nevasca',d:'Tudo fica lento e a água dos lagos congela em pontes de gelo.',css:'r2',w:6},
+  quake:{n:'Terremoto',d:'O chão racha sob os pés: crateras, muralhas abaladas e inimigos derrubados.',css:'r3',w:7},
+  eclipse:{n:'Eclipse',d:'A escuridão fortalece os inimigos (+1 raridade). Loot muito melhor.',css:'r3',w:9},
   golden:{n:'Horda dourada',d:'Todos os Devoradores são Raros ou acima. Curta e brutal.',css:'r3',w:8},
 };
 function rollEvent(w){if(w<3||w%5===0||Math.random()<.5)return null;return pick(Object.keys(EVENTS).filter(k=>EVENTS[k].w<=w))}
@@ -1765,11 +1803,11 @@ function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.len
   {const a=rnd(0,Math.PI*2),r=rnd(54,72)*(state.ev==='mist'?.85:1);x=clamp(CX+Math.cos(a)*r,3,W-4);z=clamp(CZ+Math.sin(a)*r,3,D-4)}{const B=battle();if(B&&Math.abs(x-B.cx)<B.wr+6&&Math.abs(z-B.cz)<B.wr+6){x=W-x;z=D-z}}
   if(type==='wolf'){if(state.packN>0&&state.packPos){x=state.packPos.x+rnd(-2.5,2.5);z=state.packPos.z+rnd(-2.5,2.5);state.packN--}else{state.packPos={x,z};state.packN=rint(2,4)}}
   if(state.ev==='ambush'&&Math.random()<.5&&!BIG(type)){x=rnd(5,16);z=rnd(5,D-5);if(Math.random()<.5)x=W-x}
-  let r=type==='titan'||type==='queen'?Math.max(3,rollRarity(.15)):type==='colossus'?Math.max(2,rollRarity(.1)):type==='boss'?Math.max(1,rollRarity(.05)):rollRarity(state.wave*.004);if(state.ev==='elite')r=Math.min(4,r+1);if(state.ev==='golden')r=Math.max(2,r);
+  let r=type==='titan'||type==='queen'?Math.max(3,rollRarity(.15)):type==='colossus'?Math.max(2,rollRarity(.1)):type==='boss'?Math.max(1,rollRarity(.05)):rollRarity(state.wave*.004);if(state.ev==='elite'||state.ev==='eclipse')r=Math.min(4,r+1);if(state.ev==='golden')r=Math.max(2,r);
   const e=makeEnemy(type,r,x,z);if(r>=2&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
-function endWave(){const ev=state.ev;state.wave++;checkUnlocks();if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
+function endWave(){const ev=state.ev;state.wave++;checkUnlocks();expansionTick();if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
   if(ev==='siege'&&state.siege>1){state.siege--;state.phase='rest';toast(`Cerco: horda ${4-state.siege} de 3. Sem descanso!`,'r2');startWave();return}
   if(ev==='siege'){state.siege=0;spawnLoot(CHEST.x+3,GY+3,CHEST.z+4,'treasure',3,{})}
   state.phase='rest';state.restT=15;$('event').style.display='none';
@@ -1794,7 +1832,7 @@ function updateBombs(dt){for(let i=bombs.length-1;i>=0;i--){const b=bombs[i];b.v
 // ───────── new game
 function newGame(){for(const e of enemies)scene.remove(e.group);enemies.length=0;for(const m of minions)scene.remove(m.group);minions.length=0;for(const L of loot)scene.remove(L.g);loot.length=0;
   for(const t of turrets)scene.remove(t.group);turrets.length=0;for(const p of projectiles)scene.remove(p.mesh);projectiles.length=0;for(const b of bombs)scene.remove(b.mesh);bombs.length=0;for(const s of shots)scene.remove(s.mesh);shots.length=0;for(const r of rings)scene.remove(r.m);rings.length=0;claimed.clear();fuses.length=0;
-  Object.assign(state,freshState());state.running=true;setCenter(96,96);rivals.length=0;initRealm();closeRealm();initGoals();merchantLeave();state.hero=null;$('bHero').hidden=true;cam.target.set(CX,GY+1.5,CZ);hideBoss();closeCard();for(const id of ['reward','report'])$(id).style.display='none';$('event').style.display='none';for(const id of ['buildPanel','arsenal','shop'])$(id).style.display='none';
+  Object.assign(state,freshState());state.running=true;setCenter(96,96);rivals.length=0;initRealm();closeRealm();initGoals();merchantLeave();state.heroes={};state.volleys=[];for(const H of HEROES)$('bHero_'+H.id).hidden=true;cam.target.set(CX,GY+1.5,CZ);hideBoss();closeCard();for(const id of ['reward','report'])$(id).style.display='none';$('event').style.display='none';for(const id of ['buildPanel','arsenal','shop'])$(id).style.display='none';
   genWorld();snapshotNature();makeTurret('cannon',TOWER_ANCHORS[0],0);makeTurret('cannon',TOWER_ANCHORS[3],0);makeTurret('ballista',KEEP_ANCHORS[2],0);spawnRivalForces();updateModeUi();
   for(const [r,dx,dz] of [['rep',-3,4],['rep',3,4],['rep',0,-4],['col',-4,5],['col',4,5],['col',-5,3],['col',5,3],['gun',-5,-5],['gun',5,5],['sol',-2,6],['sol',2,6],['sol',0,7]])makeMinion(r,0,CX+dx,CZ+dz);
   state.inv.blocks={16:12,17:6,18:8,15:4,10:6,9:2,19:2};state.inv.turrets=[{type:'ballista',r:1},{type:'cannon',r:0}];
@@ -1824,7 +1862,7 @@ function clickAt(cx,cy,right){if(!state.running)return;
   if(u.loot){const L=u.loot;if(L.kind==='treasure')openTreasure(L);else{L.prio=!L.prio;if(L.prio){label({x:L.x,y:L.y-1,z:L.z},'📌','#ff8a5c');if(L.claimed){L.claimed.task=null;L.claimed.state=L.claimed.bag.length?'haul':'idle';L.claimed=null}}}SFX.pop();return}
   if(u.minion){cardSlot=null;openCard({m:u.minion});return}
   if(u.turret){openCard({t:u.turret})}}
-window.addEventListener('keydown',e=>{if(e.key==='q'||e.key==='Q'){heroAbility();return}if(e.key==='h'||e.key==='H'){cam.target.set(CX,GY+1.5,CZ);return}if(e.key==='m'||e.key==='M'){REALM.open?closeRealm():openRealm();return}if(e.key==='Escape'&&REALM.open){closeRealm();return}if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();
+window.addEventListener('keydown',e=>{{const H=HEROES.find(h=>h.key===e.key.toUpperCase());if(H&&!state.build.on){heroAbility(H.id);return}}if(e.key==='h'||e.key==='H'){cam.target.set(CX,GY+1.5,CZ);return}if(e.key==='m'||e.key==='M'){REALM.open?closeRealm():openRealm();return}if(e.key==='Escape'&&REALM.open){closeRealm();return}if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();
   if(k===' '&&state.running&&state.phase==='rest'&&!state.choosing){e.preventDefault();startWave()}
   else if(k==='b'&&state.running)openSide('buildPanel');else if(k==='i'&&state.running)openSide('arsenal');else if(k==='u'&&state.running)openSide('shop');
   else if(k==='escape'){state.bombMode=false;closeCard();$('hire').style.display='none';if(state.build.on)closeSide('buildPanel');updateHud()}
@@ -1835,7 +1873,8 @@ const keys={};window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=fals
 $('bBuild').onclick=()=>openSide('buildPanel');$('buildClose').onclick=()=>closeSide('buildPanel');
 $('bArs').onclick=()=>openSide('arsenal');$('arsClose').onclick=()=>closeSide('arsenal');
 $('bShop').onclick=()=>openSide('shop');$('shopClose').onclick=()=>closeSide('shop');
-$('bHero').onclick=heroAbility;
+for(const H of HEROES)$('bHero_'+H.id).onclick=()=>heroAbility(H.id);
+$('optShake').onclick=()=>{OPTS.noShake=!OPTS.noShake;saveOpts();$('optShake').classList.toggle('on',!OPTS.noShake)};$('optShake').classList.toggle('on',!OPTS.noShake);
 $('bMerch').onclick=()=>{const h=$('merch');const open=h.style.display!=='flex';h.style.display=open?'flex':'none';$('hire').style.display='none';if(open)renderMerch()};
 $('bHire').onclick=()=>{const h=$('hire');const open=h.style.display!=='flex';h.style.display=open?'flex':'none';if(open)renderHire()};
 $('autoEq').onchange=e=>{state.autoEquip=e.target.checked;if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);renderArsenal()};
@@ -1868,7 +1907,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':state.combo>=15?'r3':'r2');state.combo=0}
@@ -1883,7 +1922,7 @@ function frame(now){requestAnimationFrame(frame);let dt=Math.min(.05,(now-last)/
   if(keys.a||keys.arrowleft){cam.target.x-=cy*pan;cam.target.z+=sy*pan}if(keys.d||keys.arrowright){cam.target.x+=cy*pan;cam.target.z-=sy*pan}
   cam.target.x=clamp(cam.target.x,0,W);cam.target.z=clamp(cam.target.z,0,D);
   {const fm=state.ev==='mist'&&state.phase==='wave';const tn=fm?cam.dist*.95:cam.dist+30,tf=fm?cam.dist*2.1:cam.dist+150;scene.fog.near+=(tn-scene.fog.near)*Math.min(1,rdt*2);scene.fog.far+=(tf-scene.fog.far)*Math.min(1,rdt*2)}
-  {const n=gameSpeed;for(let k=0;k<n;k++)simulate(dt)}updateLabels(rdt);placeCamera();if(shake>0){shake-=rdt*2;camera.position.x+=rnd(-1,1)*shake*.25;camera.position.y+=rnd(-1,1)*shake*.25}
+  {const n=gameSpeed;for(let k=0;k<n;k++)simulate(dt)}updateLabels(rdt);placeCamera();if(shake>0){shake-=rdt*2;if(!OPTS.noShake){camera.position.x+=rnd(-1,1)*shake*.25;camera.position.y+=rnd(-1,1)*shake*.25}}
   flushVox();if(!window.__headless)renderer.render(scene,camera)}
 // test hooks
 window.__step=s=>{const n=Math.round(s*60);for(let i=0;i<n;i++){hitstop=0;simulate(1/60);if(state.choosing){const c=$('rewardCards').children;if(c.length)c[Math.floor(Math.random()*c.length)].click()}}updateHud()};
@@ -1895,13 +1934,13 @@ window.__dbg=()=>({wave:state.wave,mat:Math.floor(state.material),chest:chestAli
   turrets:turrets.map(t=>`${t.type}${t.gunner&&t.gunner.state==='man'?'*':''}:${Math.round(t.hp)}`),fluids:fluids.size,burning:burning.size,armory:state.inv.armory.length,inv:JSON.stringify(state.inv.blocks),ev:state.ev,plan:blueList.filter(i=>vox[i]!==blue[i]).length,planS:blueList.filter(i=>vox[i]!==blue[i]).slice(0,8).map(i=>`${ix(i)},${iy(i)},${iz(i)} v${vox[i]} b${blue[i]} s${+supported(i)} busy${+cellBusy(i)}`).join(' | '),kills:state.kills,cols:minions.filter(m=>m.role==='col').map(m=>`${m.state} t${m.timer.toFixed(1)} @${m.pos.x.toFixed(0)},${m.pos.z.toFixed(0)} y${m.group.position.y.toFixed(1)} wc${walkCell(Math.floor(m.pos.x),Math.floor(m.pos.z))} task${m.task&&m.task.L?Math.round(m.task.L.x)+','+Math.round(m.task.L.z):'-'} bag${m.bag.length}`),lootS:loot.filter(L=>!L.carried&&!L.claimed).slice(0,6).map(L=>`${L.kind}@${L.x.toFixed(0)},${L.y.toFixed(1)},${L.z.toFixed(0)} ok${+lootOK(L)} un${+(L.unreach>simTime)} rest${+L.rest}`)});
 genWorld();placeCamera();requestAnimationFrame(frame);
 // bot used by the headless test to exercise build/arsenal paths like a player would
-window.__bot=()=>{const out=[];if(state.hero&&state.heroCd<=0&&enemies.filter(e=>!e.dead&&Math.hypot(e.pos.x-state.hero.pos.x,e.pos.z-state.hero.pos.z)<7).length>=4){heroAbility();out.push('hero')}state.autoBuild=true;state.autoUp=true;state.autoSell=true;if(state.merchant){renderMerch();const k=state.merchant.offers.findIndex(o=>!o.sold&&o.price<state.material*.5);if(k>=0){const b=document.querySelector(`[data-buy="${k}"]`);if(b){b.click();out.push('buy')}}}{const B=battle();if(B&&!minions.some(m=>m.raid)&&battleOdds(B.lvl).p>.45){sendRaid();out.push('raid')}if(!state.quest&&REALM.pois.length){const P=REALM.pois.find(q=>questOdds(q).p>.6);if(P&&acceptPoi(P))out.push('poi')}}
+window.__bot=()=>{const out=[];for(const H of HEROES){const S=state.heroes&&state.heroes[H.id];if(S&&S.cd<=0&&enemies.filter(e=>!e.dead&&Math.hypot(e.pos.x-S.m.pos.x,e.pos.z-S.m.pos.z)<(H.id==='archer'?40:8)).length>=4){heroAbility(H.id);out.push('hero')}}state.autoBuild=true;state.autoUp=true;state.autoSell=true;if(state.merchant){renderMerch();const k=state.merchant.offers.findIndex(o=>!o.sold&&o.price<state.material*.5);if(k>=0){const b=document.querySelector(`[data-buy="${k}"]`);if(b){b.click();out.push('buy')}}}{const B=battle();if(B&&!minions.some(m=>m.raid)&&battleOdds(B.lvl).p>.45){sendRaid();out.push('raid')}if(!state.quest&&REALM.pois.length){const P=REALM.pois.find(q=>questOdds(q).p>.6);if(P&&acceptPoi(P))out.push('poi')}}
   if(state.phase==='wave'&&state.bombCd<=0&&state.material>60){const e=enemies.find(e=>!e.dead&&!e.fly&&!inside(e.pos.x,e.pos.z));if(e){dropBomb(e.pos.x,e.pos.z);out.push('bomb')}}
   for(const L of loot)if(L.kind==='treasure'&&!L.carried){openTreasure(L);out.push('open');break}
   return out.join(' ')};
 // ───────── auto-management: the fortress spends its own material sensibly (player can switch it off)
 const wallTop=()=>GY+state.wallH-1;
-const TURRET_SPOTS=()=>{const y=wallTop(),o=[...TOWER_ANCHORS,...KEEP_ANCHORS,...MID_ANCHORS(),...OUTPOST_ANCHORS];for(const k of [CX-6,CX+6]){o.push(idx(k,y,WA+1),idx(WA+1,y,k),idx(WB-1,y,k))}for(const k of [CX-7,CX+7])o.push(idx(k,y,WB-1));for(const k of [CX-11,CX+11])o.push(idx(k,y,WA+1),idx(k,y,WB-1));return o};
+const TURRET_SPOTS=()=>{const y=wallTop(),o=[...TOWER_ANCHORS,...KEEP_ANCHORS,...MID_ANCHORS(),...OUTPOST_ANCHORS,...(state.extraAnchors||[])];for(const k of [CX-6,CX+6]){o.push(idx(k,y,WA+1),idx(WA+1,y,k),idx(WB-1,y,k))}for(const k of [CX-7,CX+7])o.push(idx(k,y,WB-1));for(const k of [CX-11,CX+11])o.push(idx(k,y,WA+1),idx(k,y,WB-1));return o};
 const TRAP_SPOTS=()=>{const o=[];for(let k=WA;k<=WB;k+=1){o.push(idx(k,GY,WA-2),idx(k,GY,WB+2),idx(WA-2,GY,k),idx(WB+2,GY,k))}for(let k=CX-4;k<=CX+3;k++)o.unshift(idx(k,GY,WB+3),idx(k,GY,WB+4));return o.filter(i=>surf(ix(i),iz(i))===GY)};
 const MID_TOWERS=()=>[[CX-2,CZ-WR],[WA,CZ-2],[WB-3,CZ-2]];
 const MID_ANCHORS=()=>MID_TOWERS().map(([x,z])=>idx(x+1,GY+TOWER_H-1,z+1));
@@ -1957,9 +1996,19 @@ window.__realm=()=>({cities:REALM.cities.map(c=>c.name.slice(0,6)+':'+c.lvl+(c.f
 window.__boss=(t,f)=>{const e=makeEnemy(t||'boss',2,CX+14,CZ+30);dmgEnemy(e,e.maxhp*(f||.55),true);cam.target.set(e.pos.x,GY+2,e.pos.z);cam.dist=42;return e.lost+'/'+e.chunks.length};
 window.__matTrace=()=>{let v=state.material;const big={};Object.defineProperty(state,'material',{configurable:true,get(){return v},set(n){const d=n-v;if(d>0){const k=(new Error().stack.split('\n')[2]||'').trim().split(' (')[0];big[k]=(big[k]||0)+d}v=n}});window.__matBig=()=>Object.entries(big).sort((a,b)=>b[1]-a[1]).slice(0,6)};
 window.__lootTrace=()=>{const big={};const orig=spawnLoot;window.__lt=big;spawnLootHook=(x,y,z,kind,r,data)=>{if(kind==='material'){const k=(new Error().stack.split('\n')[3]||'').trim().split(' (')[0];big[k]=(big[k]||0)+data.amount}}};
-window.__fame=()=>({rel:state.relics,hero:!!state.hero,fame:state.fame,rank:RANKS[rankIdx()].n,c:state.contracts.map(c=>c.k+':'+Math.floor(c.p)+'/'+c.n)});
+window.__fame=()=>({rel:state.relics,heroes:Object.keys(state.heroes||{}).join(','),exp:state.expStage||0,fame:state.fame,rank:RANKS[rankIdx()].n,c:state.contracts.map(c=>c.k+':'+Math.floor(c.p)+'/'+c.n)});
 window.__matTrace2=()=>{window.__matTrace()};
 window.__zoo=()=>{const ts=['crawler','wolf','spider','slime','imp','brute','beetle','climber','ram','shaman','sapper'];ts.forEach((t,k)=>{const e=makeEnemy(t,k%3,CX-14+k*2.8,WB+14);e.speed=0;e.T={...e.T,speed:0}});cam.target.set(CX,GY+1,WB+14);cam.dist=24;cam.pitch=.75};
+
+// ───────── weather events: blizzard, earthquake, eclipse
+let wxT=0;const _snow=new THREE.Color(0xe8f2fa),_dark=new THREE.Color(0x1d1e33);
+function weatherTick(dt){const ev=state.ev;if(ev!=='blizzard'&&ev!=='quake'&&ev!=='eclipse')return;wxT-=dt;
+  if(ev==='blizzard'){scene.background.lerp(_snow,.55);scene.fog.color.copy(scene.background);for(let k=0;k<3;k++)spawnDebris(cam.target.x+rnd(-30,30),GY+rnd(12,20),cam.target.z+rnd(-30,30),0xffffff,1,.12);
+    if(wxT<=0){wxT=.35;for(let k=0;k<6;k++){const x=rint(2,W-3),z=rint(2,D-3);const i=idx(x,GY-1,z);if(vox[i]===9){setVox(i,18);fluids.delete(i);fluidSrc.delete(i)}}}}
+  if(ev==='eclipse'){scene.background.lerp(_dark,.7);scene.fog.color.copy(scene.background);sun.intensity*=.3;hemi.intensity*=.45}
+  if(ev==='quake'&&wxT<=0){wxT=rnd(6,9);shake=Math.max(shake,1.3);SFX.boom(true);for(let k=0;k<3;k++){const a=rnd(0,Math.PI*2),r=rnd(12,50);const x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;explode(x,GY,z,2.2,35,{src:'env'})}
+    for(const e of enemies)if(!e.dead&&!e.fly&&Math.hypot(e.pos.x-CX,e.pos.z-CZ)<60)e.stun=Math.max(e.stun||0,1.2)}}
+window.__ev=(k)=>{state.ev=k;$('event').style.display='inline-flex';$('event').textContent=EVENTS[k].n;state.phase='wave';state.queue=waveSpec(state.wave+3)};
 
 })();
 </script>

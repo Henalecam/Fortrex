@@ -106,9 +106,9 @@ function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)
     if(L.ring){const p=L.prio?1.3+Math.sin(L.t*8)*.25:1;L.ring.scale.set(p,p,p)}if(L.bm)L.bm.material.opacity=.14+Math.sin(L.t*3)*.08;
     if(L.kind==='treasure')L.main.rotation.y=Math.sin(L.t*1.5)*.3}}
 function lootPick(kind,r,big){const k=Math.random();
-  if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:4+r*4}]}}
+  if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:2+r*2}]}}
 function randBlockPack(r){let pool=(r>=3?[16,17,18,15,10,14,19,20,9,8]:r>=2?[16,17,18,15,10,14,19,9]:r>=1?[16,17,18,15,10,14]:[16,17,18,10]).filter(m=>isUnlocked('block',m));if(!pool.length)pool=[16,17,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
-function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
+function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon','catapult'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
 function openTreasure(L){removeLoot(L);const r=L.r;const n=2+Math.ceil(r*.7)+rint(0,1);
   for(let k=0;k<n;k++){const rr=k===0?r:Math.max(0,Math.min(r,rollRarity(r*.06+state.luck)));const [kind,data]=lootPick('any',rr);
     const it=spawnLoot(L.x,L.y+.6,L.z,kind,rr,data);if(it){const a=k/n*Math.PI*2;it.vx=Math.cos(a)*rnd(3,5);it.vz=Math.sin(a)*rnd(3,5);it.vy=rnd(6,9)}}
@@ -132,14 +132,16 @@ const TURRETS={
   flamer:{n:'Lança-chamas',ico:'🔥',range:11,reload:.1,dmg:3.4,hp:130,v:2,d:'Curto alcance, incendeia tudo à frente.'},
   mortar:{n:'Morteiro',ico:'🎇',range:48,minRange:7,reload:3.1,dmg:50,hp:120,v:3,d:'Tiro em arco que abre crateras. Não acerta Voadores.'},
   tesla:{n:'Torre Tesla',ico:'⚡',range:20,reload:1.5,dmg:22,hp:110,v:2,d:'Raio que salta entre 4 alvos; dobra na água.'},
+  catapult:{n:'Catapulta',ico:'🛢️',range:58,minRange:10,reload:5.2,dmg:95,hp:140,v:4,d:'Arremessa barris explosivos em arco: área enorme e fogo. Não acerta Voadores.'},
   frost:{n:'Canhão de gelo',ico:'❄️',range:28,reload:1.1,dmg:9,hp:120,v:2,d:'Congela Devoradores e transforma lava em obsidiana.'},
 };
-const turrets=[];
+const turrets=[];const LOB=t=>t==='mortar'||t==='catapult';const BARREL_MAT=new THREE.MeshLambertMaterial({color:0xc9413b,emissive:0x5a1a10});
 function turretAt(anchor){return turrets.find(t=>t.alive&&t.anchor===anchor)}
 function buildTurretModel(type,r,g,pivot){const dark=0x4a4866,mid=0x6d6a8a;
   if(type==='cannon'){box(.9,.35,.9,mid,0,.17,0,g);box(.38,.38,1.25,dark,0,.1,.45,pivot);box(.5,.5,.3,0x7d7a9e,0,.1,-.1,pivot)}
   else if(type==='ballista'){box(.8,.3,.8,0x8a6a45,0,.15,0,g);box(1.3,.1,.12,0xb5895a,0,.15,.25,pivot);box(.12,.12,1.1,0x6b5235,0,.12,.1,pivot);box(.06,.06,.9,0xdfe6f0,0,.22,.2,pivot)}
   else if(type==='flamer'){box(.8,.3,.8,mid,0,.15,0,g);const t=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.6,10),new THREE.MeshLambertMaterial({color:0xc9413b}));t.position.set(0,.25,-.1);t.castShadow=true;pivot.add(t);box(.18,.18,.8,0x3a3a4a,0,.2,.45,pivot)}
+  else if(type==='catapult'){box(1.1,.3,1.1,0x8a6a45,0,.15,0,g);for(const s of[-1,1])box(.12,.7,.12,0x6b5235,s*.4,.5,0,g);const arm=box(.12,.12,1.4,0xb5895a,0,.55,.1,pivot);arm.rotation.x=-.5;box(.4,.35,.4,0xc9413b,0,.95,-.45,pivot)}
   else if(type==='mortar'){box(1,.3,1,mid,0,.15,0,g);const b=box(.6,.6,.8,dark,0,.25,.1,pivot);b.rotation.x=-.8}
   else if(type==='tesla'){box(.7,.3,.7,0x5b6fae,0,.15,0,g);box(.3,1.1,.3,0x8ea9c6,0,.85,0,g);const s=new THREE.Mesh(new THREE.SphereGeometry(.3,10,10),lmat(0x9fe8ff,.8));s.position.y=1.55;g.add(s)}
   else if(type==='frost'){box(.8,.3,.8,0xbcd6e8,0,.15,0,g);box(.4,.4,1.1,0x9fd6f2,0,.12,.4,pivot);const c=new THREE.Mesh(new THREE.OctahedronGeometry(.22,0),lmat(0xd8f3ff,.6));c.position.set(0,.45,0);pivot.add(c)}
@@ -163,8 +165,8 @@ function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRiva
   const range=turretRange(t),dmg=t.T.dmg*(1+t.r*.25)*state.dmgMul*(man?1+g.rarity*.1:1);
   t.reload-=dt*rate;
   let tgt=null,bd=1e9;
-  if(state.focus&&!state.focus.dead&&state.focusT>0){const d=hd(state.focus.pos,t.pos);if(d<range*1.3&&!(t.type==='mortar'&&state.focus.fly))tgt=state.focus}
-  if(!tgt)for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard'&&hd(e.pos,t.pos)>range*.8))continue;if(t.type==='mortar'&&(e.fly||hd(e.pos,t.pos)<t.T.minRange))continue;let d=hd(e.pos,t.pos);if(d>range)continue;
+  if(state.focus&&!state.focus.dead&&state.focusT>0){const d=hd(state.focus.pos,t.pos);if(d<range*1.3&&!(LOB(t.type)&&state.focus.fly))tgt=state.focus}
+  if(!tgt)for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard'&&hd(e.pos,t.pos)>range*.8))continue;if(LOB(t.type)&&(e.fly||hd(e.pos,t.pos)<t.T.minRange))continue;let d=hd(e.pos,t.pos);if(d>range)continue;
     if(t.type==='ballista'&&e.fly)d-=10;if(e.type==='shaman')d-=4;if(e.type==='sapper')d-=3;if(d<bd){bd=d;tgt=e}}
   if(!tgt)return;const aim=enemyAim(tgt);const dx=aim.x-t.pos.x,dz=aim.z-t.pos.z;t.yaw=Math.atan2(dx,dz);
   let dy=t.yaw-t.group.rotation.y;while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;t.group.rotation.y+=dy*Math.min(1,dt*7);
@@ -175,7 +177,7 @@ function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRiva
     if(Math.random()<.15){const s=rnd(2,range);const x=Math.floor(t.pos.x+fx*s),z=Math.floor(t.pos.z+fz*s);for(let y=GY-1;y<GY+5;y++)if(inb(x,y,z))ignite(idx(x,y,z),'player')}SFX.whoosh();return}
   if(t.type==='tesla'){const hit=[tgt];let cur=tgt;const n=4+Math.floor(t.r/2);for(let k=1;k<n;k++){let nx=null,nd=8;for(const e of enemies){if(e.dead||hit.includes(e))continue;const d=hd(e.pos,cur.pos);if(d<nd||(cur.inWater&&e.inWater&&d<13)){nd=d;nx=e}}if(!nx)break;hit.push(nx);cur=nx}
     let a=new THREE.Vector3(t.pos.x,t.pos.y+1.55*US,t.pos.z),m=1;for(const e of hit){const b=enemyAim(e);beam(a,b);hurtEnemy(e,dmg*m*(e.inWater?2:1),b);if(e.dead&&g)gainXP(g,3);e.stun=Math.max(e.stun,.35);a=b;m*=.85}SFX.zap();return}
-  if(t.type==='mortar'){const T=clamp(Math.hypot(dx,dz)/15,1.1,2.8);const gr=20;const vel=new THREE.Vector3(dx/T,(aim.y-from.y+.5*gr*T*T)/T,dz/T);shoot(from,vel,gr,dmg,'shell',t);SFX.thud();return}
+  if(LOB(t.type)){const cat=t.type==='catapult';const T=clamp(Math.hypot(dx,dz)/(cat?17:15),1.1,cat?3.4:2.8);const gr=20;const vel=new THREE.Vector3(dx/T,(aim.y-from.y+.5*gr*T*T)/T,dz/T);shoot(from,vel,gr,dmg,'shell',t);if(cat){const P=projectiles[projectiles.length-1];P.cat=true;P.mesh.material=BARREL_MAT;P.mesh.scale.setScalar(1.9)}SFX.thud();return}
   const sp=t.type==='ballista'?52:t.type==='frost'?32:34,gr=t.type==='ballista'?2:t.type==='frost'?5:6;const dist=from.distanceTo(aim);const lead=aim.clone().addScaledVector(tgt.vel,dist/sp);lead.y+=gr*(dist/sp)*(dist/sp)*.5;
   const vel=lead.sub(from).normalize().multiplyScalar(sp);shoot(from,vel,gr,dmg,t.type==='ballista'?'bolt':t.type==='frost'?'ice':'ball',t);
   if(t.type==='cannon'){t.pivot.rotation.x=-.5;SFX.boom(false);shake=Math.max(shake,.12)}else if(t.type==='ballista')SFX.twang();else SFX.freeze()}
@@ -204,7 +206,7 @@ function updateProjectiles(dt){for(let i=projectiles.length-1;i>=0;i--){const p=
       if(pos.y<-2||p.life<=0||pos.x<-4||pos.z<-4||pos.x>W+4||pos.z>D+4)done=true}
     if(done){scene.remove(p.mesh);projectiles.splice(i,1)}}}
 function impact(p,pos,e,cell){const fire=state.greek>0;if(e)setTimeout(()=>{},0);const credit=()=>{if(e&&e.dead&&p.t&&p.t.gunner)gainXP(p.t.gunner,4+e.maxhp/15)};
-  if(p.kind==='shell'){explode(pos.x,pos.y,pos.z,3+state.explosive*.35+p.r*.2,p.dmg,{src:'player',fire});return}
+  if(p.kind==='shell'){explode(pos.x,pos.y,pos.z,3+state.explosive*.35+p.r*.2+(p.cat?1.9:0),p.dmg,{src:'player',fire:fire||p.cat});if(p.cat)shake=Math.max(shake,.4);return}
   if(p.kind==='ice'){if(e){hurtEnemy(e,p.dmg*(e.type==='titan'?2.5:1),pos);e.slowT=Math.max(e.slowT,3+p.r*.5)}freezeAround(pos.x,pos.y,pos.z,2.2+p.r*.25);for(const o of enemies){if(o.dead||o===e)continue;if(o.pos.distanceTo(pos)<2.6)o.slowT=Math.max(o.slowT,1.5)}spawnDebris(pos.x,pos.y,pos.z,0xd8f3ff,4,.2);return}
   if(e){hurtEnemy(e,p.dmg,pos);credit();if(fire&&!e.fly&&Math.random()<.35*state.greek)e.afire=Math.max(e.afire,3);
     if(p.kind==='ball'){for(const o of enemies){if(o.dead||o===e)continue;if(o.pos.distanceTo(pos)<2.4)hurtEnemy(o,p.dmg*.45,pos)}spawnDebris(pos.x,pos.y,pos.z,0xff8a5c,4,.25)}}
