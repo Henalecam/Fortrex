@@ -9,13 +9,14 @@ function planRivals(){rivals.length=0;return;const lvl=state.rivalLvl||1;const s
 function buildRivals(put){for(const R of rivals){const tag=R.k+1;const mark=(x,y,z,m)=>{if(!inb(x,y,z))return;put(x,y,z,m);const i=idx(x,y,z);rown[i]=tag;R.rblue.set(i,m)};
     // clear the ground the city stands on
     for(let x=R.cx-R.wr-2;x<=R.cx+R.wr+2;x++)for(let z=R.cz-R.wr-2;z<=R.cz+R.wr+2;z++){for(let y=GY;y<H;y++){if(inb(x,y,z)){const i=idx(x,y,z);vox[i]=0}}if(inb(x,GY-1,z))put(x,GY-1,z,13)}
-    const tw=buildCity(mark,R.cx,R.cz,{wr:R.wr,wh:6,ts:4,th:10,kr:4,kh:12,stone:24,stone2:24,tower:24,roof:25,floor:24,gate:24,banner:21});
+    const tw=buildCity(mark,R.cx,R.cz,{wr:R.wr,wh:6,ts:4,th:10,kr:4,kh:12,stone:24,stone2:24,tower:24,roof:25,floor:24,gate:24,banner:26});
     R.core=[];for(let x=R.cx-1;x<=R.cx;x++)for(let z=R.cz-1;z<=R.cz;z++)for(let y=0;y<2;y++){mark(x,GY+y,z,21);R.core.push(idx(x,GY+y,z))}
     R.coreMax=R.core.length;R.towerTops=tw.map(([x,z])=>idx(x+1,GY+9,z+1));R.keepTops=[[-2,-2],[2,-2],[-2,2],[2,2]].map(([dx,dz])=>idx(R.cx+dx,GY+11,R.cz+dz));
     for(let x=R.cx-1;x<=R.cx+1;x++)for(let z=R.cz+R.wr-WT+1;z<=R.cz+R.wr;z++)for(let y=0;y<4;y++){const i=idx(x,GY+y,z);vox[i]=0;rown[i]=0;R.rblue.delete(i)}}}
 function spawnRivalForces(){for(const R of rivals){const types=['cannon','ballista','mortar','tesla','flamer','frost'];const n=Math.min(8,3+R.lvl);
     [...R.towerTops,...R.keepTops].slice(0,n).forEach((a,k)=>{if(vox[a]){const t=makeTurret(types[(k+R.lvl)%types.length],a,Math.min(4,R.lvl-1+(k===0?1:0)));t.team='r';t.R=R;t.group.traverse(o=>{if(o.isMesh&&o.material.color)o.material=o.material.clone(),o.material.color.offsetHSL(0,0,-.15)})}});
-    for(let k=0;k<4+R.lvl*2;k++)spawnRivalUnit(R,'guard')}}
+    for(let k=0;k<4+R.lvl*2;k++)spawnRivalUnit(R,'guard');
+    if(R.city){const g=makeEnemy('general',Math.min(4,Math.floor(R.lvl/2)),R.cx+2.5,R.cz+2.5);g.maxhp*=1+R.lvl*.35;g.hp=g.maxhp;g.T={...g.T,dmg:g.T.dmg*(1+R.lvl*.15),n:`General de ${R.name}`};g.rival=R;g.rmode='guard';g.home={x:R.cx+2.5,z:R.cz+2.5};R.guards.push(g);R.general=g;showBoss(g)}}}
 function spawnRivalUnit(R,mode){const type=pick(mode==='raid'?['knight','knight','archer','rammer']:['knight','archer']);const a=rnd(0,Math.PI*2),r=mode==='raid'?rnd(1,3):rnd(5,9);
   const hx=CX-R.cx,hz=CZ-R.cz,hl=Math.hypot(hx,hz)||1;const x=mode==='raid'?R.cx+hx/hl*(R.wr+3+rnd(0,2))+rnd(-2,2):R.cx+Math.cos(a)*r,z=mode==='raid'?R.cz+hz/hl*(R.wr+3+rnd(0,2))+rnd(-2,2):R.cz+Math.sin(a)*r;const e=makeEnemy(type,Math.min(4,Math.max(0,rollRarity(R.lvl*.05))),x,z);e.rival=R;e.rmode=mode;e.home={x,z};if(mode==='guard')R.guards.push(e);return e}
 function rivalTick(dt){realmTick(dt);if(!rivals.length)return;
@@ -40,7 +41,7 @@ function nextRivalRound(){state.rivalLvl=(state.rivalLvl||1)+1;state.duelWon=fal
   for(let x=0;x<W;x++)for(let z=0;z<D;z++)for(let y=GY-1;y<H;y++){const i=idx(x,y,z);if(rown[i]||saved.some(R=>Math.abs(x-R.cx)<R.wr+3&&Math.abs(z-R.cz)<R.wr+3)){hp[i]=vox[i]?maxHpOf(vox[i]):0;markCol(x,z);touch(i)}}
   spawnRivalForces();toast(`Nível ${state.rivalLvl}: novas cidades rivais!`,'r3')}
 // rival units: knights, archers, rammers
-Object.assign(ETYPES,{knight:{hp:70,speed:2.4,dmg:14,rate:.8,color:0x9e2b3f,radius:.55,n:'Cavaleiro rival'},archer:{hp:40,speed:2.6,dmg:9,rate:1.4,color:0xc25a4a,radius:.5,n:'Arqueiro rival'},rammer:{hp:120,speed:2.6,dmg:60,rate:2.4,color:0x7a2232,radius:.8,n:'Aríete rival'}});
+Object.assign(ETYPES,{general:{hp:520,speed:2.1,dmg:32,rate:1.1,color:0x4a2a3a,radius:1.1,n:'General rival'},knight:{hp:70,speed:2.4,dmg:14,rate:.8,color:0x9e2b3f,radius:.55,n:'Cavaleiro rival'},archer:{hp:40,speed:2.6,dmg:9,rate:1.4,color:0xc25a4a,radius:.5,n:'Arqueiro rival'},rammer:{hp:120,speed:2.6,dmg:60,rate:2.4,color:0x7a2232,radius:.8,n:'Aríete rival'}});
 function rivalBrain(e,dt){// returns true when it handled the movement this frame
   if(e.type==='archer'){e.shotT=(e.shotT||0)-dt;if(e.shotT<=0){let tg=null,bd=17;for(const m of minions){if(m.wounded)continue;const d=hd(m.pos,e.pos);if(d<bd){bd=d;tg=m}}if(tg){e.shotT=1.5;const from=new THREE.Vector3(e.pos.x,e.gy+1.6,e.pos.z),to=new THREE.Vector3(tg.pos.x,tg.group.position.y+1,tg.pos.z);const vel=to.sub(from).normalize().multiplyScalar(36);shoot(from,vel,2,e.T.dmg*(1+e.rarity*.3),'bolt',{r:0,team:'r'});e.group.rotation.y=Math.atan2(tg.pos.x-e.pos.x,tg.pos.z-e.pos.z);if(bd<12){e.vel.set(0,0,0);return true}}}}
   if(e.rmode==='war')return warBrain(e,dt);

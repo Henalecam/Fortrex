@@ -32,7 +32,7 @@ const MAT={
   12:{n:'Terra',hp:30,c:0x9c7a55},
   13:{n:'Grama',hp:30,c:0x8fd08a},
   14:{n:'Obsidiana',hp:170,c:0x3a3150,cost:4,special:'Muito resistente, não queima'},
-  21:{n:'Núcleo rival',hp:400,c:0xff3d5a},22:{n:'Telhado',hp:40,c:0xd0574a,cost:1},23:{n:'Estandarte',hp:16,c:0x4f7cf2,flam:1,cost:1},24:{n:'Pedra negra',hp:60,c:0x5e5670},25:{n:'Telhado rival',hp:40,c:0x3b3450},
+  21:{n:'Núcleo rival',hp:400,c:0xff3d5a},22:{n:'Telhado',hp:40,c:0xd0574a,cost:1},23:{n:'Estandarte',hp:16,c:0x4f7cf2,flam:1,cost:1},24:{n:'Pedra negra',hp:60,c:0x5e5670},25:{n:'Telhado rival',hp:40,c:0x3b3450},26:{n:'Estandarte inimigo',hp:16,c:0xd9414f,flam:1},
   15:{n:'Cristal',hp:120,c:0x8fe3ff,cost:3,special:'Se regenera sozinho'},
   16:{n:'Espinhos',hp:70,c:0x6b8f4e,cost:3,special:'Fere quem o ataca'},
   17:{n:'Mina',hp:20,c:0xff5a3c,cost:2,special:'Explode nos Devoradores ao quebrar'},

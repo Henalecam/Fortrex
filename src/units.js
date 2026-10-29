@@ -39,10 +39,10 @@ const ETYPES={
   queen:{hp:950,speed:1.1,dmg:30,rate:1,color:0xa86fd9,radius:1.6,n:'Rainha da Bruma'},
   titan:{hp:2400,speed:.8,dmg:75,rate:1.5,color:0xc2410c,radius:2.2,n:'Titã de lava'},
 };
-const BIG=t=>t==='boss'||t==='colossus'||t==='queen'||t==='titan';
+const BIG=t=>t==='boss'||t==='colossus'||t==='queen'||t==='titan'||t==='general';
 const enemies=[];const fuses=[];
 function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group();const col=new THREE.Color(T.color).lerp(new THREE.Color(RARITY[rarity].c),rarity?.35:0).getHex();
-  const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='ram'?1.35:type==='flyer'?.8:1);
+  const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='general'?2.1:type==='ram'?1.35:type==='flyer'?.8:1);
   const body=box(.9*sc,.7*sc,1.1*sc,col,0,.5*sc,0,g);const head=box(.7*sc,.6*sc,.6*sc,col,0,.6*sc,.75*sc,g);eyes(head,.08*sc,.32*sc,.17*sc);
   const legs=[];for(const sx of [-1,1])for(const sz of [-1,1]){const lg=box(.22*sc,.4*sc,.22*sc,type==='colossus'?0xcfd6e3:0x2b2d4a,sx*.35*sc,.2*sc,sz*.35*sc,g);legs.push({mesh:lg,hp:150,alive:true,ox:sx*.35*sc,oz:sz*.35*sc})}
   if(type==='ram'||type==='rammer')box(.35*US,.35*US,.9*US,0xcfd6e3,0,.75*sc,1.2*sc/1.35,g);
@@ -53,6 +53,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(type==='climber'){box(.5*US,.15*US,.9*US,0x3f6b3c,0,.95*US,0,g);for(const s of[-1,1])box(.15*US,.5*US,.15*US,0x3f6b3c,s*.5*US,.9*US,.3*US,g)}
   if(type==='sapper'){const k=box(.5*US,.5*US,.5*US,0x2b2d4a,0,1.0*US,-.1*US,g);k.material.emissive.setHex(0xff5a3c);k.material.emissiveIntensity=.6;fuses.push(k)}
   if(type==='flyer'){const w1=box(1.1*US,.08*US,.4*US,0xd9ecf7,-.7*US,.75*US,0,g),w2=box(1.1*US,.08*US,.4*US,0xd9ecf7,.7*US,.75*US,0,g);g.userData.wings=[w1,w2]}
+  if(type==='general'){box(.12*US,1.5*US,.12*US,0xffcf3d,.85*US,1.3*US,.4*US,g);box(1.2*US,.9*US,.12*US,0x2b2d4a,0,1.0*US,-.75*US,g);for(const s of[-1,1])box(.5*US,.35*US,.6*US,0x8a8fa6,s*.75*US,1.45*US,0,g);const cr=box(.6*US,.25*US,.6*US,0xffcf3d,0,1.95*US,.75*US,g);cr.material.emissive.setHex(0xffcf3d);cr.material.emissiveIntensity=.5}
   if(type==='knight'){box(.08*US,.9*US,.08*US,0xdfe6f0,.45*US,.9*US,.2*US,g);box(.5*US,.5*US,.1*US,0x5e5670,-.45*US,.6*US,.2*US,g);box(.75*US,.15*US,.65*US,0x5e5670,0,1.0*US,.75*US,g)}
   if(type==='archer'){box(.1*US,.9*US,.1*US,0x8a6a45,.4*US,.8*US,.3*US,g)}
   if(type==='shaman'){box(.1*US,1.4*US,.1*US,0x6b5235,.45*US,.9*US,.2*US,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.2*US,0),lmat(0x7dff9a,.8));o.position.set(.45*US,1.7*US,.2*US);g.add(o)}
@@ -78,9 +79,9 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   dropTable(e);state.kills++;state.wk++;addCombo(e)}
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
-  at('material',0,{amount:({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6})[t]+r*2});
+  at('material',0,{amount:({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40})[t]+r*2});
   const luck=state.wave*.004+r*.04+state.luck+(state.ev==='golden'?.1:0);
-  const P=({crawler:.11,ram:.24,climber:.14,sapper:.12,flyer:.16,shaman:.45,boss:1,colossus:1,queen:1,titan:1,knight:.3,archer:.25,rammer:.35})[t];
+  const P=({crawler:.11,ram:.24,climber:.14,sapper:.12,flyer:.16,shaman:.45,boss:1,colossus:1,queen:1,titan:1,knight:.3,archer:.25,rammer:.35,general:1})[t];
   const n=t==='titan'?7:t==='queen'||t==='colossus'?5:t==='boss'?3:1;for(let k=0;k<n;k++)if(Math.random()<P){const rr=Math.max(Math.min(r,3),rollRarity(luck+(big?.15:0)));const [kind,data]=lootPick('any',rr);at(kind,rr,data)}
   if(Math.random()<(big?.7:r>=2?.18:.035))at('recruit',Math.max(1,rollRarity(luck)),{role:pick(['rep','col','gun','sol','med','sol'])});
   if(big||Math.random()<(r>=2?.35:.03))at('treasure',big?Math.max(t==='titan'?4:t==='colossus'||t==='queen'?3:2,rollRarity(luck+.1)):Math.max(1,rollRarity(luck)),{})}

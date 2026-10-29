@@ -10,7 +10,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 4. Teste headless: `cd <scratchpad> && node t5.js 900` (bot joga; olhar erros, `plan` preso, minions presos, baú, economia).
 5. Screenshot renderizado: `node shot.js` → ler s1.png / s2.png.
 6. Publicar com Artifact (mesmo file_path), avisar o usuário em 1–2 linhas, atualizar este backlog, agendar a próxima rodada (send_later, ~1 min).
-7. GitHub (Coolify faz deploy de `main`): `rsync -a --delete src/ ../fortrex-repo/src/ && cp build.py ../fortrex-repo/ && cp -r dist ../fortrex-repo/ && cp LOOP.md ../fortrex-repo/docs/` → commit (autor Henalecam, linhas Co-Authored-By/Claude-Session) → `git push`.
+7. GitHub (Coolify faz deploy de `main`): `rm -rf ../fortrex-repo/src && cp -r src ../fortrex-repo/src && cp build.py ../fortrex-repo/ && cp -r dist ../fortrex-repo/ && cp LOOP.md ../fortrex-repo/docs/` → commit (autor Henalecam, linhas Co-Authored-By/Claude-Session) → `git push`.
    Build: `FORTREX_SCRATCH=<scratchpad> python3 build.py` (gera index.html, dist/index.html e scratchpad/game.js).
 
 ## Feito
@@ -28,9 +28,11 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.11: um só jogo (sem modos). Mapa 160×160; cidadela no centro. 🗺️ Reino (tecla M): ~10 fortalezas com impérios, guarnição e nível; exércitos marcham, conquistam e fortalecem quem vence; novas fortalezas mais fortes surgem nas bordas. Quando um exército chega até nós (após 220 s de trégua) → fortaleza de cerco ergue-se num dos 4 lados (fortaleza vs fortaleza); declarar guerra pelo mapa faz o mesmo. Conquista → cidade vira sua (+tributo por horda), ruínas somem em 30 s, 160 s de trégua. Inimigos têm corpo em pedaços (voxels) que se soltam com o dano; pernas perdidas = mais lento, cabeça = mais fraco; chefes -20% de vida. Após cada horda a base se reconstrói sozinha (blocos estruturais, grátis); reparadores servem durante a batalha. Soldados ficam fora das muralhas, na frente do portão. Limite de 60 minions. Blocos da base não soltam material (sem farm).
 
+- v0.12: fortaleza inimiga com telhados e estandartes na cor do império; General rival (chefe com coroa, barra de chefe, vida/dano por nível) guarda o núcleo; no Reino, clicar num exército mostra origem, destino, força, guerreiros estimados, chegada e previsão. Teste: `node t11.js` (batalhas seguidas), `node shotb.js`.
+
 ## Backlog (próximas rodadas)
-- [ ] Reino: clicar no exército para ver composição; mensagens de embaixada (tributo/aliança)
-- [ ] Batalha: fortaleza inimiga com estilo/cores do império, chefe-general por nível
+- [ ] Reino: mensagens de embaixada (tributo/aliança)
+- [ ] Mercador de barco com loja rotativa
 - [ ] Desempenho no mapa 160: medir FPS real; LOD de sombras
 - [ ] Expedição: bandeira de rally
 - [ ] Diplomacia leve: tributo para adiar raid, aliança temporária contra o mais forte
