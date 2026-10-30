@@ -88,6 +88,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.43: 🩸 Lua de sangue (evento, horda 10+): luz e vinheta vermelhas, ~45% dos inimigos vêm com afixos de elite, mas cada abate rende +1 material e soldados próximos se curam 12%. Save antigo (v0.41) carrega sem erros.
 - v0.44: ⛏️ Veio de ouro disputado (horda 6, depois a cada 4): 8–10 blocos de ouro surgem fora das muralhas com anel dourado; rendem ~0,5 material/s enquanto de pé, e ~15% da horda desvia para saqueá-lo — defenda com 🚩 Reunir. Vinheta da Lua de sangue agora fica abaixo do HUD. Bot: horda 14 em 15 min; save antigo carrega.
 - v0.45: 🌊 O fosso (expansão da horda 15) afoga aríetes e rastejadores que entram na água. Ouro do veio fica mais dourado; o veio sobrevive ao save/load com a vida certa.
+- v0.46: 🏘️ Distritos: nas hordas 4, 10, 16 e 22 a cidadela oferece 3 distritos para escolher (Ferraria, Torre arcana, Celeiro, Mercado, Caserna, Santuário), construídos como casinhas no pátio. Teste longo: bot chegou à horda 23 em 30 min sem dano no baú nem erros (até ~100 inimigos simultâneos).
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
