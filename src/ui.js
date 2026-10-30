@@ -93,7 +93,7 @@ function renderArsenal(){const A=state.inv,body=$('arsBody');let h='<div class="
   const s=$('sellIt');if(s)s.onclick=()=>{const k=A.armory.indexOf(arsSel);if(k>=0){A.armory.splice(k,1);state.material+=sellValue(arsSel);SFX.coin();arsSel=null;renderArsenal();updateHud()}}}
 
 // ── unit card (minion or weapon), editable
-function openCard(c){state.card=c;$('mcard').style.display='block';renderCard()}
+function openCard(c){state.card=c;$('mcard').style.display='block';renderCard(true)}
 function closeCard(){state.card=null;$('mcard').style.display='none'}
 let cardSlot=null,cardAcc=0;
 function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;if(cardAcc%4)return}const el=$('mcard');let h='';
@@ -144,8 +144,8 @@ const UPGRADES=[
   {id:'crit',ico:'🎯',nm:'Pontaria crítica',ds:'+5% de chance de crítico (dano dobrado).',max:4,cost:l=>50+l*50,go(){state.critBonus+=.05}},
   {id:'general',ico:'🎖️',nm:'General veterano',ds:'Fogo Concentrado dura 8 s e recarrega em 10 s.',max:1,cost:()=>120,go(){state.focusLong=true}},
 ];
-function renderShop(){const box=$('shopList');box.innerHTML='';for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const lock=!isUnlocked('up',U.id);const el=document.createElement('div');el.className='up';
-  el.innerHTML=`<div class="ico">${U.ico}</div><div><div class="nm">${U.nm}</div><div class="ds">${U.ds}</div><div class="lv">${Array.from({length:U.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')} ${lv}/${U.max}</div></div><button class="btn buy" ${maxed||lock||state.material<cost?'disabled':''}>${lock?`🔒 h${unlockWave('up',U.id)}`:maxed?'máx':cost}</button>`;
+function renderShop(){const box=$('shopList');box.innerHTML='';for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const lock=!upReady(U);const el=document.createElement('div');el.className='up';
+  el.innerHTML=`<div class="ico">${U.ico}</div><div><div class="nm">${U.nm}</div><div class="ds">${U.ds}</div><div class="lv">${Array.from({length:U.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')} ${lv}/${U.max}</div></div><button class="btn buy" ${maxed||lock||state.material<cost?'disabled':''}>${lock?`🔒 h${upLockWave(U)}`:maxed?'máx':cost}</button>`;
   el.querySelector('button').onclick=()=>{if(maxed||lock||state.material<cost)return;state.material-=cost;state.ups[U.id]=lv+1;U.go();SFX.loot(1);toast(`${U.nm} nível ${lv+1}`,'r1');renderShop();updateHud()};box.appendChild(el)}}
 
 // ── rewards: pick 1 of 3
@@ -175,5 +175,5 @@ function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}
   if(!u){$('tip').style.display='none';canvas.style.cursor='';return}canvas.style.cursor='pointer';
   if(u.loot){const L=u.loot;showTip(cx,cy,`${lootName(L)} · ${RARITY[L.r].n}`,L.kind==='treasure'?'Clique para abrir':L.prio?'Prioridade dos coletores':'Clique: coletores buscam primeiro')}
   else if(u.minion){const m=u.minion;showTip(cx,cy,`${m.name} · ${m.R.n} · nv ${m.lvl}`,m.wounded>0?'Ferido':'Clique para ver e equipar')}
-  else if(u.enemy){const e=u.enemy;showTip(cx,cy,`${e.T.n} ${RARITY[e.rarity].n}`,`${Math.ceil(e.hp)}/${Math.ceil(e.maxhp)} · clique: Fogo Concentrado`)}
+  else if(u.enemy){const e=u.enemy;showTip(cx,cy,`${e.T.n} ${RARITY[e.rarity].n}${e.aff?' · '+AFFIX[e.aff].n:''}`,`${Math.ceil(e.hp)}/${Math.ceil(e.maxhp)} · clique: Fogo Concentrado`)}
   else if(u.turret){const t=u.turret;showTip(cx,cy,`${t.T.n} ${RARITY[t.r].n}`,t.gunner?'Operada':'Sem artilheiro')}}

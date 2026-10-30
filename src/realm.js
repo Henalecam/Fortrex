@@ -199,10 +199,12 @@ function realmClick(ev){const r=rcv.getBoundingClientRect();const V=rView();cons
   let best=null,bd=40;for(const c of [...REALM.cities,...REALM.pois]){const d=Math.hypot(c.x-mx,c.y-my);if(d<bd){bd=d;best=c}}REALM.sel=best;renderRealmInfo();drawRealm()}
 
 // ───────── after every wave the citadel mends itself: structural blueprint blocks regrow for free over a few seconds
-function startSelfRepair(){const q=[];for(const i of blueList){const b=blue[i];if(!b||SPECIAL_BLOCKS.includes(b)||b===5)continue;if(vox[i]===b&&hp[i]>=maxHpOf(b))continue;if(vox[i]&&vox[i]!==b&&!FLUID(vox[i]))continue;q.push(i)}
+function startSelfRepair(){const q=[];for(const i of blueList){const b=blue[i];if(!b||(SPECIAL_BLOCKS.includes(b)&&!TIER_RANK[b])||b===5)continue;if(vox[i]===b&&hp[i]>=maxHpOf(b))continue;if(vox[i]&&vox[i]!==b&&!FLUID(vox[i])&&!((TIER_RANK[vox[i]]||9)<(TIER_RANK[b]||0)))continue;q.push(i)}
   q.sort((a,b)=>iy(a)-iy(b));state.healQ=q;state.healT=0;if(q.length)toast(`A cidadela se reconstrói sozinha: ${q.length} blocos`,'r1')}
+function upgradeMasonry(){state.blockTier=(state.blockTier||0)+1;buildBlueprint();if(state.phase!=='wave')startSelfRepair();toast(`🧱 Alvenaria: a cidadela passa a ser de ${MAT[tierMat(3)].n}. Os blocos são trocados de graça fora das hordas.`,'r4')}
 function selfRepairTick(dt){const q=state.healQ;if(!q||!q.length)return;const per=Math.max(8,Math.ceil(q.length/6));state.healT+=dt*per;let n=0;const keep=[];
   for(const i of q){if(state.healT<1){keep.push(i);continue}const b=blue[i];if(!b)continue;if(vox[i]===b){hp[i]=maxHpOf(b);damaged.delete(i);paint(i);state.healT-=1;n++;continue}
+    if(vox[i]&&!FLUID(vox[i])&&(TIER_RANK[vox[i]]||9)<(TIER_RANK[b]||0)){vox[i]=b;hp[i]=maxHpOf(b);damaged.delete(i);burning.delete(i);paint(i);state.healT-=1;n++;if(Math.random()<.2)sparkle(ix(i)+.5,iy(i)+.6,iz(i)+.5,MAT[b].c,2);continue}
     if(vox[i]&&!FLUID(vox[i]))continue;if(!supported(i)||cellBusy(i)){keep.push(i);continue}setVox(i,b);hp[i]=maxHpOf(b);state.healT-=1;n++;if(Math.random()<.12)sparkle(ix(i)+.5,iy(i)+.6,iz(i)+.5,0x9fe3ff,1)}
   state.healQ=keep.length&&n===0&&state.healT>=1?keep.slice(1):keep;if(n)SFX.build()}
 

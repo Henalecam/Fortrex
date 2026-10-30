@@ -1,7 +1,7 @@
 // ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
 const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,frost:10,catapult:12,sunray:15},role:{rep:1,col:1,gun:1,sol:1,med:3},
   block:{16:1,17:1,10:1,31:6,18:4,15:5,9:7,8:7,14:9,19:10,20:14},
-  up:{forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
+  up:{sappers:5,forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
 function unlockWave(kind,k){return(UNLOCK[kind]&&UNLOCK[kind][k])||1}
 function isUnlocked(kind,k){return state.wave>=unlockWave(kind,k)}
 function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)if(UNLOCK.turret[k]===w)got.push(TURRETS[k].ico+' '+TURRETS[k].n);for(const k in UNLOCK.role)if(UNLOCK.role[k]===w)got.push(ROLES[k].ico+' '+ROLES[k].n);
@@ -27,7 +27,19 @@ const UPGRADES_EXTRA=[
   {id:'platform',ico:'🧱',nm:'Plataformas de armas',ds:'+2 armas instaladas na fortaleza.',max:6,cost:l=>70+l*70,go(){}},
   {id:'quartel',ico:'🏯',nm:'Quartel',ds:'+3 vagas de soldado e +1 de curandeiro.',max:5,cost:l=>60+l*60,go(){}},
   {id:'oficina',ico:'🏭',nm:'Oficina',ds:'+2 vagas de reparador e +2 de coletor.',max:5,cost:l=>50+l*50,go(){}},
-  {id:'escola',ico:'🎓',nm:'Escola de artilharia',ds:'+2 vagas de artilheiro.',max:5,cost:l=>60+l*60,go(){}}];
+  {id:'escola',ico:'🎓',nm:'Escola de artilharia',ds:'+2 vagas de artilheiro.',max:5,cost:l=>60+l*60,go(){}},
+  {id:'masonry',ico:'🧱',nm:'Alvenaria',get ds(){const t=state.blockTier||0;const nx=['madeira e pedra viram pedra e metal','pedra vira metal','metal vira obsidiana','obsidiana vira aço rúnico'][Math.min(3,t)];return t>=4?'A cidadela inteira é de aço rúnico.':`Troca os blocos da planta por melhores: ${nx}. Trocados de graça após a horda.`},max:4,cost:l=>[140,280,480,760][l]||999,need:l=>[4,8,13,19][l]||99,go(){upgradeMasonry()}},
+  {id:'sappers',ico:'💣',nm:'Sapadores',ds:'Espalham mais minas, espinhos, gelo, piche e barris pelo mapa a cada horda, nos caminhos dos Devoradores.',max:5,cost:l=>60+l*55,go(){}}];
+function upReady(U){const lv=state.ups[U.id]||0;return isUnlocked('up',U.id)&&(!U.need||state.wave>=U.need(lv))}
+function upLockWave(U){const lv=state.ups[U.id]||0;return Math.max(unlockWave('up',U.id),U.need?U.need(lv):1)}
+// ───────── minefields: sappers scatter traps across the map where the horde walks (never paid back as material)
+function trapKinds(){const k=[17,17,16];if(isUnlocked('block',18))k.push(18);if(isUnlocked('block',31))k.push(31);k.push(10);return k}
+function scatterTraps(){const lv=state.ups.sappers||0;state.fieldTraps=(state.fieldTraps||[]).filter(i=>vox[i]&&vox[i]===state.fieldTrapM.get(i));const cap=24+12*lv;let want=Math.min(2+3*lv+Math.floor(state.wave/4),cap-state.fieldTraps.length);let placed=0,guard=0;
+  while(want>0&&guard++<40){let best=null,bs=-1;for(let s=0;s<24;s++){const a=rnd(0,Math.PI*2),r=rnd(WR+14,64),x=Math.floor(CX+Math.cos(a)*r),z=Math.floor(CZ+Math.sin(a)*r);if(x<3||z<3||x>W-4||z>D-4)continue;const h=(heat[x+z*W]||0)+Math.random()*2;if(h>bs){bs=h;best=[x,z,a]}}
+    if(!best)continue;const [x0,z0,a]=best;const m=pick(trapKinds());const n=Math.min(want,m===10?1:rint(2,4));const px=-Math.sin(a),pz=Math.cos(a);
+    for(let k=0;k<n;k++){const x=Math.round(x0+px*(k-n/2)*1.6),z=Math.round(z0+pz*(k-n/2)*1.6);if(surf(x,z)!==GY||!inb(x,GY,z))continue;const i=idx(x,GY,z);if(vox[i]||blue[i]||rown[i]||FLUID(vox[idx(x,GY-1,z)])||cellBusy(i))continue;
+      setVox(i,m);hp[i]=MAT[m].hp;looted[i]=1;if(natBlue)natBlue[i]=0;state.fieldTraps.push(i);state.fieldTrapM.set(i,m);sparkle(x+.5,GY+1,z+.5,MAT[m].c,2);placed++;want--}}
+  return placed}
 const UPGRADES_LATE=[
   {id:'forge',ico:'🔱',nm:'Forja real',ds:'+5% de dano em todas as armas. Sem limite.',max:99,cost:l=>180+l*140,go(){state.dmgMul*=1.05}},
   {id:'bulwark',ico:'🛡️',nm:'Baluarte',ds:'Minions +8% de vida e armas +8% de integridade. Sem limite.',max:99,cost:l=>160+l*130,go(){state.turretHp*=1.08;for(const t of turrets){t.maxhp*=1.08;t.hp*=1.08}for(const m of minions){m.maxhp*=1.08}}}];
@@ -75,7 +87,7 @@ function heroAbility(id){const H=HEROES.find(h=>h.id===id);const S=state.heroes&
     for(const o of minions){if(Math.hypot(o.pos.x-m.pos.x,o.pos.z-m.pos.z)<r){if(o.wounded>0)o.wounded=Math.min(o.wounded,1);else o.hp=o.maxhp}}ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,r,0xffcf3d)}
   if(id==='archer'){let best=null,bn=0;for(const e of enemies){if(e.dead||Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z)>45)continue;let n=0;for(const o of enemies)if(!o.dead&&Math.abs(o.pos.x-e.pos.x)<6&&Math.abs(o.pos.z-e.pos.z)<6)n++;if(n>bn){bn=n;best=e}}
     if(!best){S.cd=2;toast('Nenhum inimigo ao alcance','r0');return}const x=best.pos.x,z=best.pos.z;for(let k=0;k<3;k++)state.volleys.push({x,z,t:.35+k*.45,dmg:70+w*6})}
-  if(id==='engineer'){let n=0;const near=blueList.filter(i=>blue[i]&&vox[i]!==blue[i]&&!SPECIAL_BLOCKS.includes(blue[i])).sort((a,b)=>Math.hypot(ix(a)-m.pos.x,iz(a)-m.pos.z)-Math.hypot(ix(b)-m.pos.x,iz(b)-m.pos.z));for(const i of near){if(n>=160)break;if(vox[i]&&!FLUID(vox[i]))continue;if(!supported(i)||cellBusy(i))continue;setVox(i,blue[i]);hp[i]=maxHpOf(blue[i]);n++;if(n%6===0)sparkle(ix(i)+.5,iy(i)+.6,iz(i)+.5,0xff8a5c,1)}
+  if(id==='engineer'){let n=0;const near=blueList.filter(i=>blue[i]&&vox[i]!==blue[i]&&(!SPECIAL_BLOCKS.includes(blue[i])||TIER_RANK[blue[i]])).sort((a,b)=>Math.hypot(ix(a)-m.pos.x,iz(a)-m.pos.z)-Math.hypot(ix(b)-m.pos.x,iz(b)-m.pos.z));for(const i of near){if(n>=160)break;if(vox[i]&&!FLUID(vox[i]))continue;if(!supported(i)||cellBusy(i))continue;setVox(i,blue[i]);hp[i]=maxHpOf(blue[i]);n++;if(n%6===0)sparkle(ix(i)+.5,iy(i)+.6,iz(i)+.5,0xff8a5c,1)}
     for(const t of turrets)if(t.alive&&t.team!=='r')t.hp=t.maxhp;label({x:m.pos.x,y:m.group.position.y+4,z:m.pos.z},`+${n} blocos`,'#ff8a5c')}
   if(id==='berserker'){state.rageT=8;for(const o of minions)if(o.role==='sol'&&Math.hypot(o.pos.x-m.pos.x,o.pos.z-m.pos.z)<14)o.rage=8;ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,14,0xd9414f)}
   if(id==='mage'){const r=10+L*.1;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r){dmgEnemy(e,(60+w*5)*(e.type==='titan'?2.5:1),true);e.slowT=Math.max(e.slowT,6);e.stun=Math.max(e.stun||0,1)}}freezeAround(m.pos.x,GY,m.pos.z,4);ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,r,0x8fe3ff);SFX.freeze()}
@@ -139,7 +151,7 @@ function popLantern(L,auto){const k=lanterns.indexOf(L);if(k<0)return;lanterns.s
 function festivalTick(dt){for(let i=lanterns.length-1;i>=0;i--){const L=lanterns[i];L.t-=dt;L.ph+=dt;L.g.position.y+=dt*.35;L.g.position.x+=Math.sin(L.ph*.7)*dt*.4;L.g.rotation.y+=dt;if(L.t<=0)popLantern(L,true)}}
 // ───────── first-time tips: short, contextual, each shown once (remembered in the browser)
 const TIPS_SEEN=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_tips')||'{}')}catch(e){return{}}})();
-const TIPS=[
+const TIPS=[{id:'mason',c:()=>state.wave>=4&&state.phase==='rest'&&!state.ups.masonry,t:'🧱 Alvenaria (Upgrades) troca os blocos da cidadela por materiais melhores, de graça, depois de cada horda.'},{id:'sappers',c:()=>(state.fieldTraps||[]).length>=4,t:'💣 Os sapadores espalham minas, espinhos e barris pelo mapa onde a horda passa. Compre Sapadores para mais armadilhas.'},{id:'affix',c:()=>enemies.some(e=>e.aff&&!e.dead),t:'💍 Anéis coloridos nos pés marcam inimigos de elite: amarelo veloz, azul blindado, vermelho vampiro, laranja explode ao morrer, verde regenera.'},
   {id:'start',c:()=>simTime>3,t:'👥 Seus minions trabalham sozinhos: reparam, coletam, lutam e operam armas. Clique em um para ver a ficha.'},
   {id:'wave',c:()=>state.phase==='wave'&&state.wave===1,t:'🔥 Clique num inimigo para concentrar o fogo de todas as armas nele.'},
   {id:'auto',c:()=>state.wave>=2&&state.phase==='rest',t:'⚙️ No menu Automação você liga construção, upgrades, venda e recompensas automáticas.'},
@@ -150,7 +162,7 @@ const TIPS=[
   {id:'hero',c:()=>Object.keys(state.heroes||{}).length>0,t:'⭐ Heróis têm habilidades: use o botão no dock ou as teclas Q/E/T/G/Y.'},
   {id:'bomb',c:()=>state.wave>=4&&state.phase==='wave'&&enemies.length>25,t:'💣 Muitos inimigos? Use a Bomba (25 material) e clique onde ela deve cair.'}];
 let tipT=0,tipShow=0;
-function tipTick(dt){if(window.__headless||state.choosing)return;if(tipShow>0){tipShow-=dt;if(tipShow<=0)$('ftip').style.display='none';return}tipT-=dt;if(tipT>0)return;tipT=1.5;for(const T of TIPS){if(TIPS_SEEN[T.id])continue;let ok=false;try{ok=T.c()}catch(e){}if(!ok)continue;TIPS_SEEN[T.id]=1;try{localStorage.setItem('fortrex_tips',JSON.stringify(TIPS_SEEN))}catch(e){}
+function tipTick(dt){if(window.__headless||state.choosing)return;if(state.card&&innerWidth<700){if(tipShow>0){$('ftip').style.display='none';tipShow=0}return}if(tipShow>0){tipShow-=dt;if(tipShow<=0)$('ftip').style.display='none';return}tipT-=dt;if(tipT>0)return;tipT=1.5;for(const T of TIPS){if(TIPS_SEEN[T.id])continue;let ok=false;try{ok=T.c()}catch(e){}if(!ok)continue;TIPS_SEEN[T.id]=1;try{localStorage.setItem('fortrex_tips',JSON.stringify(TIPS_SEEN))}catch(e){}
   const el=$('ftip');el.innerHTML=`<span>${T.t}</span><button class="btn sm" id="tipX">Entendi</button>`;el.style.display='flex';$('tipX').onclick=()=>{el.style.display='none';tipShow=0};tipShow=9;break}}
 
 // ───────── rally flag: plant a banner and every soldier at home gathers there for 30 s (click again to cancel)

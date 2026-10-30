@@ -86,10 +86,19 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US,state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
     speed:T.speed*1.5*rnd(.9,1.1)*DIFF().sp*(state.ev==='elite'?1.15:1)*Math.min(1.3,1+Math.max(0,state.wave-12)*.015),armor:Math.min(.55,Math.max(0,state.wave-14)*.025+(state.wave>=6?(DIFF().arm||0):0)),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+12:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   if(DIFF().dmg!==1)e.T={...T,dmg:T.dmg*DIFF().dmg};
+  rollAffix(e);
   setupChunks(e,body,head);
   e.gy=CLIMBS(type)?topY(x,z):surfE(x,z);g.position.y=e.fly?e.alt:e.gy;g.userData.enemy=e;
   if(BIG(type)){showBoss(e);const ring=new THREE.Mesh(new THREE.RingGeometry(e.radius*1.15,e.radius*1.45,32),new THREE.MeshBasicMaterial({color:RARITY[Math.max(2,rarity)].c,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.08;g.add(ring);e.aura=ring}enemies.push(e);return e}
-function dmgEnemy(e,d,flash,crit){if(e.dead)return;if(e.armor)d*=1-e.armor;if(e.type==='beetle'&&e.chunks&&e.lost<e.chunks.length*.35){d*=.5;if(Math.random()<.05)label({x:e.pos.x,y:e.gy+1.6,z:e.pos.z},'carapaça','#5cc0c0')}if(e.type==='necro'&&e.summ&&e.summ.filter(s=>!s.dead).length>=3){d*=.3;if(Math.random()<.08)label({x:e.pos.x,y:e.gy+e.sc*1.5,z:e.pos.z},'escudo de ossos','#7dff9a')}e.hp-=d;if(e.chunks&&e.hp>0)chipEnemy(e,d);if(flash&&(d>=14||crit)&&Math.random()<(crit?1:.5))label({x:e.pos.x+rnd(-.3,.3),y:e.group.position.y-.6+e.sc*.6,z:e.pos.z},crit?`${Math.round(d)}!`:String(Math.round(d)),crit?'#e0a000':'#6b6e8f');if(flash){e.hit=.1;for(const p of e.parts)p.material.emissive.setHex(0xffffff)}if(e.hp<=0)killEnemy(e)}
+function dmgEnemy(e,d,flash,crit){if(e.dead)return;e.lastHit=simTime;if(e.armor)d*=1-e.armor;if(e.type==='beetle'&&e.chunks&&e.lost<e.chunks.length*.35){d*=.5;if(Math.random()<.05)label({x:e.pos.x,y:e.gy+1.6,z:e.pos.z},'carapaça','#5cc0c0')}if(e.type==='necro'&&e.summ&&e.summ.filter(s=>!s.dead).length>=3){d*=.3;if(Math.random()<.08)label({x:e.pos.x,y:e.gy+e.sc*1.5,z:e.pos.z},'escudo de ossos','#7dff9a')}e.hp-=d;if(e.chunks&&e.hp>0)chipEnemy(e,d);if(flash&&(d>=14||crit)&&Math.random()<(crit?1:.5))label({x:e.pos.x+rnd(-.3,.3),y:e.group.position.y-.6+e.sc*.6,z:e.pos.z},crit?`${Math.round(d)}!`:String(Math.round(d)),crit?'#e0a000':'#6b6e8f');if(flash){e.hit=.1;for(const p of e.parts)p.material.emissive.setHex(0xffffff)}if(e.hp<=0)killEnemy(e)}
+// elite affixes: from wave 8 some common enemies come with a trait shown by a colored ring at their feet
+const AFFIX={fast:{n:'Veloz',c:0xffd23d},armor:{n:'Blindado',c:0x8ea9c6},vamp:{n:'Vampiro',c:0xd9414f},boom:{n:'Explosivo',c:0xff7a2a},regen:{n:'Regenerante',c:0x5cc08c}};
+const AFF_GEO=new THREE.RingGeometry(.62,.82,20);const AFF_MAT={};
+function rollAffix(e){const w=state.wave;if(w<8||BIG(e.type)||e.type==='slime'||Math.random()>Math.min(.24,.04+(w-8)*.012)*(DIFF().cnt>1.3?1.3:1))return;
+  const ks=['fast','armor','vamp'];if(w>=11)ks.push('boom');if(w>=14)ks.push('regen');const k=pick(ks);e.aff=k;
+  if(k==='fast'){e.speed*=1.4;e.hp*=.85;e.maxhp*=.85}if(k==='armor')e.armor=Math.min(.7,(e.armor||0)+.25);if(k==='regen'){e.hp*=1.1;e.maxhp*=1.1}
+  const m=AFF_MAT[k]||(AFF_MAT[k]=new THREE.MeshBasicMaterial({color:AFFIX[k].c,transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false}));
+  const r=new THREE.Mesh(AFF_GEO,m);r.rotation.x=-Math.PI/2;r.position.y=.1;r.scale.setScalar(Math.max(.8,e.radius/US*1.6)/e.group.scale.x||1);e.group.add(r);e.affRing=r}
 function hurtEnemy(e,d,at){if(e.dead)return;
   if(e.type==='colossus'){let leg=null;if(at){const c=Math.cos(e.group.rotation.y),s=Math.sin(e.group.rotation.y);for(const L of e.legs){if(!L.alive)continue;const lx=e.pos.x+L.ox*c+L.oz*s,lz=e.pos.z-L.ox*s+L.oz*c;if(Math.hypot(at.x-lx,at.z-lz)<1.9&&at.y<e.gy+4.4){leg=L;break}}}
     if(leg){leg.hp-=d*1.6;e.hit=.1;leg.mesh.material.emissive.setHex(0xffffff);SFX.hurt();if(leg.hp<=0){leg.alive=false;e.group.remove(leg.mesh);spawnDebris(e.pos.x+leg.ox,e.gy+1,e.pos.z+leg.oz,0xcfd6e3,14,.5);e.stun=3;shake=Math.max(shake,.6);SFX.boom(true);
@@ -97,6 +106,7 @@ function hurtEnemy(e,d,at){if(e.dead)return;
     d*=e.stun>0?1.4:.35}
   const crit=Math.random()<.1+state.critBonus;if(crit)d*=2;if(Math.random()<.35)SFX.hurt();dmgEnemy(e,d,true,crit)}
 function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t=e.type,big=BIG(t);
+  if(e.aff==='boom'){explode(Math.floor(e.pos.x),Math.floor(e.gy+.5),Math.floor(e.pos.z),2.4,26,{src:'enemy'});label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'💥','#ff8a3c')}
   if(t==='slime'&&!e.small){for(let k=0;k<2;k++){const s=makeEnemy('slime',e.rarity,e.pos.x+rnd(-.8,.8),e.pos.z+rnd(-.8,.8));s.small=true;s.group.scale.setScalar(.6);s.maxhp*=.35;s.hp=s.maxhp;s.speed*=1.25;s.radius*=.6}}
   if(state.boss===e)hideBoss();
   if(t==='ship'){for(let k=0;k<2;k++)spawnLoot(e.pos.x+rnd(-2,2),GY+2,e.pos.z+rnd(-2,2),'treasure',Math.min(4,2+Math.floor(state.wave/10)),{});pendingBooms.push({x:e.pos.x,y:GY+1,z:e.pos.z,r:4,dmg:60,o:{src:'env',fire:true},t:.1});toast('🏴‍☠️ Navio pirata afundado! Tesouro na praia.','r4')}
@@ -116,7 +126,7 @@ function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,dat
 const _dir=new THREE.Vector3();
 function enemyWallAt(e,cx,cz){if(!inb(cx,0,cz))return -1;const s=surfE(cx,cz);if(s<=e.gy+1.2)return -1;const y0=Math.max(0,Math.floor(e.gy+.01));for(let y=y0;y<Math.min(H,y0+4);y++){const i=idx(cx,y,cz);if(SOLIDM(vox[i]))return i}return -1}
 function nearMinion(e,reach,dyMax=2.4){for(const m of minions){if(m.wounded)continue;if(hd(m.pos,e.pos)<e.radius+reach&&Math.abs(m.group.position.y-e.group.position.y)<dyMax)return m}return null}
-function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
+function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(e.aff==='regen'&&e.hp<e.maxhp&&simTime-(e.lastHit||0)>2.5)e.hp=Math.min(e.maxhp,e.hp+e.maxhp*.04*dt);if(e.affRing)e.affRing.rotation.z+=dt*2;
   if(e.hit>0){e.hit-=dt;if(e.hit<=0)for(const p of e.parts)p.material.emissive.setHex(e.afire>0?0x7a2a00:(p.userData.em||0))}
   const fx=Math.floor(e.pos.x),fz=Math.floor(e.pos.z);
   if(!e.fly){const tg=CLIMBS(e.type)?topY(e.pos.x,e.pos.z):surfE(e.pos.x,e.pos.z);e.gy+=(tg-e.gy)*Math.min(1,dt*(tg<e.gy?5:9));
@@ -214,7 +224,7 @@ function recompute(m){const st={atk:1,def:0,spd:1,hp:1,gun:1,work:1,cap:0,rate:1
 function setRole(m,role){if(m.role===role)return;if(m.turret){m.turret.gunner=null;m.turret=null}dropBag(m);releaseTask(m);m.role=role;m.R=ROLES[role];for(const h of m.hats)h.material.color.setHex(m.R.hat);buildProp(m.prop,role);m.state='idle';recompute(m)}
 function dropBag(m){for(const L of m.bag){L.carried=null;L.claimed=null;L.y=m.group.position.y+1;L.x=m.pos.x+rnd(-.5,.5);L.z=m.pos.z+rnd(-.5,.5);L.vy=3;L.rest=false}m.bag=[]}
 function releaseTask(m){if(m.task&&m.task.i!==undefined&&claimed.get(m.task.i)===m)claimed.delete(m.task.i);if(m.task&&m.task.L&&m.task.L.claimed===m)m.task.L.claimed=null;m.task=null}
-function hurtMinion(m,d,from){if(m.wounded>0)return;if(m.hp-d*(1-m.st.def)<=0)state.morale=Math.max(0,(state.morale??60)-3);d*=(1-m.st.def);if(from&&m.st.thorns)dmgEnemy(from,d*m.st.thorns*3,true);m.hp-=d;SFX.hurt();
+function hurtMinion(m,d,from){if(m.wounded>0)return;if(from&&from.aff==='vamp'&&!from.dead){from.hp=Math.min(from.maxhp,from.hp+d*2.5)}if(m.hp-d*(1-m.st.def)<=0)state.morale=Math.max(0,(state.morale??60)-3);d*=(1-m.st.def);if(from&&m.st.thorns)dmgEnemy(from,d*m.st.thorns*3,true);m.hp-=d;SFX.hurt();
   if(m.hp<=0){m.wounded=24;m.hp=0;dropBag(m);releaseTask(m);if(m.turret){m.turret.gunner=null;if(m.state==='man'&&m.turret.station){m.pos.x=m.turret.station.x;m.pos.z=m.turret.station.z}m.turret=null}
     m.state='wounded';m.group.rotation.z=Math.PI/2;m.group.position.y=standY(m.pos.x,m.pos.z)+.35;m.path=null;toast(`${m.name} ferido`,'r0');state.wwound++}}
 function supported(i){const x=ix(i),y=iy(i),z=iz(i);if(y===0||SOLIDM(vox[idx(x,y-1,z)]))return true;for(const [dx,dz] of NB4){if(inb(x+dx,y,z+dz)&&SOLIDM(vox[idx(x+dx,y,z+dz)]))return true}return false}

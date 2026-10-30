@@ -194,8 +194,11 @@ function defaultBlue(arr){arr.fill(0);const put=(x,y,z,m)=>{if(inb(x,y,z))arr[id
     for(let k=0;k<2;k++)for(let x=hx-1+k;x<=hx+4-k;x++)for(let z=hz-1+k;z<=hz+4-k;z++)arr[idx(x,GY+3+k,z)]=22}
   for(const [ox,oz] of OUTPOSTS)for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++){for(let y=0;y<4;y++)arr[idx(ox+dx,GY+y,oz+dz)]=3;arr[idx(ox+dx,GY+4,oz+dz)]=2;if((Math.abs(dx)===2||Math.abs(dz)===2)&&((dx+dz)&1))arr[idx(ox+dx,GY+5,oz+dz)]=2}}
 function rebuildBlueList(){blueList=[];for(let i=0;i<N;i++)if(blue[i])blueList.push(i)}
-function buildBlueprint(){defaultBlue(baseBlue);blue.set(baseBlue);for(const i of state.erased)blue[i]=0;for(const [i,m] of state.custom)blue[i]=m;rebuildBlueList()}
-function placeBlue(i,m){state.erased.delete(i);state.custom.set(i,m);if(!blue[i])blueList.push(i);blue[i]=m}
+// masonry tiers: the blueprint's structural blocks climb wood → stone → metal → obsidian → rune steel
+const TIER_RANK={2:1,3:2,4:3,14:4,20:5};
+function tierMat(m){const t=state.blockTier||0;if(t>=1&&m===2)m=3;if(t>=2&&m===3)m=4;if(t>=3&&m===4)m=14;if(t>=4&&m===14)m=20;return m}
+function buildBlueprint(){defaultBlue(baseBlue);if(state.blockTier)for(let i=0;i<N;i++)if(baseBlue[i])baseBlue[i]=tierMat(baseBlue[i]);blue.set(baseBlue);for(const i of state.erased)blue[i]=0;for(const [i,m] of state.custom)blue[i]=tierMat(m);rebuildBlueList()}
+function placeBlue(i,m){m=tierMat(m);state.erased.delete(i);state.custom.set(i,m);if(!blue[i])blueList.push(i);blue[i]=m}
 function eraseBlue(i){if(baseBlue[i])state.erased.add(i);state.custom.delete(i);state.prepaid.delete(i);if(blue[i]){blue[i]=0;const k=blueList.indexOf(i);if(k>=0)blueList.splice(k,1)}}
 function chestAlive(){let n=0;for(const i of _chestVox)if(vox[i]===5)n++;return n}
 function checkChest(){if(state.running&&chestAlive()===0)gameOver()}

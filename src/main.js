@@ -21,7 +21,7 @@ const EVENTS={
   golden:{n:'Horda dourada',d:'Todos os Devoradores são Raros ou acima. Curta e brutal.',css:'r3',w:8},
 };
 function rollEvent(w){if(w<3||w%5===0||Math.random()<.5)return null;const b=state.biomeKey;const pool=[];for(const k of Object.keys(EVENTS)){if(EVENTS[k].w>w)continue;if(k==='sandstorm'&&b!=='deserto')continue;if(k==='blizzard'&&b==='deserto')continue;const n=(k==='blizzard'&&b==='neve')||(k==='sandstorm'&&b==='deserto')||(k==='mist'&&b==='pantano')?4:1;for(let i=0;i<n;i++)pool.push(k)}return pick(pool)}
-function startWave(){if(state.choosing||state.phase==='wave')return;state.phase='wave';state.wk=0;state.wwound=0;state.ev=window.__forceEv||(state.siege>0?'siege':rollEvent(state.wave));window.__forceEv=null;state.queue=waveSpec(state.wave);state.meteorT=3;if(state.ev==='pirates'){const a=rnd(0,Math.PI*2);const s=makeEnemy('ship',2,clamp(CX+Math.cos(a)*44,6,W-7),clamp(CZ+Math.sin(a)*44,6,D-7));s.maxhp*=1+state.wave*.08;s.hp=s.maxhp;s.armor=0;if(!state.boss)showBoss(s)}if(isNight()){for(let k=0;k<Math.ceil(state.queue.length*.25);k++)state.queue.push(pick(['crawler','climber','flyer']));toast('É noite: a bruma vem mais forte','r2')}
+function startWave(){if(state.choosing||state.phase==='wave')return;state.phase='wave';state.wk=0;state.wwound=0;state.ev=window.__forceEv||(state.siege>0?'siege':rollEvent(state.wave));window.__forceEv=null;state.queue=waveSpec(state.wave);if(state.wave>=2)scatterTraps();state.meteorT=3;if(state.ev==='pirates'){const a=rnd(0,Math.PI*2);const s=makeEnemy('ship',2,clamp(CX+Math.cos(a)*44,6,W-7),clamp(CZ+Math.sin(a)*44,6,D-7));s.maxhp*=1+state.wave*.08;s.hp=s.maxhp;s.armor=0;if(!state.boss)showBoss(s)}if(isNight()){for(let k=0;k<Math.ceil(state.queue.length*.25);k++)state.queue.push(pick(['crawler','climber','flyer']));toast('É noite: a bruma vem mais forte','r2')}
   if(state.ev==='siege'&&state.siege===0)state.siege=3;if(state.ev==='golden')state.queue=state.queue.slice(0,Math.ceil(state.queue.length*.5));
   state.spawnT=0;$('report').style.display='none';
   if(state.ev){const E=EVENTS[state.ev];toast(`${E.n}: ${E.d}`,E.css);$('event').style.display='inline-flex';$('event').textContent=E.n+(state.ev==='siege'?` ${4-state.siege}/3`:'');$('event').style.color=`var(--${E.css})`}else $('event').style.display='none';
@@ -191,7 +191,7 @@ function autoBuildTick(){const reserve=reserveMat();let acted=false;
   if(acted)refreshPanels()}
 // upgrades: always replace the worst piece with a better one
 const TIER=[3,4,14,20];
-function autoUpgradeTick(){{const res=reserveMat();if(state.material>res*2){const o=UPGRADES.filter(U=>isUnlocked('up',U.id)&&(state.ups[U.id]||0)<U.max).map(U=>({U,c:U.cost(state.ups[U.id]||0)})).sort((a,b)=>a.c-b.c)[0];if(o&&state.material-o.c>res){state.material-=o.c;state.ups[o.U.id]=(state.ups[o.U.id]||0)+1;o.U.go();label({x:CHEST.x,y:GY+3,z:CHEST.z},`${o.U.ico} ${o.U.nm}`,'#4f9cf2')}}}const reserve=reserveMat();let acted=false;
+function autoUpgradeTick(){{const res=reserveMat();if(state.material>res*2){const pr=x=>x.c*(x.U.id==='masonry'?.5:x.U.id==='sappers'?.8:1);const o=UPGRADES.filter(U=>upReady(U)&&(state.ups[U.id]||0)<U.max).map(U=>({U,c:U.cost(state.ups[U.id]||0)})).sort((a,b)=>pr(a)-pr(b))[0];if(o&&state.material-o.c>res){state.material-=o.c;state.ups[o.U.id]=(state.ups[o.U.id]||0)+1;o.U.go();label({x:CHEST.x,y:GY+3,z:CHEST.z},`${o.U.ico} ${o.U.nm}`,'#4f9cf2')}}}const reserve=reserveMat();let acted=false;
   // walls: worst material first, closest to the gate first
   const walls=blueList.filter(i=>TIER.includes(blue[i])&&(baseBlue[i]===3||baseBlue[i]===4||state.custom.has(i))&&iy(i)>=GY).sort((a,b)=>TIER.indexOf(blue[a])-TIER.indexOf(blue[b])||hd({x:ix(a),z:iz(a)},GATE)-hd({x:ix(b),z:iz(b)},GATE));
   let n=0;for(const i of walls){if(n>=6)break;const t=TIER.indexOf(blue[i]);const next=TIER[t+1];if(!next)continue;
@@ -254,3 +254,7 @@ window.__king=()=>{const e=makeEnemy('mistking',3,CX+20,CZ+30);return e.blvl};
 window.__fest=()=>startFestival();
 window.__caravan=()=>{const P={id:999,kind:'caravan',lvl:2,x:150,y:480,ttl:100,n:10,E:9,name:'Caravana teste'};REALM.pois.push(P);return acceptPoi(P)};window.__q=()=>({q:!!state.quest,c:state.caravan?Math.round(state.caravan.hp)+'@'+state.caravan.x.toFixed(0)+','+state.caravan.z.toFixed(0):null,mat:Math.round(state.material)});
 window.__rally=(x,z)=>setRally(x,z);
+window.__aff=()=>{const c={};for(const e of enemies)if(!e.dead&&e.aff)c[e.aff]=(c[e.aff]||0)+1;return c};
+window.__traps=()=>({q:(state.healQ||[]).length,ph:state.phase,n:(state.fieldTraps||[]).filter(i=>vox[i]).length,tier:state.blockTier,mats:(()=>{const c={};for(const i of blueList)if(vox[i])c[vox[i]]=(c[vox[i]]||0)+1;return c})()});window.__mason=()=>{state.wave=Math.max(state.wave,20);for(let k=0;k<4;k++){state.ups.masonry=(state.ups.masonry||0)+1;upgradeMasonry()}};
+window.__sap=n=>{state.ups.sappers=n;startWave()};window.__killAll=()=>{for(const e of enemies)e.dead=true};
+window.__minCard=()=>{const m=minions.find(m=>!m.hero)||minions[0];openCard({m})};

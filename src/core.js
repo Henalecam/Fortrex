@@ -45,7 +45,7 @@ const FLUID=m=>m===8||m===9;
 const SOLIDM=m=>m!==0&&m!==8&&m!==9;
 const BASIC_BLOCKS=[3,2,4];
 const SPECIAL_BLOCKS=[16,17,18,31,15,10,14,19,20,9,8];
-function maxHpOf(m){return m===7&&state.metalDoor?170:MAT[m].hp}
+function maxHpOf(m){return m===7&&state.metalDoor?170:m===6?MAT[6].hp*(1+.45*(state.blockTier||0)):MAT[m].hp}
 function isFlam(m){return !!m&&MAT[m].flam===1&&!(m===7&&state.metalDoor)}
 
 const RARITY=[
@@ -56,10 +56,11 @@ const NAMES=['Bolota','Tijolo','Pipoca','Faísca','Migalha','Biscoito','Torresmo
 
 const OPTS=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_opts')||'{}')}catch(e){return{}}})();function saveOpts(){try{localStorage.setItem('fortrex_opts',JSON.stringify(OPTS))}catch(e){}}
 const DIFFS={calmo:{n:'Tranquilo',ico:'🌱',hp:.72,cnt:.75,dmg:.7,sp:.95,d:'Para relaxar e construir.'},normal:{n:'Normal',ico:'⚔️',hp:1.2,cnt:1.1,dmg:1.1,sp:1,arm:0,d:'O desafio pensado para o jogo.'},brutal:{n:'Brutal',ico:'💀',hp:2.3,cnt:1.6,dmg:1.6,sp:1.12,arm:.15,d:'A bruma não perdoa: pressão desde a horda 10.'}};
-const DIFF=()=>DIFFS[OPTS.diff]||DIFFS.normal;
+// brutal ramps in from normal over the first waves, so the run is decided by waves 8–10, not by an unlucky wave 3
+let _dfK='',_dfV=null;const DIFF=()=>{const d=DIFFS[OPTS.diff]||DIFFS.normal;if(d!==DIFFS.brutal)return d;const w=Math.min(9,Math.max(1,state.wave|0));if(w>=9)return d;const k=OPTS.diff+w;if(_dfK===k)return _dfV;const n=DIFFS.normal,f=(w-1)/8,L=(a,b)=>a+(b-a)*f;_dfK=k;_dfV={...d,hp:L(n.hp,d.hp),cnt:L(n.cnt,d.cnt),dmg:L(n.dmg,d.dmg),sp:L(n.sp,d.sp),arm:L(0,d.arm)};return _dfV};
 let simTime=0,shake=0,hitstop=0,gameSpeed=1,slowmo=0;const SPEEDS=[1,2,3,5];const MAX_MINIONS=60;
 function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:15,auto:false,
-  focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,
+  fieldTraps:[],fieldTrapM:new Map(),blockTier:0,focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,
   ev:null,siege:0,boss:null,wk:0,wwound:0,choosing:false,meteorT:0,
   wallH:7,mode:'reino',morale:60,custom:new Map(),erased:new Set(),prepaid:new Set(),metalDoor:false,
   dmgMul:1,reloadMul:1,explosive:0,greek:0,repMul:1,healMul:1,bladeMul:1,turretHp:1,lootMag:0,luck:0,ups:{},
