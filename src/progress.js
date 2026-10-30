@@ -1,7 +1,7 @@
 // ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
 const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,frost:10,catapult:12,sunray:15},role:{rep:1,col:1,gun:1,sol:1,med:3},
   block:{16:1,17:1,10:1,31:6,18:4,15:5,9:7,8:7,14:9,19:10,20:14},
-  up:{sappers:5,forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
+  up:{oil:6,sappers:5,forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
 function unlockWave(kind,k){return(UNLOCK[kind]&&UNLOCK[kind][k])||1}
 function isUnlocked(kind,k){return state.wave>=unlockWave(kind,k)}
 function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)if(UNLOCK.turret[k]===w)got.push(TURRETS[k].ico+' '+TURRETS[k].n);for(const k in UNLOCK.role)if(UNLOCK.role[k]===w)got.push(ROLES[k].ico+' '+ROLES[k].n);
@@ -29,6 +29,7 @@ const UPGRADES_EXTRA=[
   {id:'oficina',ico:'🏭',nm:'Oficina',ds:'+2 vagas de reparador e +2 de coletor.',max:5,cost:l=>50+l*50,go(){}},
   {id:'escola',ico:'🎓',nm:'Escola de artilharia',ds:'+2 vagas de artilheiro.',max:5,cost:l=>60+l*60,go(){}},
   {id:'masonry',ico:'🧱',nm:'Alvenaria',get ds(){const t=state.blockTier||0;const nx=['madeira e pedra viram pedra e metal','pedra vira metal','metal vira obsidiana','obsidiana vira aço rúnico'][Math.min(3,t)];return t>=4?'A cidadela inteira é de aço rúnico.':`Troca os blocos da planta por melhores: ${nx}. Trocados de graça após a horda.`},max:4,cost:l=>[140,280,560,900][l]||999,need:l=>[4,8,13,19][l]||99,go(){upgradeMasonry()}},
+  {id:'oil',ico:'🫕',nm:'Óleo fervente',ds:'As muralhas despejam óleo em quem escala: dano, queimadura e o escalador cai para fora. Mais níveis, mais frequente.',max:3,cost:l=>90+l*90,go(){}},
   {id:'sappers',ico:'💣',nm:'Sapadores',ds:'Espalham mais minas, espinhos, gelo, piche e barris pelo mapa a cada horda, nos caminhos dos Devoradores.',max:5,cost:l=>60+l*55,go(){}}];
 function upReady(U){const lv=state.ups[U.id]||0;return isUnlocked('up',U.id)&&(!U.need||state.wave>=U.need(lv))}
 function upLockWave(U){const lv=state.ups[U.id]||0;return Math.max(unlockWave('up',U.id),U.need?U.need(lv):1)}
@@ -151,7 +152,7 @@ function popLantern(L,auto){const k=lanterns.indexOf(L);if(k<0)return;lanterns.s
 function festivalTick(dt){for(let i=lanterns.length-1;i>=0;i--){const L=lanterns[i];L.t-=dt;L.ph+=dt;L.g.position.y+=dt*.35;L.g.position.x+=Math.sin(L.ph*.7)*dt*.4;L.g.rotation.y+=dt;if(L.t<=0)popLantern(L,true)}}
 // ───────── first-time tips: short, contextual, each shown once (remembered in the browser)
 const TIPS_SEEN=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_tips')||'{}')}catch(e){return{}}})();
-const TIPS=[{id:'mason',c:()=>state.wave>=4&&state.phase==='rest'&&!state.ups.masonry,t:'🧱 Alvenaria (Upgrades) troca os blocos da cidadela por materiais melhores, de graça, depois de cada horda.'},{id:'sappers',c:()=>(state.fieldTraps||[]).length>=4,t:'💣 Os sapadores espalham minas, espinhos e barris pelo mapa onde a horda passa. Compre Sapadores para mais armadilhas.'},{id:'affix',c:()=>enemies.some(e=>e.aff&&!e.dead),t:'💍 Anéis coloridos nos pés marcam inimigos de elite: amarelo veloz, azul blindado, vermelho vampiro, laranja explode ao morrer, verde regenera.'},
+const TIPS=[{id:'oil',c:()=>state.wave>=6&&state.phase==='rest'&&!state.ups.oil&&enemies.length===0,t:'🫕 Escaladores e aranhas passam por cima das muralhas. Óleo fervente (Upgrades) derruba eles lá de cima.'},{id:'mason',c:()=>state.wave>=4&&state.phase==='rest'&&!state.ups.masonry,t:'🧱 Alvenaria (Upgrades) troca os blocos da cidadela por materiais melhores, de graça, depois de cada horda.'},{id:'sappers',c:()=>(state.fieldTraps||[]).length>=4,t:'💣 Os sapadores espalham minas, espinhos e barris pelo mapa onde a horda passa. Compre Sapadores para mais armadilhas.'},{id:'affix',c:()=>enemies.some(e=>e.aff&&!e.dead),t:'💍 Anéis coloridos nos pés marcam inimigos de elite: amarelo veloz, azul blindado, vermelho vampiro, laranja explode ao morrer, verde regenera.'},
   {id:'start',c:()=>simTime>3,t:'👥 Seus minions trabalham sozinhos: reparam, coletam, lutam e operam armas. Clique em um para ver a ficha.'},
   {id:'wave',c:()=>state.phase==='wave'&&state.wave===1,t:'🔥 Clique num inimigo para concentrar o fogo de todas as armas nele.'},
   {id:'auto',c:()=>state.wave>=2&&state.phase==='rest',t:'⚙️ No menu Automação você liga construção, upgrades, venda e recompensas automáticas.'},
@@ -183,3 +184,9 @@ let trapAcc=0,trapRT=0;function trapTick(dt){trapRT-=dt;if(trapRT<=0){trapRT=.5;
 const TRAP_RING=(()=>{const g=new THREE.RingGeometry(1.0,1.4,4,1);g.rotateX(-Math.PI/2);g.rotateY(Math.PI/4);const m=new THREE.InstancedMesh(g,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.95,depthWrite:false}),180);m.count=0;m.frustumCulled=false;m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(180*3),3);scene.add(m);return m})();
 let trapRingN=-1;const _trc=new THREE.Color(),_trm=new THREE.Matrix4();
 function refreshTrapRings(){const L=(state.fieldTraps||[]).filter(i=>vox[i]&&vox[i]===state.fieldTrapM.get(i));let k=0;for(const i of L){if(k>=180)break;_trm.makeTranslation(ix(i)+.5,GY+.04,iz(i)+.5);TRAP_RING.setMatrixAt(k,_trm);_trc.setHex(vox[i]===17||vox[i]===10?0xffcf3d:vox[i]===16?0xd9414f:vox[i]===18?0x8fe3ff:0x2a2422);TRAP_RING.setColorAt(k,_trc);k++}TRAP_RING.count=k;TRAP_RING.instanceMatrix.needsUpdate=true;TRAP_RING.instanceColor.needsUpdate=true;trapRingN=k}
+
+// boiling oil: walls pour on climbers (climbers and spiders were most of the chest damage when the walls held)
+let oilAcc=0;function oilTick(dt){const lv=state.ups.oil||0;if(!lv||state.phase!=='wave')return;oilAcc+=dt;if(oilAcc<.5)return;const t=oilAcc;oilAcc=0;const rings=[WR];if((state.expStage||0)>=1)rings.push(WR+8);
+  for(const e of enemies){if(e.dead||e.fly||!CLIMBS(e.type)||e.gy<GY+1.5||(e.oilCd||0)>simTime)continue;const dx=e.pos.x-CX,dz=e.pos.z-CZ,d=Math.max(Math.abs(dx),Math.abs(dz));if(!rings.some(R=>d>R-2.5&&d<R+2.5))continue;if(Math.random()>t*(.35+.2*lv))continue;
+    e.oilCd=simTime+5-lv;dmgEnemy(e,(18+state.wave*3)*(1+.4*(lv-1)),true);if(lv>=2)e.afire=Math.max(e.afire||0,2.5);const L=Math.hypot(dx,dz)||1;e.pos.x+=dx/L*2.6;e.pos.z+=dz/L*2.6;e.stun=Math.max(e.stun||0,1.2);
+    spawnDebris(e.pos.x,e.gy+1.2,e.pos.z,0x3a2a1a,6,.35);if(Math.random()<.4)label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'óleo!','#ff8a3c');state.oilHits=(state.oilHits||0)+1}}
