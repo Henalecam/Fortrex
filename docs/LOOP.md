@@ -123,6 +123,17 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.78: 🏆 6 conquistas novas (Matilha, Explorador, Negociante, Caçador de estandartes, Diplomata, Construtor de maravilhas; contadores state.expDone e state.dealTaken). Revoada medida com bot nas hordas 9 e 10: 0 golpes no baú, ~65 s por horda — sem ajuste.
 - v0.79: 🕯️ Heroína nova Selene, a Sacerdotisa (tecla O, recarga 55 s, entra no sorteio das vagas de herói): Luz Restauradora — num raio 14+ levanta feridos com 50% de vida, cura 60% dos demais e restaura até 60+4×nível blocos danificados da planta.
 - v0.80 (marco): README reescrito com a lista atual de recursos, teclas e save. 4ª vaga de herói com 8 relíquias (HERO_SLOTS [1,3,5,8]); coluna de heróis no celular comporta 4 sem sobrepor o dock.
+- v0.81: 🌧️ Novo evento Chuva forte (fora do deserto): o fogo quase não pega, armas enxergam 10% menos e a horda anda 10% mais devagar na lama.
+- v0.82: 🚪 Botão Portão: feche para a porta aguentar 2,5× mais — mas ninguém sai nem entra enquanto estiver fechado.
+- v0.83: 🚪 Portão automático (menu Automação): fecha quando aríetes e brutos chegam perto e abre no descanso; aviso quando coletores ficam presos do lado de fora. 💾 Corrigido: o save automático travava enquanto saqueadores de cidades rivais andavam pelo mapa.
+- v0.84: 💾 O save automático agora também acontece durante batalhas contra fortalezas e missões do reino (ao continuar, a fortaleza de cerco e a missão em andamento ficam de fora).
+- v0.85: 🏆 Desafio da semana na tela inicial: dois modificadores e um bioma iguais para a semana inteira, com recorde de horda guardado.
+- v0.86: 🏆 Durante o desafio, um selo no topo mostra os modificadores; a tela de derrota mostra o recorde da semana.
+- v0.87: 🗼 Farol (Upgrades → Cidadela, horda 7+): +15% de alcance para as armas próximas, bruma quase não atrapalha e a horda do Pântano não se esconde mais à noite.
+- v0.88: 🎯 Besteiros nas ameias (Upgrades → Armas, horda 4+): setas automáticas do alto da muralha em quem chega perto.
+- v0.89: 🔧 Ajustes internos e verificações (farol não bloqueia o pátio).
+- v0.90: 🐲 Nova Maravilha: Ninho do dragão (horda 16+) — um dragão aliado sobrevoa a cidadela e cospe fogo nos maiores grupos.
+- v0.91: 🐲 O dragão aliado voa mais baixo com sombra no chão e, entre as hordas, pousa no alto da torre central.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
