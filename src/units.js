@@ -131,7 +131,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(e.aff==='regen'&&e.hp
   if(e.hit>0){e.hit-=dt;if(e.hit<=0)for(const p of e.parts)p.material.emissive.setHex(e.afire>0?0x7a2a00:(p.userData.em||0))}
   const fx=Math.floor(e.pos.x),fz=Math.floor(e.pos.z);
   if(!e.fly){const tg=CLIMBS(e.type)?topY(e.pos.x,e.pos.z):surfE(e.pos.x,e.pos.z);e.gy+=(tg-e.gy)*Math.min(1,dt*(tg<e.gy?5:9));
-    const fy=Math.floor(e.gy+.05);const under=inb(fx,fy,fz)?vox[idx(fx,fy,fz)]:0;e.inLava=under===8;e.inWater=under===9;
+    const fy=Math.floor(e.gy+.05);const under=inb(fx,fy,fz)?vox[idx(fx,fy,fz)]:0;e.inLava=under===8;e.inWater=under===9;if(e.inWater&&(e.type==='ram'||e.type==='rammer'||e.type==='crawler')&&!e.fly){dmgEnemy(e,(18+state.wave*1.6)*dt*(e.type==='crawler'?.6:1),false);e.slowT=Math.max(e.slowT||0,.4);if(Math.random()<dt*3)spawnDebris(e.pos.x,e.gy+.4,e.pos.z,0x4fa8e8,1,.2)}
     if(e.type==='titan'){e.inLava=false;if(e.inWater)dmgEnemy(e,40*dt,false);e.trailT=(e.trailT||0)-dt;if(e.trailT<=0){e.trailT=.45;const ly=Math.floor(e.gy);for(let k=0;k<3;k++){const x=Math.floor(e.pos.x+rnd(-1.5,1.5)),z=Math.floor(e.pos.z+rnd(-1.5,1.5));if(inb(x,ly,z)&&vox[idx(x,ly,z)]===0&&!inside(x,z))setFluid(idx(x,ly,z),8,3,false)}}}
     if(e.inLava&&e.type==='imp'){e.hp=Math.min(e.maxhp,e.hp+25*dt);e.speedBoost=1}else if(e.inLava){dmgEnemy(e,(e.type==='colossus'?14:30)*dt,false);e.afire=Math.max(e.afire,1.5);if(Math.random()<dt*6)spawnFlame(e.pos.x+rnd(-.4,.4),e.gy+.3,e.pos.z+rnd(-.4,.4),.7)}
     if(e.dead)return}

@@ -87,6 +87,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.42: 🔧 Sabotador (duende com chave inglesa, horda 9+, só quando há 6+ armadilhas no campo): vai direto às armadilhas dos Sapadores e as desarma sem disparar — alvo prioritário. Save testado na horda 13 (2 heróis, Alvenaria 2): idêntico após recarregar. Fixture tests/save_v041_w13.json + tcompat.js garantem que saves antigos continuam carregando a cada rodada (regra: campos novos sempre com padrão seguro).
 - v0.43: 🩸 Lua de sangue (evento, horda 10+): luz e vinheta vermelhas, ~45% dos inimigos vêm com afixos de elite, mas cada abate rende +1 material e soldados próximos se curam 12%. Save antigo (v0.41) carrega sem erros.
 - v0.44: ⛏️ Veio de ouro disputado (horda 6, depois a cada 4): 8–10 blocos de ouro surgem fora das muralhas com anel dourado; rendem ~0,5 material/s enquanto de pé, e ~15% da horda desvia para saqueá-lo — defenda com 🚩 Reunir. Vinheta da Lua de sangue agora fica abaixo do HUD. Bot: horda 14 em 15 min; save antigo carrega.
+- v0.45: 🌊 O fosso (expansão da horda 15) afoga aríetes e rastejadores que entram na água. Ouro do veio fica mais dourado; o veio sobrevive ao save/load com a vida certa.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

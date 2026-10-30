@@ -41,7 +41,7 @@ function paint(i){const m=vox[i],x=ix(i),z=iz(i),y=iy(i);
   voxDirty=true;if(!m||!exposed(i)){freeSlot(i);return}
   let sl=vslot[i];if(sl<0){if(vcount>=VCAP)return;sl=vcount++;vslot[i]=sl;slotVox[sl]=i;voxMesh.count=vcount}
   _m.makeScale(.97,.97,.97);_m.setPosition(x+.5,y+.5,z+.5);voxMesh.setMatrixAt(sl,_m);
-  _c.setHex(m===7&&state.metalDoor?0x7f8ea6:MAT[m].c);const j=(((x*7+z*13+y*3)%7)/7*.12-.06)*(m===12||m===13?.45:1);_c.offsetHSL(0,0,j);
+  _c.setHex(m===7&&state.metalDoor?0x7f8ea6:MAT[m].c);const j=(((x*7+z*13+y*3)%7)/7*.12-.06)*(m===12||m===13?.45:1);_c.offsetHSL(0,0,j);if(m===19)_c.offsetHSL(0,.1,.06);
   const dmg=1-hp[i]/maxHpOf(m);if(dmg>0)_c.offsetHSL(0,-dmg*.3,-dmg*.2);
   if(burning.has(i))_c.lerp(BURN,.55);
   voxMesh.setColorAt(sl,_c)}

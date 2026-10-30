@@ -429,7 +429,7 @@ function paint(i){const m=vox[i],x=ix(i),z=iz(i),y=iy(i);
   voxDirty=true;if(!m||!exposed(i)){freeSlot(i);return}
   let sl=vslot[i];if(sl<0){if(vcount>=VCAP)return;sl=vcount++;vslot[i]=sl;slotVox[sl]=i;voxMesh.count=vcount}
   _m.makeScale(.97,.97,.97);_m.setPosition(x+.5,y+.5,z+.5);voxMesh.setMatrixAt(sl,_m);
-  _c.setHex(m===7&&state.metalDoor?0x7f8ea6:MAT[m].c);const j=(((x*7+z*13+y*3)%7)/7*.12-.06)*(m===12||m===13?.45:1);_c.offsetHSL(0,0,j);
+  _c.setHex(m===7&&state.metalDoor?0x7f8ea6:MAT[m].c);const j=(((x*7+z*13+y*3)%7)/7*.12-.06)*(m===12||m===13?.45:1);_c.offsetHSL(0,0,j);if(m===19)_c.offsetHSL(0,.1,.06);
   const dmg=1-hp[i]/maxHpOf(m);if(dmg>0)_c.offsetHSL(0,-dmg*.3,-dmg*.2);
   if(burning.has(i))_c.lerp(BURN,.55);
   voxMesh.setColorAt(sl,_c)}
@@ -977,7 +977,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(e.aff==='regen'&&e.hp
   if(e.hit>0){e.hit-=dt;if(e.hit<=0)for(const p of e.parts)p.material.emissive.setHex(e.afire>0?0x7a2a00:(p.userData.em||0))}
   const fx=Math.floor(e.pos.x),fz=Math.floor(e.pos.z);
   if(!e.fly){const tg=CLIMBS(e.type)?topY(e.pos.x,e.pos.z):surfE(e.pos.x,e.pos.z);e.gy+=(tg-e.gy)*Math.min(1,dt*(tg<e.gy?5:9));
-    const fy=Math.floor(e.gy+.05);const under=inb(fx,fy,fz)?vox[idx(fx,fy,fz)]:0;e.inLava=under===8;e.inWater=under===9;
+    const fy=Math.floor(e.gy+.05);const under=inb(fx,fy,fz)?vox[idx(fx,fy,fz)]:0;e.inLava=under===8;e.inWater=under===9;if(e.inWater&&(e.type==='ram'||e.type==='rammer'||e.type==='crawler')&&!e.fly){dmgEnemy(e,(18+state.wave*1.6)*dt*(e.type==='crawler'?.6:1),false);e.slowT=Math.max(e.slowT||0,.4);if(Math.random()<dt*3)spawnDebris(e.pos.x,e.gy+.4,e.pos.z,0x4fa8e8,1,.2)}
     if(e.type==='titan'){e.inLava=false;if(e.inWater)dmgEnemy(e,40*dt,false);e.trailT=(e.trailT||0)-dt;if(e.trailT<=0){e.trailT=.45;const ly=Math.floor(e.gy);for(let k=0;k<3;k++){const x=Math.floor(e.pos.x+rnd(-1.5,1.5)),z=Math.floor(e.pos.z+rnd(-1.5,1.5));if(inb(x,ly,z)&&vox[idx(x,ly,z)]===0&&!inside(x,z))setFluid(idx(x,ly,z),8,3,false)}}}
     if(e.inLava&&e.type==='imp'){e.hp=Math.min(e.maxhp,e.hp+25*dt);e.speedBoost=1}else if(e.inLava){dmgEnemy(e,(e.type==='colossus'?14:30)*dt,false);e.afire=Math.max(e.afire,1.5);if(Math.random()<dt*6)spawnFlame(e.pos.x+rnd(-.4,.4),e.gy+.3,e.pos.z+rnd(-.4,.4),.7)}
     if(e.dead)return}
@@ -1883,7 +1883,7 @@ function heroTick(dt){for(const o of minions)if(o.rage>0){o.rage-=dt;if(Math.ran
 
 // ───────── the citadel grows by itself: a new outer ring, bastions and a moat are drawn into the blueprint as waves go by.
 // Building is free (repairers' labour is the only limit); after each wave everything mends itself.
-const EXP_STAGES=[{w:3,n:'Paliçada de madeira'},{w:6,n:'Muralha externa de pedra'},{w:9,n:'Quatro bastiões com plataformas de armas'},{w:12,n:'Reforço de metal e portão externo'},{w:15,n:'Fosso de água'},{w:18,n:'Torres de vigia (enxergam através da bruma e da areia)'},{w:21,n:'Campo de espinhos além do fosso'},{w:24,n:'Base de obsidiana e ameias de aço rúnico'}];
+const EXP_STAGES=[{w:3,n:'Paliçada de madeira'},{w:6,n:'Muralha externa de pedra'},{w:9,n:'Quatro bastiões com plataformas de armas'},{w:12,n:'Reforço de metal e portão externo'},{w:15,n:'Fosso de água (aríetes e rastejadores afundam e se afogam)'},{w:18,n:'Torres de vigia (enxergam através da bruma e da areia)'},{w:21,n:'Campo de espinhos além do fosso'},{w:24,n:'Base de obsidiana e ameias de aço rúnico'}];
 function ringCells(R,f){for(let x=CX-R;x<=CX+R;x++)for(let z=CZ-R;z<=CZ+R;z++){const edge=Math.max(Math.abs(x-CX),Math.abs(z-CZ));if(edge<R-1||edge>R)continue;f(x,z)}}
 function clearFor(i){if(vox[i]&&!blue[i]&&!rown[i]&&vox[i]!==5){removeVox(i,'dig')}if(natBlue)natBlue[i]=0}
 function expansionTick(){const st=state.expStage||0;if(st>=EXP_STAGES.length||state.wave<EXP_STAGES[st].w)return;state.expStage=st+1;const R=WR+8,gap=(x,z)=>z>CZ&&Math.abs(x-CX+.5)<2.6;
@@ -2024,6 +2024,7 @@ function loadGame(){const d=readSave();if(!d)return false;
   rleDec(d.vox,vox);if(d.looted)rleDec(d.looted,looted);if(d.rown)rleDec(d.rown,rown);buildBlueprint();
   fluids.clear();fluidSrc.clear();burning.clear();specials.clear();damaged.clear();pendingBooms.length=0;resetFluidSlots();resetVoxSlots();
   for(let i=0;i<N;i++){const m=vox[i];if(!m)continue;if(!MAT[m]){vox[i]=0;continue}if(FLUID(m)){hp[i]=4;fluids.add(i);fluidSrc.add(i)}else hp[i]=maxHpOf(m);if(m===15||m===19)specials.add(i)}
+  if(state.vein&&Array.isArray(state.vein.cells))for(const i of state.vein.cells)if(vox[i]===19)hp[i]=MAT[19].hp*4;else if(state.vein&&!Array.isArray(state.vein.cells))state.vein=null;
   colS.fill(-1);colE.fill(-1);colT.fill(-1);for(let i=0;i<N;i++)if(vox[i])paint(i);initTufts();snapshotNature();voxDirty=true;fluidDirty=true;
   // army
   for(const T of d.turrets||[])if(TURRETS[T.type]&&vox[T.anchor])makeTurret(T.type,T.anchor,T.r||0);
