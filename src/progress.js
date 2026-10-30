@@ -938,6 +938,21 @@ function champTick(dt){if(!state.champT||simTime<state.champT||state.phase!=='wa
   const e=makeEnemy(type,4,clamp(CX+Math.cos(a)*r,4,W-5),clamp(CZ+Math.sin(a)*r,4,D-5));const nm=pick(CH_N1)+', '+pick(CH_N2);e.champ=nm;e.T={...e.T,n:nm};e.maxhp*=BIG(type)?1.6:5;e.hp=e.maxhp;e.speed*=1.1;e.group.scale.multiplyScalar(1.3);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(1.2,.12,6,28),new THREE.MeshBasicMaterial({color:0xffb000}));ring.rotation.x=Math.PI/2;ring.position.y=.15;e.group.add(ring);e.champRing=ring;
   for(const im of e.vmeshes||[]){im.material.emissive.setHex(0xffa000);im.material.emissiveIntensity=.25;im.userData.em=0xffa000}
-  showBoss(e);toast(`👑 Campeão: ${nm} entrou na horda! Derrote-o por um lendário.`,'r4',true);SFX.boom&&SFX.boom(true)}
+  const af=window.__forceAff||(state.wave>=12?pick(Object.keys(CH_AFF)):null);window.__forceAff=null;if(af){const A=CH_AFF[af];e.champAff=af;e.T.n=nm+' · '+A.n;const r2=new THREE.Mesh(new THREE.TorusGeometry(.85,.1,6,24),new THREE.MeshBasicMaterial({color:A.c}));r2.position.z=.08;ring.add(r2);A.on(e)}
+  showBoss(e);toast(`👑 Campeão: ${e.T.n}! Derrote-o por um lendário.`,'r4',true);SFX.boom&&SFX.boom(true)}
+// afixos de campeão (h12+): cada um muda o jeito de lutar e tem visual próprio
+const CH_AFF={
+  veloz:{n:'Veloz',c:0xffd23d,on(e){e.speed=Math.min(e.speed*1.45,Math.max(e.speed,5.2));e.timer*=.7}},
+  regen:{n:'Regenerador',c:0x5cc08c,on(e){e.maxhp*=.85;e.hp=e.maxhp}},
+  escudo:{n:'Blindado',c:0x6fb6ff,on(e){e.shield=e.maxhp*.4;const sc=e.group.scale.x;e.shieldMesh=new THREE.Mesh(new THREE.SphereGeometry(e.radius*1.7/sc,16,10),new THREE.MeshBasicMaterial({color:0x6fb6ff,transparent:true,opacity:.24,depthWrite:false}));e.shieldMesh.position.y=e.radius*1.2/sc;e.group.add(e.shieldMesh)}},
+  furia:{n:'Furioso',c:0xd9414f,on(e){e.champFury=1}}};
+function champAffTick(dt){for(const e of enemies){if(!e.champAff||e.dead)continue;const f=e.champAff;
+  if(f==='veloz'){if(Math.random()<dt*14)spawnDebris(e.pos.x+rnd(-.5,.5),e.gy+.4,e.pos.z+rnd(-.5,.5),0xffd23d,1,.15)}
+  else if(f==='regen'){if(simTime-(e.lastHit||0)>2.5&&e.hp<e.maxhp){e.hp=Math.min(e.maxhp,e.hp+e.maxhp*.03*dt);if(Math.random()<dt*6)spawnDebris(e.pos.x+rnd(-.6,.6),e.gy+rnd(.8,2.2),e.pos.z+rnd(-.6,.6),0x5cff7a,1,.12)}}
+  else if(f==='escudo'){if(e.shieldMesh&&e.shield>0)e.shieldMesh.rotation.y+=dt;if(!e.reShield&&e.hp<e.maxhp*.5){e.reShield=1;e.shield=e.maxhp*.25;if(e.shieldMesh)e.shieldMesh.visible=true;label({x:e.pos.x,y:e.gy+3,z:e.pos.z},'ESCUDO RENOVADO!','#6fb6ff')}}
+  else if(f==='furia'){if(e.champFury===1&&e.hp<e.maxhp*.4){e.champFury=2;e.speed=Math.min(e.speed*1.35,Math.max(e.speed,6));e.timer*=.6;label({x:e.pos.x,y:e.gy+3,z:e.pos.z},'FÚRIA!','#ff4030');shake=Math.max(shake,.35);for(const im of e.vmeshes||[]){im.material.emissive.setHex(0xff2000);im.material.emissiveIntensity=.45;im.userData.em=0xff2000}}if(e.champFury===2&&Math.random()<dt*8)spawnFlame(e.pos.x+rnd(-.5,.5),e.gy+rnd(.5,2),e.pos.z+rnd(-.5,.5),.4,false)}}}
 function champDeath(e){const [k,d]=(()=>{for(let i=0;i<8;i++){const r=lootPick('any',4);if(r[0]!=='material')return r}return['equip',{item:makeEquip(4)}]})();spawnLoot(e.pos.x,e.gy+1.5,e.pos.z,k,4,d);spawnLoot(e.pos.x+1,e.gy+1.5,e.pos.z,'treasure',3,{});state.champs=(state.champs||0)+1;toast(`👑 ${e.champ} caiu! Um lendário brilha no chão.`,'r4',true)}
-window.__champ=()=>{state.champT=simTime;champTick(0);return enemies.filter(e=>e.champ).map(e=>e.champ)};
+window.__champ=(af)=>{state.champT=simTime;const w=state.wave;if(af)state.wave=Math.max(w,12);if(af)window.__forceAff=af;champTick(0);state.wave=w;return enemies.filter(e=>e.champ).map(e=>e.champ)};
+
+window.__champAll=()=>enemies.filter(e=>e.champ&&!e.dead).map(e=>({af:e.champAff,n:e.T.n,x:e.pos.x,z:e.pos.z,hp:Math.round(e.hp),mx:Math.round(e.maxhp),sh:Math.round(e.shield||0),sp:+e.speed.toFixed(2)}));
+window.__champHurt=(af,f)=>{const e=enemies.find(e=>e.champAff===af&&!e.dead);if(e)dmgEnemy(e,e.maxhp*f+(e.shield||0),false)};
