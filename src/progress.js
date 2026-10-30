@@ -994,6 +994,6 @@ function edgeTick(dt){_edgeT-=dt;if(_edgeT>0)return;_edgeT=.2;const box=$('edge'
   for(const e of enemies){if(e.dead||e.rival||e.lineup||e.dormant>0)continue;_ev3.set(e.pos.x,(e.fly?e.group.position.y:e.gy)+1,e.pos.z).project(camera);let x=_ev3.x,y=_ev3.y;const back=_ev3.z>1;if(back){x=-x;y=-y}
     if(!back&&Math.abs(x)<.98&&Math.abs(y)<.92){on++;continue}const a=Math.atan2(y*H2,x*W2);const k=Math.round((a+Math.PI)/(Math.PI/6))%12;const B=S[k]||(S[k]={n:0,a:0,big:0});B.n++;B.a=a;if(BIG(e.type)||e.champ)B.big=1}
   while(_edge.length<12){const d=document.createElement('div');d.className='edgeA';d.innerHTML='<i></i><b></b>';d.style.display='none';box.appendChild(d);_edge.push(d)}
-  _edge.forEach((d,k)=>{const B=S[k];if(!B){d.style.display='none';return}d.style.display='';const c=Math.cos(B.a),s=Math.sin(B.a);const m=72,top=72,bot=112;
+  _edge.forEach((d,k)=>{const B=S[k];if(!B){d.style.display='none';return}d.style.display='';const c=Math.cos(B.a),s=Math.sin(B.a);const m=innerWidth<700?52:84,top=72,bot=112;
     const tx=c?((c>0?W2-m:-(W2-m))/c):1e9,ty=s?((s>0?H2-top:-(H2-bot))/s):1e9;const t=Math.min(Math.abs(tx),Math.abs(ty));
     d.style.transform=`translate(${W2+c*t-15}px,${H2-s*t-15}px)`;d.firstChild.style.transform=`rotate(${-B.a}rad)`;d.lastChild.textContent=B.n>1?B.n:'';d.classList.toggle('big',!!B.big)})}

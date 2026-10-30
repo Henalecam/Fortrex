@@ -215,6 +215,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 @media (max-height:560px){.rail{flex-direction:row!important;bottom:calc(var(--dock) + 16px)}#acts{flex-direction:row-reverse!important}}
 @media (max-width:760px){#autoMenu .lb,#autoMenu .cost{display:none}#autoMenu{order:2!important;padding:4px 8px}#rivalChip{order:3!important}#bossbar{top:calc(122px + env(safe-area-inset-top,0px))!important}#bossName{font-size:11px}}
 @media (max-width:760px){#combo{top:calc(150px + env(safe-area-inset-top,0px));font-size:32px}}
+@media (pointer:coarse){#bottom .dock .btn{min-height:40px}#wPrev,#wNext{min-width:30px;min-height:30px}#tipX{min-width:34px;min-height:32px}}
+body:has(.side[style*="flex"]) #edge{display:none}body:has(#shop[style*="flex"]) #reveal,body:has(#arsenal[style*="flex"]) #reveal{right:auto;left:max(12px,env(safe-area-inset-left,0px))}@media (max-width:900px){body:has(.side[style*="flex"]) #reveal{opacity:.35}}
+#auroraFx{position:fixed;inset:0;pointer-events:none;z-index:0}#auroraFx::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,rgba(20,40,70,.18) 30%,rgba(10,25,55,.55) 100%),rgba(30,60,90,.22);mix-blend-mode:multiply}#auroraFx::after{content:'';position:absolute;left:0;right:0;top:0;height:50%;opacity:.9;background:linear-gradient(100deg,transparent 4%,rgba(90,255,190,.55) 20%,transparent 36%,rgba(140,170,255,.5) 54%,transparent 70%,rgba(210,140,255,.5) 86%,transparent 98%);background-size:200% 100%;-webkit-mask:linear-gradient(180deg,#000 0%,#000 25%,transparent 100%);mask:linear-gradient(180deg,#000 0%,#000 25%,transparent 100%);animation:aur 14s linear infinite}@keyframes aur{0%{background-position:0 0}100%{background-position:-200% 0}}
 #edge{position:fixed;inset:0;pointer-events:none;z-index:2}.edgeA{position:absolute;left:0;top:0;width:30px;height:30px;display:grid;place-items:center;transition:transform .2s linear}
 .edgeA i{position:absolute;width:0;height:0;border-left:17px solid #e5484d;border-top:6px solid transparent;border-bottom:6px solid transparent}
 .edgeA b{position:relative;font:700 10.5px/1 system-ui,sans-serif;color:#fff;background:#e5484d;border-radius:8px;padding:2px 4px;transform:translate(-10px,-12px)}.edgeA b:empty{display:none}.edgeA.big i{border-left-color:#ffb000;transform-origin:center}.edgeA.big b{background:#ffb000;color:#2b1d00}
@@ -241,7 +244,7 @@ body:has(#buildPanel[style*="flex"]) #rail{left:calc(min(320px,90vw) + 26px)}
 
 <canvas id="c"></canvas>
 <div id="rainFx" hidden></div>
-<div id="bloodVig" hidden style="position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at center,rgba(120,10,25,0) 45%,rgba(120,10,25,.42) 100%),rgba(150,20,30,.12);mix-blend-mode:multiply"></div>
+<div id="auroraFx" hidden></div><div id="bloodVig" hidden style="position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at center,rgba(120,10,25,0) 45%,rgba(120,10,25,.42) 100%),rgba(150,20,30,.12);mix-blend-mode:multiply"></div>
 
 <div id="top" class="bar">
   <span class="title">FORTREX</span>
@@ -886,7 +889,7 @@ const turretRange=t=>t.T.range*(state.rangeMul||1)*(state.ups.farol&&Math.hypot(
 function enemyAim(e){return new THREE.Vector3(e.pos.x,e.fly?e.group.position.y+.5:e.gy+(e.type==='colossus'?2.2:.9),e.pos.z)}
 function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRivalTurret(t,dt);const man=t.gunner&&t.gunner.state==='man';const g=t.gunner;
   if(t.hit>0)t.hit-=dt;if(t.station&&walkCell(Math.floor(t.station.x),Math.floor(t.station.z))<=-99)t.station=findStation(t.pos.x,t.pos.z);
-  const rate=(man?1:.45)*(man?g.st.gun*(g.trait==='Olho de Águia'?1.25:1):1)/state.reloadMul;
+  const rate=(man?1:.45)*(man?g.st.gun*(g.trait==='Olho de Águia'?1.25:1):1)/state.reloadMul*(state.ev==='aurora'&&state.phase==='wave'?1.15:1);
   const range=turretRange(t),dmg=t.T.dmg*(1+t.r*.25)*state.dmgMul*((state.blessUntil||0)>=state.wave?1.25:1)*(man?1+g.rarity*.1:1);
   t.reload-=dt*rate;
   let tgt=null,bd=1e9;
@@ -1067,7 +1070,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   if(e.vmeshes&&e.vmeshes.length)voxBurst(e,big?220:48);spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?60:big?30:4,big?.8:.4);SFX.shatter(t!=='crawler');
   hitstop=Math.max(hitstop,t==='colossus'?.22:t==='boss'?.14:.05);shake=Math.max(shake,t==='colossus'?1.4:t==='boss'?.9:.22);if(big){hideBoss();slowmo=1.3;toast(`${e.T.n} derrotado!`,'r4')}
   if(t==='colossus'){const fx=e.pos.x+Math.sin(e.group.rotation.y)*3,fz=e.pos.z+Math.cos(e.group.rotation.y)*3;pendingBooms.push({x:fx,y:GY+.5,z:fz,r:3.6,dmg:230,o:{src:'env'},t:.25});toast('O Colosso desabou!','r4')}
-  dropTable(e);state.kills++;state.wk++;if(e.lastSol&&!e.rival)vetKill(e.lastSol);if(state.contract&&!e.rival){if(e.aff)state.contract.el=(state.contract.el||0)+1;if(e.lastSol)state.contract.sol=(state.contract.sol||0)+1}addCombo(e);if(state.ev==='bloodmoon'&&!e.rival){state.material+=1;for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&Math.abs(m.pos.x-e.pos.x)<4&&Math.abs(m.pos.z-e.pos.z)<4)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.12)}}
+  dropTable(e);state.kills++;state.wk++;if(e.lastSol&&!e.rival)vetKill(e.lastSol);if(state.contract&&!e.rival){if(e.aff)state.contract.el=(state.contract.el||0)+1;if(e.lastSol)state.contract.sol=(state.contract.sol||0)+1}addCombo(e);if(state.ev==='aurora'&&!e.rival&&Math.random()<.04){const r=Math.random()<.2?3:2;let L=lootPick('any',r);if(L[0]==='material')L=['equip',{item:makeEquip(r)}];spawnLoot(e.pos.x,e.gy+1.5,e.pos.z,L[0],r,L[1]);label({x:e.pos.x,y:e.gy+2.2,z:e.pos.z},'✦ fragmento de aurora','#7dffc8')}if(state.ev==='bloodmoon'&&!e.rival){state.material+=1;for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&Math.abs(m.pos.x-e.pos.x)<4&&Math.abs(m.pos.z-e.pos.z)<4)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.12)}}
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
   if(big||Math.random()<.5)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22,mistking:60,ship:30,pirate:3,arauto:80})[t]??2)*.32+r*.4))});
@@ -2980,13 +2983,13 @@ function edgeTick(dt){_edgeT-=dt;if(_edgeT>0)return;_edgeT=.2;const box=$('edge'
   for(const e of enemies){if(e.dead||e.rival||e.lineup||e.dormant>0)continue;_ev3.set(e.pos.x,(e.fly?e.group.position.y:e.gy)+1,e.pos.z).project(camera);let x=_ev3.x,y=_ev3.y;const back=_ev3.z>1;if(back){x=-x;y=-y}
     if(!back&&Math.abs(x)<.98&&Math.abs(y)<.92){on++;continue}const a=Math.atan2(y*H2,x*W2);const k=Math.round((a+Math.PI)/(Math.PI/6))%12;const B=S[k]||(S[k]={n:0,a:0,big:0});B.n++;B.a=a;if(BIG(e.type)||e.champ)B.big=1}
   while(_edge.length<12){const d=document.createElement('div');d.className='edgeA';d.innerHTML='<i></i><b></b>';d.style.display='none';box.appendChild(d);_edge.push(d)}
-  _edge.forEach((d,k)=>{const B=S[k];if(!B){d.style.display='none';return}d.style.display='';const c=Math.cos(B.a),s=Math.sin(B.a);const m=72,top=72,bot=112;
+  _edge.forEach((d,k)=>{const B=S[k];if(!B){d.style.display='none';return}d.style.display='';const c=Math.cos(B.a),s=Math.sin(B.a);const m=innerWidth<700?52:84,top=72,bot=112;
     const tx=c?((c>0?W2-m:-(W2-m))/c):1e9,ty=s?((s>0?H2-top:-(H2-bot))/s):1e9;const t=Math.min(Math.abs(tx),Math.abs(ty));
     d.style.transform=`translate(${W2+c*t-15}px,${H2-s*t-15}px)`;d.firstChild.style.transform=`rotate(${-B.a}rad)`;d.lastChild.textContent=B.n>1?B.n:'';d.classList.toggle('big',!!B.big)})}
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=3.6;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=3.7;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -3059,6 +3062,7 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [2.8,'🛡️ Inimigos novos refeitos (3/5 da reforma): Escudeiro de elmo com pluma e escudo-torre que se ergue ao proteger, Cavador-toupeira com capacete de mineiro e lanterna cavando com as garras, Bombardeiro de óculos de aviador balançando a bomba, Mímico com dentes, língua e olhos dourados, Golem de Cristal com cristais que pulsam, Cavaleiro da Bruma com montaria de olhos roxos, cavaleiro de elmo e lança que abaixa na investida, Pirata de tapa-olho com sabre e papagaio no ombro, e o Navio com bandeira tremulando e canhões. 🔧 Corrigido: inimigo preso em buraco longe da base podia travar a horda para sempre — agora quem fica parado 20 s volta para a trilha.'],
   [2.9,'👑 Chefes refeitos com silhuetas únicas (4/5 da reforma): Devorador de bocarra que mastiga e quatro olhos magenta, Golem de musgo com runas e olho em fenda, Serpe de Fogo com chifres, barriga dourada e boca em brasa, Colosso de pernas enormes com coroa de chifres e viseira vermelha, Necromante flutuante com crânio, grimório girando e cajado verde, Rainha com coroa dourada, olhos compostos e quatro asas translúcidas, Titã de rocha com rachaduras de lava pulsando e o Rei da Bruma com coroa de cristais e tentáculos. Todos respiram e os olhos ardem mais forte a cada fase.'],
   [3.0,'🏰 Fim da reforma de personagens (5/5): tropas rivais refeitas com a cor da facção — Cavaleiro de elmo com viseira, pluma e tabardo, Arqueiro encapuzado com arco e aljava, Aríete carregado por dois soldados, General de coroa dourada, capa enorme, espadão e estandarte nas costas. Cada castelo rival ganha um estilo próprio (pedra negra, pedra clara, metal ou obsidiana, com alturas de muralha, torres e torre de menagem diferentes).'],
+  [3.7,'🌌 Novo evento raro (horda 12+): Aurora boreal — o céu esfria, cortinas de luz verde e lilás dançam no alto, as armas atiram 15% mais rápido e alguns abates deixam fragmentos de aurora (itens raros/épicos). 📱 Celular: câmera mais aberta em tela de pé, botões maiores ao toque e setas/cartões que não cobrem painéis abertos.'],
   [3.6,'🧭 Setas na borda da tela apontam para inimigos fora de vista durante a horda (com contagem; douradas para chefes e campeões) — fácil achar o último Devorador. A tela inicial esconde a fileira de conquistas até você ganhar a primeira.'],
   [3.5,'🏮 Novo inimigo de fim de jogo (horda 18+): Portador de Bruma — encapuzado com lanterna que cobre os inimigos próximos numa névoa (−45% de dano recebido). Ele espera atrás da tropa; derrube-o primeiro e a bruma se dissipa.'],
   [3.4,'🏳️ Marcos de horda: ao vencer pela primeira vez as hordas 10, 20, 30… o castelo solta fogos, aparece o estandarte do marco (Bronze, Prata, Ouro, Platina…) e você ganha +6% de dano permanente, material e um item lendário garantido.'],
@@ -3143,6 +3147,7 @@ const EVENTS={
   blizzard:{n:'Nevasca',d:'Tudo fica lento e a água dos lagos congela em pontes de gelo.',css:'r2',w:6},
   quake:{n:'Terremoto',d:'O chão racha sob os pés: crateras, muralhas abaladas e inimigos derrubados.',css:'r3',w:7},
   eclipse:{n:'Eclipse',d:'A escuridão fortalece os inimigos (+1 raridade). Loot muito melhor.',css:'r3',w:9},
+  aurora:{n:'Aurora boreal',d:'Cortinas de luz no céu: as armas atiram 15% mais rápido e alguns abates deixam fragmentos de aurora (itens raros).',css:'r3',w:12},
   bloodmoon:{n:'Lua de sangue',d:'A lua sangra: muitos inimigos de elite com afixos, mas cada abate rende +1 material e os soldados se curam ao matar.',css:'r3',w:10},
   rain:{n:'Chuva forte',d:'Chove sem parar: o fogo não pega, armas enxergam 10% menos e a horda escorrega na lama (10% mais lenta).',css:'r1',w:3},
   skies:{n:'Revoada',d:'O céu escurece de asas: boa parte da horda vem voando. Balistas e Tesla brilham.',css:'r2',w:9},
@@ -3264,7 +3269,7 @@ $('start').onclick=()=>{state.biome='campo';state.climate=null;$('over').style.d
 
 // ───────── loop
 let last=performance.now(),hudAcc=0;
-function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
+function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.fov=camera.aspect<1?42*Math.min(1.7,Math.pow(1/camera.aspect,.55)):42;camera.updateProjectionMatrix()}
 window.addEventListener('resize',resize);resize();
 function simulate(dt){simTime+=dt;
   if(state.running&&dt>0){
@@ -3272,7 +3277,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)if(!m.away)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on;const rf=$('rainFx'),ro=state.phase==='wave'&&state.ev==='rain'&&!OPTS.lowGfx;if(rf.hidden===ro)rf.hidden=!ro}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);volcanoTick(dt);biomeTick(dt);dogTick(dt);buffTick(dt);gateTick(dt);lightTick(dt);crossbowTick(dt);dragonTick(dt);uniqueTick(dt);stuckTick(dt);champTick(dt);champAffTick(dt);markTick(dt);edgeTick(dt);contractTick(dt);raidTick(dt);navTick(dt);reformTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on;const af=$('auroraFx'),ao=state.phase==='wave'&&state.ev==='aurora';if(af&&af.hidden===ao)af.hidden=!ao;const rf=$('rainFx'),ro=state.phase==='wave'&&state.ev==='rain'&&!OPTS.lowGfx;if(rf.hidden===ro)rf.hidden=!ro}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);volcanoTick(dt);biomeTick(dt);dogTick(dt);buffTick(dt);gateTick(dt);lightTick(dt);crossbowTick(dt);dragonTick(dt);uniqueTick(dt);stuckTick(dt);champTick(dt);champAffTick(dt);markTick(dt);edgeTick(dt);contractTick(dt);raidTick(dt);navTick(dt);reformTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';$('bossShield').style.width=(b.shield>0?b.shield/b.maxhp*100:0)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;label({x:CHEST.x,y:GY+4,z:CHEST.z},`Combo ×${state.combo} · +${g}`,'#ff8a5c');state.combo=0}
@@ -3367,12 +3372,13 @@ window.__matTrace2=()=>{window.__matTrace()};
 window.__zoo=()=>{const ts=['goblin','crawler','wolf','spider','slime','imp','brute','beetle','climber','ram','shaman','sapper'];ts.forEach((t,k)=>{const e=makeEnemy(t,k%3,CX-14+k*2.8,WB+14);e.speed=0;e.T={...e.T,speed:0}});cam.target.set(CX,GY+1,WB+14);cam.dist=24;cam.pitch=.75};
 
 // ───────── weather events: blizzard, earthquake, eclipse
-let wxT=0;const _snow=new THREE.Color(0xe8f2fa),_dark=new THREE.Color(0x1d1e33),_blood=new THREE.Color(0x6a1622),_rain=new THREE.Color(0x8a97a8);
+let wxT=0;const _snow=new THREE.Color(0xe8f2fa),_dark=new THREE.Color(0x1d1e33),_blood=new THREE.Color(0x6a1622),_rain=new THREE.Color(0x8a97a8),_aur=new THREE.Color(0x1a3a48);
 const _sand=new THREE.Color(0xe8c98a);function weatherTick(dt){const ev=state.ev;if(ev==='sandstorm'){scene.background.lerp(_sand,.6);scene.fog.color.copy(scene.background);for(let k=0;k<4;k++)spawnDebris(cam.target.x+rnd(-30,30),GY+rnd(2,10),cam.target.z+rnd(-30,30),0xd9b56a,1,.1);return}if(ev!=='blizzard'&&ev!=='quake'&&ev!=='eclipse')return;wxT-=dt;
   if(ev==='blizzard'){scene.background.lerp(_snow,.55);scene.fog.color.copy(scene.background);for(let k=0;k<3;k++)spawnDebris(cam.target.x+rnd(-30,30),GY+rnd(12,20),cam.target.z+rnd(-30,30),0xffffff,1,.12);
     if(wxT<=0){wxT=.35;for(let k=0;k<6;k++){const x=rint(2,W-3),z=rint(2,D-3);const i=idx(x,GY-1,z);if(vox[i]===9){setVox(i,18);fluids.delete(i);fluidSrc.delete(i)}}}}
   if(ev==='rain'){scene.background.lerp(_rain,.5);scene.fog.color.copy(scene.background);sun.intensity*=.6;if(burning.size&&Math.random()<dt*3){for(const [i] of burning){burning.delete(i);paint(i)}}for(let k=0;k<6;k++)spawnDebris(cam.target.x+rnd(-35,35),GY+rnd(8,18),cam.target.z+rnd(-35,35),0x9fc6e8,1,.08)}
-  if(ev==='bloodmoon'){scene.background.lerp(_blood,.55);scene.fog.color.copy(scene.background);sun.intensity*=.75;sun.color.setHex(0xff6a5a);hemi.color.setHex(0xff8a7a);hemi.groundColor.setHex(0x7a2a2a)}else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}
+  if(ev==='bloodmoon'){scene.background.lerp(_blood,.55);scene.fog.color.copy(scene.background);sun.intensity*=.75;sun.color.setHex(0xff6a5a);hemi.color.setHex(0xff8a7a);hemi.groundColor.setHex(0x7a2a2a)}else if(ev!=='aurora'&&hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}
+  if(ev==='aurora'){scene.background.lerp(_aur,.45);scene.fog.color.copy(scene.background);sun.intensity*=.55;hemi.color.setHex(0x9ff0d8);hemi.groundColor.setHex(0x3a4a7a);if(Math.random()<dt*10)spawnDebris(cam.target.x+rnd(-40,40),GY+rnd(22,32),cam.target.z+rnd(-40,40),pick([0x7dffc8,0x9fb8ff,0xd89fff]),1,.14)}
   if(ev==='eclipse'){scene.background.lerp(_dark,.7);scene.fog.color.copy(scene.background);sun.intensity*=.3;hemi.intensity*=.45}
   if(ev==='quake'&&wxT<=0){wxT=rnd(6,9);shake=Math.max(shake,1.3);SFX.boom(true);for(let k=0;k<3;k++){const a=rnd(0,Math.PI*2),r=rnd(12,50);const x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;explode(x,GY,z,2.2,35,{src:'env'})}
     for(const e of enemies)if(!e.dead&&!e.fly&&Math.hypot(e.pos.x-CX,e.pos.z-CZ)<60)e.stun=Math.max(e.stun||0,1.2)}}
