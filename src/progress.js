@@ -192,7 +192,7 @@ const TIPS=[{id:'start',c:()=>simTime>3,t:'👥 Seus minions trabalham sozinhos:
   {id:'war',c:()=>!!battle(),t:'⚔️ Uma fortaleza inimiga surgiu! Use ⚔️ Atacar para mandar soldados destruir o núcleo vermelho.'}];
 let tipT=0,tipShow=0;
 function tipTick(dt){if(window.__headless||state.choosing)return;if(state.card&&innerWidth<700){if(tipShow>0){$('ftip').style.display='none';tipShow=0}return}if(tipShow>0){tipShow-=dt;if(tipShow<=0)$('ftip').style.display='none';return}tipT-=dt;if(tipT>0)return;tipT=1.5;for(const T of TIPS){if(TIPS_SEEN[T.id])continue;let ok=false;try{ok=T.c()}catch(e){}if(!ok)continue;TIPS_SEEN[T.id]=1;try{localStorage.setItem('fortrex_tips',JSON.stringify(TIPS_SEEN))}catch(e){}
-  const el=$('ftip');el.innerHTML=`<span>${T.t}</span><button class="btn sm" id="tipX">Entendi</button>`;el.style.display='flex';$('tipX').onclick=()=>{el.style.display='none';tipShow=0};tipShow=9;break}}
+  const el=$('ftip');el.innerHTML=`<span>${T.t}</span><button class="btn sm" id="tipX" aria-label="Fechar">✕</button>`;el.style.display='flex';$('tipX').onclick=()=>{el.style.display='none';tipShow=0};tipShow=8;tipT=35;break}}
 
 // ───────── rally flag: plant a banner and every soldier at home gathers there for 30 s (click again to cancel)
 let flagMesh=null;
@@ -228,7 +228,7 @@ function spawnVein(){if(state.vein||state.wave<6||state.wave%4!==2)return;for(le
     state.vein={x:x+.5,z:z+.5,cells,total:cells.length};const dir=Math.abs(x-CX)>Math.abs(z-CZ)?(x>CX?'leste':'oeste'):(z>CZ?'sul':'norte');toast(`⛏️ Um veio de ouro brotou a ${dir}! Rende material enquanto estiver de pé — e a horda vai tentar saqueá-lo. Use 🚩 Reunir para defendê-lo.`,'r4');SFX.open();return}}
 function veinTick(dt){const V=state.vein;if(!V){if(veinMesh){scene.remove(veinMesh);veinMesh=null}return}veinAcc+=dt;if(veinAcc<1)return;const t=veinAcc;veinAcc=0;const n=veinCells().length;
   if(!veinMesh){veinMesh=new THREE.Mesh(new THREE.RingGeometry(2.6,3.1,32),new THREE.MeshBasicMaterial({color:0xffcf3d,transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false}));veinMesh.rotation.x=-Math.PI/2;veinMesh.position.set(V.x,GY+.06,V.z);scene.add(veinMesh)}
-  if(!n){toast('⛏️ O veio de ouro foi saqueado pela horda.','r3');state.vein=null;return}
+  if(!n){toast('⛏️ O veio de ouro foi saqueado pela horda.','r1');state.vein=null;return}
   state.veinGain=(state.veinGain||0)+n*.06*t;if(state.veinGain>=1){const k=Math.floor(state.veinGain);state.veinGain-=k;state.material+=k;if(Math.random()<.4)label({x:V.x,y:GY+2.4,z:V.z},`+${k}`,'#c99a1a')}}
 // raiders: some of the horde breaks off to dig the vein out
 function veinBrain(e,dt,sf){const L=veinCells();if(!L.length){e.veinRaid=false;return false}let best=-1,bd=1e9;for(const i of L){const d=Math.hypot(ix(i)+.5-e.pos.x,iz(i)+.5-e.pos.z);if(d<bd){bd=d;best=i}}

@@ -60,7 +60,7 @@ function itemLines(it){const s=it.st,o=[];if(s.atk)o.push(`Dano +${pct(s.atk-1)}
 const itemIco=it=>ICO[it.k]||'❔';
 const ROLE_W={sol:{atk:3,def:3,spd:1,hp:2,rate:2,stun:2,thorns:2,burn:1,reach:1},gun:{gun:4,def:1.5,hp:1,spd:.3},rep:{work:4,spd:1.5,def:1,hp:.5},col:{cap:1.3,spd:2.5,def:1,hp:.5},med:{spd:2,hp:1.5,def:1.5,work:1}};
 function itemScore(it,role){if(!it)return 0;const w=ROLE_W[role];let s=0;for(const k in it.st){const v=it.st[k],wt=w[k]||0;const g=(k==='def'||k==='stun'||k==='thorns'||k==='reach')?v*2:k==='cap'?v*.5:k==='burn'?.6:v-1;s+=g*wt}return s+it.r*.01}
-function autoEquip(it){let best=null,gain=.02;for(const m of minions){const g=itemScore(it,m.role)-itemScore(m.eq[it.slot],m.role);if(g>gain){gain=g;best=m}}if(best){equipItem(best,it);toast(`${best.name} equipou ${it.n}`,RARITY[it.r].css);return true}return false}
+function autoEquip(it){let best=null,gain=.02;for(const m of minions){const g=itemScore(it,m.role)-itemScore(m.eq[it.slot],m.role);if(g>gain){gain=g;best=m}}if(best){equipItem(best,it);label(best.pos,`${itemIco(it)} equipou`,'#5cc08c');return true}return false}
 function equipItem(m,it){const a=state.inv.armory,k=a.indexOf(it);if(k>=0)a.splice(k,1);const old=m.eq[it.slot];if(old)a.push(old);m.eq[it.slot]=it;recompute(m);sparkle(m.pos.x,m.group.position.y+1.2,m.pos.z,RARITY[it.r].c,6);SFX.pop()}
 function unequip(m,slot){const it=m.eq[slot];if(!it)return;m.eq[slot]=null;state.inv.armory.push(it);recompute(m)}
 function sellValue(it){return 3+it.r*it.r*4+it.r*3}
@@ -115,7 +115,7 @@ function openTreasure(L){removeLoot(L);const r=L.r;const n=1+Math.ceil(r*.5)+(Ma
     const it=spawnLoot(L.x,L.y+.6,L.z,kind,rr,data);if(it){const a=k/n*Math.PI*2;it.vx=Math.cos(a)*rnd(3,5);it.vz=Math.sin(a)*rnd(3,5);it.vy=rnd(6,9)}}
   if(Math.random()<.1+r*.06)spawnLoot(L.x,L.y+.6,L.z,'recruit',Math.max(1,r-1),{role:pick(['rep','col','gun','sol','med'])});
   for(let k=0;k<4;k++)spawnDebris(L.x,L.y+.5,L.z,pick([0xffcf3d,RARITY[r].c,0xff8a5c,0x5cc08c]),6,.22);
-  SFX.open();SFX.loot(r);hitstop=Math.max(hitstop,.07);shake=Math.max(shake,.3);toast(`Baú ${RARITY[r].n} aberto!`,RARITY[r].css)}
+  SFX.open();SFX.loot(r);hitstop=Math.max(hitstop,.07);shake=Math.max(shake,.3);if(r>=4)toast(`Baú ${RARITY[r].n} aberto!`,RARITY[r].css);else label({x:L.x,y:L.y+1,z:L.z},`Baú ${RARITY[r].n}!`,'#ffcf3d')}
 function addBlocks(m,n){state.inv.blocks[m]=(state.inv.blocks[m]||0)+n}
 function deposit(L,m){const d=L.data;ECON.dep[L.kind+L.r]=(ECON.dep[L.kind+L.r]||0)+1;if(L.kind==='material')ECON.matLoot+=d.amount;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treasure'){L.y=GY+1.5;L.x=CHEST.x;L.z=CHEST.z+2.5;openTreasure(L);return}removeLoot(L);
   switch(L.kind){

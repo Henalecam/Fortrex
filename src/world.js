@@ -101,7 +101,7 @@ function explode(cx,cy,cz,r,dmg,o={}){const src0=o.src||'env',rv=src0==='rival',
     if(fr&&blue[i])continue;if(rv&&rown[i])continue;damageVox(i,dmg*(1-d/r*.55)*(m===5?.25:1),src,null);if(o.fire&&vox[i]&&isFlam(vox[i])&&Math.random()<.6)ignite(i,src)}
   // buried treasure: a player blast that digs into the ground outside the walls can unearth a chest (once per wave)
   if(fr&&r>=3&&state.digWave!==state.wave&&!inside(cx,cz)&&Math.random()<.22){let dug=0;for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const x=Math.floor(cx)+dx,z=Math.floor(cz)+dz;if(inb(x,GY-1,z)&&!vox[idx(x,GY-1,z)])dug++}
-    if(dug>=3){state.digWave=state.wave;spawnLoot(cx,GY+.5,cz,'treasure',Math.max(1,lootRarity(.04+state.wave*.005)),{});toast('💎 A explosão desenterrou um tesouro!','r3')}}
+    if(dug>=3){state.digWave=state.wave;spawnLoot(cx,GY+.5,cz,'treasure',Math.max(1,lootRarity(.04+state.wave*.005)),{});label({x:cx,y:GY+2,z:cz},'💎 tesouro enterrado!','#ffcf3d')}}
   if(o.fire){const R2=Math.ceil(r+1.5);for(let k=0;k<30;k++){const x=Math.floor(cx+rnd(-R2,R2)),y=Math.floor(cy+rnd(-R2,R2)),z=Math.floor(cz+rnd(-R2,R2));if(inb(x,y,z))ignite(idx(x,y,z),src)}}
   for(const e of enemies){if(e.dead||(rv&&e.rival))continue;const d=Math.hypot(e.pos.x-cx,e.pos.z-cz,e.group.position.y+.5-cy);if(d<r+1.2){hurtEnemy(e,dmg*1.5*(1-d/(r+1.2)),{x:e.pos.x,y:e.gy+.5,z:e.pos.z});if(o.fire)e.afire=3}}
   if(!fr){for(const m of minions){if(m.wounded)continue;const d=Math.hypot(m.pos.x-cx,m.pos.z-cz);if(d<r+.8)hurtMinion(m,dmg*(src==='enemy'?.6:.35)*(1-d/(r+.8)))}

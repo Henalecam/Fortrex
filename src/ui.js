@@ -1,7 +1,7 @@
 // ───────── ui: toasts, world labels, HUD, build mode, arsenal, unit card, hire, upgrades, rewards, tooltip
 // only important messages (rare/epic events, or feedback to something the player just did) are shown
 let lastInputT=-1e9;addEventListener('pointerdown',()=>lastInputT=performance.now(),true);addEventListener('keydown',()=>lastInputT=performance.now(),true);
-function toast(txt,cls,force){if(!force&&cls!=='r3'&&cls!=='r4'&&performance.now()-lastInputT>1500)return;const box=$('toasts');const t=document.createElement('div');t.className='toast '+(cls||'');t.textContent=txt;box.appendChild(t);while(box.children.length>5)box.firstChild.remove();setTimeout(()=>t.remove(),2700)}
+const TLOG={};function toast(txt,cls,force){if(!force&&cls!=='r3'&&cls!=='r4'&&performance.now()-lastInputT>1500)return;{const k=String(txt).replace(/[0-9]+/g,'#').slice(0,38);TLOG[k]=(TLOG[k]||0)+1}const box=$('toasts');const t=document.createElement('div');t.className='toast '+(cls||'');t.textContent=txt;box.appendChild(t);while(box.children.length>5)box.firstChild.remove();setTimeout(()=>t.remove(),2700)}
 const labels=[];const _v=new THREE.Vector3();
 function label(pos,txt,color){if(labels.length>40)return;const el=document.createElement('div');el.className='lab';el.textContent=txt;el.style.color=color||'#2b2d4a';$('labels').appendChild(el);labels.push({el,x:pos.x,y:(pos.y||GY)+2,z:pos.z,t:1.2})}
 function updateLabels(dt){for(let i=labels.length-1;i>=0;i--){const L=labels[i];L.t-=dt;if(L.t<=0){L.el.remove();labels.splice(i,1);continue}_v.set(L.x,L.y,L.z).project(camera);L.el.style.left=((_v.x+1)/2*innerWidth)+'px';L.el.style.top=((1-_v.y)/2*innerHeight)+'px'}}

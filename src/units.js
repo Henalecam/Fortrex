@@ -148,7 +148,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(e.aff==='regen'&&e.hp
   if(e.stun>0){e.stun-=dt;e.vel.set(0,0,0);e.group.rotation.z=Math.sin(e.stun*9)*.12;if(e.stun<=0)e.group.rotation.z=0;return}
   if(e.boss2&&bossAI(e,dt))return;
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
-  if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}
+  if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=1.1&&!e.sw&&hd(e.pos,CHEST)<22){e.sw=1;markGround(e.pos.x,e.pos.z,8,0xff3355,1.1)}if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;e.sw=0;stomp(e)}}
   if(e.rival&&rivalBrain(e,dt))return;
   if(e.veinRaid&&veinBrain(e,dt,sf))return;
   if(e.type==='goblin'&&goblinBrain(e,dt,sf))return;if(NEW_BRAINS[e.type]&&NEW_BRAINS[e.type](e,dt,sf))return;
@@ -334,7 +334,7 @@ function updateRings(dt){for(let i=rings.length-1;i>=0;i--){const r=rings[i];r.t
 
 const xpNeed=l=>Math.round(18*Math.pow(l,1.45));
 function gainXP(m,n){if(!m||!minions.includes(m))return;m.xp+=n;while(m.xp>=xpNeed(m.lvl)&&m.lvl<30){m.xp-=xpNeed(m.lvl);m.lvl++;recompute(m);m.hp=m.maxhp;if(m.hero&&TALENT_LV.includes(m.lvl))setTimeout(()=>offerTalent(m),400);
-  sparkle(m.pos.x,m.group.position.y+1.6,m.pos.z,0xffcf3d,14);ringFx(m.pos.x,m.group.position.y+.2,m.pos.z,2.4,0xffcf3d);label({x:m.pos.x,y:m.group.position.y,z:m.pos.z},`NÍVEL ${m.lvl}! ↑`,'#e0a000');SFX.loot(Math.min(4,Math.floor(m.lvl/5)));if(m.lvl%5===0)toast(`${m.name} chegou ao nível ${m.lvl}!`,'r3')}}
+  sparkle(m.pos.x,m.group.position.y+1.6,m.pos.z,0xffcf3d,14);ringFx(m.pos.x,m.group.position.y+.2,m.pos.z,2.4,0xffcf3d);label({x:m.pos.x,y:m.group.position.y,z:m.pos.z},`NÍVEL ${m.lvl}! ↑`,'#e0a000');SFX.loot(Math.min(4,Math.floor(m.lvl/5)));if(m.hero&&m.lvl%5===0)toast(`${m.name} chegou ao nível ${m.lvl}!`,'r3');}}
 
 // ───────── body destruction: enemies are built from chunks that break off as they take damage
 const _cv=new THREE.Vector3();

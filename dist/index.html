@@ -223,6 +223,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #reveal .rr{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--c);font-weight:800}#reveal .rn{font-weight:700;font-size:14px}#reveal .rl{font-size:11px;opacity:.75}
 @keyframes rvIn{from{opacity:0;transform:translateX(60px) scale(.9)}to{opacity:1;transform:none}}
 @media (max-width:760px){#reveal{right:56px;top:calc(160px + env(safe-area-inset-top,0px));width:min(260px,64vw)}}
+#ftip{width:min(400px,calc(100vw - 120px))!important;font-size:12.5px!important;padding:7px 8px 7px 12px!important;border-radius:12px!important;opacity:.94}#ftip .btn{padding:3px 8px;min-width:0}
+#goals .gmin{display:none;font-size:11px;color:var(--ink-soft)}#goals.min .gmin{display:block}#goals.min .rel{display:none}#goals.min{width:auto;min-width:170px}
 </style>
 
 <canvas id="c"></canvas>
@@ -551,7 +553,7 @@ function explode(cx,cy,cz,r,dmg,o={}){const src0=o.src||'env',rv=src0==='rival',
     if(fr&&blue[i])continue;if(rv&&rown[i])continue;damageVox(i,dmg*(1-d/r*.55)*(m===5?.25:1),src,null);if(o.fire&&vox[i]&&isFlam(vox[i])&&Math.random()<.6)ignite(i,src)}
   // buried treasure: a player blast that digs into the ground outside the walls can unearth a chest (once per wave)
   if(fr&&r>=3&&state.digWave!==state.wave&&!inside(cx,cz)&&Math.random()<.22){let dug=0;for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const x=Math.floor(cx)+dx,z=Math.floor(cz)+dz;if(inb(x,GY-1,z)&&!vox[idx(x,GY-1,z)])dug++}
-    if(dug>=3){state.digWave=state.wave;spawnLoot(cx,GY+.5,cz,'treasure',Math.max(1,lootRarity(.04+state.wave*.005)),{});toast('💎 A explosão desenterrou um tesouro!','r3')}}
+    if(dug>=3){state.digWave=state.wave;spawnLoot(cx,GY+.5,cz,'treasure',Math.max(1,lootRarity(.04+state.wave*.005)),{});label({x:cx,y:GY+2,z:cz},'💎 tesouro enterrado!','#ffcf3d')}}
   if(o.fire){const R2=Math.ceil(r+1.5);for(let k=0;k<30;k++){const x=Math.floor(cx+rnd(-R2,R2)),y=Math.floor(cy+rnd(-R2,R2)),z=Math.floor(cz+rnd(-R2,R2));if(inb(x,y,z))ignite(idx(x,y,z),src)}}
   for(const e of enemies){if(e.dead||(rv&&e.rival))continue;const d=Math.hypot(e.pos.x-cx,e.pos.z-cz,e.group.position.y+.5-cy);if(d<r+1.2){hurtEnemy(e,dmg*1.5*(1-d/(r+1.2)),{x:e.pos.x,y:e.gy+.5,z:e.pos.z});if(o.fire)e.afire=3}}
   if(!fr){for(const m of minions){if(m.wounded)continue;const d=Math.hypot(m.pos.x-cx,m.pos.z-cz);if(d<r+.8)hurtMinion(m,dmg*(src==='enemy'?.6:.35)*(1-d/(r+.8)))}
@@ -766,7 +768,7 @@ function itemLines(it){const s=it.st,o=[];if(s.atk)o.push(`Dano +${pct(s.atk-1)}
 const itemIco=it=>ICO[it.k]||'❔';
 const ROLE_W={sol:{atk:3,def:3,spd:1,hp:2,rate:2,stun:2,thorns:2,burn:1,reach:1},gun:{gun:4,def:1.5,hp:1,spd:.3},rep:{work:4,spd:1.5,def:1,hp:.5},col:{cap:1.3,spd:2.5,def:1,hp:.5},med:{spd:2,hp:1.5,def:1.5,work:1}};
 function itemScore(it,role){if(!it)return 0;const w=ROLE_W[role];let s=0;for(const k in it.st){const v=it.st[k],wt=w[k]||0;const g=(k==='def'||k==='stun'||k==='thorns'||k==='reach')?v*2:k==='cap'?v*.5:k==='burn'?.6:v-1;s+=g*wt}return s+it.r*.01}
-function autoEquip(it){let best=null,gain=.02;for(const m of minions){const g=itemScore(it,m.role)-itemScore(m.eq[it.slot],m.role);if(g>gain){gain=g;best=m}}if(best){equipItem(best,it);toast(`${best.name} equipou ${it.n}`,RARITY[it.r].css);return true}return false}
+function autoEquip(it){let best=null,gain=.02;for(const m of minions){const g=itemScore(it,m.role)-itemScore(m.eq[it.slot],m.role);if(g>gain){gain=g;best=m}}if(best){equipItem(best,it);label(best.pos,`${itemIco(it)} equipou`,'#5cc08c');return true}return false}
 function equipItem(m,it){const a=state.inv.armory,k=a.indexOf(it);if(k>=0)a.splice(k,1);const old=m.eq[it.slot];if(old)a.push(old);m.eq[it.slot]=it;recompute(m);sparkle(m.pos.x,m.group.position.y+1.2,m.pos.z,RARITY[it.r].c,6);SFX.pop()}
 function unequip(m,slot){const it=m.eq[slot];if(!it)return;m.eq[slot]=null;state.inv.armory.push(it);recompute(m)}
 function sellValue(it){return 3+it.r*it.r*4+it.r*3}
@@ -821,7 +823,7 @@ function openTreasure(L){removeLoot(L);const r=L.r;const n=1+Math.ceil(r*.5)+(Ma
     const it=spawnLoot(L.x,L.y+.6,L.z,kind,rr,data);if(it){const a=k/n*Math.PI*2;it.vx=Math.cos(a)*rnd(3,5);it.vz=Math.sin(a)*rnd(3,5);it.vy=rnd(6,9)}}
   if(Math.random()<.1+r*.06)spawnLoot(L.x,L.y+.6,L.z,'recruit',Math.max(1,r-1),{role:pick(['rep','col','gun','sol','med'])});
   for(let k=0;k<4;k++)spawnDebris(L.x,L.y+.5,L.z,pick([0xffcf3d,RARITY[r].c,0xff8a5c,0x5cc08c]),6,.22);
-  SFX.open();SFX.loot(r);hitstop=Math.max(hitstop,.07);shake=Math.max(shake,.3);toast(`Baú ${RARITY[r].n} aberto!`,RARITY[r].css)}
+  SFX.open();SFX.loot(r);hitstop=Math.max(hitstop,.07);shake=Math.max(shake,.3);if(r>=4)toast(`Baú ${RARITY[r].n} aberto!`,RARITY[r].css);else label({x:L.x,y:L.y+1,z:L.z},`Baú ${RARITY[r].n}!`,'#ffcf3d')}
 function addBlocks(m,n){state.inv.blocks[m]=(state.inv.blocks[m]||0)+n}
 function deposit(L,m){const d=L.data;ECON.dep[L.kind+L.r]=(ECON.dep[L.kind+L.r]||0)+1;if(L.kind==='material')ECON.matLoot+=d.amount;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treasure'){L.y=GY+1.5;L.x=CHEST.x;L.z=CHEST.z+2.5;openTreasure(L);return}removeLoot(L);
   switch(L.kind){
@@ -1081,7 +1083,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(e.aff==='regen'&&e.hp
   if(e.stun>0){e.stun-=dt;e.vel.set(0,0,0);e.group.rotation.z=Math.sin(e.stun*9)*.12;if(e.stun<=0)e.group.rotation.z=0;return}
   if(e.boss2&&bossAI(e,dt))return;
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
-  if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}
+  if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=1.1&&!e.sw&&hd(e.pos,CHEST)<22){e.sw=1;markGround(e.pos.x,e.pos.z,8,0xff3355,1.1)}if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;e.sw=0;stomp(e)}}
   if(e.rival&&rivalBrain(e,dt))return;
   if(e.veinRaid&&veinBrain(e,dt,sf))return;
   if(e.type==='goblin'&&goblinBrain(e,dt,sf))return;if(NEW_BRAINS[e.type]&&NEW_BRAINS[e.type](e,dt,sf))return;
@@ -1267,7 +1269,7 @@ function updateRings(dt){for(let i=rings.length-1;i>=0;i--){const r=rings[i];r.t
 
 const xpNeed=l=>Math.round(18*Math.pow(l,1.45));
 function gainXP(m,n){if(!m||!minions.includes(m))return;m.xp+=n;while(m.xp>=xpNeed(m.lvl)&&m.lvl<30){m.xp-=xpNeed(m.lvl);m.lvl++;recompute(m);m.hp=m.maxhp;if(m.hero&&TALENT_LV.includes(m.lvl))setTimeout(()=>offerTalent(m),400);
-  sparkle(m.pos.x,m.group.position.y+1.6,m.pos.z,0xffcf3d,14);ringFx(m.pos.x,m.group.position.y+.2,m.pos.z,2.4,0xffcf3d);label({x:m.pos.x,y:m.group.position.y,z:m.pos.z},`NÍVEL ${m.lvl}! ↑`,'#e0a000');SFX.loot(Math.min(4,Math.floor(m.lvl/5)));if(m.lvl%5===0)toast(`${m.name} chegou ao nível ${m.lvl}!`,'r3')}}
+  sparkle(m.pos.x,m.group.position.y+1.6,m.pos.z,0xffcf3d,14);ringFx(m.pos.x,m.group.position.y+.2,m.pos.z,2.4,0xffcf3d);label({x:m.pos.x,y:m.group.position.y,z:m.pos.z},`NÍVEL ${m.lvl}! ↑`,'#e0a000');SFX.loot(Math.min(4,Math.floor(m.lvl/5)));if(m.hero&&m.lvl%5===0)toast(`${m.name} chegou ao nível ${m.lvl}!`,'r3');}}
 
 // ───────── body destruction: enemies are built from chunks that break off as they take damage
 const _cv=new THREE.Vector3();
@@ -1731,13 +1733,13 @@ function initGoals(){state.fame=0;state.rank=0;MAX_MINIONS_BONUS=0;state.contrac
 function goalEvent(k,v=1,o={}){if(!state.contracts)return;let done=false;for(const c of state.contracts){if(c.k!==k)continue;if(k==='fort'&&(o.lvl||0)<c.lvl)continue;c.p=Math.min(c.n,c.p+v);if(c.p>=c.n&&!c.done){c.done=true;done=true;
     toast(`📜 Contrato cumprido: ${c.txt} (+${c.fame} renome)`,'r4');spawnLoot(CHEST.x+rnd(-1,1),GY+2,CHEST.z+3,'treasure',Math.min(4,1+Math.floor(rankIdx()/2)),{});addFame(c.fame)}}
   if(done)state.contracts=state.contracts.map(c=>c.done?newContract():c);if(done||k!=='kills'||Math.random()<.08)renderGoals()}
-function renderGoals(){const el=$('goals');if(!el||!state.contracts)return;el.onclick=()=>el.classList.toggle('min');const r=rankIdx(),nx=RANKS[r+1];
-  el.innerHTML=`<div class="gr">👑 ${RANKS[r].n} <span>${state.fame||0}${nx?` / ${nx.f}`:''} renome</span></div>`+relicsHtml()+state.contracts.map(c=>`<div class="gc"><div>${c.txt}</div><div class="gb"><i style="width:${Math.round(c.p/c.n*100)}%"></i></div><span>${Math.floor(c.p)}/${c.n} · +${c.fame}</span></div>`).join('')}
+function renderGoals(){const el=$('goals');if(!el||!state.contracts)return;if(!el.dataset.init){el.dataset.init=1;let open=false;try{open=localStorage.getItem('fortrex_goals')==='1'}catch(e){}if(!open)el.classList.add('min')}el.onclick=()=>{el.classList.toggle('min');try{localStorage.setItem('fortrex_goals',el.classList.contains('min')?'0':'1')}catch(e){}};const r=rankIdx(),nx=RANKS[r+1];
+  el.innerHTML=`<div class="gr">👑 ${RANKS[r].n} <span>${state.fame||0}${nx?` / ${nx.f}`:''} renome</span></div><div class="gmin">${state.contracts.filter(c=>c.p<c.n).length} objetivos · toque para ver</div>`+relicsHtml()+state.contracts.map(c=>`<div class="gc"><div>${c.txt}</div><div class="gb"><i style="width:${Math.round(c.p/c.n*100)}%"></i></div><span>${Math.floor(c.p)}/${c.n} · +${c.fame}</span></div>`).join('')}
 
 // ───────── ui: toasts, world labels, HUD, build mode, arsenal, unit card, hire, upgrades, rewards, tooltip
 // only important messages (rare/epic events, or feedback to something the player just did) are shown
 let lastInputT=-1e9;addEventListener('pointerdown',()=>lastInputT=performance.now(),true);addEventListener('keydown',()=>lastInputT=performance.now(),true);
-function toast(txt,cls,force){if(!force&&cls!=='r3'&&cls!=='r4'&&performance.now()-lastInputT>1500)return;const box=$('toasts');const t=document.createElement('div');t.className='toast '+(cls||'');t.textContent=txt;box.appendChild(t);while(box.children.length>5)box.firstChild.remove();setTimeout(()=>t.remove(),2700)}
+const TLOG={};function toast(txt,cls,force){if(!force&&cls!=='r3'&&cls!=='r4'&&performance.now()-lastInputT>1500)return;{const k=String(txt).replace(/[0-9]+/g,'#').slice(0,38);TLOG[k]=(TLOG[k]||0)+1}const box=$('toasts');const t=document.createElement('div');t.className='toast '+(cls||'');t.textContent=txt;box.appendChild(t);while(box.children.length>5)box.firstChild.remove();setTimeout(()=>t.remove(),2700)}
 const labels=[];const _v=new THREE.Vector3();
 function label(pos,txt,color){if(labels.length>40)return;const el=document.createElement('div');el.className='lab';el.textContent=txt;el.style.color=color||'#2b2d4a';$('labels').appendChild(el);labels.push({el,x:pos.x,y:(pos.y||GY)+2,z:pos.z,t:1.2})}
 function updateLabels(dt){for(let i=labels.length-1;i>=0;i--){const L=labels[i];L.t-=dt;if(L.t<=0){L.el.remove();labels.splice(i,1);continue}_v.set(L.x,L.y,L.z).project(camera);L.el.style.left=((_v.x+1)/2*innerWidth)+'px';L.el.style.top=((1-_v.y)/2*innerHeight)+'px'}}
@@ -2122,7 +2124,7 @@ const TIPS=[{id:'start',c:()=>simTime>3,t:'👥 Seus minions trabalham sozinhos:
   {id:'war',c:()=>!!battle(),t:'⚔️ Uma fortaleza inimiga surgiu! Use ⚔️ Atacar para mandar soldados destruir o núcleo vermelho.'}];
 let tipT=0,tipShow=0;
 function tipTick(dt){if(window.__headless||state.choosing)return;if(state.card&&innerWidth<700){if(tipShow>0){$('ftip').style.display='none';tipShow=0}return}if(tipShow>0){tipShow-=dt;if(tipShow<=0)$('ftip').style.display='none';return}tipT-=dt;if(tipT>0)return;tipT=1.5;for(const T of TIPS){if(TIPS_SEEN[T.id])continue;let ok=false;try{ok=T.c()}catch(e){}if(!ok)continue;TIPS_SEEN[T.id]=1;try{localStorage.setItem('fortrex_tips',JSON.stringify(TIPS_SEEN))}catch(e){}
-  const el=$('ftip');el.innerHTML=`<span>${T.t}</span><button class="btn sm" id="tipX">Entendi</button>`;el.style.display='flex';$('tipX').onclick=()=>{el.style.display='none';tipShow=0};tipShow=9;break}}
+  const el=$('ftip');el.innerHTML=`<span>${T.t}</span><button class="btn sm" id="tipX" aria-label="Fechar">✕</button>`;el.style.display='flex';$('tipX').onclick=()=>{el.style.display='none';tipShow=0};tipShow=8;tipT=35;break}}
 
 // ───────── rally flag: plant a banner and every soldier at home gathers there for 30 s (click again to cancel)
 let flagMesh=null;
@@ -2158,7 +2160,7 @@ function spawnVein(){if(state.vein||state.wave<6||state.wave%4!==2)return;for(le
     state.vein={x:x+.5,z:z+.5,cells,total:cells.length};const dir=Math.abs(x-CX)>Math.abs(z-CZ)?(x>CX?'leste':'oeste'):(z>CZ?'sul':'norte');toast(`⛏️ Um veio de ouro brotou a ${dir}! Rende material enquanto estiver de pé — e a horda vai tentar saqueá-lo. Use 🚩 Reunir para defendê-lo.`,'r4');SFX.open();return}}
 function veinTick(dt){const V=state.vein;if(!V){if(veinMesh){scene.remove(veinMesh);veinMesh=null}return}veinAcc+=dt;if(veinAcc<1)return;const t=veinAcc;veinAcc=0;const n=veinCells().length;
   if(!veinMesh){veinMesh=new THREE.Mesh(new THREE.RingGeometry(2.6,3.1,32),new THREE.MeshBasicMaterial({color:0xffcf3d,transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false}));veinMesh.rotation.x=-Math.PI/2;veinMesh.position.set(V.x,GY+.06,V.z);scene.add(veinMesh)}
-  if(!n){toast('⛏️ O veio de ouro foi saqueado pela horda.','r3');state.vein=null;return}
+  if(!n){toast('⛏️ O veio de ouro foi saqueado pela horda.','r1');state.vein=null;return}
   state.veinGain=(state.veinGain||0)+n*.06*t;if(state.veinGain>=1){const k=Math.floor(state.veinGain);state.veinGain-=k;state.material+=k;if(Math.random()<.4)label({x:V.x,y:GY+2.4,z:V.z},`+${k}`,'#c99a1a')}}
 // raiders: some of the horde breaks off to dig the vein out
 function veinBrain(e,dt,sf){const L=veinCells();if(!L.length){e.veinRaid=false;return false}let best=-1,bd=1e9;for(const i of L){const d=Math.hypot(ix(i)+.5-e.pos.x,iz(i)+.5-e.pos.z);if(d<bd){bd=d;best=i}}
@@ -2608,7 +2610,7 @@ function hireCost(r){return Math.round(ROLES[r].cost*(1+roleCount(r)*.22+Math.ma
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.1;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.2;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2671,7 +2673,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [1.8,'💎 Drops com peso: itens raros, épicos e lendários ficaram bem mais raros (lendário de verdade é um evento), e cada um chega com feixe de luz colorido pulsante — maior e com faíscas nos lendários —, tremor, som crescente e uma carta de revelação ao entrar no baú. Menos lixo comum, menos recrutas e baús, progressão mais lenta (horda 10 em ~14 min em vez de 10).'],
   [1.9,'⚖️ Inimigos afinados: Golem de Cristal, Mímico, Cavaleiro, Escudeiro e Bombardeiro estavam fortes demais e foram ajustados. Cada horda agora tem 1–2 temas (🐜 Enxame, 🐺 Matilha, 🪨 Cerco, 🦅 Céu, 🛡️ Guarda) mostrados no topo, em vez de tudo misturado.'],
   [2.0,'🎯 Armas equilibradas (DPS medido uma a uma): Canhão bem mais forte, Morteiro com mais dano e recarga menor, Gelo bate mais; Lança-chamas e Raio-sol um pouco menos absurdos. Equipamentos: a raridade agora pesa muito mais (lendário ≈3,7× o bônus do comum) e épicos/lendários ainda dão vida extra.'],
-  [2.1,'👥 Minions: contratar fica mais caro a cada um do mesmo papel (o exército cresce mais devagar e cada contratação pesa). Subir de nível agora brilha com anel dourado e a ficha mostra o bônus do nível e um resumo dos atributos com equipamento (dano ×, defesa %, vida ×). Soldados batem um pouco mais forte.']];
+  [2.1,'👥 Minions: contratar fica mais caro a cada um do mesmo papel (o exército cresce mais devagar e cada contratação pesa). Subir de nível agora brilha com anel dourado e a ficha mostra o bônus do nível e um resumo dos atributos com equipamento (dano ×, defesa %, vida ×). Soldados batem um pouco mais forte.'],
+  [2.2,'🔕 Menos ruído: avisos de combo, níveis de minions, equipamentos automáticos, baús comuns, inimigos lendários e tesouros enterrados viraram rótulos no mapa (−40% de avisos). Dicas menores e espaçadas, painel de objetivos recolhido por padrão (toque para abrir) e o pisão do Colosso agora tem aviso no chão.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','retreating','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2767,7 +2770,7 @@ function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.len
   if(type==='wolf'){if(state.packN>0&&state.packPos){x=state.packPos.x+rnd(-2.5,2.5);z=state.packPos.z+rnd(-2.5,2.5);state.packN--}else{state.packPos={x,z};state.packN=rint(2,4)}}
   if(state.ev==='ambush'&&Math.random()<.5&&!BIG(type)){x=rnd(5,16);z=rnd(5,D-5);if(Math.random()<.5)x=W-x}
   let r=type==='titan'||type==='queen'?Math.max(3,rollRarity(.15)):type==='colossus'?Math.max(2,rollRarity(.1)):type==='boss'?Math.max(1,rollRarity(.05)):rollRarity(state.wave*.004);if(state.ev==='elite'||state.ev==='eclipse')r=Math.min(4,r+1);if(state.ev==='golden')r=Math.max(2,r);if(state.raid&&!BIG(type))r=Math.max(2,Math.min(4,r+1));
-  const e=makeEnemy(type,r,x,z);if(type==='knight'&&state.wave>=12&&!state.bearerSpawned&&Math.random()<.5){state.bearerSpawned=true;makeBearer(e)}if(r>=4&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
+  const e=makeEnemy(type,r,x,z);if(type==='knight'&&state.wave>=12&&!state.bearerSpawned&&Math.random()<.5){state.bearerSpawned=true;makeBearer(e)}if(r>=4&&!BIG(type))label({x:e.pos.x,y:e.gy+2.4,z:e.pos.z},`✦ ${e.T.n} Lendário`,'#ff9b3d')}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
 function endWave(){if(!state.raid)ECON.log.push({w:state.wave,t:Math.round(simTime),mat:Math.round(state.material),loot:ECON.matLoot,eq:Object.entries(ECON.dep).filter(([k])=>!k.startsWith('material')).map(([k,v])=>k+':'+v).join(' '),tu:state.inv.turrets.length+turrets.filter(t=>t.alive).length,mins:minions.length,ups:Object.values(state.ups).reduce((a,b)=>a+b,0)});if(state.raid){raidStageEnd();return}const ev=state.ev;const fresh=state.wave>=(state.maxWave||1);state.wave++;state.maxWave=Math.max(state.maxWave||1,state.wave);chalRecord(state.wave);state.restStart=simTime;SFX.fanfare((state.wave-1)%5===0);state.morale=Math.min(100,(state.morale??60)+8);checkUnlocks();if(fresh)expansionTick();spawnVein();expeditionReturn();setTimeout(strangerVisit,2500);climateWave();if(state.climate==='campo'){const g=Math.round(5+state.wave*1.5);state.material+=g;toast(`🌾 Colheita: +${g} material`,'r1')}{const A=REALM.cities.filter(c=>c.ally&&!c.fac.isMe);if(A.length){const g=A.reduce((s,c)=>s+4+c.lvl*2,0);state.material+=g;if(Math.random()<.5)toast(`🤝 Tributo dos aliados: +${g} material`,'r1')}}if(fresh&&BUILD_WAVES.includes(state.wave)&&!(state.buildings&&Object.keys(state.buildings).length>=BUILD_WAVES.indexOf(state.wave)+1))setTimeout(offerBuilding,1200);if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();if(state.wave%7===0)startFestival();realmWaveIncome();startSelfRepair();addFame(fresh?4+state.wave*2:1);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
@@ -2882,7 +2885,7 @@ function simulate(dt){simTime+=dt;
     rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on;const rf=$('rainFx'),ro=state.phase==='wave'&&state.ev==='rain'&&!OPTS.lowGfx;if(rf.hidden===ro)rf.hidden=!ro}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);volcanoTick(dt);biomeTick(dt);dogTick(dt);buffTick(dt);gateTick(dt);lightTick(dt);crossbowTick(dt);dragonTick(dt);contractTick(dt);raidTick(dt);navTick(dt);reformTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';$('bossShield').style.width=(b.shield>0?b.shield/b.maxhp*100:0)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
-    if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':'r1');state.combo=0}
+    if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;label({x:CHEST.x,y:GY+4,z:CHEST.z},`Combo ×${state.combo} · +${g}`,'#ff8a5c');state.combo=0}
     $('combo').hidden=!(state.combo>=3&&simTime-state.comboT<1.6);if(!$('combo').hidden)$('combo').textContent=`×${state.combo}`;
     if(state.autoBuild||state.autoUp){state.mgAcc+=dt;if(state.mgAcc>2.5){state.mgAcc=0;if(state.autoBuild)autoBuildTick();if(state.autoUp)autoUpgradeTick()}}
     hudAcc+=dt;if(hudAcc>.25){hudAcc=0;updateHud()}}
@@ -3074,6 +3077,8 @@ window.__wtick=()=>{const W=window.__wt;const alive=enemies.filter(e=>!e.dead).l
 window.__noRole=r=>{state.banRole=r;for(const m of minions.slice())if(m.role===r&&!m.hero){releaseTask&&releaseTask(m);scene.remove(m.group);minions.splice(minions.indexOf(m),1)}return minions.length};
 window.__rsum=()=>({w:state.wave,mat:Math.round(state.material),mins:minions.length,miss:blueList.filter(i=>blue[i]&&vox[i]!==blue[i]).length,kills:state.kills,losses:state.losses||0});
 window.__cardTest=()=>{const m=minions.find(m=>m.role==='sol'&&!m.hero);m.lvl=6;for(const [r,sl] of [[4,'arma'],[3,'armadura'],[2,'acessorio']]){let it;for(let k=0;k<30;k++){it=makeEquip(r);if(it.slot===sl)break}state.inv.armory.push(it);equipItem(m,it)}recompute(m);openCard({m});return m.name};
+
+window.__tlog=()=>TLOG;
 
 })();
 </script>
