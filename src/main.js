@@ -350,3 +350,4 @@ window.__cardTest=()=>{const m=minions.find(m=>m.role==='sol'&&!m.hero);m.lvl=6;
 
 window.__tlog=()=>TLOG;
 window.__groundTest=()=>{const c=()=>{let n=0;for(let x=CX-20;x<=CX+20;x++)for(let z=CZ+18;z<=CZ+26;z++)for(let y=1;y<GY;y++)if(vox[idx(x,y,z)])n++;return n};const a=c();for(let k=0;k<6;k++)explode(CX-15+k*6,GY,CZ+22,4,500,{src:'enemy'});const b=c();explode(CX,GY,CZ+22,4,500,{src:'env'});return [a,b,c()]};
+window.__minLineup=()=>{const out=[];['rep','col','gun','sol','med','rep','col','sol'].forEach((r,k)=>{const m=makeMinion(r,k%3,CX+36+k*2,CZ+4);m.state='idle';m.lineup=true;out.push(m)});for(const H of HEROES){spawnHero(H);const m=state.heroes[H.id].m;const k=HEROES.indexOf(H);m.pos.set(CX+37+k*2.4,standY(CX+37+k*2.4,CZ+8),CZ+8)}for(const m of minions.filter(m=>m.lineup||m.hero)){m.group.rotation.y=0;m.task=null;m.frozen=true}return out.length};

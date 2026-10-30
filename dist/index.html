@@ -1149,18 +1149,59 @@ const ROLES={rep:{n:'Reparador',hat:0xff8a5c,cost:15,ico:'🛠️',d:'Constrói 
 const TRAITS={rep:['Rápido','Covarde','Teimoso','Sortudo'],col:['Rápido','Covarde','Mochilão','Sortudo'],gun:['Olho de Águia','Teimoso','Covarde'],sol:['Forte','Teimoso','Rápido'],med:['Rápido','Teimoso','Sortudo']};
 const TRAIT_DESC={'Rápido':'anda e trabalha mais rápido','Covarde':'foge de Devoradores próximos','Teimoso':'muita vida, nunca foge','Mochilão':'carrega +2 itens','Olho de Águia':'arma operada 25% mais rápida','Forte':'+40% de dano','Sortudo':'às vezes dobra o material'};
 const minions=[];const claimed=new Map();
-function buildProp(p,role){clearGroup(p);if(role==='rep')box(.12,.5,.12,0x8a7055,.42,.5,0,p);if(role==='col')box(.4,.45,.25,0xb98d5a,0,.5,-.3,p);if(role==='gun')box(.5,.12,.12,0x2b2d4a,0,.95,.35,p);if(role==='med')box(.3,.3,.12,0xffffff,0,.55,-.28,p)}
+function buildProp(p,role){clearGroup(p);if(role==='rep')mmesh([[.06,.5,.06,.4,.45,.12,0,0,0,0x8a7055],[.2,.12,.12,.4,.72,.12,0,0,0,0x9aa0b2]],0xffffff,p);
+  if(role==='col')mmesh([[.46,.52,.3,0,.62,-.33,0,0,0,0xb98d5a],[.4,.12,.32,0,.92,-.33,0,0,0,0x8a5a33],[.5,.1,.14,0,.95,-.33,0,0,0,0x6b8f4e],[.05,.4,.05,-.18,.6,-.17,0,0,0,0x6b4a2a],[.05,.4,.05,.18,.6,-.17,0,0,0,0x6b4a2a]],0xffffff,p);
+  if(role==='gun')mmesh([[.08,.08,.42,.4,.52,.16,0,0,0,0x3b3f55],[.1,.1,.08,.4,.52,.38,0,0,0,0x9fd8ff]],0xffffff,p);
+  if(role==='sol')mmesh([[.06,.48,.4,-.42,.55,.08,0,0,0,0x5a6b8a],[.07,.2,.16,-.44,.58,.08,0,0,0,0xffcf3d],[.05,.55,.05,.42,.62,.18,.3,0,0,0xdfe6f0],[.18,.05,.05,.42,.38,.1,0,0,0,0x6b5235]],0xffffff,p);
+  if(role==='med')mmesh([[.3,.3,.14,.36,.48,-.05,0,0,0,0xffffff],[.06,.18,.02,.36,.48,.03,0,0,0,0xe0444f],[.18,.06,.02,.36,.48,.03,0,0,0,0xe0444f]],0xffffff,p)}
+// v2.6 PERSONAGENS R1 — minions refeitos do zero: chibi expressivo, peças fundidas (poucas draw calls), braços/pernas articulados, rosto com expressões
+const _mm4=new THREE.Matrix4(),_mq=new THREE.Quaternion(),_me=new THREE.Euler(),_mv=new THREE.Vector3(),_ms=new THREE.Vector3(1,1,1),_mc=new THREE.Color();
+function mergeBoxes(parts){const pos=[],nor=[],col=[];for(const p of parts){const g=new THREE.BoxGeometry(p[0],p[1],p[2]).toNonIndexed();_me.set(p[6]||0,p[7]||0,p[8]||0);_mq.setFromEuler(_me);_mv.set(p[3],p[4],p[5]);_mm4.compose(_mv,_mq,_ms);g.applyMatrix4(_mm4);
+  const P=g.attributes.position.array,Nn=g.attributes.normal.array;_mc.setHex(p[9]===undefined?0xffffff:p[9]);for(let k=0;k<P.length;k+=3){pos.push(P[k],P[k+1],P[k+2]);nor.push(Nn[k],Nn[k+1],Nn[k+2]);const sh=Nn[k+1]>.5?1.06:Nn[k+1]<-.5?.7:Math.abs(Nn[k])>.5?.9:1;col.push(Math.min(1,_mc.r*sh),Math.min(1,_mc.g*sh),Math.min(1,_mc.b*sh))}g.dispose()}
+  const G=new THREE.BufferGeometry();G.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));G.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));G.setAttribute('color',new THREE.Float32BufferAttribute(col,3));return G}
+function mmesh(parts,color,parent,emis){const m=new THREE.Mesh(mergeBoxes(parts),new THREE.MeshLambertMaterial({color:color||0xffffff,vertexColors:true}));if(emis){m.material.emissive.setHex(emis);m.material.emissiveIntensity=.35}m.castShadow=true;parent.add(m);return m}
+const SKINS=[0xffe0c4,0xf6cfa8,0xe8b98e,0xc98e64,0xa66e4a,0x7d5137],HAIRS=[0x2b2018,0x5a3a22,0x8a5a2b,0xd9a441,0xe8d6a0,0xb0402a,0x3a3f55,0xf0f0f0];
+function buildLook(m,heroH){const g=m.group;if(m.look)g.remove(m.look);const L=new THREE.Group();g.add(L);m.look=L;const V=m.vis;const R=m.R;
+  // pernas articuladas (grupo no quadril) com botas
+  const legs=[];for(const s of[-1,1]){const hip=new THREE.Group();hip.position.set(s*.13,.34,0);L.add(hip);mmesh([[.17,.22,.18,0,-.11,0,0,0,0,V.pants],[.19,.12,.24,0,-.28,.03,0,0,0,0x3b2f2a]],0xffffff,hip);legs.push(hip)}
+  // tronco (cor da roupa/armadura no material: m.body)
+  const torso=[[.5,.42,.34,0,.55,0],[.52,.07,.36,0,.38,0,0,0,0,0x5a4632],[.08,.05,.02,0,.38,.18,0,0,0,0xffcf3d]];if(R&&m.role==='med')torso.push([.06,.2,.02,0,.58,.175,0,0,0,0xe0444f],[.2,.06,.02,0,.6,.175,0,0,0,0xe0444f]);
+  if(m.role==='rep')torso.push([.52,.3,.03,0,.54,.17,0,0,0,0xe8a23a],[.06,.38,.03,-.17,.6,.175,0,0,0,0xe8a23a],[.06,.38,.03,.17,.6,.175,0,0,0,0xe8a23a]);
+  m.body=mmesh(torso,m.cloth||V.shirt,L);
+  // braços articulados no ombro, com mãos
+  const arms=[];for(const s of[-1,1]){const sh=new THREE.Group();sh.position.set(s*.32,.72,0);L.add(sh);mmesh([[.14,.3,.15,0,-.13,0,0,0,0,V.shirt],[.13,.12,.14,0,-.33,0,0,0,0,V.skin]],0xffffff,sh);arms.push(sh)}m.arms=arms;
+  // cabeça grande + cabelo + rosto
+  const head=new THREE.Group();head.position.set(0,1.08,0);L.add(head);m.headG=head;
+  const hp=[[.62,.56,.54,0,0,0,0,0,0,V.skin],[.1,.12,.1,-.33,-.02,0,0,0,0,V.skin],[.1,.12,.1,.33,-.02,0,0,0,0,V.skin],[.09,.05,.02,-.19,-.1,.275,0,0,0,0xf2a0a0],[.09,.05,.02,.19,-.1,.275,0,0,0,0xf2a0a0],[.06,.06,.04,0,-.03,.285,0,0,0,V.skinD]];
+  const hc=V.hair;if(V.style===0)hp.push([.66,.14,.58,0,.3,-.01,0,0,0,hc],[.66,.18,.1,0,.18,.25,0,0,0,hc]);else if(V.style===1)hp.push([.66,.16,.58,0,.3,0,0,0,0,hc],[.2,.3,.16,0,.05,-.32,0,0,0,hc],[.1,.1,.1,0,-.14,-.36,0,0,0,hc]);else if(V.style===2)hp.push([.64,.1,.56,0,.3,0,0,0,0,hc],[.14,.14,.14,-.2,.38,0,.3,0,.3,hc],[.14,.16,.14,.05,.4,.05,-.2,0,.2,hc],[.14,.14,.14,.22,.37,-.05,.2,0,-.3,hc]);else hp.push([.68,.12,.6,0,.31,0,0,0,0,hc],[.08,.36,.5,-.33,.05,-.02,0,0,0,hc],[.08,.36,.5,.33,.05,-.02,0,0,0,hc]);
+  if(V.beard)hp.push([.5,.16,.08,0,-.24,.25,0,0,0,hc]);mmesh(hp,0xffffff,head);
+  m.eyesM=mmesh([[.1,.13,.03,-.14,.04,.28,0,0,0,0x1d1f33],[.1,.13,.03,.14,.04,.28,0,0,0,0x1d1f33],[.04,.04,.02,-.12,.08,.3,0,0,0,0xffffff],[.04,.04,.02,.16,.08,.3,0,0,0,0xffffff]],0xffffff,head);
+  m.brows=[];for(const s of[-1,1]){const b=mmesh([[.15,.035,.03,0,0,0,0,0,0,V.hairD]],0xffffff,head);b.position.set(s*.14,.17,.285);m.brows.push(b)}
+  m.mouth=mmesh([[.12,.035,.02,0,0,0,0,0,0,0x7a3030]],0xffffff,head);m.mouth.position.set(0,-.17,.28);
+  // chapéu do papel (m.hats recolorível)
+  const H=heroH;let hat;
+  if(H){const c=H.col;if(H.id==='paladin')hat=[[.7,.22,.62,0,.34,0],[.12,.3,.5,0,.48,0],[.74,.05,.66,0,.24,0]];else if(H.id==='archer')hat=[[.72,.3,.64,0,.26,-.04],[.5,.2,.2,0,.3,-.32],[.2,.2,.14,0,.14,-.4]];else if(H.id==='mage')hat=[[.86,.06,.78,0,.3,0],[.5,.22,.46,0,.42,0],[.34,.22,.32,0,.62,-.04,-.15],[.18,.2,.18,0,.8,-.1,-.3]];else if(H.id==='engineer')hat=[[.68,.16,.6,0,.33,0],[.74,.04,.3,0,.27,.22],[.5,.08,.06,0,.17,.29,0,0,0,0x444a5a]];else if(H.id==='priestess')hat=[[.72,.34,.64,0,.24,-.04],[.08,.08,.02,0,.42,.29,0,0,0,0xffe680]];else hat=[[.68,.16,.6,0,.33,0],[.1,.3,.1,-.36,.45,0,0,0,.5,0xf1e6c8],[.1,.3,.1,.36,.45,0,0,0,-.5,0xf1e6c8]];
+    m.hats=[mmesh(hat,c,head)];if(H.id==='priestess'){const halo=new THREE.Mesh(new THREE.TorusGeometry(.28,.035,6,20),new THREE.MeshBasicMaterial({color:0xffe680}));halo.rotation.x=Math.PI/2;halo.position.y=.62;head.add(halo)}
+    const cape=mmesh([[.5,.62,.05,0,.5,-.2,.12]],c,L);m.cape=cape}
+  else{const r=m.role;if(r==='rep')hat=[[.66,.18,.6,0,.33,0],[.72,.05,.7,0,.24,.03],[.06,.08,.04,0,.36,.3,0,0,0,0xffffff]];else if(r==='col')hat=[[.64,.12,.58,0,.31,0],[.42,.06,.24,0,.25,.36]];else if(r==='gun')hat=[[.66,.12,.62,0,.31,-.02,0,0,.18],[.12,.1,.12,.2,.38,0],[.46,.09,.06,0,.15,.29,0,0,0,0x3b3f55]];else if(r==='sol')hat=[[.68,.24,.62,0,.27,0],[.06,.22,.06,0,.06,.3],[.08,.22,.4,0,.48,-.04,0,0,0,0xd9414f]];else hat=[[.72,.36,.62,0,.22,-.05],[.5,.26,.08,0,-.02,-.3]];m.hats=[mmesh(hat,R.hat,head)]}
+  m.legs=legs;if(m.role==='gun'&&!H){/* óculos já no chapéu */}
+  m.blinkT=rnd(1,4)}
+function rollVis(){const skin=pick(SKINS),hair=pick(HAIRS);const sc=new THREE.Color(skin).lerp(new THREE.Color(0x553322),.25).getHex();return{skin,skinD:sc,hair,hairD:new THREE.Color(hair).lerp(new THREE.Color(0x000000),.35).getHex(),style:rint(0,3),beard:Math.random()<.18,pants:pick([0x4a4e6b,0x5a4a3a,0x3f5a4a,0x6b4a5a]),shirt:pick([0xf6f1ff,0xe8e0cc,0xd9e6f2,0xf2dcd0]),size:rnd(.93,1.07)}}
 function makeMinion(role,rarity,x,z){const R=ROLES[role];const g=new THREE.Group();
-  const body=box(.55,.55,.4,0xf6f1ff,0,.45,0,g);const head=box(.6,.55,.55,0xfbe3c9,0,1.05,0,g);eyes(head,.02,.28,.14);box(.1,.05,.05,0xd97d7d,0,-.14,.28,head);
-  const hat1=box(.7,.22,.65,R.hat,0,.36,0,head),hat2=box(.45,.25,.45,R.hat,0,.55,0,head);
-  const l1=box(.18,.3,.18,0x6b6e8f,-.15,.15,0,g),l2=box(.18,.3,.18,0x6b6e8f,.15,.15,0,g);
-  const prop=new THREE.Group();g.add(prop);buildProp(prop,role);const wpn=new THREE.Group();g.add(wpn);const acc=new THREE.Group();g.add(acc);
+  const prop=new THREE.Group();g.add(prop);const wpn=new THREE.Group();g.add(wpn);const acc=new THREE.Group();g.add(acc);
   if(rarity>=1){const ring=new THREE.Mesh(new THREE.TorusGeometry(.45,.05,6,20),new THREE.MeshBasicMaterial({color:RARITY[rarity].c}));ring.rotation.x=Math.PI/2;ring.position.y=.06;g.add(ring)}
-  const trait=(rarity>=1||Math.random()<.35)?pick(TRAITS[role]):null;if(trait){const tag=box(.18,.18,.18,RARITY[Math.max(1,rarity)].c,0,1.75,0,g);tag.rotation.y=Math.PI/4}
-  g.scale.setScalar(US);g.position.set(x,standY(x,z),z);scene.add(g);
+  const trait=(rarity>=1||Math.random()<.35)?pick(TRAITS[role]):null;
+  const vis=rollVis();g.scale.setScalar(US*vis.size*(trait==='Teimoso'||trait==='Forte'?1.05:1));g.position.set(x,standY(x,z),z);scene.add(g);
   const used=new Set(minions.map(o=>o.name));const name=shuffle(NAMES.slice()).find(n=>!used.has(n))||pick(NAMES)+' '+rint(2,9);
-  const m={xp:0,lvl:1,name,role,R,rarity,trait,group:g,pos:g.position,body,hats:[hat1,hat2],prop,wpn,acc,legs:[l1,l2],hp:1,maxhp:0,state:'idle',timer:0,task:null,turret:null,wounded:0,bob:rnd(0,6),bag:[],eq:{arma:null,armadura:null,acessorio:null},st:null,speed:3,work:1,path:null,pathT:0,skip:new Map(),stuckT:0,bestD:1e9,burn:0,kills:0};
-  g.userData.minion=m;recompute(m);m.hp=m.maxhp;minions.push(m);return m}
+  const m={xp:0,lvl:1,name,role,R,rarity,trait,group:g,pos:g.position,vis,body:null,hats:[],prop,wpn,acc,legs:[],hp:1,maxhp:0,state:'idle',timer:0,task:null,turret:null,wounded:0,bob:rnd(0,6),bag:[],eq:{arma:null,armadura:null,acessorio:null},st:null,speed:3,work:1,path:null,pathT:0,skip:new Map(),stuckT:0,bestD:1e9,burn:0,kills:0};
+  buildLook(m);buildProp(prop,role);g.userData.minion=m;recompute(m);m.hp=m.maxhp;minions.push(m);return m}
+// expressões, piscadas e braços (chamado por minion a cada quadro)
+function lookTick(m,dt){if(!m.eyesM)return;m.blinkT-=dt;const bl=m.blinkT<0&&m.blinkT>-.12;if(m.blinkT<-.12)m.blinkT=rnd(2,5);const hurt=m.wounded>0;
+  m.eyesM.scale.y=hurt?.25:bl?.12:1;const fight=m.role==='sol'&&m.state==='fight'||m.rage>0;const work=m.state==='work';const haul=m.bag&&m.bag.length>0;
+  const bA=hurt?-.35:fight?.4:work?.18:0;m.brows[0].rotation.z=-bA;m.brows[1].rotation.z=bA;m.brows[0].position.y=m.brows[1].position.y=fight?.15:.17;
+  m.mouth.scale.set(haul||work?.8:1,hurt?2.2:haul?2:fight?1.6:1,1);
+  const sw=m.legs[0]?m.legs[0].rotation.x:0;if(m.arms){if(work){m.arms[1].rotation.x=-1.2-Math.abs(Math.sin(simTime*14))*.9;m.arms[0].rotation.x=-.3}else if(haul){m.arms[0].rotation.x=m.arms[1].rotation.x=-.9}else if(fight){m.arms[1].rotation.x=-.6-Math.abs(Math.sin(simTime*10))*1.1;m.arms[0].rotation.x=-.5}else{m.arms[0].rotation.x=-sw*.8;m.arms[1].rotation.x=sw*.8}}
+  if(m.cape)m.cape.rotation.x=.12+Math.abs(sw)*.3}
 function recompute(m){const st={atk:1,def:0,spd:1,hp:1,gun:1,work:1,cap:0,rate:1,reach:0,stun:0,thorns:0,burn:0};
   for(const sl of ['arma','armadura','acessorio']){const it=m.eq[sl];if(!it)continue;for(const k in it.st){if(k==='def'||k==='cap'||k==='reach'||k==='stun'||k==='thorns'||k==='burn')st[k]+=it.st[k];else st[k]*=it.st[k]}}
   st.def=Math.min(.8,st.def);const R=m.rarity,T=m.trait;if(m.rank){const vb=m.rank>1?1.35:1.15;st.atk*=vb;st.hp*=vb}const LV=1+(m.lvl-1)*.07;st.atk*=LV;st.gun*=1+(m.lvl-1)*.05;
@@ -1169,9 +1210,9 @@ function recompute(m){const st={atk:1,def:0,spd:1,hp:1,gun:1,work:1,cap:0,rate:1
   const hb=(m.role==='sol'?85:45)*(T==='Teimoso'?1.8:1)*(1+R*.2)*st.hp*LV*(m.hero?2.5*(heroHas(m.hero,'hp')?1.5:1):1)*(m.role==='sol'&&state.buildings&&state.buildings.barracks?1.25:1);const ratio=m.maxhp?m.hp/m.maxhp:1;m.maxhp=hb;m.hp=Math.max(1,hb*ratio);m.st=st;
   clearGroup(m.wpn);clearGroup(m.acc);const a=m.eq.arma,ar=m.eq.armadura,ac=m.eq.acessorio;
   if(a){const c=RARITY[a.r].c;const len=a.k==='lanca'?1.2:a.k==='martelo'?.75:.7;const b=box(.1,len,.1,c,-.42,.55+len/2-.2,.15,m.wpn);b.material.emissive.setHex(c);b.material.emissiveIntensity=a.r>=2?.45:.15;if(a.k==='martelo'||a.k==='machado')box(.32,.2,.14,0x9aa0b2,-.42,.55+len-.25,.15,m.wpn)}
-  m.body.material.color.setHex(ar?({couro:0xb98d5a,malha:0xb8bfcc,placas:0x8ea9c6,escudo:0xd4c9a8})[ar.k]:0xf6f1ff);if(ar&&ar.k==='escudo')box(.1,.5,.42,RARITY[ar.r].c,.38,.5,.05,m.wpn);
+  m.cloth=ar?({couro:0xb98d5a,malha:0xb8bfcc,placas:0x8ea9c6,escudo:0xd4c9a8})[ar.k]:null;if(m.body)m.body.material.color.setHex(m.cloth||m.vis.shirt);if(ar&&ar.k==='escudo')box(.1,.5,.42,RARITY[ar.r].c,.38,.5,.05,m.wpn);
   if(ac){const c=RARITY[ac.r].c;const o=box(.16,.16,.16,c,0,.75,-.25,m.acc);o.material.emissive.setHex(c);o.material.emissiveIntensity=.4}}
-function setRole(m,role){if(m.role===role)return;if(m.turret){m.turret.gunner=null;m.turret=null}dropBag(m);releaseTask(m);m.role=role;m.R=ROLES[role];for(const h of m.hats)h.material.color.setHex(m.R.hat);buildProp(m.prop,role);m.state='idle';recompute(m)}
+function setRole(m,role){if(m.role===role)return;if(m.turret){m.turret.gunner=null;m.turret=null}dropBag(m);releaseTask(m);m.role=role;m.R=ROLES[role];buildLook(m,m.hero?HEROES.find(h=>h.id===m.hero):null);buildProp(m.prop,role);m.state='idle';recompute(m)}
 function dropBag(m){for(const L of m.bag){L.carried=null;L.claimed=null;L.y=m.group.position.y+1;L.x=m.pos.x+rnd(-.5,.5);L.z=m.pos.z+rnd(-.5,.5);L.vy=3;L.rest=false}m.bag=[]}
 function releaseTask(m){if(m.task&&m.task.i!==undefined&&claimed.get(m.task.i)===m)claimed.delete(m.task.i);if(m.task&&m.task.L&&m.task.L.claimed===m)m.task.L.claimed=null;m.task=null}
 function hurtMinion(m,d,from){if(m.wounded>0)return;if(from&&from.aff==='vamp'&&!from.dead){from.hp=Math.min(from.maxhp,from.hp+d*2.5)}if(m.hp-d*(1-m.st.def)<=0)state.morale=Math.max(0,(state.morale??60)-3);d*=(1-m.st.def);if(from&&m.st.thorns)dmgEnemy(from,d*m.st.thorns*3,true);m.hp-=d;if(m.hp<=0&&uniqueSave(m))return;SFX.hurt();
@@ -1193,7 +1234,7 @@ function findRepairTask(m){let best=null,bs=1e9;const mx=m.pos.x,mz=m.pos.z;
 function progress(m,d,dt,onStuck){if(d<m.bestD-.15){m.bestD=d;m.stuckT=0}else m.stuckT+=dt;if(m.stuckT>4){m.stuckT=0;m.bestD=1e9;onStuck();return false}return true}
 function lootOK(L,m){if(L.claimed||L.carried||L.unreach>simTime)return false;if(L.kind==='treasure'&&L.age<40)return false;const fx=Math.floor(L.x),fy=Math.floor(L.y-.5),fz=Math.floor(L.z);
   if(inb(fx,fy,fz)&&vox[idx(fx,fy,fz)]===8)return false;if(state.phase!=='wave'||inside(L.x,L.z))return true;for(const e of enemies)if(!e.dead&&!e.fly&&Math.abs(e.pos.x-L.x)<7&&Math.abs(e.pos.z-L.z)<7)return false;return true}
-function updateMinion(m,dt0){const dt=dt0*(.8+(state.morale??60)/100*.4);
+function updateMinion(m,dt0){const dt=dt0*(.8+(state.morale??60)/100*.4);lookTick(m,dt0);if(m.frozen){m.group.position.y=standY(m.pos.x,m.pos.z);return}
   if(m.state==='wounded'||m.wounded>0){if(m.state!=='wounded'){m.state='wounded';m.group.rotation.z=Math.PI/2}m.wounded-=dt*state.healMul;if(m.wounded<=0){m.wounded=0;m.hp=m.maxhp*.6;m.state='idle';m.group.rotation.z=0;m.group.position.y=standY(m.pos.x,m.pos.z);toast(`${m.name} voltou!`,'r1')}return}
   m.timer-=dt;m.legs[0].rotation.x*=.9;m.legs[1].rotation.x*=.9;
   if(m.state!=='man'){const fx=Math.floor(m.pos.x),fz=Math.floor(m.pos.z),s=surf(m.pos.x,m.pos.z);if(inb(fx,s,fz)&&(vox[idx(fx,s,fz)]===8||(s>0&&vox[idx(fx,s-1,fz)]===8))){m.burn+=dt*14;if(Math.random()<dt*8)spawnFlame(m.pos.x,m.group.position.y+.3,m.pos.z,.5);if(m.burn>6){m.burn=0;hurtMinion(m,10)}}
@@ -2020,7 +2061,7 @@ const HEROES=[
 const HERO_SLOTS=[1,3,5,8];
 const HERO_LORE={priestess:'Guardiã do último templo da luz. Onde ela reza, a pedra se fecha e os caídos voltam a ficar de pé.',paladin:'Jurou proteger Fortrex quando a bruma engoliu sua ordem. O martelo ainda brilha com a luz do último templo.',archer:'Caçadora das torres do norte; dizem que nunca errou uma flecha desde que perdeu o irmão para os Lobos da Bruma.',mage:'Exilado da Academia por congelar um rio inteiro. Agora congela o que vier pela frente.',engineer:'Reconstruiu sozinha a ponte de Ponte de Ossos. Para ela, toda ruína é só uma planta esperando.',berserker:'Ninguém sabe de onde veio. Quando ele grita, até os soldados mais cansados lembram por que lutam.'};
 function relicCount(){return Object.values(state.relics||{}).reduce((a,b)=>a+b,0)}
-function spawnHero(H){const m=makeMinion('sol',4,GATE.x+rnd(-1,1),GATE.z+2);m.hero=H.id;m.name=H.name;m.group.scale.setScalar(1.35);recompute(m);m.hp=m.maxhp;
+function spawnHero(H){const m=makeMinion('sol',4,GATE.x+rnd(-1,1),GATE.z+2);m.hero=H.id;m.name=H.name;m.vis.size=1;buildLook(m,H);m.group.scale.setScalar(US*1.22);recompute(m);m.hp=m.maxhp;
   const halo=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,16),new THREE.MeshBasicMaterial({color:H.col}));halo.rotation.x=Math.PI/2;halo.position.y=2.35;m.group.add(halo);
   state.heroes=state.heroes||{};state.heroes[H.id]={m,cd:0};const b=$('bHero_'+H.id);if(b)b.hidden=false;toast(`${H.ico} ${H.name} se junta a você! ${H.ab} (tecla ${H.key}): ${H.d}.`,'r4')}
 function checkHeroes(){if(state.heroOffer||state.choosing||hasMod('semherois'))return;const n=relicCount(),k=Object.keys(state.heroes||{}).length;if(k>=HERO_SLOTS.length||n<HERO_SLOTS[k])return;const left=HEROES.filter(H=>!(state.heroes&&state.heroes[H.id]));if(!left.length)return;
@@ -2642,7 +2683,7 @@ window.__uniq=()=>{const ts=Object.keys(UNIQ_T);ts.forEach((u,k)=>{const an=[...
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.5;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.6;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2709,7 +2750,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [2.2,'🔕 Menos ruído: avisos de combo, níveis de minions, equipamentos automáticos, baús comuns, inimigos lendários e tesouros enterrados viraram rótulos no mapa (−40% de avisos). Dicas menores e espaçadas, painel de objetivos recolhido por padrão (toque para abrir) e o pisão do Colosso agora tem aviso no chão.'],
   [2.3,'📈 Curva de longo prazo: hordas a partir da 12 ficam progressivamente mais duras e os chefes a partir da 15 têm mais vida — o meio de jogo deixa de ser passeio. 🪨 O chão em volta da cidadela (até 48 blocos além da muralha) não é mais destruído por inimigos, erupções ou terremotos: a horda fica sempre na superfície.'],
   [2.4,'★ Lendários ÚNICOS: 35% dos drops lendários viram um item com nome e poder próprio — Trovão de Aurora (raios em cadeia), Lança do Norte (congela), Coroa Solar (explosão de fogo), Boca do Abismo (puxa e esmaga), Coração do Golem (conserta blocos e armas por perto), Lâmina da Fúria Rubra (críticos ×3) e Égide do Último Rei (salva o portador uma vez por horda). Chegam com carta dourada animada e anel dourado em quem usa.'],
-  [2.5,'🧭 Painéis abertos não cobrem mais os trilhos de botões: no computador o trilho se desloca, no celular ele some enquanto o painel está aberto.']];
+  [2.5,'🧭 Painéis abertos não cobrem mais os trilhos de botões: no computador o trilho se desloca, no celular ele some enquanto o painel está aberto.'],
+  [2.6,'🧑‍🔧 Minions refeitos do zero (1/5 da reforma de personagens): cabeção chibi com olhos que piscam, sobrancelhas e boca que mudam (trabalhando, carregando, ferido, lutando), bochechas, cabelos e barbas variados, pele e roupas diferentes para cada um, braços e pernas articulados. Cada papel tem identidade: capacete e martelo do reparador, mochilão do coletor, boina e luneta do artilheiro, elmo com pluma, escudo e espada do soldado, capuz e maleta do curandeiro. Heróis maiores, com capa e chapéu próprios (a sacerdotisa tem auréola).']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','retreating','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -3115,6 +3157,7 @@ window.__cardTest=()=>{const m=minions.find(m=>m.role==='sol'&&!m.hero);m.lvl=6;
 
 window.__tlog=()=>TLOG;
 window.__groundTest=()=>{const c=()=>{let n=0;for(let x=CX-20;x<=CX+20;x++)for(let z=CZ+18;z<=CZ+26;z++)for(let y=1;y<GY;y++)if(vox[idx(x,y,z)])n++;return n};const a=c();for(let k=0;k<6;k++)explode(CX-15+k*6,GY,CZ+22,4,500,{src:'enemy'});const b=c();explode(CX,GY,CZ+22,4,500,{src:'env'});return [a,b,c()]};
+window.__minLineup=()=>{const out=[];['rep','col','gun','sol','med','rep','col','sol'].forEach((r,k)=>{const m=makeMinion(r,k%3,CX+36+k*2,CZ+4);m.state='idle';m.lineup=true;out.push(m)});for(const H of HEROES){spawnHero(H);const m=state.heroes[H.id].m;const k=HEROES.indexOf(H);m.pos.set(CX+37+k*2.4,standY(CX+37+k*2.4,CZ+8),CZ+8)}for(const m of minions.filter(m=>m.lineup||m.hero)){m.group.rotation.y=0;m.task=null;m.frozen=true}return out.length};
 
 })();
 </script>

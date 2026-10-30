@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.5;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.6;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -67,7 +67,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [2.2,'🔕 Menos ruído: avisos de combo, níveis de minions, equipamentos automáticos, baús comuns, inimigos lendários e tesouros enterrados viraram rótulos no mapa (−40% de avisos). Dicas menores e espaçadas, painel de objetivos recolhido por padrão (toque para abrir) e o pisão do Colosso agora tem aviso no chão.'],
   [2.3,'📈 Curva de longo prazo: hordas a partir da 12 ficam progressivamente mais duras e os chefes a partir da 15 têm mais vida — o meio de jogo deixa de ser passeio. 🪨 O chão em volta da cidadela (até 48 blocos além da muralha) não é mais destruído por inimigos, erupções ou terremotos: a horda fica sempre na superfície.'],
   [2.4,'★ Lendários ÚNICOS: 35% dos drops lendários viram um item com nome e poder próprio — Trovão de Aurora (raios em cadeia), Lança do Norte (congela), Coroa Solar (explosão de fogo), Boca do Abismo (puxa e esmaga), Coração do Golem (conserta blocos e armas por perto), Lâmina da Fúria Rubra (críticos ×3) e Égide do Último Rei (salva o portador uma vez por horda). Chegam com carta dourada animada e anel dourado em quem usa.'],
-  [2.5,'🧭 Painéis abertos não cobrem mais os trilhos de botões: no computador o trilho se desloca, no celular ele some enquanto o painel está aberto.']];
+  [2.5,'🧭 Painéis abertos não cobrem mais os trilhos de botões: no computador o trilho se desloca, no celular ele some enquanto o painel está aberto.'],
+  [2.6,'🧑‍🔧 Minions refeitos do zero (1/5 da reforma de personagens): cabeção chibi com olhos que piscam, sobrancelhas e boca que mudam (trabalhando, carregando, ferido, lutando), bochechas, cabelos e barbas variados, pele e roupas diferentes para cada um, braços e pernas articulados. Cada papel tem identidade: capacete e martelo do reparador, mochilão do coletor, boina e luneta do artilheiro, elmo com pluma, escudo e espada do soldado, capuz e maleta do curandeiro. Heróis maiores, com capa e chapéu próprios (a sacerdotisa tem auréola).']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','retreating','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
