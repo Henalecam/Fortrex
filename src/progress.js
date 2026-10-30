@@ -359,6 +359,10 @@ function strangerVisit(){const w=state.wave;if(w<6||state.choosing||Math.random(
   $('reward').style.display='flex';SFX.open()}
 
 // active effects chip: blessings, pacts, expeditions, captured banners
-let buffAcc=0;function buffTick(dt){buffAcc+=dt;if(buffAcc<.5)return;buffAcc=0;const el=$('buffSt');if(!el)return;const p=[];
+let buffAcc=0;function buffTick(dt){buffAcc+=dt;if(buffAcc<.5)return;buffAcc=0;{const gb=$('bGate');if(gb){const c=!!state.gateClosed;if(gb.classList.contains('on')!==c){gb.classList.toggle('on',c);gb.firstChild.textContent=c?'🔒':'🚪'}}}const el=$('buffSt');if(!el)return;const p=[];
   if((state.blessUntil||0)>=state.wave)p.push(`✨ +25% · ${state.blessUntil-state.wave+1} h`);if(state.nextWaveMul)p.push('🩸 próxima horda +50%');if(state.expedition)p.push(`🧭 volta h${state.expedition.back}`);if(state.trophies)p.push(`🏳️×${state.trophies}`);
   const t=p.join('  ');if(el.textContent!==t)el.textContent=t;const h=!p.length;if(el.hidden!==h)el.hidden=h}
+
+// portcullis: close the gate to make the doors 2.5× tougher — but minions can't walk through it either
+function toggleGate(){state.gateClosed=!state.gateClosed;for(const i of blueList)if(vox[i]===7){const mh=maxHpOf(7);hp[i]=state.gateClosed?Math.min(mh,hp[i]*2.5):Math.min(mh,hp[i]);paint(i)}
+  for(const m of minions)m.path=null;$('bGate').classList.toggle('on',!!state.gateClosed);$('bGate').firstChild.textContent=state.gateClosed?'🔒':'🚪';toast(state.gateClosed?'🔒 Portão fechado: a porta aguenta muito mais, mas ninguém passa.':'🚪 Portão aberto.','r2',true);SFX.build&&SFX.build()}

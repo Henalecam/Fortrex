@@ -45,7 +45,7 @@ const FLUID=m=>m===8||m===9;
 const SOLIDM=m=>m!==0&&m!==8&&m!==9;
 const BASIC_BLOCKS=[3,2,4];
 const SPECIAL_BLOCKS=[16,17,18,31,15,10,14,19,20,9,8];
-function maxHpOf(m){return (state.blueHp||1)*(m===7&&state.metalDoor?170:m===6?MAT[6].hp*(1+.45*(state.blockTier||0)):MAT[m].hp)}
+function maxHpOf(m){return (state.blueHp||1)*(m===7&&state.gateClosed?2.5:1)*(m===7&&state.metalDoor?170:m===6?MAT[6].hp*(1+.45*(state.blockTier||0)):MAT[m].hp)}
 function isFlam(m){return !!m&&MAT[m].flam===1&&!(m===7&&state.metalDoor)}
 
 const RARITY=[

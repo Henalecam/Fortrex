@@ -1,6 +1,6 @@
 // ───────── units: pathing, enemies, minions
 // minions walk on the ground: a cell is walkable if its surface is low, not lava and has headroom; climbing at most 1 step
-function walkCell(x,z){if(x<0||z<0||x>=W||z>=D)return -99;const s=surf(x,z);if(s>GY+3)return -99;const a=vox[idx(x,s,z)];if(a===8)return -99;if(s>0&&vox[idx(x,s-1,z)]===8)return -99;for(let k=1;k<=2;k++){if(s+k<H){const b=vox[idx(x,s+k,z)];if(SOLIDM(b)&&b!==7)return -99}}return s}
+function walkCell(x,z){if(x<0||z<0||x>=W||z>=D)return -99;const s=surf(x,z);if(s>GY+3)return -99;const a=vox[idx(x,s,z)];if(state.gateClosed&&a===7)return -99;if(a===8)return -99;if(s>0&&vox[idx(x,s-1,z)]===8)return -99;for(let k=1;k<=2;k++){if(s+k<H){const b=vox[idx(x,s+k,z)];if(SOLIDM(b)&&b!==7)return -99}}return s}
 function standY(x,z){const s=surf(x,z);const fx=Math.floor(x),fz=Math.floor(z);if(inb(fx,s,fz)&&vox[idx(fx,s,fz)]===9)return s+.45;return s}
 const _f=new Float32Array(W*D);let h2c=()=>0;
 function heapPush(a,v){a.push(v);let i=a.length-1;while(i>0){const p=(i-1)>>1;if(_f[a[p]]<=_f[a[i]])break;const t=a[p];a[p]=a[i];a[i]=t;i=p}}
