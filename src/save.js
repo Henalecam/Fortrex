@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.2;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.3;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -64,7 +64,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [1.9,'⚖️ Inimigos afinados: Golem de Cristal, Mímico, Cavaleiro, Escudeiro e Bombardeiro estavam fortes demais e foram ajustados. Cada horda agora tem 1–2 temas (🐜 Enxame, 🐺 Matilha, 🪨 Cerco, 🦅 Céu, 🛡️ Guarda) mostrados no topo, em vez de tudo misturado.'],
   [2.0,'🎯 Armas equilibradas (DPS medido uma a uma): Canhão bem mais forte, Morteiro com mais dano e recarga menor, Gelo bate mais; Lança-chamas e Raio-sol um pouco menos absurdos. Equipamentos: a raridade agora pesa muito mais (lendário ≈3,7× o bônus do comum) e épicos/lendários ainda dão vida extra.'],
   [2.1,'👥 Minions: contratar fica mais caro a cada um do mesmo papel (o exército cresce mais devagar e cada contratação pesa). Subir de nível agora brilha com anel dourado e a ficha mostra o bônus do nível e um resumo dos atributos com equipamento (dano ×, defesa %, vida ×). Soldados batem um pouco mais forte.'],
-  [2.2,'🔕 Menos ruído: avisos de combo, níveis de minions, equipamentos automáticos, baús comuns, inimigos lendários e tesouros enterrados viraram rótulos no mapa (−40% de avisos). Dicas menores e espaçadas, painel de objetivos recolhido por padrão (toque para abrir) e o pisão do Colosso agora tem aviso no chão.']];
+  [2.2,'🔕 Menos ruído: avisos de combo, níveis de minions, equipamentos automáticos, baús comuns, inimigos lendários e tesouros enterrados viraram rótulos no mapa (−40% de avisos). Dicas menores e espaçadas, painel de objetivos recolhido por padrão (toque para abrir) e o pisão do Colosso agora tem aviso no chão.'],
+  [2.3,'📈 Curva de longo prazo: hordas a partir da 12 ficam progressivamente mais duras e os chefes a partir da 15 têm mais vida — o meio de jogo deixa de ser passeio. 🪨 O chão da área da cidadela (até 12 blocos além da muralha) não é mais destruído por inimigos, erupções ou terremotos: a horda fica sempre na superfície.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','retreating','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}

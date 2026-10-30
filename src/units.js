@@ -84,7 +84,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(BIG(type)&&type!=='ship'&&type!=='general'&&!state.__rivalMake)bossLook(type,sc,col,g,body,head);
   if(rarity>=2){head.material.emissive.setHex(RARITY[rarity].c);head.material.emissiveIntensity=.5;head.userData.em=RARITY[rarity].c}
   g.position.set(x,0,z);scene.add(g);
-  const w=state.wave;const scale=(1+.16*(w-1))*(w>10?1+.09*(w-10):1)*(w>15?1+.06*(w-15):1)*(w>14?Math.pow(1.07,w-14):1)*(w>20?1+.05*(w-20):1)*(w>18?1+.1*(w-18):1)*(1+(state.rank||0)*.08);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?.8:1)*DIFF().hp;
+  const w=state.wave;const scale=(1+.16*(w-1))*(w>10?1+.09*(w-10):1)*(w>15?1+.06*(w-15):1)*(w>14?Math.pow(1.07,w-14):1)*(w>20?1+.05*(w-20):1)*(w>18?1+.1*(w-18):1)*(w>11?1+.045*(w-11):1)*(w>15?1+.035*(w-15):1)*(1+(state.rank||0)*.08);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?(state.wave>=15?.96:.8):1)*DIFF().hp;
   const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US*(BIG(type)?1.08:1.18),state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
     speed:T.speed*1.5*rnd(.9,1.1)*DIFF().sp*(hasMod('veloz')?1.2:1)*(state.ev==='elite'?1.15:1)*Math.min(1.3,1+Math.max(0,state.wave-12)*.015),armor:(hasMod('blindados')?.15:0)+Math.min(.55,Math.max(0,state.wave-14)*.025+(state.wave>=6?(DIFF().arm||0):0)),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm'||type==='bombardeiro',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+12:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   if(DIFF().dmg!==1)e.T={...T,dmg:T.dmg*DIFF().dmg};
