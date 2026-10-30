@@ -189,6 +189,25 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #rainFx{position:fixed;inset:-40px;pointer-events:none;z-index:0;background:repeating-linear-gradient(105deg,rgba(200,220,240,0) 0 22px,rgba(200,220,240,.35) 22px 23px,rgba(200,220,240,0) 23px 47px);animation:rain .45s linear infinite;mix-blend-mode:screen}@keyframes rain{to{transform:translate(-12px,46px)}}
 .wn{border:0;background:rgba(0,0,0,.06);border-radius:6px;width:20px;height:20px;font:700 14px/1 inherit;cursor:pointer;color:inherit;padding:0;margin:0 3px}.wn:hover{background:rgba(0,0,0,.12)}.wn:disabled{opacity:.25;cursor:default}
 .crow{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px}.crow .btn{width:30px;height:30px;padding:0;font-size:16px}.crow b{min-width:18px;text-align:center}.crow .ct{opacity:.6;font-size:11px}
+
+/* v1.7 layout enxuto: trilho de painéis à esquerda, ações contextuais à direita, barra inferior mínima */
+:root{--dock:58px}
+.rail{position:absolute;display:flex;flex-direction:column;gap:6px;pointer-events:auto;z-index:4;bottom:calc(var(--dock) + 24px + env(safe-area-inset-bottom,0px))}
+#rail{left:max(12px,env(safe-area-inset-left,0px))}#acts{right:max(12px,env(safe-area-inset-right,0px));flex-direction:column-reverse}
+.rail .btn{width:44px;height:44px;padding:0;justify-content:center;border-radius:14px;background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);box-shadow:0 4px 14px rgba(43,45,74,.1);position:relative;font-size:19px;flex:none}
+.rail .btn[hidden]{display:none}.rail .btn:hover{transform:translateY(-1px)}
+.rail .btn.on{background:#e3f5ea;box-shadow:inset 0 0 0 2px var(--good)}.rail .btn.war{background:#ffe9e2}
+.rail .btn .lb{display:none;position:absolute;top:50%;transform:translateY(-50%);white-space:nowrap;background:#2b2d4a;color:#fff;padding:4px 8px;border-radius:8px;font-size:12px;font-weight:600;pointer-events:none;z-index:9}
+#rail .btn .lb{left:52px}#acts .btn .lb{right:52px}
+@media (hover:hover){.rail .btn:hover .lb{display:block}}
+.rail .btn .cost{position:absolute;bottom:-5px;right:-5px;font-size:9.5px;line-height:1;background:#2b2d4a;color:#fff;border-radius:8px;padding:2px 4px;max-width:44px;overflow:hidden;white-space:nowrap;margin:0}
+.rail .btn .badge{position:absolute;top:-4px;right:-4px}
+.dock .btn .lb{display:none}
+#heroBar{display:none!important}
+@media (max-width:760px){:root{--dock:56px}.dock{flex-wrap:nowrap!important}.dock::before{display:none!important}.dock #next{order:0!important;flex:1}.rail .btn{width:40px;height:40px;font-size:17px;border-radius:12px}.rail{gap:5px}}
+@media (max-height:560px){.rail{flex-direction:row!important;bottom:calc(var(--dock) + 16px)}#acts{flex-direction:row-reverse!important}}
+@media (max-width:760px){#autoMenu .lb,#autoMenu .cost{display:none}#autoMenu{order:2!important;padding:4px 8px}#rivalChip{order:3!important}#bossbar{top:calc(122px + env(safe-area-inset-top,0px))!important}#bossName{font-size:11px}}
+@media (max-width:760px){#combo{top:calc(150px + env(safe-area-inset-top,0px));font-size:32px}}
 </style>
 
 <canvas id="c"></canvas>
@@ -252,14 +271,15 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 <div id="hire" class="pop"></div>
 <div id="merch" class="pop"></div>
 
-<div id="bottom" class="bar"><div class="dock">
+<div id="rail" class="rail">
   <button class="btn" id="bBuild" title="Construir (B)">🧱<span class="lb">Construir</span></button>
   <button class="btn" id="bArs" title="Arsenal (I)">🎒<span class="lb">Arsenal</span><span class="badge" id="arsN" hidden></span></button>
   <button class="btn" id="bHire" title="Contratar">👥<span class="lb">Contratar</span></button>
   <button class="btn" id="bShop" title="Upgrades (U)">⬆️<span class="lb">Upgrades</span></button>
   <button class="btn" id="bRealm" title="Mapa do reino (M)">🗺️<span class="lb">Reino</span></button>
   <button class="btn war" id="bMerch" hidden title="Mercador itinerante">🛒<span class="lb">Mercador</span></button>
-  <span class="sep"></span>
+</div>
+<div id="acts" class="rail">
   <button class="btn" id="bHero_paladin" hidden title="Aurora: Martelo Sagrado (Q)">⭐<span class="lb">Martelo</span><span class="cost">pronto</span></button>
   <button class="btn" id="bHero_archer" hidden title="Lyra: Chuva de Flechas (E)">🏹<span class="lb">Flechas</span><span class="cost">pronto</span></button>
   <button class="btn" id="bHero_mage" hidden title="Orin: Nova de Gelo (T)">❄️<span class="lb">Nova</span><span class="cost">pronto</span></button>
@@ -272,9 +292,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <button class="btn" id="bWard" hidden title="Égide do Guardião: por 7 s os blocos da cidadela não sofrem dano (recarga 100 s)">🛡️<span class="lb">Égide</span><span class="cost" id="wardCd"></span></button>
   <button class="btn" id="bGate" title="Portão: fechado, a porta aguenta 2,5× mais mas ninguém sai nem entra">🚪<span class="lb">Portão</span></button>
   <button class="btn" id="bRally" title="Bandeira de reunião: clique no mapa e os soldados se juntam ali por 30 s">🚩<span class="lb">Reunir</span></button>
+</div>
+<div id="bottom" class="bar"><div class="dock">
   <button class="btn" id="camHome" title="Centralizar na cidadela (H)">🏰</button>
-  <span class="sep"></span>
-  <button class="btn" id="raidBtn" hidden title="Raid: três ondas insanas e um chefe de raid">☠️ Raid</button><button class="btn primary" id="next">Chamar horda</button>
+  <button class="btn war" id="raidGo" hidden title="Raid: três ondas insanas e um chefe de raid">☠️<span class="lb">Raid</span></button>
+  <button class="btn primary" id="next">Chamar horda</button>
   <button class="btn" id="auto" title="Hordas automáticas">Auto</button>
   <button class="btn" id="speed" title="Velocidade (F)">⏩ 1×</button>
   <button class="btn" id="snd" aria-label="Som">🔇</button>

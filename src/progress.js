@@ -276,7 +276,7 @@ function offerTalent(m){const id=m.hero;if(!id||!minions.includes(m))return;stat
   for(const t of opts){const T=TALENTS[t];const el=document.createElement('button');el.className='rcard r4';el.innerHTML=`<div class="ico">${T.ico}</div><div class="nm">${T.n}</div><div class="ds">${T.d}</div><div class="rr">Talento</div>`;el.onclick=()=>{take(t);$('reward').style.display='none';state.choosing=false;updateHud()};box.appendChild(el)}
   $('reward').style.display='flex';SFX.open()}
 // on phones the hero buttons float in their own column above the dock, so the dock keeps two rows
-function placeHeroBar(){const narrow=innerWidth<600;let bar=$('heroBar');if(!bar){bar=document.createElement('div');bar.id='heroBar';document.body.appendChild(bar)}const dock=document.querySelector('.dock');const anchor=$('bomb');
+function placeHeroBar(){return;const narrow=innerWidth<600;let bar=$('heroBar');if(!bar){bar=document.createElement('div');bar.id='heroBar';document.body.appendChild(bar)}const dock=document.querySelector('.dock');const anchor=$('bomb');
   for(const H of HEROES){const b=$('bHero_'+H.id);if(!b)continue;if(narrow&&b.parentNode!==bar)bar.appendChild(b);else if(!narrow&&b.parentNode!==dock)dock.insertBefore(b,anchor)}}
 addEventListener('resize',placeHeroBar);setTimeout(placeHeroBar,0);
 
@@ -664,11 +664,11 @@ function raidStageEnd(){const R=state.raid;if(R.st<3){R.st++;state.queue=raidSpe
 function raidFail(){const R=state.raid;state.raid=null;for(const e of enemies)if(!e.dead&&!e.rival){e.dead=true;scene.remove(e.group)}state.queue=[];state.ev=null;state.wave=R.w0;$('event').style.display='none';state.boss=null;hideBoss();
   for(const i of _chestVox){setVox(i,5);hp[i]=maxHpOf(5)}const pen=Math.floor(state.material*.1);state.material-=pen;state.phase='rest';state.restStart=simTime;state.restT=25;state.nextRaid=Math.max(state.maxWave||1,state.wave)+2;startSelfRepair();
   $('report').style.display='block';$('report').innerHTML=`<b>☠️ A raid rompeu o baú.</b> Você continua na horda ${state.wave}${pen?` · −${pen} material`:''}. Nova tentativa na horda ${state.nextRaid}.`;toast('☠️ Raid perdida — a cidadela resiste.','r3',true);updateHud()}
-let _raidT=0;function raidTick(dt){_raidT-=dt;if(_raidT<=0){_raidT=.4;const b=$('raidBtn');if(b){const ok=raidReady();if(b.hidden===ok)b.hidden=!ok}}
+let _raidT=0;function raidTick(dt){_raidT-=dt;if(_raidT<=0){_raidT=.4;const b=$('raidGo');if(b){const ok=raidReady();if(b.hidden===ok)b.hidden=!ok}}
   if(!state.raid)return;for(const e of enemies){if(e.dead||e.rm||e.rival)continue;e.rm=1;if(e.type==='arauto'){e.ph=1;showBoss(e);continue}
     if(BIG(e.type)){e.maxhp*=.55;e.hp=e.maxhp;e.group.scale.multiplyScalar(.85);continue}
     e.maxhp*=1.6;e.hp=e.maxhp;e.speed*=1.12;e.armor=Math.min(.7,(e.armor||0)+.12);if(!e.aff){e.aff=pick(['fast','armor','vamp','boom','regen']);if(e.aff==='fast')e.speed*=1.3;if(e.aff==='armor')e.armor=Math.min(.75,e.armor+.25)}
     for(const im of e.vmeshes||[]){im.material.emissive.setHex(0x7a20c8);im.material.emissiveIntensity=.22;im.userData.em=0x7a20c8}}}
-$('raidBtn').onclick=()=>startRaid();
+$('raidGo').onclick=()=>startRaid();
 window.__raid=()=>{state.maxWave=Math.max(state.maxWave||1,8);state.nextRaid=0;startRaid();return state.raid?{...state.raid,q:state.queue.length}:null};
 window.__raidSt=()=>state.raid?{st:state.raid.st,q:state.queue.length,en:enemies.filter(e=>!e.dead).length,wave:state.wave}:{done:state.raidsDone||0,wave:state.wave,next:state.nextRaid};
