@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=1.0;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=1.1;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -52,7 +52,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.93,'🎖️ Soldados ganham patente: Veterano aos 20 abates (+15% vida/ataque) e Lenda aos 50 (+35%), com brasão dourado. O dragão fica vermelho quando ferido.'],
   [0.94,'📜 Contratos de horda: cada horda traz um objetivo bônus (vencer rápido, baú intocado, poucos feridos, abates dos soldados, elites) que paga material extra. A ficha do soldado mostra patente e abates.'],
   [0.95,'🔥 Contratos em sequência rendem +15% cada (até +60%) e o contrato ativo aparece no topo com o progresso. Novas conquistas: Mercenário e Palavra de honra.'],
-  [1.0,'♾️ Fortrex agora é infinito de verdade: perder uma horda não encerra a partida — a cidadela recua uma horda (−15% material) e você navega livremente entre as hordas já alcançadas com ‹ › no topo. Os biomas viraram climas que chegam e vão embora durante o jogo (Estação fértil, Onda de calor, Inverno rigoroso, Despertar vulcânico, Bruma do pântano); só a dificuldade é escolhida no início.']];
+  [1.0,'♾️ Fortrex agora é infinito de verdade: perder uma horda não encerra a partida — a cidadela recua uma horda (−15% material) e você navega livremente entre as hordas já alcançadas com ‹ › no topo. Os biomas viraram climas que chegam e vão embora durante o jogo (Estação fértil, Onda de calor, Inverno rigoroso, Despertar vulcânico, Bruma do pântano); só a dificuldade é escolhida no início.'],
+  [1.1,'🧩 Inimigos refeitos em voxels pequenos: corpos arredondados com padrões (listras, carapaças, manchas), cabeça e acessórios em cubinhos, olhos maiores. Eles estão ~30% maiores, se despedaçam cubinho por cubinho ao levar dano (mostrando o interior) e explodem em dezenas de voxels ao morrer.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','retreating','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}

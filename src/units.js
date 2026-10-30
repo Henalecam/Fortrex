@@ -60,7 +60,7 @@ const CLIMBS=t=>t==='climber'||t==='spider';
 const BIG=t=>t==='boss'||t==='colossus'||t==='queen'||t==='titan'||t==='general'||t==='golem'||t==='wyrm'||t==='necro'||t==='mistking';
 const enemies=[];const fuses=[];
 function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group();const col=new THREE.Color(T.color).lerp(new THREE.Color(RARITY[rarity].c),rarity?.35:0).getHex();
-  const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='general'?2.1:type==='ship'?2.6:type==='pirate'?1.05:type==='mistking'?3.4:type==='golem'?3.7:type==='wyrm'?2.9:type==='necro'?2.7:type==='ram'?1.35:type==='flyer'?.8:type==='brute'?1.5:type==='imp'?.7:type==='slime'?1.15:type==='beetle'?1.2:1)*(BIG(type)?1:rnd(.9,1.12));
+  const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='general'?2.1:type==='ship'?2.6:type==='pirate'?1.05:type==='mistking'?3.4:type==='golem'?3.7:type==='wyrm'?2.9:type==='necro'?2.7:type==='ram'?1.35:type==='flyer'?.8:type==='brute'?1.5:type==='imp'?.7:type==='slime'?1.15:type==='beetle'?1.2:1)*(BIG(type)?1.12:1.32*rnd(.92,1.1));
   let body,head,legs=[];if(CREATURES[type]){({body,head,legs}=CREATURES[type](sc,col,g))}else{
   body=box(.9*sc,.7*sc,1.1*sc,col,0,.5*sc,0,g);head=box(.7*sc,.6*sc,.6*sc,col,0,.6*sc,.75*sc,g);eyes(head,.08*sc,.32*sc,.17*sc);
   for(const sx of [-1,1])for(const sz of [-1,1]){const lg=box(.22*sc,.4*sc,.22*sc,type==='colossus'?0xcfd6e3:0x2b2d4a,sx*.35*sc,.2*sc,sz*.35*sc,g);legs.push({mesh:lg,hp:150,alive:true,ox:sx*.35*sc,oz:sz*.35*sc})}}
@@ -84,7 +84,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(rarity>=2){head.material.emissive.setHex(RARITY[rarity].c);head.material.emissiveIntensity=.5;head.userData.em=RARITY[rarity].c}
   g.position.set(x,0,z);scene.add(g);
   const w=state.wave;const scale=(1+.16*(w-1))*(w>10?1+.09*(w-10):1)*(w>15?1+.06*(w-15):1)*(w>14?Math.pow(1.07,w-14):1)*(w>20?1+.05*(w-20):1)*(w>18?1+.1*(w-18):1)*(1+(state.rank||0)*.08);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?.8:1)*DIFF().hp;
-  const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US,state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
+  const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US*(BIG(type)?1.08:1.18),state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
     speed:T.speed*1.5*rnd(.9,1.1)*DIFF().sp*(hasMod('veloz')?1.2:1)*(state.ev==='elite'?1.15:1)*Math.min(1.3,1+Math.max(0,state.wave-12)*.015),armor:(hasMod('blindados')?.15:0)+Math.min(.55,Math.max(0,state.wave-14)*.025+(state.wave>=6?(DIFF().arm||0):0)),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+12:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   if(DIFF().dmg!==1)e.T={...T,dmg:T.dmg*DIFF().dmg};
   rollAffix(e);if(BIG(type)&&type!=='ship'&&type!=='general'&&state.wave>=15&&Math.random()<.6){e.bossAff=pick(['furioso','escudo']);if(e.bossAff==='escudo'){e.shieldMax=e.maxhp*.3;e.shield=e.shieldMax}}if(state.vein&&state.phase==='wave'&&!BIG(type)&&!CLIMBS(type)&&type!=='goblin'&&type!=='flyer'&&type!=='ship'&&Math.random()<.15)e.veinRaid=true;
@@ -114,7 +114,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   if(e.alpha){spawnLoot(e.pos.x,GY+2,e.pos.z,'treasure',Math.min(4,2+Math.floor(state.wave/12)),{});toast('🐺 O lobo alfa caiu! Deixou um tesouro raro.','r4');addFame&&addFame(20)}
   if(t==='ship'){for(let k=0;k<2;k++)spawnLoot(e.pos.x+rnd(-2,2),GY+2,e.pos.z+rnd(-2,2),'treasure',Math.min(4,2+Math.floor(state.wave/10)),{});pendingBooms.push({x:e.pos.x,y:GY+1,z:e.pos.z,r:4,dmg:60,o:{src:'env',fire:true},t:.1});toast('🏴‍☠️ Navio pirata afundado! Tesouro na praia.','r4')}
   if(t==='imp')pendingBooms.push({x:e.pos.x,y:e.gy+.5,z:e.pos.z,r:1.8,dmg:22,o:{src:'enemy',fire:true},t:.05});goalEvent('kills');if(big)goalEvent('boss');if(big&&t!=='general'){state.morale=Math.min(100,(state.morale??60)+15);grantRelic(t);if(!OPTS.noCine&&!window.__headless)state.cine={x:e.pos.x,z:e.pos.z,t:2.6,d0:(state.cine&&state.cine.d0)||cam.dist}}
-  spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?140:t==='boss'?60:t==='ram'?18:10,big?.8:.4);SFX.shatter(t!=='crawler');
+  if(e.vmeshes&&e.vmeshes.length)voxBurst(e,big?220:48);spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?60:big?30:4,big?.8:.4);SFX.shatter(t!=='crawler');
   hitstop=Math.max(hitstop,t==='colossus'?.22:t==='boss'?.14:.05);shake=Math.max(shake,t==='colossus'?1.4:t==='boss'?.9:.22);if(big){hideBoss();slowmo=1.3;toast(`${e.T.n} derrotado!`,'r4')}
   if(t==='colossus'){const fx=e.pos.x+Math.sin(e.group.rotation.y)*3,fz=e.pos.z+Math.cos(e.group.rotation.y)*3;pendingBooms.push({x:fx,y:GY+.5,z:fz,r:3.6,dmg:230,o:{src:'env'},t:.25});toast('O Colosso desabou!','r4')}
   dropTable(e);state.kills++;state.wk++;if(e.lastSol&&!e.rival)vetKill(e.lastSol);if(state.contract&&!e.rival){if(e.aff)state.contract.el=(state.contract.el||0)+1;if(e.lastSol)state.contract.sol=(state.contract.sol||0)+1}addCombo(e);if(state.ev==='bloodmoon'&&!e.rival){state.material+=1;for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&Math.abs(m.pos.x-e.pos.x)<4&&Math.abs(m.pos.z-e.pos.z)<4)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.12)}}
@@ -330,17 +330,39 @@ function gainXP(m,n){if(!m||!minions.includes(m))return;m.xp+=n;while(m.xp>=xpNe
 
 // ───────── body destruction: enemies are built from chunks that break off as they take damage
 const _cv=new THREE.Vector3();
-function setupChunks(e,body,head){const g=e.group,big=BIG(e.type);const grid=e.type==='ship'?null:e.type==='colossus'?[5,4,6]:big?[4,3,5]:e.type==='flyer'?null:e.rarity>=1||e.rival?[3,2,3]:[2,2,2];const cubes=[];
-  if(grid){const p=body.geometry.parameters;const sx=p.width*body.scale.x/grid[0],sy=p.height*body.scale.y/grid[1],sz=p.depth*body.scale.z/grid[2];const geo=new THREE.BoxGeometry(sx*.97,sy*.97,sz*.97);
-    for(let i=0;i<grid[0];i++)for(let j=0;j<grid[1];j++)for(let k=0;k<grid[2];k++){const c=new THREE.Mesh(geo,body.material);const ox=(i-(grid[0]-1)/2)*sx,oy=(j-(grid[1]-1)/2)*sy,oz=(k-(grid[2]-1)/2)*sz;c.position.set(body.position.x+ox,body.position.y+oy,body.position.z+oz);c.castShadow=true;g.add(c);
-      const r=Math.max(Math.abs(ox)/(p.width*body.scale.x/2),Math.abs(oy)/(p.height*body.scale.y/2),Math.abs(oz)/(p.depth*body.scale.z/2));cubes.push({m:c,key:r+rnd(0,.45)+(oy>0?.15:0)})}
-    body.visible=false}
-  const skip=new Set([body,...cubes.map(c=>c.m)]);if(e.type==='colossus')for(const L of e.legs)skip.add(L.mesh);
-  const extras=g.children.filter(c=>!skip.has(c)&&c.isMesh).map(m=>({m,key:m===head?.55+rnd(0,.3):rnd(.6,1.4)}));
-  const all=[...extras,...cubes].sort((a,b)=>b.key-a.key);e.chunks=all.map(c=>c.m);e.lost=0;e.keepN=Math.max(2,Math.ceil(cubes.length*.18))}
+// v1.1 corpos em voxels pequenos: corpo e cabeça viram um InstancedMesh de cubinhos arredondados (casca colorida, interior "carne" escura)
+const _vm=new THREE.Matrix4(),_vq=new THREE.Quaternion(),_vs=new THREE.Vector3(),_vp=new THREE.Vector3(),_vc=new THREE.Color(),_vc2=new THREE.Color(),_vflesh=new THREE.Color(0x4a1626),_vgeo=new THREE.BoxGeometry(1,1,1);
+function vcells(mesh,vsz,maxN,flesh,pat,round){const p=mesh.geometry.parameters;if(!p||!p.width)return[];const W=p.width*mesh.scale.x,H=p.height*mesh.scale.y,Dp=p.depth*mesh.scale.z;
+  let v=vsz;let nx,ny,nz;for(let t=0;t<10;t++){nx=Math.max(1,Math.round(W/v));ny=Math.max(1,Math.round(H/v));nz=Math.max(1,Math.round(Dp/v));if(nx*ny*nz*.62<=maxN)break;v*=1.18}
+  const sx=W/nx,sy=H/ny,sz=Dp/nz;const base=mesh.material.color.clone();const P=3.2;mesh.updateMatrix();_vq.setFromEuler(mesh.rotation);const out=[];
+  for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)for(let k=0;k<nz;k++){const u=nx>1?(i+.5)/nx*2-1:0,w=ny>1?(j+.5)/ny*2-1:0,q=nz>1?(k+.5)/nz*2-1:0;const r=Math.pow(Math.abs(u),P)+Math.pow(Math.abs(w),P)+Math.pow(Math.abs(q),P);if(round&&r>1.08&&!(j===0&&r<1.6))continue;
+    const shell=(i===0||i===nx-1||j===0||j===ny-1||k===0||k===nz-1)||r>.42;const c=new THREE.Color().copy(base);
+    if(!shell&&flesh)c.lerp(_vflesh,.65);else{c.offsetHSL(0,0,w*.07+(Math.random()-.5)*.07);if(w<-.5&&round)c.lerp(_vc2.setHex(0x1d1f33),.18);if(pat&&pat({i,j,k,u,w,q}))c.lerp(_vc2.setHex(pat.col),.55)}
+    const pos=new THREE.Vector3((i-(nx-1)/2)*sx,(j-(ny-1)/2)*sy,(k-(nz-1)/2)*sz).applyMatrix4(mesh.matrix);out.push({pos,q:_vq.clone(),sc:new THREE.Vector3(sx*.96,sy*.96,sz*.96),c,s:Math.max(sx,sy,sz),key:r+Math.random()*.5+(w>0?.2:0)+(shell?1:0)})}
+  return out}
+function vinst(e,cells,parent,emSrc){if(!cells.length)return[];const im=new THREE.InstancedMesh(_vgeo,new THREE.MeshLambertMaterial({color:0xffffff}),cells.length);im.castShadow=true;
+  if(emSrc){const em=emSrc.material.emissive;if(em&&em.getHex()){im.material.emissive.copy(em);im.material.emissiveIntensity=emSrc.material.emissiveIntensity}im.userData.em=emSrc.userData.em}
+  parent.add(im);cells.forEach((c,n)=>{_vm.compose(c.pos,c.q,c.sc);im.setMatrixAt(n,_vm);im.setColorAt(n,c.c)});im.instanceMatrix.needsUpdate=true;im.instanceColor.needsUpdate=true;e.vmeshes.push(im);
+  return cells.map((c,n)=>({im,n,s:c.s,key:c.key}))}
+const VPAT={wolf:c=>c.w>.3&&Math.abs(c.u)<.35,beetle:c=>Math.abs(c.u)<.12&&c.w>0,spider:c=>c.w>.4&&((c.k%3)===0),crawler:c=>c.w>.5&&(c.k%2===0),brute:c=>c.w<-.2&&c.w>-.6,slime:c=>Math.random()<.08,imp:c=>c.w>.6,boss:c=>c.w>.5&&Math.abs(c.u)<.25,colossus:c=>c.w>.6&&(c.i+c.k)%3===0,golem:c=>Math.random()<.12,titan:c=>Math.random()<.18,necro:c=>c.w>.2&&Math.abs(c.u)<.2};
+const VPATC={wolf:0xdfe3ea,beetle:0x0f2222,spider:0xff4a5a,crawler:0xff9ad1,brute:0x3a2a20,slime:0xffffff,imp:0xffd04a,boss:0xff4a8a,colossus:0xec5f6b,golem:0x6f8f55,titan:0xffb13d,necro:0x7dff9a};
+function setupChunks(e,body,head){const g=e.group,big=BIG(e.type);e.vmeshes=[];if(e.type==='ship'){e.chunks=g.children.filter(c=>c.isMesh&&c!==body);e.lost=0;e.keepN=2;return}
+  const pat=VPAT[e.type]?Object.assign(VPAT[e.type],{col:VPATC[e.type]}):null;const vs=big?.3:.16+(e.rarity>=1?0:.02);
+  const legSet=new Set(e.legs.map(L=>L.mesh));const wings=new Set(g.userData.wings||[]);const fx=new Set(fuses);
+  // corpo + extras estáticos (chifres, placas, chapéus...) viram um único InstancedMesh no espaço do grupo
+  let cells=vcells(body,vs,big?900:(e.rarity>=1||e.rival?300:190),true,pat,true);const done=[];
+  for(const m of g.children){if(!m.isMesh||m===body||m===head||legSet.has(m)||wings.has(m)||fx.has(m)||m.children.length)continue;const em=m.material.emissive&&m.material.emissive.getHex();if(em)continue;const c=vcells(m,vs*.8,big?120:28,false,null,false);if(c.length){cells=cells.concat(c.map(x=>({...x,key:x.key+.6})));done.push(m)}}
+  const bv=vinst(e,cells,g,body);if(bv.length){body.visible=false;for(const m of done)g.remove(m);e.parts[0]=bv[0].im}
+  let hv=[];if(head&&head!==body&&head.geometry.parameters){const hc=vcells(head,vs*.85,big?260:80,true,null,true);hc.forEach(c=>c.pos.sub(head.position).applyQuaternion(_vq.copy(head.quaternion).invert()));hv=vinst(e,hc,head,head);if(hv.length){hv[0].im.position.set(0,0,0);head.material.colorWrite=false;head.material.depthWrite=false;head.castShadow=false;e.headVox=hv[0].im;e.parts.push(hv[0].im)}}
+  const skip=new Set([body,...e.vmeshes]);if(e.type==='colossus')for(const L of e.legs)skip.add(L.mesh);
+  const extras=g.children.filter(c=>!skip.has(c)&&c.isMesh&&c!==head).map(m=>({m,key:rnd(.9,2.2)}));
+  const vox=[...bv,...hv.map(h=>({...h,key:h.key*.6}))];
+  const all=[...extras,...vox.map(v=>({m:v,key:v.key})),{m:head,key:.5}].filter(c=>c.m).sort((a,b)=>b.key-a.key);e.chunks=all.map(c=>c.m);e.lost=0;e.keepN=Math.max(3,Math.ceil(vox.length*.22))}
+function voxBurst(e,max){let n=0;for(let i=e.lost;i<e.chunks.length&&n<max;i++){const c=e.chunks[i];if(c&&c.im){c.im.getMatrixAt(c.n,_vm);_vp.setFromMatrixPosition(_vm);c.im.localToWorld(_vp);c.im.getColorAt(c.n,_vc);spawnDebris(_vp.x,_vp.y,_vp.z,_vc.getHex(),1,clamp(c.s*e.group.scale.x*1.1,.1,.6));n++}}}
 function chipEnemy(e,d){const frac=clamp(1-e.hp/e.maxhp,0,1);const lim=e.chunks.length-e.keepN;const tgt=Math.min(lim,Math.floor(Math.pow(frac,.85)*lim*1.04));let n=0;
-  while(e.lost<tgt&&n++<14){const m=e.chunks[e.lost++];detachChunk(e,m)}}
-function detachChunk(e,m){if(!m.parent)return;m.getWorldPosition(_cv);const gp=m.geometry.parameters||{width:.3,height:.3,depth:.3};const s=Math.max(gp.width*m.scale.x,gp.height*m.scale.y,gp.depth*m.scale.z);const col=m.material.color.getHex();m.parent.remove(m);
+  while(e.lost<tgt&&n++<(e.chunks.length>120?26:14)){const m=e.chunks[e.lost++];detachChunk(e,m)}}
+function detachChunk(e,m){if(m&&m.im){if(!m.im.parent)return;m.im.getMatrixAt(m.n,_vm);_vp.setFromMatrixPosition(_vm);m.im.localToWorld(_vp);m.im.getColorAt(m.n,_vc);_vm.makeScale(0,0,0);m.im.setMatrixAt(m.n,_vm);m.im.instanceMatrix.needsUpdate=true;spawnDebris(_vp.x,_vp.y,_vp.z,_vc.getHex(),1,clamp(m.s*e.group.scale.x*1.15,.1,.7));if(BIG(e.type)&&Math.random()<.04){shake=Math.max(shake,.2);SFX.crunch(true)}return}
+  if(!m.parent)return;m.getWorldPosition(_cv);const gp=m.geometry.parameters||{width:.3,height:.3,depth:.3};const s=Math.max(gp.width*m.scale.x,gp.height*m.scale.y,gp.depth*m.scale.z);const col=m.material.colorWrite===false?e.T.color:m.material.color.getHex();m.parent.remove(m);
   const big=BIG(e.type);spawnDebris(_cv.x,_cv.y,_cv.z,col,big?4:2,clamp(s*.55,.12,big?.9:.4));if(big&&Math.random()<.35){shake=Math.max(shake,.25);SFX.crunch(true)}
   const leg=e.legs.find(L=>L.mesh===m);if(leg&&e.type!=='colossus'){leg.alive=false;e.speed*=.82;if(Math.random()<.5)label({x:e.pos.x,y:e.group.position.y+e.sc,z:e.pos.z},'manco!','#ec5f6b')}
   if(e.parts[1]===m){e.T={...e.T,dmg:e.T.dmg*.8};if(big)toast(`${e.T.n}: cabeça rachada! Ataques mais fracos.`,'r2')}}

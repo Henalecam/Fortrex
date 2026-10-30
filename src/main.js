@@ -316,3 +316,7 @@ $('wPrev').onclick=()=>waveNav(-1);$('wNext').onclick=()=>waveNav(1);
 let _navT=0;function navTick(dt){_navT-=dt;if(_navT>0)return;_navT=.3;navUi()}
 window.__lose=()=>{for(const i of _chestVox)if(vox[i]===5)removeVox(i,'enemy');checkChest();return [state.wave,state.maxWave,state.phase]};
 window.__nav=d=>{waveNav(d);return [state.wave,state.maxWave]};
+
+window.__lineup=()=>{const ts=['crawler','wolf','spider','slime','imp','brute','beetle','goblin','climber','sapper','ram','shaman','pirate','flyer'];const out=[];ts.forEach((t,k)=>{const e=makeEnemy(t,k%4===3?2:k%3===2?1:0,CX-14+(k%7)*4,CZ+30+Math.floor(k/7)*5);e.stun=999;e.lineup=true;out.push(t)});return out};
+window.__lineupB=()=>{const ts=['boss','golem','necro','titan'];ts.forEach((t,k)=>{const e=makeEnemy(t,1,CX-15+k*10,CZ+34);e.stun=999});return ts};
+window.__hitAll=f=>{for(const e of enemies)if(!e.dead)dmgEnemy(e,e.maxhp*f,true);return enemies.filter(e=>!e.dead).length};
