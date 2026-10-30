@@ -134,6 +134,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.89: 🔧 Ajustes internos e verificações (farol não bloqueia o pátio).
 - v0.90: 🐲 Nova Maravilha: Ninho do dragão (horda 16+) — um dragão aliado sobrevoa a cidadela e cospe fogo nos maiores grupos.
 - v0.91: 🐲 O dragão aliado voa mais baixo com sombra no chão e, entre as hordas, pousa no alto da torre central.
+- v0.92: voadores caçam o dragão (atraídos num raio de 22); ele os abate com garras (1,1 s, 30+5×horda) e, se cercado (hp 0), cai ferido e pousa na torre por 25 s; recupera entre hordas. Teste Revoada horda 8: hp 0.72 após 15 s, +20% abates. t5 600: w9 (emboscada, variação), sem erros; compat OK.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

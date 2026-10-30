@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.90;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.92;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -46,7 +46,9 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.87,'🗼 Farol (Upgrades → Cidadela, horda 7+): +15% de alcance para as armas próximas, bruma quase não atrapalha e a horda do Pântano não se esconde mais à noite.'],
   [0.88,'🎯 Besteiros nas ameias (Upgrades → Armas, horda 4+): setas automáticas do alto da muralha em quem chega perto.'],
   [0.89,'🔧 Ajustes internos e verificações (farol não bloqueia o pátio).'],
-  [0.90,'🐲 Nova Maravilha: Ninho do dragão (horda 16+) — um dragão aliado sobrevoa a cidadela e cospe fogo nos maiores grupos.']];
+  [0.90,'🐲 Nova Maravilha: Ninho do dragão (horda 16+) — um dragão aliado sobrevoa a cidadela e cospe fogo nos maiores grupos.'],
+  [0.91,'🐲 O dragão aliado voa mais baixo com sombra no chão e, entre as hordas, pousa no alto da torre central.'],
+  [0.92,'🦅 Voadores agora caçam o dragão: ele os abate com as garras, mas se for cercado cai ferido e se recolhe na torre por 25 s.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
