@@ -366,3 +366,8 @@ let buffAcc=0;function buffTick(dt){buffAcc+=dt;if(buffAcc<.5)return;buffAcc=0;{
 // portcullis: close the gate to make the doors 2.5× tougher — but minions can't walk through it either
 function toggleGate(){state.gateClosed=!state.gateClosed;for(const i of blueList)if(vox[i]===7){const mh=maxHpOf(7);hp[i]=state.gateClosed?Math.min(mh,hp[i]*2.5):Math.min(mh,hp[i]);paint(i)}
   for(const m of minions)m.path=null;$('bGate').classList.toggle('on',!!state.gateClosed);$('bGate').firstChild.textContent=state.gateClosed?'🔒':'🚪';toast(state.gateClosed?'🔒 Portão fechado: a porta aguenta muito mais, mas ninguém passa.':'🚪 Portão aberto.','r2',true);SFX.build&&SFX.build()}
+
+// automatic gate + stranded-collector warning
+let gateAcc=0;function gateTick(dt){gateAcc+=dt;if(gateAcc<1)return;gateAcc=0;
+  if(state.autoGate){if(state.phase==='wave'){let n=0;for(const e of enemies)if(!e.dead&&(e.type==='ram'||e.type==='rammer'||e.type==='brute')&&Math.hypot(e.pos.x-GATE.x,e.pos.z-GATE.z)<22)n++;if(n>=2&&!state.gateClosed)toggleGate()}else if(state.gateClosed)toggleGate()}
+  if(state.gateClosed){const out=minions.filter(m=>!m.away&&m.role==='col'&&!inside(m.pos.x,m.pos.z)).length;if(out&&simTime-(state.gateWarnT||-99)>30){state.gateWarnT=simTime;toast(`🔒 ${out} coletor(es) presos do lado de fora do portão fechado.`,'r2',true)}}}
