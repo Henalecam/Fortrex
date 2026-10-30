@@ -404,7 +404,21 @@ const _dhurt=new THREE.Color(0xd8342c);function dragonTick(dt){if(!state.ups.dra
   for(const e of enemies)if(!e.dead&&Math.hypot(e.pos.x-tx,e.pos.z-tz)<5){dmgEnemy(e,(40+state.wave*7)*state.dmgMul,true);if(e.type!=='imp'&&e.type!=='titan')e.afire=Math.max(e.afire||0,3)}if(SFX.boom)SFX.boom(false)}
 
 // v0.93 veteranos: soldados ganham patente por abates
-const VET=[[20,'Veterano','🎖️',0xd9b24c],[50,'Lenda','🌟',0xffe06a]];
+const VET=[[20,'Veterano','🎖️',0xc9902a],[50,'Lenda','🌟',0xffb800]];
 function vetCrest(m){if(m.crest){m.group.remove(m.crest)}if(!m.rank)return;const V=VET[m.rank-1];m.crest=box(.3,.3,.3,V[3],0,1.95,0,m.group);m.crest.rotation.set(.6,.785,0)}
 function vetKill(m){if(!m||m.dead||m.hero||!minions.includes(m))return;m.kills=(m.kills||0)+1;const nr=VET.filter(v=>m.kills>=v[0]).length;if(nr>(m.rank||0)){m.rank=nr;const V=VET[nr-1];recompute(m);m.hp=m.maxhp;vetCrest(m);toast(`${V[2]} ${m.name} virou ${V[1]} (${m.kills} abates): +${nr>1?35:15}% vida e ataque.`,'r2');if(SFX.chime)SFX.chime()}}
 function vetRestore(m){if(m.hero)return;m.rank=VET.filter(v=>(m.kills||0)>=v[0]).length;if(m.rank){recompute(m);vetCrest(m)}}
+
+// v0.94 contratos de horda: objetivo bônus opcional a cada horda
+const CONTRACTS=[
+ {id:'rapido',ico:'⏱️',d:c=>`Vença em até ${c.goal} s`,goal:w=>Math.round(35+w*3.5),ok:c=>simTime-c.t0<=c.goal,m:1},
+ {id:'intocado',ico:'🛡️',d:()=>'Nenhum inimigo acerta o baú',goal:()=>0,ok:c=>!c.hit,m:1.2},
+ {id:'semferidos',ico:'❤️',d:c=>c.goal?`No máximo ${c.goal} minion${c.goal>1?'s':''} ferido${c.goal>1?'s':''}`:'Nenhum minion ferido',goal:w=>Math.floor(w/8),ok:c=>state.wwound<=c.goal,m:1},
+ {id:'tropa',ico:'⚔️',d:c=>`Soldados abatem ${c.goal} inimigos`,goal:w=>Math.round(4+w*.6),ok:c=>(c.sol||0)>=c.goal,m:1.1},
+ {id:'elite',ico:'💍',d:c=>`Abata ${c.goal} elites`,goal:w=>Math.max(2,Math.floor(w/4)),ok:c=>(c.el||0)>=c.goal,m:1.3,min:10},
+];
+function offerContract(){state.contract=null;const w=state.wave;if(w<3||w%5===0||state.ev==='siege')return;const pool=CONTRACTS.filter(C=>!C.min||w>=C.min);const C=pick(pool);state.contract={id:C.id,goal:C.goal(w),t0:simTime};toast(`📜 Contrato da horda: ${C.ico} ${C.d(state.contract)} → +${contractPay(C)} material`,'r1')}
+function contractPay(C){return Math.round((18+state.wave*3)*C.m)}
+function resolveContract(){const c=state.contract;state.contract=null;if(!c)return'';const C=CONTRACTS.find(x=>x.id===c.id);if(!C)return'';const ok=C.ok(c);state.contractsDone=(state.contractsDone||0)+(ok?1:0);if(ok){const p=contractPay(C);state.material+=p;addFame(5);return`<div>📜 Contrato cumprido: ${C.ico} ${C.d(c)} · <b>+${p}</b> material</div>`}return`<div style="opacity:.7">📜 Contrato perdido: ${C.ico} ${C.d(c)}</div>`}
+window.__contract=()=>state.contract?{...state.contract}:null;
+window.__cdone=()=>state.contractsDone||0;

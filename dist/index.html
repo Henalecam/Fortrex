@@ -496,7 +496,7 @@ function setFluid(i,m,lv,src){if(SOLIDM(vox[i]))return;vox[i]=m;hp[i]=lv;fluids.
 // src: 'enemy' | 'player' | 'env'. Player damage never touches the fortress (blue) — no friendly fire.
 function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m))return false;if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
   if(blue[i]){if(src==='player')return false;if(src==='env')d*=.4;if(state.wardT>0)d*=.08}
-  if(m===5&&who&&CLIMBS(who.type))state.climbHitChest=true;
+  if(m===5&&who&&who.type&&state.contract)state.contract.hit=1;if(m===5&&who&&CLIMBS(who.type))state.climbHitChest=true;
   if(m===5&&src==='enemy')d*=who&&(who.type==='ram'||who.type==='rammer')?.6:1.5;
   if(m===20)d*=.45;if(m===14)d*=.7;
   if(m===5&&src==='enemy')d*=.45;
@@ -1012,7 +1012,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?140:t==='boss'?60:t==='ram'?18:10,big?.8:.4);SFX.shatter(t!=='crawler');
   hitstop=Math.max(hitstop,t==='colossus'?.22:t==='boss'?.14:.05);shake=Math.max(shake,t==='colossus'?1.4:t==='boss'?.9:.22);if(big){hideBoss();slowmo=1.3;toast(`${e.T.n} derrotado!`,'r4')}
   if(t==='colossus'){const fx=e.pos.x+Math.sin(e.group.rotation.y)*3,fz=e.pos.z+Math.cos(e.group.rotation.y)*3;pendingBooms.push({x:fx,y:GY+.5,z:fz,r:3.6,dmg:230,o:{src:'env'},t:.25});toast('O Colosso desabou!','r4')}
-  dropTable(e);state.kills++;state.wk++;if(e.lastSol&&!e.rival)vetKill(e.lastSol);addCombo(e);if(state.ev==='bloodmoon'&&!e.rival){state.material+=1;for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&Math.abs(m.pos.x-e.pos.x)<4&&Math.abs(m.pos.z-e.pos.z)<4)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.12)}}
+  dropTable(e);state.kills++;state.wk++;if(e.lastSol&&!e.rival)vetKill(e.lastSol);if(state.contract&&!e.rival){if(e.aff)state.contract.el=(state.contract.el||0)+1;if(e.lastSol)state.contract.sol=(state.contract.sol||0)+1}addCombo(e);if(state.ev==='bloodmoon'&&!e.rival){state.material+=1;for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&Math.abs(m.pos.x-e.pos.x)<4&&Math.abs(m.pos.z-e.pos.z)<4)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.12)}}
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
   if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22,mistking:60,ship:30,pirate:3})[t]??2)*.4+r*.5))});
@@ -1765,7 +1765,7 @@ function closeCard(){state.card=null;$('mcard').style.display='none'}
 let cardSlot=null,cardAcc=0;
 function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;if(cardAcc%4)return}const el=$('mcard');let h='';
   if(c.m){const m=c.m;if(!minions.includes(m)){closeCard();return}
-    h+=`<div class="ch"><b>${m.R.ico} ${esc(m.name)}</b><button class="btn x" id="cClose">✕</button></div><div class="ds"><span style="color:var(--${RARITY[m.rarity].css})">${RARITY[m.rarity].n}</span> · ${m.R.n}${m.trait?` · <b>${m.trait}</b>: ${TRAIT_DESC[m.trait]}`:''}</div><div class="ds"><b>Nível ${m.lvl}</b> · XP ${Math.floor(m.xp)}/${xpNeed(m.lvl)}</div>`;if(m.hero&&state.heroTal&&state.heroTal[m.hero]&&state.heroTal[m.hero].length)h+=`<div class="ds">Talentos: ${state.heroTal[m.hero].map(t=>TALENTS[t]?`${TALENTS[t].ico} ${TALENTS[t].n}`:'').join(' · ')}</div>`;
+    h+=`<div class="ch"><b>${m.R.ico} ${esc(m.name)}</b><button class="btn x" id="cClose">✕</button></div><div class="ds"><span style="color:var(--${RARITY[m.rarity].css})">${RARITY[m.rarity].n}</span> · ${m.R.n}${m.trait?` · <b>${m.trait}</b>: ${TRAIT_DESC[m.trait]}`:''}</div><div class="ds"><b>Nível ${m.lvl}</b> · XP ${Math.floor(m.xp)}/${xpNeed(m.lvl)}${m.role==='sol'&&!m.hero?` · ${m.rank?`${VET[m.rank-1][2]} <b>${VET[m.rank-1][1]}</b> · `:''}${m.kills||0} abates${m.rank<VET.length?` (próx. patente: ${VET[m.rank||0][0]})`:''}`:''}</div>`;if(m.hero&&state.heroTal&&state.heroTal[m.hero]&&state.heroTal[m.hero].length)h+=`<div class="ds">Talentos: ${state.heroTal[m.hero].map(t=>TALENTS[t]?`${TALENTS[t].ico} ${TALENTS[t].n}`:'').join(' · ')}</div>`;
     if(m.hero){const H=HEROES.find(x=>x.id===m.hero),S=state.heroes&&state.heroes[m.hero];if(H)h+=`<div class="herobox"><div><b>${H.ico} ${H.ab}</b> · tecla ${H.key} · ${S&&S.cd>0?`recarga ${Math.ceil(S.cd)} s`:'pronto'}</div><div class="ds">${esc(H.d)}. Fica mais forte a cada nível (+7% de efeito, recarga menor).</div><div class="ds" style="font-style:italic">${esc(HERO_LORE[H.id]||'')}</div><button class="btn sm primary" id="cHeroAb">Usar ${H.ab}</button></div>`}
     h+=`<div class="hpbar"><i style="width:${m.wounded>0?0:Math.round(m.hp/m.maxhp*100)}%"></i></div><div class="ds">${m.wounded>0?`Ferido · volta em ${Math.ceil(m.wounded/state.healMul)}s`:`Vida ${Math.ceil(m.hp)}/${Math.ceil(m.maxhp)} · ${({idle:'à toa',go:'indo trabalhar',work:'trabalhando',fetch:'buscando loot',haul:'levando ao baú',man:'operando arma'})[m.state]||m.state}`}</div>`;
     h+='<div class="slots">';for(const sl of ['arma','armadura','acessorio']){const it=m.eq[sl];h+=`<button class="slot ${it?'r'+it.r:''} ${cardSlot===sl?'sel':''}" data-sl="${sl}">${it?`<span class="ico">${itemIco(it)}</span>${esc(it.n)}`:`<span class="ct">${SLOT_N[sl]}</span>vazio`}</button>`}h+='</div>';
@@ -2258,14 +2258,28 @@ const _dhurt=new THREE.Color(0xd8342c);function dragonTick(dt){if(!state.ups.dra
   for(const e of enemies)if(!e.dead&&Math.hypot(e.pos.x-tx,e.pos.z-tz)<5){dmgEnemy(e,(40+state.wave*7)*state.dmgMul,true);if(e.type!=='imp'&&e.type!=='titan')e.afire=Math.max(e.afire||0,3)}if(SFX.boom)SFX.boom(false)}
 
 // v0.93 veteranos: soldados ganham patente por abates
-const VET=[[20,'Veterano','🎖️',0xd9b24c],[50,'Lenda','🌟',0xffe06a]];
+const VET=[[20,'Veterano','🎖️',0xc9902a],[50,'Lenda','🌟',0xffb800]];
 function vetCrest(m){if(m.crest){m.group.remove(m.crest)}if(!m.rank)return;const V=VET[m.rank-1];m.crest=box(.3,.3,.3,V[3],0,1.95,0,m.group);m.crest.rotation.set(.6,.785,0)}
 function vetKill(m){if(!m||m.dead||m.hero||!minions.includes(m))return;m.kills=(m.kills||0)+1;const nr=VET.filter(v=>m.kills>=v[0]).length;if(nr>(m.rank||0)){m.rank=nr;const V=VET[nr-1];recompute(m);m.hp=m.maxhp;vetCrest(m);toast(`${V[2]} ${m.name} virou ${V[1]} (${m.kills} abates): +${nr>1?35:15}% vida e ataque.`,'r2');if(SFX.chime)SFX.chime()}}
 function vetRestore(m){if(m.hero)return;m.rank=VET.filter(v=>(m.kills||0)>=v[0]).length;if(m.rank){recompute(m);vetCrest(m)}}
 
+// v0.94 contratos de horda: objetivo bônus opcional a cada horda
+const CONTRACTS=[
+ {id:'rapido',ico:'⏱️',d:c=>`Vença em até ${c.goal} s`,goal:w=>Math.round(35+w*3.5),ok:c=>simTime-c.t0<=c.goal,m:1},
+ {id:'intocado',ico:'🛡️',d:()=>'Nenhum inimigo acerta o baú',goal:()=>0,ok:c=>!c.hit,m:1.2},
+ {id:'semferidos',ico:'❤️',d:c=>c.goal?`No máximo ${c.goal} minion${c.goal>1?'s':''} ferido${c.goal>1?'s':''}`:'Nenhum minion ferido',goal:w=>Math.floor(w/8),ok:c=>state.wwound<=c.goal,m:1},
+ {id:'tropa',ico:'⚔️',d:c=>`Soldados abatem ${c.goal} inimigos`,goal:w=>Math.round(4+w*.6),ok:c=>(c.sol||0)>=c.goal,m:1.1},
+ {id:'elite',ico:'💍',d:c=>`Abata ${c.goal} elites`,goal:w=>Math.max(2,Math.floor(w/4)),ok:c=>(c.el||0)>=c.goal,m:1.3,min:10},
+];
+function offerContract(){state.contract=null;const w=state.wave;if(w<3||w%5===0||state.ev==='siege')return;const pool=CONTRACTS.filter(C=>!C.min||w>=C.min);const C=pick(pool);state.contract={id:C.id,goal:C.goal(w),t0:simTime};toast(`📜 Contrato da horda: ${C.ico} ${C.d(state.contract)} → +${contractPay(C)} material`,'r1')}
+function contractPay(C){return Math.round((18+state.wave*3)*C.m)}
+function resolveContract(){const c=state.contract;state.contract=null;if(!c)return'';const C=CONTRACTS.find(x=>x.id===c.id);if(!C)return'';const ok=C.ok(c);state.contractsDone=(state.contractsDone||0)+(ok?1:0);if(ok){const p=contractPay(C);state.material+=p;addFame(5);return`<div>📜 Contrato cumprido: ${C.ico} ${C.d(c)} · <b>+${p}</b> material</div>`}return`<div style="opacity:.7">📜 Contrato perdido: ${C.ico} ${C.d(c)}</div>`}
+window.__contract=()=>state.contract?{...state.contract}:null;
+window.__cdone=()=>state.contractsDone||0;
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.93;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.94;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2314,7 +2328,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.90,'🐲 Nova Maravilha: Ninho do dragão (horda 16+) — um dragão aliado sobrevoa a cidadela e cospe fogo nos maiores grupos.'],
   [0.91,'🐲 O dragão aliado voa mais baixo com sombra no chão e, entre as hordas, pousa no alto da torre central.'],
   [0.92,'🦅 Voadores agora caçam o dragão: ele os abate com as garras, mas se for cercado cai ferido e se recolhe na torre por 25 s.'],
-  [0.93,'🎖️ Soldados ganham patente: Veterano aos 20 abates (+15% vida/ataque) e Lenda aos 50 (+35%), com brasão dourado. O dragão fica vermelho quando ferido.']];
+  [0.93,'🎖️ Soldados ganham patente: Veterano aos 20 abates (+15% vida/ataque) e Lenda aos 50 (+35%), com brasão dourado. O dragão fica vermelho quando ferido.'],
+  [0.94,'📜 Contratos de horda: cada horda traz um objetivo bônus (vencer rápido, baú intocado, poucos feridos, abates dos soldados, elites) que paga material extra. A ficha do soldado mostra patente e abates.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2392,7 +2407,7 @@ const EVENTS={
 function rollEvent(w){if(hasMod('bruma')&&w>=2&&w%5!==0)return 'mist';if(w<3||w%5===0||Math.random()<.5)return null;const b=state.biomeKey;const pool=[];for(const k of Object.keys(EVENTS)){if(EVENTS[k].w>w)continue;if(k==='sandstorm'&&b!=='deserto')continue;if(k==='rain'&&b==='deserto')continue;if(k==='blizzard'&&b==='deserto')continue;const n=(k==='blizzard'&&b==='neve')||(k==='sandstorm'&&b==='deserto')||(k==='mist'&&b==='pantano')?4:1;for(let i=0;i<n;i++)pool.push(k)}return pick(pool)}
 function startWave(){if(state.choosing||state.phase==='wave')return;state.bearerSpawned=false;state.phase='wave';state.wk=0;state.wwound=0;state.ev=window.__forceEv||(state.siege>0?'siege':rollEvent(state.wave));window.__forceEv=null;state.queue=waveSpec(state.wave);if(state.ev==='skies'){const q=state.queue;for(let k=0;k<q.length;k++)if(!BIG(q[k])&&Math.random()<.4)q[k]='flyer';for(let k=0;k<Math.floor(state.wave/2);k++)q.push('flyer')}if(state.nextWaveMul){const n=Math.round(state.queue.length*(state.nextWaveMul-1));for(let k=0;k<n;k++)state.queue.push(state.queue[(Math.random()*state.queue.length)|0]);state.nextWaveMul=0}if(state.wave>=2)scatterTraps();state.meteorT=3;if(state.ev==='pirates'){const a=rnd(0,Math.PI*2);const s=makeEnemy('ship',2,clamp(CX+Math.cos(a)*44,6,W-7),clamp(CZ+Math.sin(a)*44,6,D-7));s.maxhp*=1+state.wave*.08;s.hp=s.maxhp;s.armor=0;if(!state.boss)showBoss(s)}if(isNight()){for(let k=0;k<Math.ceil(state.queue.length*.25);k++)state.queue.push(pick(['crawler','climber','flyer']));toast('É noite: a bruma vem mais forte','r2')}
   if(state.ev==='siege'&&state.siege===0)state.siege=3;if(state.ev==='golden')state.queue=state.queue.slice(0,Math.ceil(state.queue.length*.5));
-  state.spawnT=0;$('report').style.display='none';
+  state.spawnT=0;$('report').style.display='none';offerContract();
   if(state.ev){const E=EVENTS[state.ev];toast(`${E.n}: ${E.d}`,E.css);$('event').style.display='inline-flex';$('event').textContent=E.n+(state.ev==='siege'?` ${4-state.siege}/3`:'');$('event').style.color=`var(--${E.css})`}else $('event').style.display='none';
   const w=state.wave;if(w%25===0){toast(`Horda ${w}: 👑 O REI DA BRUMA invade! Ele se teleporta perto da cidadela e atordoa suas armas.`,'r4')}else if(w%5===0){const b=bossOfWave(w);const tip={boss:'cospe ácido',golem:'arremessa rochas nas armas',wyrm:'voa e solta bolas de fogo',colossus:'mire nas pernas',necro:'ergue mortos: mate os esqueletos para quebrar o escudo',queen:'invoca enxames',titan:'use água e gelo'}[b];toast(`Horda ${w}: ${ETYPES[b].n} nv ${1+Math.floor(w/5)} — ${tip}!`,'r4')}updateHud()}
 function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.length)return;state.spawnT=rnd(.14,.4);const type=state.queue.shift();const side=rint(0,3),mg=state.ev==='mist'?6:1;let x,z;
@@ -2411,7 +2426,7 @@ function endWave(){const ev=state.ev;state.wave++;chalRecord(state.wave);state.r
   if(ev==='mist'){const got=Math.floor(12+state.wave*1.5);state.material+=got;toast(`Noite de bruma: +${got} material`,'r1')}
   if(ev==='ambush')spawnLoot(CHEST.x-2,GY+3,CHEST.z+3,'treasure',2,{});
   if(ev==='elite')spawnLoot(CHEST.x-2,GY+3,CHEST.z+3,'recruit',Math.max(1,rollRarity(.1)),{role:pick(['sol','gun','med'])});
-  $('report').style.display='block';$('report').innerHTML=`Horda ${state.wave-1} vencida · melhor combo <b>×${state.comboBest}</b> · <b>${state.wk}</b> estilhaçados · <b>${state.wwound}</b> ferido${state.wwound===1?'':'s'} · <b>${loot.filter(L=>!L.carried).length}</b> itens no chão`;
+  $('report').style.display='block';$('report').innerHTML=resolveContract()+`Horda ${state.wave-1} vencida · melhor combo <b>×${state.comboBest}</b> · <b>${state.wk}</b> estilhaçados · <b>${state.wwound}</b> ferido${state.wwound===1?'':'s'} · <b>${loot.filter(L=>!L.carried).length}</b> itens no chão`;
   if((state.wave-1)%5===0)offerRewards();updateHud()}
 function gameOver(){state.running=false;saveRecord();if(window.__chestLog)window.__chestLog.push('GAMEOVER '+new Error().stack.split('\n').slice(1,6).join(' < '));$('over').style.display='flex';$('overStat').textContent=`A Fortaleza caiu na horda ${state.wave} · ${state.kills} Devoradores estilhaçados`+(state.challenge?` · 🏆 recorde da semana: horda ${chalRecords()[state.challenge.week]||state.wave}`:'');refreshSaveUi();renderChal();{const b=$('continue'),d=readSave();if(b&&d)b.textContent=`↺ Voltar ao último save · horda ${d.wave}`}
   $('overTitle').textContent='A bruma venceu';$('overText').textContent='O baú foi devorado. Uma Fortaleza nunca morre de verdade: acorde de novo, com o que aprendeu.';$('start').textContent='Acordar de novo';showRecord();$('overAch').innerHTML=runStats()+achSummary()}
