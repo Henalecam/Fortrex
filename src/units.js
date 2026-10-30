@@ -110,7 +110,7 @@ function hurtEnemy(e,d,at){if(e.dead)return;
   const crit=Math.random()<.1+state.critBonus;if(crit)d*=2;if(Math.random()<.35)SFX.hurt();dmgEnemy(e,d,true,crit)}
 function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t=e.type,big=BIG(t);
   if(e.aff==='boom'){explode(Math.floor(e.pos.x),Math.floor(e.gy+.5),Math.floor(e.pos.z),2.4,26,{src:'enemy'});label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'💥','#ff8a3c')}
-  if(NEW_DEATH[t])NEW_DEATH[t](e);
+  if(NEW_DEATH[t])NEW_DEATH[t](e);if(e.champ)champDeath(e);
   if(t==='slime'&&!e.small){for(let k=0;k<2;k++){const s=makeEnemy('slime',e.rarity,e.pos.x+rnd(-.8,.8),e.pos.z+rnd(-.8,.8));s.small=true;s.group.scale.setScalar(.6);s.maxhp*=.35;s.hp=s.maxhp;s.speed*=1.25;s.radius*=.6}}
   if(state.boss===e)hideBoss();
   if(e.bearer){for(const o of enemies)if(!o.dead&&o!==e&&!BIG(o.type)&&Math.hypot(o.pos.x-e.pos.x,o.pos.z-e.pos.z)<10){o.stun=Math.max(o.stun||0,1.8);o.slowT=Math.max(o.slowT||0,3)}state.trophies=(state.trophies||0)+1;if(state.trophies<=15)state.dmgMul*=1.02;toast(`🏳️ Estandarte capturado (${state.trophies}): a horda ao redor entra em pânico${state.trophies<=15?' e suas armas ganham +2% de dano':''}!`,'r3');label({x:e.pos.x,y:e.gy+2.4,z:e.pos.z},'PÂNICO!','#ffcf3d')}

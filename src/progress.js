@@ -688,7 +688,7 @@ const UNIQ_E={
   rei:{k:'placas',ico:'👑',n:'Égide do Último Rei',d:'Armadura única: uma vez por horda, em vez de cair, o portador explode num escudo que atordoa os inimigos.'}};
 function makeUniqueEquip(){const [id,U]=pick(Object.entries(UNIQ_E));const it=makeEquip(4,U.k);it.u=id;it.n=U.n;for(const k in it.st)if(typeof it.st[k]==='number'&&it.st[k]>1&&k!=='cap')it.st[k]=1+(it.st[k]-1)*1.25;return it}
 const _ulines=[];function zapLine(a,b,col){const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(a.x,a.y,a.z),new THREE.Vector3(b.x,b.y,b.z)]);const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:1}));scene.add(l);_ulines.push({l,t:.35})}
-function uniqueTick(dt){for(let i=_ulines.length-1;i>=0;i--){const L=_ulines[i];L.t-=dt;L.l.material.opacity=Math.max(0,L.t/.35);if(L.t<=0){scene.remove(L.l);L.l.geometry.dispose();_ulines.splice(i,1)}}
+function uniqueTick(dt){for(const e of enemies)if(e.champRing&&!e.dead)e.champRing.rotation.z+=dt*2;for(let i=_ulines.length-1;i>=0;i--){const L=_ulines[i];L.t-=dt;L.l.material.opacity=Math.max(0,L.t/.35);if(L.t<=0){scene.remove(L.l);L.l.geometry.dispose();_ulines.splice(i,1)}}
   for(const t of turrets){if(!t.alive||!t.u||t.team==='r')continue;const U=UNIQ_T[t.u];if(!U)continue;if(!t.uRing){const r=new THREE.Mesh(new THREE.TorusGeometry(.75,.07,6,24),new THREE.MeshBasicMaterial({color:0xffb000}));r.rotation.x=Math.PI/2;r.position.y=.2;t.group.add(r);t.uRing=r}t.uRing.rotation.z+=dt*2;
     if(state.phase!=='wave')continue;t.uT=(t.uT??U.cd)-dt;if(t.uT>0)continue;const R=turretRange?turretRange(t):t.T.range;const near=enemies.filter(e=>!e.dead&&!e.under&&hd(e.pos,t.pos)<R).sort((a,b)=>hd(a.pos,t.pos)-hd(b.pos,t.pos));if(!near.length){t.uT=.5;continue}t.uT=U.cd;const W=state.wave;
     if(t.u==='aurora'){let p={x:t.pos.x,y:t.pos.y+1,z:t.pos.z};const hit=[];let cur=near[0];for(let k=0;k<5&&cur;k++){hit.push(cur);const q={x:cur.pos.x,y:cur.group.position.y+1,z:cur.pos.z};zapLine(p,q,0x9fd8ff);p=q;dmgEnemy(cur,(40+W*4)*state.dmgMul,true);cur=enemies.find(e=>!e.dead&&!hit.includes(e)&&hd(e.pos,cur.pos)<7)}SFX.zap&&SFX.zap()}
@@ -845,6 +845,7 @@ const _anim0=enemyAnim;enemyAnim=function(e,dt){_anim0(e,dt);const ud=e.group.us
 let _stuckT=0;function stuckTick(dt){_stuckT-=dt;if(_stuckT>0||state.phase!=='wave')return;_stuckT=2;
   for(const e of enemies){if(e.dead||e.rival||e.ship||e.type==='ship'||e.lineup||(e.dormant>0))continue;const p=e.sp0;if(!p){e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};continue}
     if(Math.hypot(e.pos.x-p.x,e.pos.z-p.z)>1.5){e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};continue}
+    const dC=Math.hypot(e.pos.x-CX,e.pos.z-CZ);if(dC<WR+12||e.state==='attack'||e.state==='dig'||(e.target!==undefined&&e.target>=0)){e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};continue}
     if(simTime-p.t>(state.queue.length?40:20)){const a=Math.atan2(e.pos.z-CZ,e.pos.x-CX),r=Math.min(46,Math.hypot(e.pos.x-CX,e.pos.z-CZ)-4);e.pos.x=CX+Math.cos(a)*r;e.pos.z=CZ+Math.sin(a)*r;e.gy=surfE(e.pos.x,e.pos.z);e.group.position.y=e.fly?e.alt:e.gy;e.path=null;e.under=false;e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};state.unstuck=(state.unstuck||0)+1;for(let k=0;k<6;k++)spawnDebris(e.pos.x,e.gy+.5,e.pos.z,0x8a7a6a,1,.25)}}}
 
 // v2.9 PERSONAGENS R4 — chefes refeitos do zero (silhuetas únicas)
@@ -929,3 +930,14 @@ Object.assign(CREATURES,{
 const _anim2=enemyAnim;enemyAnim=function(e,dt){_anim2(e,dt);const ud=e.group.userData;const t=simTime+e.bob*.1;
   if(ud.bow)ud.bow.rotation.z=Math.sin(t*2)*.15;if(ud.men)ud.men.forEach((m,k)=>m.position.y=(.88+Math.abs(Math.sin(e.bob*1.4+k))*.06)*e.sc);
   if(ud.cape)ud.cape.rotation.x=.1+Math.abs(Math.sin(e.bob*1.4))*.25};
+
+// v3.1 CAMPEÕES: elite nomeado raro com aura dourada e drop lendário garantido
+const CH_N1=['Grorg','Vashka','Murlok','Zerath','Brunhok','Ilsa','Krag','Morvena','Tusk','Sombrarra'],CH_N2=['o Insaciável','a Implacável','Quebra-Muros','Olho de Brasa','o Eterno','Dente-de-Ferro','a Uivante','Mãos de Pedra'];
+function champTick(dt){if(!state.champT||simTime<state.champT||state.phase!=='wave')return;state.champT=0;
+  const type=pick(['brute','cavaleiro','escudeiro','cristal','wolf','beetle','golem'].filter(t=>t!=='golem'||state.wave>=15));const a=rnd(0,Math.PI*2),r=rnd(52,60);
+  const e=makeEnemy(type,4,clamp(CX+Math.cos(a)*r,4,W-5),clamp(CZ+Math.sin(a)*r,4,D-5));const nm=pick(CH_N1)+', '+pick(CH_N2);e.champ=nm;e.T={...e.T,n:nm};e.maxhp*=BIG(type)?1.6:5;e.hp=e.maxhp;e.speed*=1.1;e.group.scale.multiplyScalar(1.3);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.2,.12,6,28),new THREE.MeshBasicMaterial({color:0xffb000}));ring.rotation.x=Math.PI/2;ring.position.y=.15;e.group.add(ring);e.champRing=ring;
+  for(const im of e.vmeshes||[]){im.material.emissive.setHex(0xffa000);im.material.emissiveIntensity=.25;im.userData.em=0xffa000}
+  showBoss(e);toast(`👑 Campeão: ${nm} entrou na horda! Derrote-o por um lendário.`,'r4',true);SFX.boom&&SFX.boom(true)}
+function champDeath(e){const [k,d]=(()=>{for(let i=0;i<8;i++){const r=lootPick('any',4);if(r[0]!=='material')return r}return['equip',{item:makeEquip(4)}]})();spawnLoot(e.pos.x,e.gy+1.5,e.pos.z,k,4,d);spawnLoot(e.pos.x+1,e.gy+1.5,e.pos.z,'treasure',3,{});state.champs=(state.champs||0)+1;toast(`👑 ${e.champ} caiu! Um lendário brilha no chão.`,'r4',true)}
+window.__champ=()=>{state.champT=simTime;champTick(0);return enemies.filter(e=>e.champ).map(e=>e.champ)};
