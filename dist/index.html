@@ -971,7 +971,7 @@ function findPath(sx,sz,gx,gz){sx=clamp(Math.floor(sx),0,W-1);sz=clamp(Math.floo
       const ng=_g[cur]+(dx&&dz?1.414:1)+(h2c(ni)>h1?.4:0);if(ng<_g[ni]){_g[ni]=ng;_came[ni]=cur;_f[ni]=ng+h(ni);heapPush(open,ni)}}}
   if(_came[G]<0)return null;const path=[];let c=G;while(c!==S&&c>=0){path.push(c);c=_came[c]}path.reverse();return path}
 function walkTo(m,tx,tz,dt,stop){const gx=Math.floor(tx),gz=Math.floor(tz);m.pathT-=dt;
-  if(!m.path||m.pathGx!==gx||m.pathGz!==gz||m.pathT<=0){m.path=findPath(m.pos.x,m.pos.z,tx,tz)||[];m.pathGx=gx;m.pathGz=gz;m.pathT=1.5}
+  if(!m.path||m.pathT<=0||Math.abs(m.pathGx-gx)+Math.abs(m.pathGz-gz)>(m.path.length>6?3:1)){const p=findPath(m.pos.x,m.pos.z,tx,tz);m.path=p||[];m.pathGx=gx;m.pathGz=gz;m.pf=p?0:Math.min(4,(m.pf||0)+1);m.pathT=p?(p.length>40?4:p.length>16?2.5:1.5):2.5*m.pf}
   while(m.path.length>1){const c=m.path[0];if(Math.hypot((c%W)+.5-m.pos.x,((c/W)|0)+.5-m.pos.z)<.45)m.path.shift();else break}
   if(m.path.length>1){const c=m.path[0];walkRaw(m,(c%W)+.5,((c/W)|0)+.5,dt,.2);return false}
   return walkRaw(m,tx,tz,dt,stop)}
@@ -1205,7 +1205,7 @@ function makeMinion(role,rarity,x,z){const R=ROLES[role];const g=new THREE.Group
   const m={xp:0,lvl:1,name,role,R,rarity,trait,group:g,pos:g.position,vis,body:null,hats:[],prop,wpn,acc,legs:[],hp:1,maxhp:0,state:'idle',timer:0,task:null,turret:null,wounded:0,bob:rnd(0,6),bag:[],eq:{arma:null,armadura:null,acessorio:null},st:null,speed:3,work:1,path:null,pathT:0,skip:new Map(),stuckT:0,bestD:1e9,burn:0,kills:0};
   buildLook(m);buildProp(prop,role);g.userData.minion=m;recompute(m);m.hp=m.maxhp;minions.push(m);return m}
 // expressões, piscadas e braços (chamado por minion a cada quadro)
-function lookTick(m,dt){if(!m.eyesM)return;m.blinkT-=dt;const bl=m.blinkT<0&&m.blinkT>-.12;if(m.blinkT<-.12)m.blinkT=rnd(2,5);const hurt=m.wounded>0;
+function lookTick(m,dt0){if(!m.eyesM)return;m.lkA=(m.lkA||0)+dt0;if(m.lkA<.04)return;const dt=m.lkA;m.lkA=0;m.blinkT-=dt;const bl=m.blinkT<0&&m.blinkT>-.12;if(m.blinkT<-.12)m.blinkT=rnd(2,5);const hurt=m.wounded>0;
   m.eyesM.scale.y=hurt?.25:bl?.12:1;const fight=m.role==='sol'&&m.state==='fight'||m.rage>0;const work=m.state==='work';const haul=m.bag&&m.bag.length>0;
   const bA=hurt?-.35:fight?.4:work?.18:0;m.brows[0].rotation.z=-bA;m.brows[1].rotation.z=bA;m.brows[0].position.y=m.brows[1].position.y=fight?.15:.17;
   m.mouth.scale.set(haul||work?.8:1,hurt?2.2:haul?2:fight?1.6:1,1);
@@ -1253,7 +1253,7 @@ function updateMinion(m,dt0){const dt=dt0*(.8+(state.morale??60)/100*.4);lookTic
   ({rep:updRep,col:updCol,gun:updGun,sol:updSol,med:updMed})[m.role](m,dt)}
 function idleWander(m,dt,cx,cz){if(!m.raid&&m.role!=='sol'&&state.phase!=='wave'&&isNight()){// night: rest inside the keep hall, slowly healing
     const k=(m.bob*7|0)%9,kx=CX-2+(k%3)*2,kz=CZ-2+((k/3)|0)*2;if(walkTo(m,kx,kz,dt,.6)){m.resting=true;m.hp=Math.min(m.maxhp,m.hp+dt*3);if(Math.random()<dt*.15)label({x:m.pos.x,y:m.group.position.y+2.4,z:m.pos.z},'z','#8aa0d8')}return}
-  m.resting=false;walkTo(m,cx+Math.sin(m.bob*.13)*3.5,cz+Math.cos(m.bob*.1)*2.5,dt,.5)}
+  m.resting=false;if(m.wSeed===undefined)m.wSeed=rnd(0,6.28);const wa=m.wSeed+Math.floor(simTime/9)*1.7;let wx=cx+Math.sin(wa)*3.5,wz=cz+Math.cos(wa*1.3)*2.5;if(walkCell(Math.floor(wx),Math.floor(wz))<=-99||m.pf>=2){if(!m.wHome||m.pf>=3){m.wHome={x:m.pos.x,z:m.pos.z};m.pf=0;m.path=null}wx=m.wHome.x+Math.sin(wa)*1.5;wz=m.wHome.z+Math.cos(wa)*1.5}walkTo(m,wx,wz,dt,.5)}
 function updRep(m,dt){
   if(!m.task){if(m.timer>0){idleWander(m,dt,CX+3,CZ+4);return}m.task=findRepairTask(m);if(!m.task){m.timer=.6;return}m.bestD=1e9;m.stuckT=0;m.state='go'}
   const T=m.task;let tx,tz,y=GY;
@@ -2517,6 +2517,15 @@ const CASTLES={
     for(const [x,z] of TOWERS)c.tower(x,z,TS,TOWER_H,6);for(const [x,z] of [[CX-2,CZ-WR],[WA,CZ-2],[WB-3,CZ-2]])c.fill(x,x+3,0,TOWER_H-1,z,z+3,6);
     c.round(CX,CZ,7,0,KH-1,3,2);c.round(CX,CZ,7,KH-1,KH-1,3);for(let x=CX-7;x<=CX+7;x++)for(let z=CZ-7;z<=CZ+7;z++){const d=Math.hypot(x-CX,z-CZ);if(d>6.6&&d<7.4&&((x+z)&1))put(x,GY+KH,z,4)}
     c.round(CX,CZ,2,KH,KH+7,24);c.cone(CX,CZ,3,KH+8,22);put(CX,GY+KH+12,CZ,23);put(CX,GY+KH+13,CZ,23)}},
+  forja:{ico:'⚒️',n:'Fortaleza Anã',d:'Muralhas baixas e grossíssimas com faixa de bronze, bastiões quadrados, salão-montanha escalonado e a grande chaminé da forja.',b(put){const c=_cb(put);
+    c.sqWall(WR,5,7,y=>y===4?27:24,4);for(let x=CX-WR-1;x<=CX+WR+1;x++)for(let z=CZ-WR-1;z<=CZ+WR+1;z++){const d=Math.max(Math.abs(x-CX),Math.abs(z-CZ));if(d===WR+1)for(let y=0;y<3;y++)put(x,GY+y,z,24)}
+    for(const [x,z] of TOWERS){c.fill(x-1,x+TS,0,9,z-1,z+TS,24);c.fill(x-1,x+TS,10,10,z-1,z+TS,27);c.crown(x-1,z-1,TS+2,11,4)}
+    for(const [x,z] of [[CX-2,CZ-WR],[WA,CZ-2],[WB-3,CZ-2]])c.fill(x,x+3,0,TOWER_H-1,z,z+3,24);
+    c.fill(CX-7,CX+7,0,7,CZ-7,CZ+7,(x,y,z)=>{const e=Math.max(Math.abs(x-CX),Math.abs(z-CZ));return e>=6?(y===6?27:3):(y===0||y===7?3:0)});
+    c.fill(CX-5,CX+5,8,12,CZ-5,CZ+5,(x,y,z)=>{const e=Math.max(Math.abs(x-CX),Math.abs(z-CZ));return e>=4?24:(y===12?24:0)});c.crown(CX-5,CZ-5,11,13,27);
+    c.fill(CX-3,CX+3,13,15,CZ-3,CZ+3,(x,y,z)=>Math.max(Math.abs(x-CX),Math.abs(z-CZ))>=2||y===15?24:0);
+    c.fill(CX+1,CX+2,16,23,CZ+1,CZ+2,14);c.fill(CX,CX+3,24,24,CZ,CZ+3,27);c.fill(CX+1,CX+2,25,25,CZ+1,CZ+2,4);
+    for(const s of[-1,1]){c.fill(CX+s*4,CX+s*4,0,10,CZ-8,CZ-8,4);put(CX+s*4,GY+11,CZ-8,27)}put(CX-2,GY+16,CZ-2,23);put(CX-2,GY+17,CZ-2,23)}},
 };
 function setCastle(id){if(!CASTLES[id]||state.castle===id||(!state.castle&&id==='classico'))return false;const old=blue.slice();state.castle=id;buildBlueprint();reformFrom(old);toast(`${CASTLES[id].ico} Novo estilo: ${CASTLES[id].n}. Os reparadores vão desmontar e montar bloco por bloco.`,'r4');if(typeof renderBuild==='function')renderBuild();return true}
 function reformFrom(old){state.demol=state.demol||new Set();state.swapQ=state.swapQ||new Set();let nd=0,ns=0,nb=0;
@@ -2989,7 +2998,7 @@ function edgeTick(dt){_edgeT-=dt;if(_edgeT>0)return;_edgeT=.2;const box=$('edge'
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=3.7;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=3.8;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -3062,6 +3071,7 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [2.8,'🛡️ Inimigos novos refeitos (3/5 da reforma): Escudeiro de elmo com pluma e escudo-torre que se ergue ao proteger, Cavador-toupeira com capacete de mineiro e lanterna cavando com as garras, Bombardeiro de óculos de aviador balançando a bomba, Mímico com dentes, língua e olhos dourados, Golem de Cristal com cristais que pulsam, Cavaleiro da Bruma com montaria de olhos roxos, cavaleiro de elmo e lança que abaixa na investida, Pirata de tapa-olho com sabre e papagaio no ombro, e o Navio com bandeira tremulando e canhões. 🔧 Corrigido: inimigo preso em buraco longe da base podia travar a horda para sempre — agora quem fica parado 20 s volta para a trilha.'],
   [2.9,'👑 Chefes refeitos com silhuetas únicas (4/5 da reforma): Devorador de bocarra que mastiga e quatro olhos magenta, Golem de musgo com runas e olho em fenda, Serpe de Fogo com chifres, barriga dourada e boca em brasa, Colosso de pernas enormes com coroa de chifres e viseira vermelha, Necromante flutuante com crânio, grimório girando e cajado verde, Rainha com coroa dourada, olhos compostos e quatro asas translúcidas, Titã de rocha com rachaduras de lava pulsando e o Rei da Bruma com coroa de cristais e tentáculos. Todos respiram e os olhos ardem mais forte a cada fase.'],
   [3.0,'🏰 Fim da reforma de personagens (5/5): tropas rivais refeitas com a cor da facção — Cavaleiro de elmo com viseira, pluma e tabardo, Arqueiro encapuzado com arco e aljava, Aríete carregado por dois soldados, General de coroa dourada, capa enorme, espadão e estandarte nas costas. Cada castelo rival ganha um estilo próprio (pedra negra, pedra clara, metal ou obsidiana, com alturas de muralha, torres e torre de menagem diferentes).'],
+  [3.8,'⚒️ Novo estilo de castelo: Fortaleza Anã — muralhas baixas e grossas com faixa de bronze, bastiões quadrados, salão-montanha escalonado e a chaminé da forja. ⚡ Mais leve no fim de jogo: minions ociosos não recalculam caminho a cada passo e desistem com calma de lugares inalcançáveis.'],
   [3.7,'🌌 Novo evento raro (horda 12+): Aurora boreal — o céu esfria, cortinas de luz verde e lilás dançam no alto, as armas atiram 15% mais rápido e alguns abates deixam fragmentos de aurora (itens raros/épicos). 📱 Celular: câmera mais aberta em tela de pé, botões maiores ao toque e setas/cartões que não cobrem painéis abertos.'],
   [3.6,'🧭 Setas na borda da tela apontam para inimigos fora de vista durante a horda (com contagem; douradas para chefes e campeões) — fácil achar o último Devorador. A tela inicial esconde a fileira de conquistas até você ganhar a primeira.'],
   [3.5,'🏮 Novo inimigo de fim de jogo (horda 18+): Portador de Bruma — encapuzado com lanterna que cobre os inimigos próximos numa névoa (−45% de dano recebido). Ele espera atrás da tropa; derrube-o primeiro e a bruma se dissipa.'],

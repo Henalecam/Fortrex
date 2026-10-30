@@ -21,7 +21,7 @@ function findPath(sx,sz,gx,gz){sx=clamp(Math.floor(sx),0,W-1);sz=clamp(Math.floo
       const ng=_g[cur]+(dx&&dz?1.414:1)+(h2c(ni)>h1?.4:0);if(ng<_g[ni]){_g[ni]=ng;_came[ni]=cur;_f[ni]=ng+h(ni);heapPush(open,ni)}}}
   if(_came[G]<0)return null;const path=[];let c=G;while(c!==S&&c>=0){path.push(c);c=_came[c]}path.reverse();return path}
 function walkTo(m,tx,tz,dt,stop){const gx=Math.floor(tx),gz=Math.floor(tz);m.pathT-=dt;
-  if(!m.path||m.pathGx!==gx||m.pathGz!==gz||m.pathT<=0){m.path=findPath(m.pos.x,m.pos.z,tx,tz)||[];m.pathGx=gx;m.pathGz=gz;m.pathT=1.5}
+  if(!m.path||m.pathT<=0||Math.abs(m.pathGx-gx)+Math.abs(m.pathGz-gz)>(m.path.length>6?3:1)){const p=findPath(m.pos.x,m.pos.z,tx,tz);m.path=p||[];m.pathGx=gx;m.pathGz=gz;m.pf=p?0:Math.min(4,(m.pf||0)+1);m.pathT=p?(p.length>40?4:p.length>16?2.5:1.5):2.5*m.pf}
   while(m.path.length>1){const c=m.path[0];if(Math.hypot((c%W)+.5-m.pos.x,((c/W)|0)+.5-m.pos.z)<.45)m.path.shift();else break}
   if(m.path.length>1){const c=m.path[0];walkRaw(m,(c%W)+.5,((c/W)|0)+.5,dt,.2);return false}
   return walkRaw(m,tx,tz,dt,stop)}
@@ -255,7 +255,7 @@ function makeMinion(role,rarity,x,z){const R=ROLES[role];const g=new THREE.Group
   const m={xp:0,lvl:1,name,role,R,rarity,trait,group:g,pos:g.position,vis,body:null,hats:[],prop,wpn,acc,legs:[],hp:1,maxhp:0,state:'idle',timer:0,task:null,turret:null,wounded:0,bob:rnd(0,6),bag:[],eq:{arma:null,armadura:null,acessorio:null},st:null,speed:3,work:1,path:null,pathT:0,skip:new Map(),stuckT:0,bestD:1e9,burn:0,kills:0};
   buildLook(m);buildProp(prop,role);g.userData.minion=m;recompute(m);m.hp=m.maxhp;minions.push(m);return m}
 // expressões, piscadas e braços (chamado por minion a cada quadro)
-function lookTick(m,dt){if(!m.eyesM)return;m.blinkT-=dt;const bl=m.blinkT<0&&m.blinkT>-.12;if(m.blinkT<-.12)m.blinkT=rnd(2,5);const hurt=m.wounded>0;
+function lookTick(m,dt0){if(!m.eyesM)return;m.lkA=(m.lkA||0)+dt0;if(m.lkA<.04)return;const dt=m.lkA;m.lkA=0;m.blinkT-=dt;const bl=m.blinkT<0&&m.blinkT>-.12;if(m.blinkT<-.12)m.blinkT=rnd(2,5);const hurt=m.wounded>0;
   m.eyesM.scale.y=hurt?.25:bl?.12:1;const fight=m.role==='sol'&&m.state==='fight'||m.rage>0;const work=m.state==='work';const haul=m.bag&&m.bag.length>0;
   const bA=hurt?-.35:fight?.4:work?.18:0;m.brows[0].rotation.z=-bA;m.brows[1].rotation.z=bA;m.brows[0].position.y=m.brows[1].position.y=fight?.15:.17;
   m.mouth.scale.set(haul||work?.8:1,hurt?2.2:haul?2:fight?1.6:1,1);
@@ -303,7 +303,7 @@ function updateMinion(m,dt0){const dt=dt0*(.8+(state.morale??60)/100*.4);lookTic
   ({rep:updRep,col:updCol,gun:updGun,sol:updSol,med:updMed})[m.role](m,dt)}
 function idleWander(m,dt,cx,cz){if(!m.raid&&m.role!=='sol'&&state.phase!=='wave'&&isNight()){// night: rest inside the keep hall, slowly healing
     const k=(m.bob*7|0)%9,kx=CX-2+(k%3)*2,kz=CZ-2+((k/3)|0)*2;if(walkTo(m,kx,kz,dt,.6)){m.resting=true;m.hp=Math.min(m.maxhp,m.hp+dt*3);if(Math.random()<dt*.15)label({x:m.pos.x,y:m.group.position.y+2.4,z:m.pos.z},'z','#8aa0d8')}return}
-  m.resting=false;walkTo(m,cx+Math.sin(m.bob*.13)*3.5,cz+Math.cos(m.bob*.1)*2.5,dt,.5)}
+  m.resting=false;if(m.wSeed===undefined)m.wSeed=rnd(0,6.28);const wa=m.wSeed+Math.floor(simTime/9)*1.7;let wx=cx+Math.sin(wa)*3.5,wz=cz+Math.cos(wa*1.3)*2.5;if(walkCell(Math.floor(wx),Math.floor(wz))<=-99||m.pf>=2){if(!m.wHome||m.pf>=3){m.wHome={x:m.pos.x,z:m.pos.z};m.pf=0;m.path=null}wx=m.wHome.x+Math.sin(wa)*1.5;wz=m.wHome.z+Math.cos(wa)*1.5}walkTo(m,wx,wz,dt,.5)}
 function updRep(m,dt){
   if(!m.task){if(m.timer>0){idleWander(m,dt,CX+3,CZ+4);return}m.task=findRepairTask(m);if(!m.task){m.timer=.6;return}m.bestD=1e9;m.stuckT=0;m.state='go'}
   const T=m.task;let tx,tz,y=GY;

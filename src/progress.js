@@ -528,6 +528,15 @@ const CASTLES={
     for(const [x,z] of TOWERS)c.tower(x,z,TS,TOWER_H,6);for(const [x,z] of [[CX-2,CZ-WR],[WA,CZ-2],[WB-3,CZ-2]])c.fill(x,x+3,0,TOWER_H-1,z,z+3,6);
     c.round(CX,CZ,7,0,KH-1,3,2);c.round(CX,CZ,7,KH-1,KH-1,3);for(let x=CX-7;x<=CX+7;x++)for(let z=CZ-7;z<=CZ+7;z++){const d=Math.hypot(x-CX,z-CZ);if(d>6.6&&d<7.4&&((x+z)&1))put(x,GY+KH,z,4)}
     c.round(CX,CZ,2,KH,KH+7,24);c.cone(CX,CZ,3,KH+8,22);put(CX,GY+KH+12,CZ,23);put(CX,GY+KH+13,CZ,23)}},
+  forja:{ico:'⚒️',n:'Fortaleza Anã',d:'Muralhas baixas e grossíssimas com faixa de bronze, bastiões quadrados, salão-montanha escalonado e a grande chaminé da forja.',b(put){const c=_cb(put);
+    c.sqWall(WR,5,7,y=>y===4?27:24,4);for(let x=CX-WR-1;x<=CX+WR+1;x++)for(let z=CZ-WR-1;z<=CZ+WR+1;z++){const d=Math.max(Math.abs(x-CX),Math.abs(z-CZ));if(d===WR+1)for(let y=0;y<3;y++)put(x,GY+y,z,24)}
+    for(const [x,z] of TOWERS){c.fill(x-1,x+TS,0,9,z-1,z+TS,24);c.fill(x-1,x+TS,10,10,z-1,z+TS,27);c.crown(x-1,z-1,TS+2,11,4)}
+    for(const [x,z] of [[CX-2,CZ-WR],[WA,CZ-2],[WB-3,CZ-2]])c.fill(x,x+3,0,TOWER_H-1,z,z+3,24);
+    c.fill(CX-7,CX+7,0,7,CZ-7,CZ+7,(x,y,z)=>{const e=Math.max(Math.abs(x-CX),Math.abs(z-CZ));return e>=6?(y===6?27:3):(y===0||y===7?3:0)});
+    c.fill(CX-5,CX+5,8,12,CZ-5,CZ+5,(x,y,z)=>{const e=Math.max(Math.abs(x-CX),Math.abs(z-CZ));return e>=4?24:(y===12?24:0)});c.crown(CX-5,CZ-5,11,13,27);
+    c.fill(CX-3,CX+3,13,15,CZ-3,CZ+3,(x,y,z)=>Math.max(Math.abs(x-CX),Math.abs(z-CZ))>=2||y===15?24:0);
+    c.fill(CX+1,CX+2,16,23,CZ+1,CZ+2,14);c.fill(CX,CX+3,24,24,CZ,CZ+3,27);c.fill(CX+1,CX+2,25,25,CZ+1,CZ+2,4);
+    for(const s of[-1,1]){c.fill(CX+s*4,CX+s*4,0,10,CZ-8,CZ-8,4);put(CX+s*4,GY+11,CZ-8,27)}put(CX-2,GY+16,CZ-2,23);put(CX-2,GY+17,CZ-2,23)}},
 };
 function setCastle(id){if(!CASTLES[id]||state.castle===id||(!state.castle&&id==='classico'))return false;const old=blue.slice();state.castle=id;buildBlueprint();reformFrom(old);toast(`${CASTLES[id].ico} Novo estilo: ${CASTLES[id].n}. Os reparadores vão desmontar e montar bloco por bloco.`,'r4');if(typeof renderBuild==='function')renderBuild();return true}
 function reformFrom(old){state.demol=state.demol||new Set();state.swapQ=state.swapQ||new Set();let nd=0,ns=0,nb=0;
