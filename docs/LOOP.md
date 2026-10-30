@@ -60,7 +60,10 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.28: seletor de dificuldade na tela inicial (salvo no navegador): 🌱 Tranquilo (vida 0,72×, menos inimigos, dano 0,7×), ⚔️ Normal (vida 1,2×, +10% inimigos e dano), 💀 Brutal (vida 2,3×, +60% inimigos, dano 1,6×, +12% velocidade, armadura base 15% a partir da horda 6). Bot ativo no Brutal: base sob pressão desde a horda 7 (plan 800–900), horda 17 em 25 min. Teste: `DIFF=brutal node t5b.js 1500`.
 
+- v0.29: 15 conquistas salvas no navegador (horda 10/20/30, 1000/5000 abates, chefes, relíquias, fortalezas, 3 heróis, combo ×50, título de Rei, expansão completa, horda 15 no Brutal, 5 objetivos) com aviso 🏆; tela de fim de jogo com estatísticas da partida e grade de conquistas (cinza = falta). Contadores: fortalezas destruídas e objetivos concluídos.
+
 ## Backlog (próximas rodadas)
+- [ ] Salvar partida (semente + estado essencial) — avaliar custo
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
 - [ ] Ficha do minion e Arsenal no estilo HUD v0.16; tooltips de comparação
 - [ ] Reino: mensagens de embaixada (tributo/aliança)

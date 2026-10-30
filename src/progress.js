@@ -105,3 +105,25 @@ function expansionTick(){const st=state.expStage||0;if(st>=EXP_STAGES.length||st
 // ───────── morale: victories and night rest lift it, wounds and endless waves wear it down; it speeds up or slows every minion (±20%)
 function moraleTick(dt){let m=state.morale??60;if(state.phase==='wave'){state.waveT=(state.waveT||0)+dt;if(state.waveT>90)m-=dt*.35}else{state.waveT=0;if(isNight())m+=dt*1.2;else m+=dt*.15}
   state.morale=clamp(m,0,100);const el=$('morale');if(el){const v=Math.round(state.morale);el.textContent=`${v>=70?'😄':v>=40?'🙂':v>=20?'😟':'😩'} ${v}`;el.title=`Moral ${v}%: minions ${v>=50?'+':''}${Math.round((v/100*.4-.2)*100)}% de rendimento. Sobe vencendo hordas, chefes e descansando à noite; cai com feridos e hordas longas.`;el.style.color=v<25?'var(--bad)':''}}
+// ───────── achievements (kept in the browser across runs) and end-of-run stats
+const ACH=[
+  {id:'w10',ico:'🛡️',n:'Sobrevivente',d:'Chegue à horda 10',c:()=>state.wave>=10},
+  {id:'w20',ico:'🏰',n:'Muralha Viva',d:'Chegue à horda 20',c:()=>state.wave>=20},
+  {id:'w30',ico:'👑',n:'Lenda da Bruma',d:'Chegue à horda 30',c:()=>state.wave>=30},
+  {id:'k1000',ico:'💥',n:'Estilhaçador',d:'Abata 1000 inimigos numa partida',c:()=>state.kills>=1000},
+  {id:'k5000',ico:'☠️',n:'Moedor',d:'Abata 5000 inimigos numa partida',c:()=>state.kills>=5000},
+  {id:'boss3',ico:'🦷',n:'Caçador de Chefes',d:'Derrote 3 chefes',c:()=>relicCount()>=3},
+  {id:'boss7',ico:'🐉',n:'Colecionador de Relíquias',d:'Tenha 7 relíquias',c:()=>relicCount()>=7},
+  {id:'fort1',ico:'⚔️',n:'Primeira Conquista',d:'Destrua uma fortaleza inimiga',c:()=>(state.fortsWon||0)>=1},
+  {id:'fort5',ico:'🏯',n:'Flagelo dos Reinos',d:'Destrua 5 fortalezas',c:()=>(state.fortsWon||0)>=5},
+  {id:'hero3',ico:'⭐',n:'Távola Redonda',d:'Reúna 3 heróis',c:()=>Object.keys(state.heroes||{}).length>=3},
+  {id:'combo50',ico:'🔥',n:'Reação em Cadeia',d:'Faça um combo ×50',c:()=>(state.comboBest||0)>=50},
+  {id:'rank6',ico:'🎖️',n:'Coroado',d:'Alcance o título de Rei',c:()=>rankIdx()>=6},
+  {id:'exp8',ico:'🏗️',n:'Arquiteto',d:'Complete toda a expansão da cidadela',c:()=>(state.expStage||0)>=EXP_STAGES.length},
+  {id:'brutal15',ico:'💀',n:'Brutalmente Honesto',d:'Chegue à horda 15 no Brutal',c:()=>OPTS.diff==='brutal'&&state.wave>=15},
+  {id:'quest5',ico:'🗺️',n:'Aventureiro',d:'Conclua 5 objetivos do mapa',c:()=>(state.questsDone||0)>=5}];
+const ACHS=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_ach')||'{}')}catch(e){return{}}})();
+function achTick(dt){state.achT=(state.achT||0)-dt;if(state.achT>0)return;state.achT=2;for(const A of ACH){if(ACHS[A.id])continue;let ok=false;try{ok=A.c()}catch(e){}if(ok){ACHS[A.id]=Date.now();(state.achRun=state.achRun||[]).push(A.id);try{localStorage.setItem('fortrex_ach',JSON.stringify(ACHS))}catch(e){}toast(`🏆 Conquista: ${A.ico} ${A.n} — ${A.d}`,'r4',true);SFX.loot(4)}}}
+function achSummary(){const got=ACH.filter(A=>ACHS[A.id]);const run=(state.achRun||[]).map(id=>ACH.find(A=>A.id===id)).filter(Boolean);
+  return `<div class="achs"><div class="ds">🏆 Conquistas ${got.length}/${ACH.length}${run.length?` · nesta partida: ${run.map(A=>A.ico+' '+A.n).join(', ')}`:''}</div><div class="achrow">${ACH.map(A=>`<span class="${ACHS[A.id]?'on':''}" title="${A.n}: ${A.d}">${A.ico}</span>`).join('')}</div></div>`}
+function runStats(){return `<div class="rstats"><span>🌊 Horda <b>${state.wave}</b></span><span>💥 <b>${state.kills}</b> abates</span><span>🔥 combo <b>×${state.comboBest||0}</b></span><span>🦷 <b>${relicCount()}</b> relíquias</span><span>🏯 <b>${state.fortsWon||0}</b> fortalezas</span><span>🗺️ <b>${state.questsDone||0}</b> objetivos</span><span>👑 ${RANKS[rankIdx()].n}</span><span>${DIFF().ico} ${DIFF().n}</span></div>`}

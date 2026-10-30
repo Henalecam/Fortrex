@@ -128,6 +128,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #realmSide .rh{font-family:var(--display);font-size:20px;font-weight:700}#realmSide .rc{margin-top:10px;display:flex;flex-direction:column;gap:6px}#realmSide .ds{color:var(--ink-soft);font-size:13px;line-height:1.4}
 @media (max-width:760px){#realm .rwrap{flex-direction:column}#realmSide{width:auto;max-height:38%}}
 .diffs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:0 0 6px}.diffs .btn.on{box-shadow:inset 0 0 0 2px var(--accent)}#diffD{font-size:12px;color:var(--ink-soft);margin:0 0 12px}
+.achs{margin:0 0 14px}.achrow{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:6px;font-size:20px}.achrow span{filter:grayscale(1);opacity:.35}.achrow span.on{filter:none;opacity:1}
+.rstats{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;font-size:13px;margin:0 0 10px;color:var(--ink-soft)}.rstats b{color:var(--ink)}
 #over .stat{font-family:var(--display);font-size:20px;font-weight:700;margin-bottom:12px}
 @media (max-width:620px){.chip,.btn{font-size:12px;padding:5px 9px}.title{font-size:16px}.title small,.sep,.hide-sm{display:none}}
 @media (prefers-reduced-motion:reduce){.toast,.lab{animation-duration:.01s}}
@@ -270,6 +272,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <div class="keys"><kbd>B</kbd> construir · <kbd>I</kbd> arsenal · <kbd>U</kbd> upgrades · <kbd>Espaço</kbd> horda · <kbd>F</kbd> velocidade · <kbd>WASD</kbd> câmera</div>
   <div class="stat" id="overStat"></div>
   <div class="ds" id="overRec" style="margin:-6px 0 14px"></div>
+  <div id="overAch"></div>
   <div class="ds" style="margin:-4px 0 14px">A bruma ataca em hordas. Pelo reino, outras fortalezas crescem, guerreiam entre si e virão atrás de você. Abra o 🗺️ Reino para declarar guerra.</div>
   <div class="diffs" id="diffs"></div><div id="diffD"></div>
   <button class="btn primary" id="start">Acordar a Fortaleza</button>
@@ -1364,7 +1367,7 @@ function startBattle(c,kind,power){if(battle())return false;clearBattleRuins();c
   const od=battleOdds(c.lvl);if(kind==='defend'){toast(`⚔️ ${c.name} (nv ${c.lvl}) ergueu uma fortaleza de cerco nas suas terras! Chance de vitória: ${pctS(od.p)} (${oddsText(od.p)}). Destrua o núcleo vermelho.`,'r3');rlog(`${c.name} sitia Fortrex!`,'r3')}
   else{toast(`⚔️ Guerra contra ${c.name} (nv ${c.lvl})! A fortaleza deles está à vista. Use ⚔️ Atacar.`,'r2');rlog(`Fortrex declara guerra a ${c.name}`,'r2')}
   cam.target.set((cx+CX)/2,GY+1.5,(cz+CZ)/2);return true}
-function battleWon(R){const c=R.city;if(!c)return;addFame(15*c.lvl);goalEvent('fort',1,{lvl:c.lvl});if(R.kind==='defend')goalEvent('defend');removeCity(c);rlog(`Fortrex destruiu ${c.name}! A fortaleza sumiu do mapa.`,'r4');R.ruinT=30;state.battleCd=160;state.realmIncome=0;riseAfterFall(c,null)}
+function battleWon(R){const c=R.city;if(!c)return;state.fortsWon=(state.fortsWon||0)+1;addFame(15*c.lvl);goalEvent('fort',1,{lvl:c.lvl});if(R.kind==='defend')goalEvent('defend');removeCity(c);rlog(`Fortrex destruiu ${c.name}! A fortaleza sumiu do mapa.`,'r4');R.ruinT=30;state.battleCd=160;state.realmIncome=0;riseAfterFall(c,null)}
 function removeCity(T){const k=REALM.cities.indexOf(T);if(k<0||T.home)return;REALM.cities.splice(k,1);for(let i=REALM.armies.length-1;i>=0;i--){const A=REALM.armies[i];if(A.to===T){const alt=REALM.cities.filter(o=>o.fac!==A.fac).sort((a,b)=>Math.hypot(a.x-A.x,a.y-A.y)-Math.hypot(b.x-A.x,b.y-A.y))[0];if(alt)A.to=alt;else REALM.armies.splice(i,1)}}if(REALM.sel===T)REALM.sel=null;if(REALM.confirm===T)REALM.confirm=null}
 function clearBattleRuins(){for(const R of rivals){for(const [i] of R.rblue){if(rown[i]){if(vox[i]){if(Math.random()<.08)spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[vox[i]].c,1,.25);setVox(i,0)}rown[i]=0}}}rivals.length=0;settleDirty=true;updateModeUi()}
 function ruinTick(dt){for(const R of rivals){if(R.alive||R.ruinT===undefined)continue;R.ruinT-=dt;if(R.ruinT<=0){R.ruinT=undefined;clearBattleRuins();toast('As ruínas da fortaleza inimiga desmoronam. O campo está livre.','r0');return}}}
@@ -1405,7 +1408,7 @@ function acceptPoi(P){if(state.quest){toast('Termine o objetivo atual primeiro',
 function questTick(dt){const q=state.quest;if(!q)return;if(q.P.kind==='meteor'){state.starfall-=dt;meteorTick(dt);if(state.starfall>0)return;q.last={x:CHEST.x+rnd(-12,12),z:CHEST.z+rnd(14,20)}}let alive=0;for(const e of q.units){if(!e.dead){alive++;q.last={x:e.pos.x,z:e.pos.z}}}if(alive)return;state.quest=null;const P=q.P,L=q.last;
   const nt=P.kind==='ruins'?3:P.kind==='boss'||P.kind==='elite'?2:1;for(let k=0;k<nt;k++)spawnLoot(L.x+rnd(-1.5,1.5),GY+2,L.z+rnd(-1.5,1.5),'treasure',Math.min(4,(P.kind==='boss'?2:1)+Math.floor(P.lvl/3)+(k===0?1:0)),{});
   const g=(P.kind==='boss'?10:P.kind==='skirmish'||P.kind==='blitz'?6:P.kind==='elite'?9:4)*P.lvl;spawnLoot(L.x,GY+2,L.z,'material',0,{amount:g});state.conquests=(state.conquests||0)+(P.kind==='boss'?1:0);
-  addFame((P.kind==='boss'?15:10)*P.lvl);goalEvent('poi');
+  addFame((P.kind==='boss'?15:10)*P.lvl);goalEvent('poi');state.questsDone=(state.questsDone||0)+1;
   toast(`${POI_KINDS[P.kind].ico} ${P.name} concluído! Tesouro no campo.`,'r4');rlog(`Fortrex venceu ${P.name}`,'r4');slowmo=Math.max(slowmo,.8)}
 function poiTick(dt){REALM.poiT=(REALM.poiT??50)-dt;if(REALM.poiT<=0){REALM.poiT=rnd(40,70);if(REALM.pois.length<6)spawnPoi()}for(let i=REALM.pois.length-1;i>=0;i--){const P=REALM.pois[i];P.ttl-=dt;if(P.ttl<=0){REALM.pois.splice(i,1);if(REALM.sel===P)REALM.sel=null}}questTick(dt)}
 // when a fortress falls, another one grows
@@ -1823,6 +1826,28 @@ function expansionTick(){const st=state.expStage||0;if(st>=EXP_STAGES.length||st
 // ───────── morale: victories and night rest lift it, wounds and endless waves wear it down; it speeds up or slows every minion (±20%)
 function moraleTick(dt){let m=state.morale??60;if(state.phase==='wave'){state.waveT=(state.waveT||0)+dt;if(state.waveT>90)m-=dt*.35}else{state.waveT=0;if(isNight())m+=dt*1.2;else m+=dt*.15}
   state.morale=clamp(m,0,100);const el=$('morale');if(el){const v=Math.round(state.morale);el.textContent=`${v>=70?'😄':v>=40?'🙂':v>=20?'😟':'😩'} ${v}`;el.title=`Moral ${v}%: minions ${v>=50?'+':''}${Math.round((v/100*.4-.2)*100)}% de rendimento. Sobe vencendo hordas, chefes e descansando à noite; cai com feridos e hordas longas.`;el.style.color=v<25?'var(--bad)':''}}
+// ───────── achievements (kept in the browser across runs) and end-of-run stats
+const ACH=[
+  {id:'w10',ico:'🛡️',n:'Sobrevivente',d:'Chegue à horda 10',c:()=>state.wave>=10},
+  {id:'w20',ico:'🏰',n:'Muralha Viva',d:'Chegue à horda 20',c:()=>state.wave>=20},
+  {id:'w30',ico:'👑',n:'Lenda da Bruma',d:'Chegue à horda 30',c:()=>state.wave>=30},
+  {id:'k1000',ico:'💥',n:'Estilhaçador',d:'Abata 1000 inimigos numa partida',c:()=>state.kills>=1000},
+  {id:'k5000',ico:'☠️',n:'Moedor',d:'Abata 5000 inimigos numa partida',c:()=>state.kills>=5000},
+  {id:'boss3',ico:'🦷',n:'Caçador de Chefes',d:'Derrote 3 chefes',c:()=>relicCount()>=3},
+  {id:'boss7',ico:'🐉',n:'Colecionador de Relíquias',d:'Tenha 7 relíquias',c:()=>relicCount()>=7},
+  {id:'fort1',ico:'⚔️',n:'Primeira Conquista',d:'Destrua uma fortaleza inimiga',c:()=>(state.fortsWon||0)>=1},
+  {id:'fort5',ico:'🏯',n:'Flagelo dos Reinos',d:'Destrua 5 fortalezas',c:()=>(state.fortsWon||0)>=5},
+  {id:'hero3',ico:'⭐',n:'Távola Redonda',d:'Reúna 3 heróis',c:()=>Object.keys(state.heroes||{}).length>=3},
+  {id:'combo50',ico:'🔥',n:'Reação em Cadeia',d:'Faça um combo ×50',c:()=>(state.comboBest||0)>=50},
+  {id:'rank6',ico:'🎖️',n:'Coroado',d:'Alcance o título de Rei',c:()=>rankIdx()>=6},
+  {id:'exp8',ico:'🏗️',n:'Arquiteto',d:'Complete toda a expansão da cidadela',c:()=>(state.expStage||0)>=EXP_STAGES.length},
+  {id:'brutal15',ico:'💀',n:'Brutalmente Honesto',d:'Chegue à horda 15 no Brutal',c:()=>OPTS.diff==='brutal'&&state.wave>=15},
+  {id:'quest5',ico:'🗺️',n:'Aventureiro',d:'Conclua 5 objetivos do mapa',c:()=>(state.questsDone||0)>=5}];
+const ACHS=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_ach')||'{}')}catch(e){return{}}})();
+function achTick(dt){state.achT=(state.achT||0)-dt;if(state.achT>0)return;state.achT=2;for(const A of ACH){if(ACHS[A.id])continue;let ok=false;try{ok=A.c()}catch(e){}if(ok){ACHS[A.id]=Date.now();(state.achRun=state.achRun||[]).push(A.id);try{localStorage.setItem('fortrex_ach',JSON.stringify(ACHS))}catch(e){}toast(`🏆 Conquista: ${A.ico} ${A.n} — ${A.d}`,'r4',true);SFX.loot(4)}}}
+function achSummary(){const got=ACH.filter(A=>ACHS[A.id]);const run=(state.achRun||[]).map(id=>ACH.find(A=>A.id===id)).filter(Boolean);
+  return `<div class="achs"><div class="ds">🏆 Conquistas ${got.length}/${ACH.length}${run.length?` · nesta partida: ${run.map(A=>A.ico+' '+A.n).join(', ')}`:''}</div><div class="achrow">${ACH.map(A=>`<span class="${ACHS[A.id]?'on':''}" title="${A.n}: ${A.d}">${A.ico}</span>`).join('')}</div></div>`}
+function runStats(){return `<div class="rstats"><span>🌊 Horda <b>${state.wave}</b></span><span>💥 <b>${state.kills}</b> abates</span><span>🔥 combo <b>×${state.comboBest||0}</b></span><span>🦷 <b>${relicCount()}</b> relíquias</span><span>🏯 <b>${state.fortsWon||0}</b> fortalezas</span><span>🗺️ <b>${state.questsDone||0}</b> objetivos</span><span>👑 ${RANKS[rankIdx()].n}</span><span>${DIFF().ico} ${DIFF().n}</span></div>`}
 
 // ───────── main: waves, events, game flow, input, loop
 function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i=0;i<Math.floor((w-from+2)*k);i++)list.push(t)};extra('wolf',2,.5);extra('imp',4,.6);extra('spider',4,.45);extra('slime',5,.35);extra('brute',7,.3);extra('beetle',9,.3);const n=-Math.floor(list.length*.5)+6+Math.floor(w*2.6+(w>10?(w-10)*1.6:0)+(w>15?(w-15)*1.6:0)+(w>18?(w-18)*2:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
@@ -1870,7 +1895,7 @@ function endWave(){const ev=state.ev;state.wave++;state.morale=Math.min(100,(sta
   $('report').style.display='block';$('report').innerHTML=`Horda ${state.wave-1} vencida · melhor combo <b>×${state.comboBest}</b> · <b>${state.wk}</b> estilhaçados · <b>${state.wwound}</b> ferido${state.wwound===1?'':'s'} · <b>${loot.filter(L=>!L.carried).length}</b> itens no chão`;
   if((state.wave-1)%5===0)offerRewards();updateHud()}
 function gameOver(){state.running=false;saveRecord();if(window.__chestLog)window.__chestLog.push('GAMEOVER '+new Error().stack.split('\n').slice(1,6).join(' < '));$('over').style.display='flex';$('overStat').textContent=`A Fortaleza caiu na horda ${state.wave} · ${state.kills} Devoradores estilhaçados`;
-  $('overTitle').textContent='A bruma venceu';$('overText').textContent='O baú foi devorado. Uma Fortaleza nunca morre de verdade: acorde de novo, com o que aprendeu.';$('start').textContent='Acordar de novo';showRecord()}
+  $('overTitle').textContent='A bruma venceu';$('overText').textContent='O baú foi devorado. Uma Fortaleza nunca morre de verdade: acorde de novo, com o que aprendeu.';$('start').textContent='Acordar de novo';showRecord();$('overAch').innerHTML=runStats()+achSummary()}
 
 // ───────── bombardment + meteors
 const bombs=[];
@@ -1960,7 +1985,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':state.combo>=15?'r3':'r2');state.combo=0}
@@ -2070,7 +2095,8 @@ window.__heroCard=()=>{grantRelic('boss');const S=Object.values(state.heroes||{}
 window.__biome=b=>{state.biome=b};
 
 function renderDiffs(){const el=$('diffs');if(!el)return;const cur=OPTS.diff||'normal';el.innerHTML=Object.entries(DIFFS).map(([k,D])=>`<button class="btn ${k===cur?'on':''}" data-diff="${k}">${D.ico} ${D.n}</button>`).join('');$('diffD').textContent=DIFF().d;for(const b of el.querySelectorAll('[data-diff]'))b.onclick=()=>{OPTS.diff=b.dataset.diff;saveOpts();renderDiffs()}}
-renderDiffs();window.__diff=k=>{OPTS.diff=k};
+renderDiffs();$('overAch').innerHTML=achSummary();window.__diff=k=>{OPTS.diff=k};
+window.__gameOver=()=>gameOver();
 
 })();
 </script>
