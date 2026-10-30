@@ -338,3 +338,8 @@ window.__dropFx=()=>{const ks=[['equip',2,{item:makeEquip(2)}],['turret',3,{type
 window.__etest=(type,W,n)=>{state.wave=W;state.maxWave=W;document.getElementById('next').click();state.queue=[];for(const e of enemies)if(!e.dead){e.dead=true;scene.remove(e.group)}
   window.__et={t0:simTime,miss0:blueList.filter(i=>blue[i]&&vox[i]!==blue[i]).length,chest0:chestAlive(),hurt:0,type};for(let k=0;k<n;k++){const a=k/n*Math.PI*2+.3;makeEnemy(type,0,CX+Math.cos(a)*52,CZ+Math.sin(a)*52)}return enemies.filter(e=>!e.dead).length};
 window.__etStat=()=>{const T=window.__et;const al=enemies.filter(e=>!e.dead&&!e.rival);return {alive:al.length,t:Math.round(simTime-T.t0),blk:blueList.filter(i=>blue[i]&&vox[i]!==blue[i]).length-T.miss0,chest:T.chest0-chestAlive(),wounded:minions.filter(m=>m.wounded>0).length,turLost:turrets.filter(t=>!t.alive).length}};
+
+window.__wtest=(type,r)=>{for(const t of turrets.slice())if(t.alive)killTurret(t,false);for(const m of minions.slice()){scene.remove(m.group)}minions.length=0;
+  state.wave=8;document.getElementById('next').click();state.queue=[];for(const e of enemies)if(!e.dead){e.dead=true;scene.remove(e.group)}
+  const an=TOWER_ANCHORS[2];const t=makeTurret(type,an,r||0);window.__wt={t,x:ix(an),z:iz(an),d0:DMG_ACC,t0:simTime,k0:state.kills};return t.T.n};
+window.__wtick=()=>{const W=window.__wt;const alive=enemies.filter(e=>!e.dead).length;for(let k=alive;k<8;k++){const a=rnd(2.2,4.1),r=rnd(14,22);makeEnemy('crawler',0,W.x+Math.cos(a)*r,W.z+Math.sin(a)*r)}return {dps:+((DMG_ACC-W.d0)/Math.max(1,simTime-W.t0)).toFixed(1),kills:state.kills-W.k0}};

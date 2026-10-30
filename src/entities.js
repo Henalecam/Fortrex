@@ -48,9 +48,10 @@ const EQUIP=[
 ];
 const SLOT_N={arma:'Arma',armadura:'Armadura',acessorio:'Acessório'};
 const ICO={espada:'🗡️',machado:'🪓',lanca:'🔱',martelo:'🔨',adaga:'🔪',couro:'🦺',malha:'⛓️',placas:'🛡️',escudo:'🛡️',botas:'👢',amuleto:'📿',luneta:'🔭',luvas:'🧤',mochila:'🎒',anel:'💍'};
-function makeEquip(r,k){const b=k?EQUIP.find(e=>e.k===k):pick(EQUIP);const f=1+r*.45;const st={};
+function makeEquip(r,k){const b=k?EQUIP.find(e=>e.k===k):pick(EQUIP);const f=[1,1.4,1.95,2.7,3.7][r]||1;const st={};
   for(const s of ['atk','spd','hp','gun','work','rate'])if(b[s])st[s]=b[s]>=1?1+(b[s]-1)*f:1-(1-b[s])/f;
   if(b.def)st.def=Math.min(.7,b.def*(1+r*.35));if(b.cap)st.cap=b.cap+r;if(b.reach)st.reach=b.reach;if(b.stun)st.stun=b.stun*(1+r*.3);if(b.thorns)st.thorns=b.thorns*(1+r*.5);if(b.burn)st.burn=1;
+  if(r>=3)st.hp=(st.hp||1)*(r>=4?1.3:1.15);
   return{id:++itemSeq,k:b.k,slot:b.slot,n:b.n,r,st}}
 const pct=v=>Math.round(v*100)+'%';
 function itemLines(it){const s=it.st,o=[];if(s.atk)o.push(`Dano +${pct(s.atk-1)}`);if(s.rate)o.push(`Ataque ${pct(s.rate-1)} mais rápido`);if(s.def)o.push(`Defesa ${pct(s.def)}`);
@@ -127,15 +128,15 @@ function deposit(L,m){const d=L.data;ECON.dep[L.kind+L.r]=(ECON.dep[L.kind+L.r]|
 
 // ───────── turrets: defensive weapons placed on any block
 const TURRETS={
-  cannon:{n:'Canhão',ico:'💥',range:36,reload:1.25,dmg:26,hp:150,v:3,d:'Bala pesada com estilhaços.'},
+  cannon:{n:'Canhão',ico:'💥',range:36,reload:1.15,dmg:36,hp:150,v:3,d:'Bala pesada com estilhaços.'},
   ballista:{n:'Balista',ico:'🏹',range:42,reload:.7,dmg:17,hp:110,v:2,d:'Rápida, atravessa 3 Devoradores, caça Voadores.'},
-  flamer:{n:'Lança-chamas',ico:'🔥',range:11,reload:.1,dmg:3.4,hp:130,v:2,d:'Curto alcance, incendeia tudo à frente.'},
-  mortar:{n:'Morteiro',ico:'🎇',range:48,minRange:7,reload:3.1,dmg:50,hp:120,v:3,d:'Tiro em arco que abre crateras. Não acerta Voadores.'},
+  flamer:{n:'Lança-chamas',ico:'🔥',range:11,reload:.1,dmg:2.8,hp:130,v:2,d:'Curto alcance, incendeia tudo à frente.'},
+  mortar:{n:'Morteiro',ico:'🎇',range:48,minRange:7,reload:2.6,dmg:76,hp:120,v:3,d:'Tiro em arco que abre crateras. Não acerta Voadores.'},
   tesla:{n:'Torre Tesla',ico:'⚡',range:20,reload:1.5,dmg:22,hp:110,v:2,d:'Raio que salta entre 4 alvos; dobra na água.'},
-  sunray:{n:'Torre de raio-sol',ico:'☀️',range:30,reload:.12,dmg:4.2,hp:130,v:4,d:'Feixe contínuo que esquenta: quanto mais tempo no mesmo alvo, mais dano (até 4×).'},
+  sunray:{n:'Torre de raio-sol',ico:'☀️',range:30,reload:.12,dmg:3.6,hp:130,v:4,d:'Feixe contínuo que esquenta: quanto mais tempo no mesmo alvo, mais dano (até 4×).'},
   catapult:{n:'Catapulta',ico:'🛢️',range:58,minRange:10,reload:5.2,dmg:95,hp:140,v:4,d:'Arremessa barris explosivos em arco: área enorme e fogo. Não acerta Voadores.'},
   wind:{n:'Torre de vento',ico:'🌀',range:16,reload:2.6,dmg:8,hp:120,v:3,d:'Rajada em cone que empurra os Devoradores para trás e derruba escaladores. Não acerta chefes grandes.'},
-  frost:{n:'Canhão de gelo',ico:'❄️',range:28,reload:1.1,dmg:9,hp:120,v:2,d:'Congela Devoradores e transforma lava em obsidiana.'},
+  frost:{n:'Canhão de gelo',ico:'❄️',range:28,reload:1.1,dmg:13,hp:120,v:2,d:'Congela Devoradores e transforma lava em obsidiana.'},
 };
 const turrets=[];const LOB=t=>t==='mortar'||t==='catapult';const BARREL_MAT=new THREE.MeshLambertMaterial({color:0xc9413b,emissive:0x5a1a10});
 function turretAt(anchor){return turrets.find(t=>t.alive&&t.anchor===anchor)}
