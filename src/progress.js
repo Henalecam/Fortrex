@@ -701,3 +701,85 @@ function uniqueTick(dt){for(let i=_ulines.length-1;i>=0;i--){const L=_ulines[i];
 function uniqueCrit(m,d,tgt){const w=m.eq.arma;if(w&&w.u==='furia'&&Math.random()<.2){tgt.afire=Math.max(tgt.afire||0,3);label({x:tgt.pos.x,y:tgt.gy+2,z:tgt.pos.z},'CRÍTICO!','#ff3b3b');return d*3}return d}
 function uniqueSave(m){const a=m.eq.armadura;if(a&&a.u==='rei'&&m.reiWave!==state.wave){m.reiWave=state.wave;m.hp=m.maxhp*.5;ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,6,0xffcf3d);for(const e of enemies)if(!e.dead&&hd(e.pos,m.pos)<6)e.stun=Math.max(e.stun||0,2);label(m.pos,'👑 Égide do Último Rei!','#ffcf3d');return true}return false}
 window.__uniq=()=>{const ts=Object.keys(UNIQ_T);ts.forEach((u,k)=>{const an=[...TOWER_ANCHORS,...KEEP_ANCHORS][k];const old=turretAt(an);if(old)killTurret(old,false);makeTurret(UNIQ_T[u].type,an,4,u)});const m=minions.find(m=>m.role==='sol'&&!m.hero);for(const id of Object.keys(UNIQ_E)){const it=makeUniqueEquip();it.u=id;it.n=UNIQ_E[id].n;state.inv.armory.push(it);equipItem(m,it)}revealCard(UNIQ_T.aurora.ico,UNIQ_T.aurora.n,4,UNIQ_T.aurora.d,true);return ts.length};
+
+// v2.7 PERSONAGENS R2 — inimigos iniciais refeitos do zero (silhuetas, rostos, peças animadas)
+const NEWLOOK={crawler:1,wolf:1,spider:1,slime:1,imp:1,brute:1,beetle:1,climber:1,sapper:1,ram:1,flyer:1,shaman:1,goblin:1};
+function _mk(sc,g){const B=(w,h,d,c,x,y,z,p)=>box(w*sc,h*sc,d*sc,c,x*sc,y*sc,z*sc,p||g);
+  const K=(w,h,d,c,x,y,z,p)=>{const m=B(w,h,d,c,x,y,z,p);m.userData.keep=true;return m};
+  const G=(w,h,d,c,x,y,z,p,i)=>{const m=B(w,h,d,c,x,y,z,p);m.material.emissive.setHex(c);m.material.emissiveIntensity=i||1;return m};
+  const LG=(pts,c)=>pts.map(([x,y,z,w,h,d,rz])=>{const m=B(w,h,d||w,c,x,y,z);if(rz)m.rotation.z=rz;return{mesh:m,alive:true,ox:x*sc,oz:z*sc}});return{B,K,G,LG}}
+const ctone=(c,a)=>new THREE.Color(c).offsetHSL(rnd(-.03,.03)*(a||1),rnd(-.08,.08),rnd(-.06,.06)).getHex();
+Object.assign(CREATURES,{
+  crawler(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3);
+    const body=B(.95,.55,1.05,col,0,.5,-.05);const head=B(.75,.55,.6,shadeHex(col,.1),0,.62,.62);
+    const jaw=K(.7,.16,.42,dk,0,.33,.72);for(let k=-2;k<=2;k++)B(.07,.12,.06,0xfff6e0,k*.13,.47,.92);for(let k=0;k<3;k++)B(.16,.22+k*.04,.16,dk,0,.86+k*.02,-.35+k*.3).rotation.x=-.4;
+    G(.12,.12,.04,0xffe25a,-.18,.75,.92,null,.8);G(.12,.12,.04,0xffe25a,.18,.75,.92,null,.8);B(.18,.04,.03,0x1d1f33,-.18,.84,.92);B(.18,.04,.03,0x1d1f33,.18,.84,.92);
+    g.userData.jaw=jaw;return{body,head,legs:LG([[-.36,.14,-.35,.18,.28],[.36,.14,-.35,.18,.28],[-.36,.14,.35,.18,.28],[.36,.14,.35,.18,.28]],dk)}},
+  wolf(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3),lt=shadeHex(col,.3);
+    const body=B(.6,.55,1.35,col,0,.65,0);B(.66,.4,.5,dk,0,.85,.35);B(.4,.2,.9,lt,0,.42,0);
+    const head=K(.48,.44,.5,col,0,.92,.88);B(.3,.2,.36,lt,0,-.08*1,.3,head).position.set(0,-.06*sc,.3*sc);
+    for(const s of[-1,1]){const e=box(.1*sc,.07*sc,.03,0xffd23a,s*.13*sc,.08*sc,.26*sc,head);e.material.emissive.setHex(0xffb000);e.material.emissiveIntensity=1;box(.1*sc,.2*sc,.08*sc,dk,s*.15*sc,.3*sc,-.05*sc,head)}
+    for(let k=-1;k<=1;k+=2)box(.05*sc,.1*sc,.05*sc,0xffffff,k*.07*sc,-.18*sc,.46*sc,head);
+    const tail=K(.14,.14,.7,dk,0,.85,-.95);tail.rotation.x=-.6;g.userData.tail=tail;g.userData.headA=head;
+    return{body,head,legs:LG([[-.2,.22,-.48,.16,.44],[.2,.22,-.48,.16,.44],[-.2,.22,.48,.16,.44],[.2,.22,.48,.16,.44]],dk)}},
+  spider(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.35);
+    const body=B(1.05,.6,1.0,col,0,.62,-.35);B(.18,.3,.02,0xd9414f,0,.72,.16);B(.3,.12,.02,0xd9414f,0,.72,.16);
+    const head=B(.6,.42,.5,shadeHex(col,.15),0,.55,.42);for(let k=0;k<6;k++)G(.08,.08,.04,0xff3a4a,(k%3-1)*.14,.64+((k/3)|0)*.1,.68,null,1);
+    for(const s of[-1,1])B(.08,.2,.08,0xe8e0cc,s*.1,.36,.66).rotation.z=s*.3;
+    const legs=[];for(const s of[-1,1])for(let k=0;k<4;k++){const m=B(.95,.08,.08,dk,s*.78,.5,(k-1.5)*.26+.05);m.rotation.z=s*.55;m.rotation.y=s*(k-1.5)*.25;legs.push({mesh:m,alive:true,ox:s*.78*sc,oz:((k-1.5)*.26)*sc})}return{body,head,legs}},
+  slime(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col,2);const body=B(1.15,.85,1.15,col,0,.44,0);body.material.transparent=true;body.material.opacity=.85;
+    const head=B(.8,.36,.8,shadeHex(col,.25),0,.98,0);eyes(head,.02*sc,.4*sc,.16*sc);B(.3,.08,.02,0x2b5a3a,0,.82,.58);B(.28,.28,.28,shadeHex(col,-.35),.18,.45,.1);B(.16,.16,.16,0xffffff,-.25,.6,.3);
+    g.userData.squish=1;return{body,head,legs:[]}},
+  imp(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.35);
+    const body=B(.55,.62,.45,col,0,.72,0);B(.4,.25,.05,shadeHex(col,.2),0,.72,.23);const head=B(.6,.52,.52,col,0,1.3,.05);
+    for(const s of[-1,1]){B(.09,.32,.09,0x2b2d4a,s*.2,1.68,0).rotation.z=-s*.3;G(.12,.08,.04,0xffe25a,s*.13,1.36,.32,null,1)}for(let k=-2;k<=2;k++)B(.06,.08,.04,0xffffff,k*.07,1.16,.32);
+    const w1=K(.55,.06,.32,dk,-.48,1.0,-.22),w2=K(.55,.06,.32,dk,.48,1.0,-.22);g.userData.wings=[w1,w2];const tail=K(.07,.07,.6,dk,0,.55,-.5);tail.rotation.x=-.7;box(.16*sc,.16*sc,.06*sc,dk,0,0,-.32*sc,tail).rotation.z=.785;g.userData.tail=tail;g.userData.hop=1;
+    return{body,head,legs:LG([[-.15,.2,0,.15,.36],[.15,.2,0,.15,.36]],0x2b2d4a)}},
+  brute(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.25);
+    const body=B(1.05,.9,.75,col,0,1.05,0);B(1.25,.35,.85,dk,0,1.45,-.05);B(1.08,.16,.78,0x5a3a2a,0,.62,0);B(.08,.4,.02,0xb04030,.25,1.1,.38).rotation.z=.5;
+    const head=B(.46,.42,.44,shadeHex(col,.1),0,1.62,.32);eyes(head,.03*sc,.22*sc,.11*sc);for(const s of[-1,1])B(.07,.18,.07,0xfff6e0,s*.14,1.48,.55).rotation.z=-s*.2;B(.32,.06,.05,0x1d1f33,0,1.72,.55);
+    const a1=K(.36,.95,.36,dk,-.72,.95,.12),a2=K(.36,.95,.36,dk,.72,.95,.12);B(.42,.32,.42,0x5a4a3a,-.72,.38,.18);B(.42,.32,.42,0x5a4a3a,.72,.38,.18);g.userData.arms=[a1,a2];
+    return{body,head,legs:LG([[-.26,.28,0,.3,.56],[.26,.28,0,.3,.56]],0x3b2d2a)}},
+  beetle(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.35);
+    const body=B(1.0,.5,1.15,dk,0,.45,0);const shell=B(1.12,.38,1.2,col,0,.82,-.05);B(.05,.4,1.22,0x14252a,0,.84,-.05);B(.3,.08,.5,shadeHex(col,.35),-.25,1.02,-.1);
+    const head=B(.56,.4,.42,shadeHex(col,-.4),0,.5,.72);B(.14,.5,.14,shadeHex(col,-.2),0,.85,.92).rotation.x=.5;for(const s of[-1,1]){B(.1,.1,.42,0x1b2b2b,s*.2,.45,1.02).rotation.y=-s*.4;G(.1,.08,.04,0x7dffd0,s*.15,.58,.94,null,.8)}
+    return{body,head,legs:LG([[-.6,.24,-.38,.5,.08,.08,.3],[.6,.24,-.38,.5,.08,.08,-.3],[-.62,.22,0,.5,.08,.08,.3],[.62,.22,0,.5,.08,.08,-.3],[-.6,.24,.38,.5,.08,.08,.3],[.6,.24,.38,.5,.08,.08,-.3]],0x1b2b2b)}},
+  climber(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3),lt=shadeHex(col,.3);
+    const body=B(.55,.7,.45,col,0,.75,-.05);B(.3,.5,.05,lt,0,.75,.18);const head=B(.5,.42,.55,col,0,1.28,.12);
+    for(const s of[-1,1]){B(.18,.2,.18,0xffffff,s*.17,1.42,.3);B(.08,.1,.04,0x1d1f33,s*.17,1.42,.4);B(.06,.3,.3,0xe0744a,s*.27,1.36,-.08).rotation.z=-s*.4}
+    const a1=K(.14,.8,.14,dk,-.38,.95,.25),a2=K(.14,.8,.14,dk,.38,.95,.25);a1.rotation.x=a2.rotation.x=-.9;g.userData.arms=[a1,a2];const tail=K(.14,.14,.75,dk,0,.4,-.55);tail.rotation.x=-.3;g.userData.tail=tail;
+    return{body,head,legs:LG([[-.16,.2,0,.15,.4],[.16,.2,0,.15,.4]],dk)}},
+  sapper(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);
+    const body=B(.55,.6,.45,col,0,.62,0);B(.58,.1,.48,0x5a3a2a,0,.4,0);const head=B(.52,.46,.48,0x8fae5a,0,1.15,.05);eyes(head,.04*sc,.24*sc,.12*sc);B(.14,.16,.14,0x7a9a4a,0,1.08,.34);
+    B(.56,.12,.5,0xd9414f,0,1.36,0);B(.12,.3,.08,0xd9414f,-.2,1.2,-.26).rotation.z=.4;
+    const keg=B(.5,.5,.5,0x6b4a2a,0,.85,-.42);B(.52,.06,.52,0x2b2d4a,0,1.0,-.42);B(.52,.06,.52,0x2b2d4a,0,.7,-.42);const f=G(.08,.22,.08,0xff5a3c,0,1.2,-.42,null,.9);fuses.push(f);
+    return{body,head,legs:LG([[-.14,.17,0,.15,.34],[.14,.17,0,.15,.34]],0x3b2d2a)}},
+  ram(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3);
+    const body=B(.95,.75,1.35,col,0,.72,-.05);B(1.0,.25,1.0,dk,0,1.15,-.1);for(let k=0;k<3;k++)B(.12,.18,.12,0xcfd6e3,0,1.32,-.45+k*.35);
+    const head=B(.7,.6,.55,dk,0,.78,.88);B(.8,.5,.18,0x9aa3b8,0,.85,1.18);for(const s of[-1,1]){B(.1,.4,.1,0xf1e6c8,s*.4,1.1,1.05).rotation.z=s*.5;G(.1,.07,.04,0xff6a3a,s*.18,.95,1.28,null,.9)}B(.22,.1,.1,0x5a5a6a,0,.6,1.22);
+    return{body,head,legs:LG([[-.32,.2,-.45,.22,.4],[.32,.2,-.45,.22,.4],[-.32,.2,.45,.22,.4],[.32,.2,.45,.22,.4]],shadeHex(col,-.45))}},
+  flyer(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3);
+    const body=B(.6,.55,.75,col,0,.6,0);B(.4,.3,.05,shadeHex(col,.3),0,.55,.38);const head=B(.48,.42,.42,col,0,.88,.45);B(.14,.1,.22,0xffb13d,0,.82,.74);
+    for(const s of[-1,1])G(.1,.1,.04,0xff3a4a,s*.12,.95,.67,null,1);const w1=K(1.2,.06,.5,dk,-.88,.75,0),w2=K(1.2,.06,.5,dk,.88,.75,0);g.userData.wings=[w1,w2];B(.3,.06,.35,dk,0,.6,-.48);
+    return{body,head,legs:[]}},
+  shaman(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.35);
+    const body=B(.7,.8,.55,col,0,.62,0);B(.75,.2,.6,dk,0,.25,0);for(let k=0;k<4;k++)B(.08,.18,.04,0xffcf3d,-.24+k*.16,.55,.29);
+    const head=B(.5,.48,.48,0xe8e0cc,0,1.24,.06);B(.12,.12,.03,0x1d1f33,-.12,1.26,.31);B(.12,.12,.03,0x1d1f33,.12,1.26,.31);B(.06,.12,.03,0x1d1f33,0,1.14,.31);for(let k=-1;k<=1;k++)B(.08,.35,.08,pick([0xd9414f,0x5cc08c,0x4f9cf2]),k*.14,1.6,-.12).rotation.z=k*.3;
+    const st=K(.08,1.5,.08,0x6b5235,.48,.9,.22);const orb=G(.22,.22,.22,0x7dff9a,.48,1.72,.22,null,.9);g.userData.orb=orb;
+    return{body,head,legs:LG([[-.16,.1,0,.18,.2],[.16,.1,0,.18,.2]],dk)}},
+  goblin(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);
+    const body=B(.5,.55,.4,0x5a4a35,0,.6,0);const head=B(.5,.46,.46,col,0,1.12,.04);for(const s of[-1,1]){B(.36,.12,.08,col,s*.38,1.2,0).rotation.z=s*.35;B(.14,.12,.04,0xbfe8ff,s*.12,1.18,.26);box(.06*sc,.06*sc,.02,0x1d1f33,0,0,.02*sc,g.children[g.children.length-1])}
+    B(.42,.06,.04,0x3b3f55,0,1.18,.25);B(.14,.12,.12,shadeHex(col,-.15),0,1.06,.3);B(.4,.12,.4,0x6b2d6b,0,1.38,0);
+    const w=K(.08,.5,.08,0xffcf3d,.32,.7,.18);w.rotation.x=.6;B(.22,.08,.08,0xbdb6d6,.32,.95,.32);B(.3,.3,.18,0x8a6a45,-.1,.6,-.28);
+    return{body,head,legs:LG([[-.13,.16,0,.14,.32],[.13,.16,0,.14,.32]],0x3b2d2a)}}});
+function enemyAnim(e,dt){const ud=e.group.userData;const t=simTime+e.bob*.1;
+  for(let k=0;k<e.legs.length;k++){const L=e.legs[k];if(!L.alive||e.type==='spider'||e.type==='beetle')continue;L.mesh.rotation.x=Math.sin(e.bob*1.4+(k%2?Math.PI:0)+(k>1?Math.PI:0))*.45}
+  if(e.type==='spider'||e.type==='beetle')for(let k=0;k<e.legs.length;k++){const L=e.legs[k];if(L.alive)L.mesh.rotation.x=Math.sin(e.bob*2+k)*.25}
+  if(ud.tail)ud.tail.rotation.y=Math.sin(t*(e.type==='wolf'?9:4))*.5;
+  if(ud.jaw)ud.jaw.rotation.x=Math.max(0,Math.sin(t*6))*.35;
+  if(ud.squish&&e.vmeshes&&e.vmeshes[0]){const s=1+Math.sin(t*5)*.08;e.vmeshes[0].scale.set(1+(1-s)*.6,s,1+(1-s)*.6)}
+  if(ud.hop){const o=Math.abs(Math.sin(t*9))*.25*e.sc*.3;e.group.position.y+=o-(e.hopO||0);e.hopO=o}
+  if(ud.arms){if(e.type==='brute'){const beat=(t%7)<1.2;ud.arms[0].rotation.x=beat?-1.5+Math.sin(t*20)*.3:Math.sin(e.bob*1.4)*.4;ud.arms[1].rotation.x=beat?-1.5-Math.sin(t*20)*.3:-Math.sin(e.bob*1.4)*.4}else{ud.arms[0].rotation.x=-.9+Math.sin(e.bob*1.6)*.5;ud.arms[1].rotation.x=-.9-Math.sin(e.bob*1.6)*.5}}
+  if(ud.orb)ud.orb.position.y=ud.orb.userData.y0===undefined?(ud.orb.userData.y0=ud.orb.position.y):ud.orb.userData.y0+Math.sin(t*3)*.12*e.sc;
+  if(e.type==='wolf'&&ud.headA){const howl=(t%11)<1.4;ud.headA.rotation.x=howl?-.7:0;if(howl&&Math.random()<dt*.6)label({x:e.pos.x,y:e.gy+e.sc*1.6,z:e.pos.z},'Auuu!','#9aa0b2')}
+  if(ud.wings&&e.type==='imp'){ud.wings[0].rotation.z=Math.sin(t*14)*.5;ud.wings[1].rotation.z=-Math.sin(t*14)*.5}}

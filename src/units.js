@@ -65,14 +65,14 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   body=box(.9*sc,.7*sc,1.1*sc,col,0,.5*sc,0,g);head=box(.7*sc,.6*sc,.6*sc,col,0,.6*sc,.75*sc,g);eyes(head,.08*sc,.32*sc,.17*sc);
   for(const sx of [-1,1])for(const sz of [-1,1]){const lg=box(.22*sc,.4*sc,.22*sc,type==='colossus'?0xcfd6e3:0x2b2d4a,sx*.35*sc,.2*sc,sz*.35*sc,g);legs.push({mesh:lg,hp:150,alive:true,ox:sx*.35*sc,oz:sz*.35*sc})}}
   if(!BIG(type)&&!CREATURES[type])decorate(type,sc,col,g,body,head);
-  if(type==='ram'||type==='rammer')box(.35*US,.35*US,.9*US,0xcfd6e3,0,.75*sc,1.2*sc/1.35,g);
+  if((type==='ram'&&!NEWLOOK.ram||type==='rammer'))box(.35*US,.35*US,.9*US,0xcfd6e3,0,.75*sc,1.2*sc/1.35,g);
   if(type==='boss'){box(.4*US,1.2*US,.4*US,0xcfd6e3,-.6*US,1.9*US,.6*US,g);box(.4*US,1.2*US,.4*US,0xcfd6e3,.6*US,1.9*US,.6*US,g)}
   if(type==='colossus'){body.position.y=.9*sc;head.position.y=1.05*sc;for(const L of legs){L.mesh.scale.y=2.6;L.mesh.position.y=.5*sc}box(.5*US,1.6*US,.5*US,0xcfd6e3,-.9*US,2.4*sc,.9*US,g);box(.5*US,1.6*US,.5*US,0xcfd6e3,.9*US,2.4*sc,.9*US,g);box(1.4*sc,.3*US,.3*US,0xec5f6b,0,1.3*sc,.9*sc,g)}
   if(type==='queen'){for(let k=-2;k<=2;k++){const c=box(.22*US,.5*US*(k%2?1:1.5),.22*US,0xffcf3d,k*.28*sc,1.05*sc,.75*sc,g);c.material.emissive.setHex(0xffcf3d);c.material.emissiveIntensity=.6}box(1.1*sc,.9*sc,.12*sc,0x5b2e8a,0,.6*sc,-.6*sc,g)}
   if(type==='titan'){for(const p of [body,head]){p.material.emissive.setHex(0xff5a1a);p.material.emissiveIntensity=.55;p.userData.em=0xff5a1a}for(let k=0;k<6;k++)box(.3*sc,.3*sc,.3*sc,0x2e2740,rnd(-.4,.4)*sc,rnd(.4,1)*sc,rnd(-.5,.5)*sc,g)}
-  if(type==='climber'){box(.5*US,.15*US,.9*US,0x3f6b3c,0,.95*US,0,g);for(const s of[-1,1])box(.15*US,.5*US,.15*US,0x3f6b3c,s*.5*US,.9*US,.3*US,g)}
-  if(type==='sapper'){const k=box(.5*US,.5*US,.5*US,0x2b2d4a,0,1.0*US,-.1*US,g);k.material.emissive.setHex(0xff5a3c);k.material.emissiveIntensity=.6;fuses.push(k)}
-  if(type==='flyer'){const w1=box(1.1*US,.08*US,.4*US,0xd9ecf7,-.7*US,.75*US,0,g),w2=box(1.1*US,.08*US,.4*US,0xd9ecf7,.7*US,.75*US,0,g);g.userData.wings=[w1,w2]}
+  if(type==='climber'&&!NEWLOOK.climber){box(.5*US,.15*US,.9*US,0x3f6b3c,0,.95*US,0,g);for(const s of[-1,1])box(.15*US,.5*US,.15*US,0x3f6b3c,s*.5*US,.9*US,.3*US,g)}
+  if(type==='sapper'&&!NEWLOOK.sapper){const k=box(.5*US,.5*US,.5*US,0x2b2d4a,0,1.0*US,-.1*US,g);k.material.emissive.setHex(0xff5a3c);k.material.emissiveIntensity=.6;fuses.push(k)}
+  if(type==='flyer'&&!NEWLOOK.flyer){const w1=box(1.1*US,.08*US,.4*US,0xd9ecf7,-.7*US,.75*US,0,g),w2=box(1.1*US,.08*US,.4*US,0xd9ecf7,.7*US,.75*US,0,g);g.userData.wings=[w1,w2]}
   if(type==='mistking'){box(1.3*sc,.9*sc,.25*sc,0x1a1430,0,.65*sc,-.6*sc,g);for(let k=-2;k<=2;k++){const c=box(.14*sc,.35*sc*(k%2?1:1.6),.14*sc,0xb56cf2,k*.16*sc,1.05*sc,.75*sc,g);c.material.emissive.setHex(0xb56cf2);c.material.emissiveIntensity=.8}for(const s of[-1,1]){const e2=box(.12*sc,.08*sc,.05*sc,0xff4af0,s*.14*sc,.72*sc,1.06*sc,g);e2.material.emissive.setHex(0xff4af0)}box(.1*US,2.4*US,.1*US,0x3b2a50,.85*sc,1.0*sc,.4*sc,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.35*US,0),lmat(0xb56cf2,.95));o.position.set(.85*sc,1.75*sc,.4*sc);g.add(o)}
   if(type==='golem'){for(const s of[-1,1]){box(.55*sc,.5*sc,.55*sc,0x6f8f55,s*.6*sc,.95*sc,.1*sc,g);box(.4*sc,.8*sc,.4*sc,0x75706a,s*.7*sc,.45*sc,.35*sc,g)}box(.3*sc,.15*sc,.1*sc,0xffb13d,0,.7*sc,1.06*sc,g).material.emissive.setHex(0xffb13d)}
   if(type==='wyrm'){const w1=box(1.5*sc,.06*sc,.6*sc,0xb83a2e,-.95*sc,.65*sc,0,g),w2=box(1.5*sc,.06*sc,.6*sc,0xb83a2e,.95*sc,.65*sc,0,g);g.userData.wings=[w1,w2];box(.3*sc,.25*sc,.9*sc,0xe0662c,0,.45*sc,-.95*sc,g);box(.2*sc,.18*sc,.5*sc,0xffb13d,0,.4*sc,-1.55*sc,g);for(const s of[-1,1])box(.08*sc,.25*sc,.08*sc,0xfff2c0,s*.22*sc,1.0*sc,.8*sc,g)}
@@ -80,7 +80,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(type==='general'){box(.12*US,1.5*US,.12*US,0xffcf3d,.85*US,1.3*US,.4*US,g);box(1.2*US,.9*US,.12*US,0x2b2d4a,0,1.0*US,-.75*US,g);for(const s of[-1,1])box(.5*US,.35*US,.6*US,0x8a8fa6,s*.75*US,1.45*US,0,g);const cr=box(.6*US,.25*US,.6*US,0xffcf3d,0,1.95*US,.75*US,g);cr.material.emissive.setHex(0xffcf3d);cr.material.emissiveIntensity=.5}
   if(type==='knight'){box(.08*US,.9*US,.08*US,0xdfe6f0,.45*US,.9*US,.2*US,g);box(.5*US,.5*US,.1*US,0x5e5670,-.45*US,.6*US,.2*US,g);box(.75*US,.15*US,.65*US,0x5e5670,0,1.0*US,.75*US,g)}
   if(type==='archer'){box(.1*US,.9*US,.1*US,0x8a6a45,.4*US,.8*US,.3*US,g)}
-  if(type==='shaman'){box(.1*US,1.4*US,.1*US,0x6b5235,.45*US,.9*US,.2*US,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.2*US,0),lmat(0x7dff9a,.8));o.position.set(.45*US,1.7*US,.2*US);g.add(o)}
+  if(type==='shaman'&&!NEWLOOK.shaman){box(.1*US,1.4*US,.1*US,0x6b5235,.45*US,.9*US,.2*US,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.2*US,0),lmat(0x7dff9a,.8));o.position.set(.45*US,1.7*US,.2*US);g.add(o)}
   if(BIG(type)&&type!=='ship'&&type!=='general'&&!state.__rivalMake)bossLook(type,sc,col,g,body,head);
   if(rarity>=2){head.material.emissive.setHex(RARITY[rarity].c);head.material.emissiveIntensity=.5;head.userData.em=RARITY[rarity].c}
   g.position.set(x,0,z);scene.add(g);
@@ -132,7 +132,7 @@ function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,dat
 const _dir=new THREE.Vector3();
 function enemyWallAt(e,cx,cz){if(!inb(cx,0,cz))return -1;const s=surfE(cx,cz);if(s<=e.gy+1.2)return -1;const y0=Math.max(0,Math.floor(e.gy+.01));for(let y=y0;y<Math.min(H,y0+4);y++){const i=idx(cx,y,cz);if(SOLIDM(vox[i]))return i}return -1}
 function nearMinion(e,reach,dyMax=2.4){for(const m of minions){if(m.wounded)continue;if(hd(m.pos,e.pos)<e.radius+reach&&Math.abs(m.group.position.y-e.group.position.y)<dyMax)return m}return null}
-function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(e.aff==='regen'&&e.hp<e.maxhp&&simTime-(e.lastHit||0)>2.5)e.hp=Math.min(e.maxhp,e.hp+e.maxhp*.04*dt);if(e.affRing)e.affRing.rotation.z+=dt*2;
+function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(!e.stun)enemyAnim(e,dt);if(e.aff==='regen'&&e.hp<e.maxhp&&simTime-(e.lastHit||0)>2.5)e.hp=Math.min(e.maxhp,e.hp+e.maxhp*.04*dt);if(e.affRing)e.affRing.rotation.z+=dt*2;
   if(e.hit>0){e.hit-=dt;if(e.hit<=0)for(const p of e.parts)p.material.emissive.setHex(e.afire>0?0x7a2a00:(p.userData.em||0))}
   const fx=Math.floor(e.pos.x),fz=Math.floor(e.pos.z);
   if(!e.fly){const tg=CLIMBS(e.type)?topY(e.pos.x,e.pos.z):surfE(e.pos.x,e.pos.z);e.gy+=(tg-e.gy)*Math.min(1,dt*(tg<e.gy?5:9));
@@ -400,7 +400,7 @@ function setupChunks(e,body,head){const g=e.group,big=BIG(e.type);e.vmeshes=[];i
   const legSet=new Set(e.legs.map(L=>L.mesh));const wings=new Set(g.userData.wings||[]);const fx=new Set(fuses);
   // corpo + extras estáticos (chifres, placas, chapéus...) viram um único InstancedMesh no espaço do grupo
   let cells=vcells(body,vs,big?900:(e.rarity>=1||e.rival?300:190),true,pat,true);const done=[];
-  for(const m of g.children){if(!m.isMesh||m===body||m===head||legSet.has(m)||wings.has(m)||fx.has(m)||m.children.length)continue;const em=m.material.emissive&&m.material.emissive.getHex()&&m.material.emissiveIntensity>=.5;if(em)continue;const c=vcells(m,vs*.8,big?120:28,false,null,false);if(c.length){cells=cells.concat(c.map(x=>({...x,key:x.key+.6})));done.push(m)}}
+  for(const m of g.children){if(!m.isMesh||m===body||m===head||legSet.has(m)||wings.has(m)||fx.has(m)||m.children.length||m.userData.keep)continue;const em=m.material.emissive&&m.material.emissive.getHex()&&m.material.emissiveIntensity>=.5;if(em)continue;const c=vcells(m,vs*.8,big?120:28,false,null,false);if(c.length){cells=cells.concat(c.map(x=>({...x,key:x.key+.6})));done.push(m)}}
   {const cap=big?760:(e.rarity>=1||e.rival?320:230);if(cells.length>cap){const inn=cells.filter(c=>!c.sh),sh=cells.filter(c=>c.sh);cells=sh.concat(inn.slice(0,Math.max(0,cap-sh.length)));if(cells.length>cap*1.25)cells=cells.filter((c,i)=>!c.sh||i%Math.ceil(cells.length/(cap*1.25))===0||c.key>1.9)}}
   const bv=vinst(e,cells,g,body);if(bv.length){body.visible=false;for(const m of done)g.remove(m);e.parts[0]=bv[0].im}
   let hv=[];if(head&&head!==body&&head.geometry.parameters){const hc=vcells(head,vs*.85,big?260:80,true,null,true);hc.forEach(c=>c.pos.sub(head.position).applyQuaternion(_vq.copy(head.quaternion).invert()));hv=vinst(e,hc,head,head);if(hv.length){hv[0].im.position.set(0,0,0);head.material.colorWrite=false;head.material.depthWrite=false;head.castShadow=false;e.headVox=hv[0].im;e.parts.push(hv[0].im)}}
