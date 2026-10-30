@@ -959,3 +959,13 @@ window.__champ=(af)=>{state.champT=simTime;const w=state.wave;if(af)state.wave=M
 window.__champAll=()=>enemies.filter(e=>e.champ&&!e.dead).map(e=>({af:e.champAff,n:e.T.n,x:e.pos.x,z:e.pos.z,hp:Math.round(e.hp),mx:Math.round(e.maxhp),sh:Math.round(e.shield||0),sp:+e.speed.toFixed(2)}));
 window.__champHurt=(af,f)=>{const e=enemies.find(e=>e.champAff===af&&!e.dead);if(e)dmgEnemy(e,e.maxhp*f+(e.shield||0),false)};
 window.__pf=(pf,dx,dz)=>{state.inv.blocks[16]=(state.inv.blocks[16]||0)+9;state.inv.blocks[31]=(state.inv.blocks[31]||0)+9;state.build.pf=pf;state.build.rot=0;placePrefab(idx(CX+dx,GY,CZ+dz));return [CX,CZ,blueList.length]};
+
+// v3.4 marcos de horda: a cada 10 hordas inéditas (10, 20, 30…) uma celebração com recompensa permanente
+const MARK_T=['de Bronze','de Prata','de Ouro','de Platina','de Diamante','de Obsidiana','Rúnico','Eterno'];let _fw=null;
+function milestone(w){state.marks=state.marks||[];if(state.marks.includes(w))return;state.marks.push(w);const k=Math.min(MARK_T.length-1,w/10-1),nm='Estandarte '+MARK_T[k];
+  state.dmgMul*=1.06;const g=Math.round(80+w*8);state.material+=g;
+  spawnLoot(CX+1.5,GY+3,CZ+1.5,'equip',4,{item:makeEquip(4)});spawnLoot(CX-1.5,GY+3,CZ-1.5,'treasure',w>=30?4:3,{});
+  const el=$('mark');if(el){el.innerHTML=`<b>MARCO · HORDA ${w}</b><span>🏳️ ${nm}</span><i>+6% de dano permanente · +${g} material · lendário garantido</i>`;el.hidden=false;el.classList.remove('go','out');void el.offsetWidth;el.classList.add('go');clearTimeout(el._t);clearTimeout(el._t2);if(!window.__revealHold)el._t=setTimeout(()=>el.classList.add('out'),4000);if(!window.__revealHold)el._t2=setTimeout(()=>{el.hidden=true;el.classList.remove('out')},4700)}
+  _fw={t:5,n:0};SFX.fanfare&&SFX.fanfare(true);shake=Math.max(shake,.3);updateHud&&updateHud()}
+function markTick(dt){if(!_fw)return;_fw.t-=dt;_fw.n-=dt;if(_fw.n<=0){_fw.n=rnd(.18,.4);const c=pick([0xffd23d,0xff5a7a,0x5cc0ff,0x7dff9a,0xffffff,0xff9a3c]);const a=rnd(0,6.28),r=rnd(4,14);spawnDebris(CX+Math.cos(a)*r,GY+rnd(16,26),CZ+Math.sin(a)*r,c,22,.35)}if(_fw.t<=0)_fw=null}
+window.__mark=(w)=>{if(state.marks)state.marks=state.marks.filter(x=>x!==w);milestone(w);return [state.marks,state.dmgMul]};
