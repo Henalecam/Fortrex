@@ -428,7 +428,7 @@ voxMesh.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(VCAP*3
 const vslot=new Int32Array(N).fill(-1),slotVox=new Int32Array(VCAP).fill(-1);let vcount=0;
 function freeSlot(i){const s=vslot[i];if(s<0)return;const last=vcount-1;if(s!==last){const j=slotVox[last];voxMesh.instanceMatrix.copyArray?0:0;const a=voxMesh.instanceMatrix.array,c=voxMesh.instanceColor.array;for(let k=0;k<16;k++)a[s*16+k]=a[last*16+k];for(let k=0;k<3;k++)c[s*3+k]=c[last*3+k];slotVox[s]=j;vslot[j]=s}slotVox[last]=-1;vslot[i]=-1;vcount--;voxMesh.count=vcount}
 function exposed(i){const x=ix(i),y=iy(i),z=iz(i);if(x===0||z===0||x===W-1||z===D-1||y===H-1)return true;for(const [dx,dy,dz] of NB6){const ny=y+dy;if(ny<0)continue;if(!SOLIDM(vox[idx(x+dx,ny,z+dz)]))return true}return false}
-function resetVoxSlots(){vslot.fill(-1);slotVox.fill(-1);vcount=0;voxMesh.count=0}
+function resetVoxSlots(){if(typeof gtData!=='undefined'){gtData.fill(0);gtDirty=true}vslot.fill(-1);slotVox.fill(-1);vcount=0;voxMesh.count=0}
 const FLN=9000;const fluidMesh=new THREE.InstancedMesh(voxGeo,new THREE.MeshBasicMaterial({transparent:true,opacity:.86}),FLN);
 fluidMesh.frustumCulled=false;fluidMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);fluidMesh.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(FLN*3),3);scene.add(fluidMesh);
 const fluidSlot=new Map(),fluidFree=[];
@@ -437,11 +437,19 @@ const fluids=new Set(),fluidSrc=new Set(),burning=new Map(),specials=new Set(),d
 function resetFluidSlots(){fluidSlot.clear();fluidFree.length=0;for(let i=FLN-1;i>=0;i--){fluidFree.push(i);fluidMesh.setMatrixAt(i,_zero)}fluidDirty=true}
 resetFluidSlots();
 
+// flat ground: a ground-layer cell whose four neighbours are solid only shows its top face, so instead of a cube instance
+// it becomes one texel (GTS×GTS px) of a single ground plane — removes ~35k of the ~55k instances the GPU draws
+const GTS=4,gtData=new Uint8Array(W*GTS*D*GTS*4);const groundTex=new THREE.DataTexture(gtData,W*GTS,D*GTS,THREE.RGBAFormat);groundTex.magFilter=THREE.NearestFilter;groundTex.minFilter=THREE.LinearFilter;groundTex.flipY=false;let gtDirty=true;
+const groundPlane=(()=>{const g=new THREE.PlaneGeometry(W,D);g.rotateX(-Math.PI/2);const uv=g.attributes.uv;for(let k=0;k<uv.count;k++)uv.setY(k,1-uv.getY(k));const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({map:groundTex,transparent:false,alphaTest:.5}));m.position.set(W/2,GY-.03,D/2);m.receiveShadow=true;scene.add(m);return m})();
+function flatGround(i){const x=ix(i),z=iz(i);if(iy(i)!==GY-1||x===0||z===0||x===W-1||z===D-1)return false;const y=GY-1;return SOLIDM(vox[idx(x+1,y,z)])&&SOLIDM(vox[idx(x-1,y,z)])&&SOLIDM(vox[idx(x,y,z+1)])&&SOLIDM(vox[idx(x,y,z-1)])}
+function setTexel(x,z,col){const r=col?Math.round(col.r*255):0,g=col?Math.round(col.g*255):0,b=col?Math.round(col.b*255):0,a=col?255:0;const row=W*GTS;
+  for(let dz=0;dz<GTS;dz++)for(let dx=0;dx<GTS;dx++){const edge=dx===GTS-1||dz===GTS-1;const o=((z*GTS+dz)*row+x*GTS+dx)*4;const k=edge?.94:1;gtData[o]=r*k;gtData[o+1]=g*k;gtData[o+2]=b*k;gtData[o+3]=a}gtDirty=true}
 function paint(i){const m=vox[i],x=ix(i),z=iz(i),y=iy(i);
-  if(FLUID(m)){freeSlot(i);voxDirty=true;let sl=fluidSlot.get(i);if(sl===undefined){if(!fluidFree.length)return;sl=fluidFree.pop();fluidSlot.set(i,sl)}
+  if(FLUID(m)){freeSlot(i);voxDirty=true;if(y===GY-1)setTexel(x,z,null);let sl=fluidSlot.get(i);if(sl===undefined){if(!fluidFree.length)return;sl=fluidFree.pop();fluidSlot.set(i,sl)}
     const lv=clamp(hp[i],1,4)/4;_m.makeScale(1,lv,1);_m.setPosition(x+.5,y+lv/2,z+.5);fluidMesh.setMatrixAt(sl,_m);_c.setHex(MAT[m].c);if(m===8)_c.offsetHSL(rnd(-.02,.03),0,rnd(-.07,.07));fluidMesh.setColorAt(sl,_c);fluidDirty=true;return}
   const fsl=fluidSlot.get(i);if(fsl!==undefined){fluidMesh.setMatrixAt(fsl,_zero);fluidSlot.delete(i);fluidFree.push(fsl);fluidDirty=true}
-  voxDirty=true;if(!m||!exposed(i)){freeSlot(i);return}
+  voxDirty=true;if(y===GY-1){if(m&&SOLIDM(m)&&flatGround(i)){freeSlot(i);_c.setHex(MAT[m].c);const j=(((x*7+z*13+y*3)%7)/7*.12-.06)*(m===12||m===13?.45:1);_c.offsetHSL(0,0,j);const dmg=1-hp[i]/maxHpOf(m);if(dmg>0)_c.offsetHSL(0,-dmg*.3,-dmg*.2);if(burning.has(i))_c.lerp(BURN,.55);setTexel(x,z,_c);return}setTexel(x,z,null)}
+  if(!m||!exposed(i)){freeSlot(i);return}
   let sl=vslot[i];if(sl<0){if(vcount>=VCAP)return;sl=vcount++;vslot[i]=sl;slotVox[sl]=i;voxMesh.count=vcount}
   _m.makeScale(.97,.97,.97);_m.setPosition(x+.5,y+.5,z+.5);voxMesh.setMatrixAt(sl,_m);
   _c.setHex(m===7&&state.metalDoor?0x7f8ea6:MAT[m].c);const j=(((x*7+z*13+y*3)%7)/7*.12-.06)*(m===12||m===13?.45:1);_c.offsetHSL(0,0,j);if(m===19)_c.offsetHSL(0,.1,.06);
@@ -449,7 +457,7 @@ function paint(i){const m=vox[i],x=ix(i),z=iz(i),y=iy(i);
   if(burning.has(i))_c.lerp(BURN,.55);
   voxMesh.setColorAt(sl,_c)}
 function touch(i){paint(i);const x=ix(i),y=iy(i),z=iz(i);for(const [dx,dy,dz] of NB6){const nx=x+dx,ny=y+dy,nz=z+dz;if(inb(nx,ny,nz)){const j=idx(nx,ny,nz);if(SOLIDM(vox[j]))paint(j)}}}
-function flushVox(){if(voxDirty){voxMesh.instanceMatrix.needsUpdate=true;voxMesh.instanceColor.needsUpdate=true;voxDirty=false}if(fluidDirty){fluidMesh.instanceMatrix.needsUpdate=true;fluidMesh.instanceColor.needsUpdate=true;fluidDirty=false}}
+let gtT=0;function flushVox(){if(gtDirty&&performance.now()-gtT>200){gtT=performance.now();groundTex.needsUpdate=true;gtDirty=false}if(voxDirty){voxMesh.instanceMatrix.needsUpdate=true;voxMesh.instanceColor.needsUpdate=true;voxDirty=false}if(fluidDirty){fluidMesh.instanceMatrix.needsUpdate=true;fluidMesh.instanceColor.needsUpdate=true;fluidDirty=false}}
 
 // grass tufts (decor)
 const TUFT=6000,tuftMesh=new THREE.InstancedMesh(new THREE.BoxGeometry(.35,.18,.35),new THREE.MeshLambertMaterial({color:0x7fc98f}),TUFT);tuftMesh.receiveShadow=true;tuftMesh.frustumCulled=false;scene.add(tuftMesh);
@@ -2124,7 +2132,7 @@ let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAc
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.67;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.68;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2147,7 +2155,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.64,'🏜️❄️🐸 Cada bioma tem sua regra: Rubro — calor do meio-dia cansa soldados fora das muralhas; Gelada — lagos congelados racham sob inimigos pesados (que caem na água gelada); Bruma — à noite a horda fica escondida na névoa até chegar perto.'],
   [0.65,'🌾 Campos Verdes: colheita após cada horda rende material. A regra de cada bioma aparece na tela inicial e ao passar o mouse no relógio.'],
   [0.66,'⚡ Opção Gráficos leves (Automação → Opções): sombras simples e resolução menor; já vem ligada no celular.'],
-  [0.67,'⚡ Gráficos leves agora desligam as sombras e a suavização — bem mais rápido em celulares e notebooks fracos.']];
+  [0.67,'⚡ Gráficos leves agora desligam as sombras e a suavização — bem mais rápido em celulares e notebooks fracos.'],
+  [0.68,'🚀 O chão plano agora é desenhado como uma única superfície em vez de milhares de cubos: ~30% menos blocos para a placa de vídeo desenhar.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
