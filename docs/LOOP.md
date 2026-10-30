@@ -72,6 +72,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.34: 🏴‍☠️ Desembarque pirata (evento a partir da horda 8): um navio encalha a ~44 da cidadela, desembarca piratas (chapéu, tapa-olho, sabre) e dispara canhões nas suas armas; afundá-lo solta 2 tesouros e explode em fogo.
 
+- v0.34.1: navio pirata legível (casco inteiro com proa, popa e faixa clara; não se desmancha em pedaços) e com barra de vida no topo.
+
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.

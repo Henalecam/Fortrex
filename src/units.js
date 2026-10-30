@@ -98,6 +98,7 @@ function hurtEnemy(e,d,at){if(e.dead)return;
   const crit=Math.random()<.1+state.critBonus;if(crit)d*=2;if(Math.random()<.35)SFX.hurt();dmgEnemy(e,d,true,crit)}
 function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t=e.type,big=BIG(t);
   if(t==='slime'&&!e.small){for(let k=0;k<2;k++){const s=makeEnemy('slime',e.rarity,e.pos.x+rnd(-.8,.8),e.pos.z+rnd(-.8,.8));s.small=true;s.group.scale.setScalar(.6);s.maxhp*=.35;s.hp=s.maxhp;s.speed*=1.25;s.radius*=.6}}
+  if(state.boss===e)hideBoss();
   if(t==='ship'){for(let k=0;k<2;k++)spawnLoot(e.pos.x+rnd(-2,2),GY+2,e.pos.z+rnd(-2,2),'treasure',Math.min(4,2+Math.floor(state.wave/10)),{});pendingBooms.push({x:e.pos.x,y:GY+1,z:e.pos.z,r:4,dmg:60,o:{src:'env',fire:true},t:.1});toast('🏴‍☠️ Navio pirata afundado! Tesouro na praia.','r4')}
   if(t==='imp')pendingBooms.push({x:e.pos.x,y:e.gy+.5,z:e.pos.z,r:1.8,dmg:22,o:{src:'enemy',fire:true},t:.05});goalEvent('kills');if(big)goalEvent('boss');if(big&&t!=='general'){state.morale=Math.min(100,(state.morale??60)+15);grantRelic(t);if(!OPTS.noCine&&!window.__headless)state.cine={x:e.pos.x,z:e.pos.z,t:2.6,d0:(state.cine&&state.cine.d0)||cam.dist}}
   spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?140:t==='boss'?60:t==='ram'?18:10,big?.8:.4);SFX.shatter(t!=='crawler');
@@ -313,7 +314,7 @@ function gainXP(m,n){if(!m||!minions.includes(m))return;m.xp+=n;while(m.xp>=xpNe
 
 // ───────── body destruction: enemies are built from chunks that break off as they take damage
 const _cv=new THREE.Vector3();
-function setupChunks(e,body,head){const g=e.group,big=BIG(e.type);const grid=e.type==='colossus'?[5,4,6]:big?[4,3,5]:e.type==='flyer'?null:e.rarity>=1||e.rival?[3,2,3]:[2,2,2];const cubes=[];
+function setupChunks(e,body,head){const g=e.group,big=BIG(e.type);const grid=e.type==='ship'?null:e.type==='colossus'?[5,4,6]:big?[4,3,5]:e.type==='flyer'?null:e.rarity>=1||e.rival?[3,2,3]:[2,2,2];const cubes=[];
   if(grid){const p=body.geometry.parameters;const sx=p.width*body.scale.x/grid[0],sy=p.height*body.scale.y/grid[1],sz=p.depth*body.scale.z/grid[2];const geo=new THREE.BoxGeometry(sx*.97,sy*.97,sz*.97);
     for(let i=0;i<grid[0];i++)for(let j=0;j<grid[1];j++)for(let k=0;k<grid[2];k++){const c=new THREE.Mesh(geo,body.material);const ox=(i-(grid[0]-1)/2)*sx,oy=(j-(grid[1]-1)/2)*sy,oz=(k-(grid[2]-1)/2)*sz;c.position.set(body.position.x+ox,body.position.y+oy,body.position.z+oz);c.castShadow=true;g.add(c);
       const r=Math.max(Math.abs(ox)/(p.width*body.scale.x/2),Math.abs(oy)/(p.height*body.scale.y/2),Math.abs(oz)/(p.depth*body.scale.z/2));cubes.push({m:c,key:r+rnd(0,.45)+(oy>0?.15:0)})}
@@ -336,7 +337,7 @@ function throwRock(e,tx,tz,r,dmg,color,fire){markGround(tx,tz,r,fire?0xff7a2a:0x
 
 // ───────── creature anatomies beyond the classic quadruped
 const CREATURES={
-  ship(sc,col,g){const body=box(2.6*sc,.9*sc,1.2*sc,col,0,.6*sc,0,g);box(2.9*sc,.25*sc,1.3*sc,0x5a3a20,0,1.05*sc,0,g);const head=box(.6*sc,.6*sc,.9*sc,0x5a3a20,1.2*sc,1.35*sc,0,g);box(.12*sc,2.6*sc,.12*sc,0x6b4a2a,0,2.3*sc,0,g);const sail=box(.08*sc,1.5*sc,1.6*sc,0xf2ead8,.1*sc,2.5*sc,0,g);box(.06*sc,.5*sc,.7*sc,0x2b2d4a,0,3.7*sc,0,g);for(const s of[-1,1])box(.35*sc,.2*sc,.2*sc,0x2b2d4a,s*.6*sc,.85*sc,.65*sc,g);return{body,head,legs:[]}},
+  ship(sc,col,g){const body=box(2.6*sc,.9*sc,1.2*sc,0x6b4426,0,.6*sc,0,g);box(2.9*sc,.25*sc,1.3*sc,0x4a2e18,0,1.05*sc,0,g);box(2.62*sc,.12*sc,1.22*sc,0xd9c08a,0,.35*sc,0,g);box(.7*sc,.5*sc,.9*sc,0x6b4426,-1.5*sc,1.0*sc,0,g);box(.5*sc,.35*sc,.6*sc,0x6b4426,1.6*sc,.75*sc,0,g);const head=box(.6*sc,.6*sc,.9*sc,0x5a3a20,1.2*sc,1.35*sc,0,g);box(.12*sc,2.6*sc,.12*sc,0x6b4a2a,0,2.3*sc,0,g);const sail=box(.08*sc,1.5*sc,1.6*sc,0xf2ead8,.1*sc,2.5*sc,0,g);box(.06*sc,.5*sc,.7*sc,0x2b2d4a,0,3.7*sc,0,g);for(const s of[-1,1])box(.35*sc,.2*sc,.2*sc,0x2b2d4a,s*.6*sc,.85*sc,.65*sc,g);return{body,head,legs:[]}},
   pirate(sc,col,g){const body=box(.6*sc,.75*sc,.45*sc,0x8a2f2f,0,.8*sc,0,g);const head=box(.5*sc,.45*sc,.45*sc,col,0,1.4*sc,.02*sc,g);eyes(head,.05*sc,.23*sc,.12*sc);box(.62*sc,.14*sc,.6*sc,0x2b2d4a,0,1.68*sc,0,g);box(.3*sc,.1*sc,.05*sc,0x2b2d4a,.1*sc,1.47*sc,.24*sc,g);box(.06*sc,.6*sc,.06*sc,0xdfe6f0,.4*sc,.95*sc,.25*sc,g);
     const legs=[];for(const s of[-1,1]){const lg=box(.16*sc,.4*sc,.16*sc,0x3b2d2a,s*.15*sc,.2*sc,0,g);legs.push({mesh:lg,alive:true,ox:s*.15*sc,oz:0})}return{body,head,legs}},
   wolf(sc,col,g){const body=box(.6*sc,.55*sc,1.4*sc,col,0,.6*sc,0,g);const head=box(.5*sc,.45*sc,.55*sc,col,0,.8*sc,.9*sc,g);box(.3*sc,.22*sc,.35*sc,shadeHex(col,-.2),0,.68*sc,1.25*sc,head.parent);eyes(head,.1*sc,.28*sc,.13*sc);
