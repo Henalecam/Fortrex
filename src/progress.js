@@ -332,3 +332,18 @@ function sendExpedition(){if(state.expedition||state.phase!=='rest')return;const
 function expeditionReturn(){const X=state.expedition;if(!X||state.wave<X.back)return;state.expedition=null;let n=0;for(const m of minions)if(m.away){m.away=false;m.group.visible=true;m.pos.set(GATE.x+rnd(-2,2),standY(GATE.x,GATE.z+3),GATE.z+3);n++}
   const g=expReward();spawnLoot(GATE.x,GY+1.5,GATE.z+3,'material',0,{amount:g});if(Math.random()<.35+X.lvl*.1)spawnLoot(GATE.x+1,GY+1.5,GATE.z+3,'treasure',Math.max(1,Math.min(4,rollRarity(.05+state.wave*.006)+1)),{});
   toast(`🧭 A expedição voltou com ${g} material${n?'':''}! Os coletores estão no portão.`,'r4');SFX.open()}
+
+// the wandering stranger: sometimes after a wave a hooded traveller offers a risky deal (accept one or walk away)
+const DEALS={
+  blood:{ico:'🩸',n:'Pacto de sangue',d:w=>`+${150+w*12} material agora, mas a próxima horda vem com 50% mais inimigos.`,ok:()=>true,go(w){state.material+=150+w*12;state.nextWaveMul=1.5}},
+  bless:{ico:'✨',n:'Bênção inquieta',d:()=>'Armas +25% de dano nas próximas 3 hordas, mas a moral cai 25.',ok:()=>true,go(w){state.blessUntil=w+2;state.morale=Math.max(0,(state.morale??60)-25)}},
+  relic:{ico:'🗝️',n:'Relíquia roubada',d:()=>'Pague 350 material por uma relíquia aleatória.',ok:()=>state.material>=350,go(){state.material-=350;grantRelic(pick(Object.keys(RELICS)))}},
+  mercs:{ico:'🗡️',n:'Mercenários',d:w=>`Pague ${80+w*6} material: 4 soldados raros se juntam a você agora.`,ok:w=>state.material>=80+w*6,go(w){state.material-=80+w*6;for(let k=0;k<4;k++)makeMinion('sol',2,GATE.x+rnd(-2,2),GATE.z+3)}},
+  gamble:{ico:'🎲',n:'Dados do viajante',d:()=>'Aposte 100 material: 50% de chance de receber 260.',ok:()=>state.material>=100,go(){state.material-=100;if(Math.random()<.5){state.material+=260;toast('🎲 Você ganhou 260 material!','r4')}else toast('🎲 O viajante leva seus 100 material e some na estrada.','r2')}}};
+function strangerVisit(){const w=state.wave;if(w<6||state.choosing||Math.random()>.22||state.lastStranger===w)return;state.lastStranger=w;if(state.autoReward||window.__headless)return;
+  const ks=shuffle(Object.keys(DEALS).filter(k=>DEALS[k].ok(w))).slice(0,2);if(!ks.length)return;state.choosing=true;const box=$('rewardCards');box.innerHTML='';
+  $('rewardTitle').textContent='🧙 Um viajante encapuzado propõe um trato';$('reward').querySelector('.sub').textContent='Aceite um dos tratos ou siga sem ele.';
+  const close=()=>{$('reward').style.display='none';state.choosing=false;updateHud()};
+  for(const k of ks){const D=DEALS[k];const el=document.createElement('button');el.className='rcard r3';el.innerHTML=`<div class="ico">${D.ico}</div><div class="nm">${D.n}</div><div class="ds">${D.d(w)}</div><div class="rr">Trato</div>`;el.onclick=()=>{D.go(w);toast(`${D.ico} ${D.n} aceito.`,'r3');close()};box.appendChild(el)}
+  const no=document.createElement('button');no.className='rcard r0';no.innerHTML='<div class="ico">🚶</div><div class="nm">Recusar</div><div class="ds">O viajante dá de ombros e vai embora.</div>';no.onclick=close;box.appendChild(no);
+  $('reward').style.display='flex';SFX.open()}

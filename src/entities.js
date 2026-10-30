@@ -166,7 +166,7 @@ function enemyAim(e){return new THREE.Vector3(e.pos.x,e.fly?e.group.position.y+.
 function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRivalTurret(t,dt);const man=t.gunner&&t.gunner.state==='man';const g=t.gunner;
   if(t.hit>0)t.hit-=dt;if(t.station&&walkCell(Math.floor(t.station.x),Math.floor(t.station.z))<=-99)t.station=findStation(t.pos.x,t.pos.z);
   const rate=(man?1:.45)*(man?g.st.gun*(g.trait==='Olho de Águia'?1.25:1):1)/state.reloadMul;
-  const range=turretRange(t),dmg=t.T.dmg*(1+t.r*.25)*state.dmgMul*(man?1+g.rarity*.1:1);
+  const range=turretRange(t),dmg=t.T.dmg*(1+t.r*.25)*state.dmgMul*((state.blessUntil||0)>=state.wave?1.25:1)*(man?1+g.rarity*.1:1);
   t.reload-=dt*rate;
   let tgt=null,bd=1e9;
   if(state.focus&&!state.focus.dead&&state.focusT>0){const d=hd(state.focus.pos,t.pos);if(d<range*1.3&&!(LOB(t.type)&&state.focus.fly))tgt=state.focus}
