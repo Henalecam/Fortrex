@@ -577,6 +577,8 @@ const PREFABS={
   escada:{ico:'🪜',n:'Escadaria',d:'Degraus de pedra subindo 6 blocos.',cells(){const o=[];for(let k=0;k<6;k++)for(let y=0;y<=k;y++)for(let z=0;z<=1;z++)o.push([k,y,z,3]);return o}},
   portal:{ico:'⛩️',n:'Arco',d:'Arco de pedra 5 de largura e 5 de altura com estandartes.',cells(){const o=[];for(const x of[-2,2])for(let y=0;y<5;y++)o.push([x,y,0,3]);for(let x=-2;x<=2;x++)o.push([x,5,0,3]);o.push([-2,6,0,23],[2,6,0,23]);return o}},
   minado:{ico:'💣',n:'Campo minado',d:'Xadrez de minas 5×5 (usa minas do inventário; faltando, vira espinhos ou pedra).',cells(){const o=[];for(let x=-2;x<=2;x++)for(let z=-2;z<=2;z++)if((x+z)%2===0)o.push([x,0,z,17]);return o}},
+  espetos:{ico:'🌵',n:'Vala de espinhos',d:'Faixa 9×3: espinhos na frente, piche no meio (deixa lento) e murinho atrás. Usa espinhos/piche do inventário.',cells(){const o=[];for(let x=-4;x<=4;x++){o.push([x,0,0,16]);o.push([x,0,1,31]);o.push([x,0,2,3]);o.push([x,1,2,3])}return o}},
+  bastiao:{ico:'🏯',n:'Bastião de canto',d:'Canto em L de muralha grossa (6+6), 5 de altura, com plataforma interna para armas.',cells(){const o=[];for(let k=0;k<6;k++)for(let t=0;t<2;t++){for(let y=0;y<5;y++){o.push([k,y,t,4]);if(k>=2)o.push([t,y,k,4])}if(!(k&1)){o.push([k,5,0,4]);if(k>=2)o.push([0,5,k,4])}}for(let x=2;x<=3;x++)for(let z=2;z<=3;z++)for(let y=0;y<4;y++)o.push([x,y,z,3]);return o}},
   barricada:{ico:'🛢️',n:'Barricada de barris',d:'Linha de 7 barris explosivos atrás de um murinho.',cells(){const o=[];for(let x=-3;x<=3;x++){o.push([x,0,0,10]);o.push([x,0,1,3]);o.push([x,1,1,3])}return o}},
 };
 function prefabCells(i){const P=PREFABS[state.build.pf];if(!P)return[];const r=state.build.rot||0;const x0=ix(i),y0=iy(i),z0=iz(i);const o=[];for(const [dx,dy,dz,m] of P.cells()){let ax=dx,az=dz;for(let k=0;k<r;k++){const t=ax;ax=-az;az=t}const x=x0+ax,y=y0+dy,z=z0+az;if(inb(x,y,z))o.push([idx(x,y,z),m])}return o}
@@ -956,3 +958,4 @@ window.__champ=(af)=>{state.champT=simTime;const w=state.wave;if(af)state.wave=M
 
 window.__champAll=()=>enemies.filter(e=>e.champ&&!e.dead).map(e=>({af:e.champAff,n:e.T.n,x:e.pos.x,z:e.pos.z,hp:Math.round(e.hp),mx:Math.round(e.maxhp),sh:Math.round(e.shield||0),sp:+e.speed.toFixed(2)}));
 window.__champHurt=(af,f)=>{const e=enemies.find(e=>e.champAff===af&&!e.dead);if(e)dmgEnemy(e,e.maxhp*f+(e.shield||0),false)};
+window.__pf=(pf,dx,dz)=>{state.inv.blocks[16]=(state.inv.blocks[16]||0)+9;state.inv.blocks[31]=(state.inv.blocks[31]||0)+9;state.build.pf=pf;state.build.rot=0;placePrefab(idx(CX+dx,GY,CZ+dz));return [CX,CZ,blueList.length]};
