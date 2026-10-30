@@ -177,14 +177,15 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   .stats{order:1;width:100%;justify-content:space-between}.stats .st{padding:3px 6px}.stats .st b{font-size:14px}#clock{font-size:11px}
   #top .grow{display:none}#rivalChip{order:2;flex:1;justify-content:center;font-size:12px}#autoMenu{order:3}#event{order:4}
   :root{--dock:92px}
-  .dock{gap:2px;padding:4px;border-radius:16px;flex-wrap:wrap;justify-content:center;overflow:visible}.dock .btn{padding:6px 8px;font-size:15px}.dock .sep{display:none}
-  .dock #next{font-size:12px;padding:6px 10px;flex:1;order:9}.dock #auto,.dock #speed,.dock #snd{order:10}
+  .dock{gap:2px;padding:4px;border-radius:16px;flex-wrap:wrap;justify-content:center;overflow:visible}.dock .btn{padding:6px 6px;font-size:15px}.dock .btn .cost{font-size:10px;margin-left:2px}.dock .sep{display:none}
+  .dock #next{font-size:12px;padding:7px 10px;flex:1;order:9}.dock::before{content:'';flex-basis:100%;order:5;height:0}.dock .btn{padding:6px 5px;font-size:14px}.dock .btn{padding:6px 4px}.dock .badge{font-size:0;min-width:8px;width:8px;height:8px;padding:0;top:3px;right:2px}.dock .btn .cost{margin-left:1px}.dock #auto,.dock #speed,.dock #snd{order:10}
   .side{top:auto!important;left:0!important;right:0!important;width:auto!important;height:min(62vh,520px);border-radius:20px 20px 0 0!important}
   #mcard{left:8px!important;right:8px;width:auto!important}
   #bossbar{top:calc(100px + env(safe-area-inset-top,0px))!important}
 }
 #ftip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--dock) + 22px + env(safe-area-inset-bottom,0px));width:min(520px,calc(100vw - 24px));background:#2b2d4a;color:#fff;border-radius:14px;padding:10px 12px;display:none;align-items:center;gap:10px;font-size:13.5px;line-height:1.35;z-index:6;box-shadow:0 10px 30px rgba(43,45,74,.3)}#ftip span{flex:1}#ftip .btn{background:#fff;color:#2b2d4a;flex:none}
 @media (max-width:560px){#reward{padding:0 10px}#reward h2{font-size:21px}#reward .cards{gap:8px;flex-wrap:nowrap}#reward .rcard{width:auto;flex:1 1 0;min-width:0;padding:10px}#reward .rcard .ds{font-size:12px}#reward .rcard .nm{font-size:15px}}
+@media (max-width:430px){.dock #camHome{display:none}}
 </style>
 
 <canvas id="c"></canvas>
@@ -336,7 +337,7 @@ const FLUID=m=>m===8||m===9;
 const SOLIDM=m=>m!==0&&m!==8&&m!==9;
 const BASIC_BLOCKS=[3,2,4];
 const SPECIAL_BLOCKS=[16,17,18,31,15,10,14,19,20,9,8];
-function maxHpOf(m){return m===7&&state.metalDoor?170:m===6?MAT[6].hp*(1+.45*(state.blockTier||0)):MAT[m].hp}
+function maxHpOf(m){return (state.blueHp||1)*(m===7&&state.metalDoor?170:m===6?MAT[6].hp*(1+.45*(state.blockTier||0)):MAT[m].hp)}
 function isFlam(m){return !!m&&MAT[m].flam===1&&!(m===7&&state.metalDoor)}
 
 const RARITY=[
@@ -787,7 +788,7 @@ function killTurret(t,drop){if(!t.alive)return;t.alive=false;scene.remove(t.grou
   if(drop){const L=spawnLoot(t.pos.x,t.pos.y+.4,t.pos.z,'turret',t.r,{type:t.type});if(L)L.prio=true;toast(`${t.T.n} caiu! Um coletor vai buscá-la.`,'r0')}}
 function damageTurret(t,d){if(!t.alive)return;t.hp-=d;t.hit=.1;if(t.hp<=0)killTurret(t,true)}
 function checkTurretAnchor(i){const t=turretAt(i);if(t)killTurret(t,true)}
-const turretRange=t=>t.T.range*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?((state.expStage||0)>=6?.92:.72):state.ev==='sandstorm'?((state.expStage||0)>=6?.88:.65):1);
+const turretRange=t=>t.T.range*(state.rangeMul||1)*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?((state.expStage||0)>=6||state.rangeMul>1?.92:.72):state.ev==='sandstorm'?((state.expStage||0)>=6?.88:.65):1);
 function enemyAim(e){return new THREE.Vector3(e.pos.x,e.fly?e.group.position.y+.5:e.gy+(e.type==='colossus'?2.2:.9),e.pos.z)}
 function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRivalTurret(t,dt);const man=t.gunner&&t.gunner.state==='man';const g=t.gunner;
   if(t.hit>0)t.hit-=dt;if(t.station&&walkCell(Math.floor(t.station.x),Math.floor(t.station.z))<=-99)t.station=findStation(t.pos.x,t.pos.z);
@@ -1813,6 +1814,10 @@ const UPGRADES_EXTRA=[
   {id:'escola',ico:'🎓',nm:'Escola de artilharia',ds:'+2 vagas de artilheiro.',max:5,cost:l=>60+l*60,go(){}},
   {id:'masonry',ico:'🧱',nm:'Alvenaria',get ds(){const t=state.blockTier||0;const nx=['madeira e pedra viram pedra e metal','pedra vira metal','metal vira obsidiana','obsidiana vira aço rúnico'][Math.min(3,t)];return t>=4?'A cidadela inteira é de aço rúnico.':`Troca os blocos da planta por melhores: ${nx}. Trocados de graça após a horda.`},max:4,cost:l=>[140,280,560,900][l]||999,need:l=>[4,8,13,19][l]||99,go(){upgradeMasonry()}},
   {id:'oil',ico:'🫕',nm:'Óleo fervente',ds:'As muralhas despejam óleo em quem escala: dano, queimadura e o escalador cai para fora. Mais níveis, mais frequente.',max:3,cost:l=>90+l*90,go(){}},
+  {id:'cathedral',ico:'⛪',nm:'Catedral',ds:'Maravilha. Uma relíquia aleatória agora e a moral nunca cai abaixo de 55.',max:1,cost:()=>1100,need:()=>12,go(){const ks=Object.keys(RELICS);grantRelic(pick(ks));state.moraleFloor=Math.max(state.moraleFloor||0,55)}},
+  {id:'observatory',ico:'🔭',nm:'Observatório',ds:'Maravilha. Todas as armas ganham +18% de alcance e enxergam através da bruma.',max:1,cost:()=>900,need:()=>10,go(){state.rangeMul=(state.rangeMul||1)*1.18}},
+  {id:'greatwall',ico:'🏯',nm:'Grande Muralha',ds:'Maravilha. A muralha principal sobe 2 fileiras e os blocos da planta aguentam +25%.',max:1,cost:()=>1400,need:()=>14,go(){state.wallH+=2;state.blueHp=(state.blueHp||1)*1.25;buildBlueprint();if(state.phase!=='wave')startSelfRepair()}},
+  {id:'statue',ico:'🗿',nm:'Estátua do Guardião',ds:'Maravilha. +25% de dano em tudo e heróis ganham 1 nível.',max:1,cost:()=>2000,need:()=>18,go(){state.dmgMul*=1.25;state.bladeMul*=1.25;for(const k in state.heroes||{}){const m=state.heroes[k].m;if(m){m.lvl=(m.lvl||1)+1;recompute(m)}}}},
   {id:'sappers',ico:'💣',nm:'Sapadores',ds:'Espalham mais minas, espinhos, gelo, piche e barris pelo mapa a cada horda, nos caminhos dos Devoradores.',max:5,cost:l=>60+l*55,go(){}}];
 function upReady(U){const lv=state.ups[U.id]||0;return isUnlocked('up',U.id)&&(!U.need||state.wave>=U.need(lv))}
 function upLockWave(U){const lv=state.ups[U.id]||0;return Math.max(unlockWave('up',U.id),U.need?U.need(lv):1)}
@@ -1880,7 +1885,7 @@ function ringFx(x,y,z,r,c){for(let k=0;k<40;k++){const a=k/40*Math.PI*2;spawnDeb
 function heroTick(dt){for(const o of minions)if(o.rage>0){o.rage-=dt;if(Math.random()<dt*6)spawnFlame(o.pos.x,o.group.position.y+1,o.pos.z,.4)}state.volleys=state.volleys||[];for(let i=state.volleys.length-1;i>=0;i--){const V=state.volleys[i];V.t-=dt;if(V.t>0)continue;state.volleys.splice(i,1);
     for(let k=0;k<26;k++)spawnDebris(V.x+rnd(-5,5),GY+rnd(3,9),V.z+rnd(-5,5),0x8a6a45,1,.18);for(const e of enemies)if(!e.dead&&Math.abs(e.pos.x-V.x)<6&&Math.abs(e.pos.z-V.z)<6)dmgEnemy(e,V.dmg,true);SFX.twang()}
   checkHeroes();for(const H of HEROES){const S=state.heroes&&state.heroes[H.id];const b=$('bHero_'+H.id);if(!b)continue;if(!S){b.hidden=true;continue}if(S.cd>0)S.cd-=dt;if(!minions.includes(S.m)){b.hidden=true;continue}b.hidden=false;
-    b.querySelector('.cost').textContent=(S.m.wounded>0?'ferido':S.cd>0?Math.ceil(S.cd)+'s':'pronto')+` · nv ${S.m.lvl||1}`;b.title=`${H.name} (nv ${S.m.lvl||1}): ${H.ab} (${H.key}) — ${H.d}. Sobe de nível lutando.`;b.classList.toggle('on',S.cd<=0&&!(S.m.wounded>0))}}
+    b.querySelector('.cost').textContent=innerWidth<600?(S.m.wounded>0?'✚':S.cd>0?Math.ceil(S.cd)+'s':'✓'):(S.m.wounded>0?'ferido':S.cd>0?Math.ceil(S.cd)+'s':'pronto')+` · nv ${S.m.lvl||1}`;b.title=`${H.name} (nv ${S.m.lvl||1}): ${H.ab} (${H.key}) — ${H.d}. Sobe de nível lutando.`;b.classList.toggle('on',S.cd<=0&&!(S.m.wounded>0))}}
 
 // ───────── the citadel grows by itself: a new outer ring, bastions and a moat are drawn into the blueprint as waves go by.
 // Building is free (repairers' labour is the only limit); after each wave everything mends itself.
@@ -1901,7 +1906,7 @@ function expansionTick(){const st=state.expStage||0;if(st>=EXP_STAGES.length||st
 
 // ───────── morale: victories and night rest lift it, wounds and endless waves wear it down; it speeds up or slows every minion (±20%)
 function moraleTick(dt){let m=state.morale??60;if(state.phase==='wave'){state.waveT=(state.waveT||0)+dt;if(state.waveT>90)m-=dt*.35}else{state.waveT=0;if(isNight())m+=dt*1.2;else m+=dt*.15}
-  state.morale=clamp(m,state.buildings&&state.buildings.granary?45:0,100);const el=$('morale');if(el){const v=Math.round(state.morale);el.textContent=`${v>=70?'😄':v>=40?'🙂':v>=20?'😟':'😩'} ${v}`;el.title=`Moral ${v}%: minions ${v>=50?'+':''}${Math.round((v/100*.4-.2)*100)}% de rendimento. Sobe vencendo hordas, chefes e descansando à noite; cai com feridos e hordas longas.`;el.style.color=v<25?'var(--bad)':''}}
+  state.morale=clamp(m,Math.max(state.buildings&&state.buildings.granary?45:0,state.moraleFloor||0),100);const el=$('morale');if(el){const v=Math.round(state.morale);el.textContent=`${v>=70?'😄':v>=40?'🙂':v>=20?'😟':'😩'} ${v}`;el.title=`Moral ${v}%: minions ${v>=50?'+':''}${Math.round((v/100*.4-.2)*100)}% de rendimento. Sobe vencendo hordas, chefes e descansando à noite; cai com feridos e hordas longas.`;el.style.color=v<25?'var(--bad)':''}}
 // ───────── achievements (kept in the browser across runs) and end-of-run stats
 const ACH=[
   {id:'w10',ico:'🛡️',n:'Sobrevivente',d:'Chegue à horda 10',c:()=>state.wave>=10},

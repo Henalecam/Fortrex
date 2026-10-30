@@ -159,7 +159,7 @@ function killTurret(t,drop){if(!t.alive)return;t.alive=false;scene.remove(t.grou
   if(drop){const L=spawnLoot(t.pos.x,t.pos.y+.4,t.pos.z,'turret',t.r,{type:t.type});if(L)L.prio=true;toast(`${t.T.n} caiu! Um coletor vai buscá-la.`,'r0')}}
 function damageTurret(t,d){if(!t.alive)return;t.hp-=d;t.hit=.1;if(t.hp<=0)killTurret(t,true)}
 function checkTurretAnchor(i){const t=turretAt(i);if(t)killTurret(t,true)}
-const turretRange=t=>t.T.range*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?((state.expStage||0)>=6?.92:.72):state.ev==='sandstorm'?((state.expStage||0)>=6?.88:.65):1);
+const turretRange=t=>t.T.range*(state.rangeMul||1)*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?((state.expStage||0)>=6||state.rangeMul>1?.92:.72):state.ev==='sandstorm'?((state.expStage||0)>=6?.88:.65):1);
 function enemyAim(e){return new THREE.Vector3(e.pos.x,e.fly?e.group.position.y+.5:e.gy+(e.type==='colossus'?2.2:.9),e.pos.z)}
 function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRivalTurret(t,dt);const man=t.gunner&&t.gunner.state==='man';const g=t.gunner;
   if(t.hit>0)t.hit-=dt;if(t.station&&walkCell(Math.floor(t.station.x),Math.floor(t.station.z))<=-99)t.station=findStation(t.pos.x,t.pos.z);

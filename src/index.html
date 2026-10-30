@@ -170,14 +170,15 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   .stats{order:1;width:100%;justify-content:space-between}.stats .st{padding:3px 6px}.stats .st b{font-size:14px}#clock{font-size:11px}
   #top .grow{display:none}#rivalChip{order:2;flex:1;justify-content:center;font-size:12px}#autoMenu{order:3}#event{order:4}
   :root{--dock:92px}
-  .dock{gap:2px;padding:4px;border-radius:16px;flex-wrap:wrap;justify-content:center;overflow:visible}.dock .btn{padding:6px 8px;font-size:15px}.dock .sep{display:none}
-  .dock #next{font-size:12px;padding:6px 10px;flex:1;order:9}.dock #auto,.dock #speed,.dock #snd{order:10}
+  .dock{gap:2px;padding:4px;border-radius:16px;flex-wrap:wrap;justify-content:center;overflow:visible}.dock .btn{padding:6px 6px;font-size:15px}.dock .btn .cost{font-size:10px;margin-left:2px}.dock .sep{display:none}
+  .dock #next{font-size:12px;padding:7px 10px;flex:1;order:9}.dock::before{content:'';flex-basis:100%;order:5;height:0}.dock .btn{padding:6px 5px;font-size:14px}.dock .btn{padding:6px 4px}.dock .badge{font-size:0;min-width:8px;width:8px;height:8px;padding:0;top:3px;right:2px}.dock .btn .cost{margin-left:1px}.dock #auto,.dock #speed,.dock #snd{order:10}
   .side{top:auto!important;left:0!important;right:0!important;width:auto!important;height:min(62vh,520px);border-radius:20px 20px 0 0!important}
   #mcard{left:8px!important;right:8px;width:auto!important}
   #bossbar{top:calc(100px + env(safe-area-inset-top,0px))!important}
 }
 #ftip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--dock) + 22px + env(safe-area-inset-bottom,0px));width:min(520px,calc(100vw - 24px));background:#2b2d4a;color:#fff;border-radius:14px;padding:10px 12px;display:none;align-items:center;gap:10px;font-size:13.5px;line-height:1.35;z-index:6;box-shadow:0 10px 30px rgba(43,45,74,.3)}#ftip span{flex:1}#ftip .btn{background:#fff;color:#2b2d4a;flex:none}
 @media (max-width:560px){#reward{padding:0 10px}#reward h2{font-size:21px}#reward .cards{gap:8px;flex-wrap:nowrap}#reward .rcard{width:auto;flex:1 1 0;min-width:0;padding:10px}#reward .rcard .ds{font-size:12px}#reward .rcard .nm{font-size:15px}}
+@media (max-width:430px){.dock #camHome{display:none}}
 </style>
 
 <canvas id="c"></canvas>
