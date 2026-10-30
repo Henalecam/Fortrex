@@ -588,13 +588,13 @@ window.__cellAt=(dx,dz)=>{const i=idx(CX+dx,GY,CZ+dz);return [vox[i],blue[i]]};
 
 // v1.5 bestiário novo: escudeiro, cavador, bombardeiro, mímico, golem de cristal, cavaleiro (e estilhaços)
 Object.assign(ETYPES,{
-  escudeiro:{hp:110,speed:1.9,dmg:14,rate:1,color:0x6a7aa8,radius:.7,n:'Escudeiro'},
+  escudeiro:{hp:95,speed:1.9,dmg:14,rate:1,color:0x6a7aa8,radius:.7,n:'Escudeiro'},
   cavador:{hp:70,speed:2.2,dmg:16,rate:.8,color:0x8a6a48,radius:.6,n:'Cavador'},
   bombardeiro:{hp:60,speed:2.6,dmg:0,rate:3,color:0x5b5f7a,radius:.6,n:'Bombardeiro'},
-  mimico:{hp:160,speed:4.2,dmg:22,rate:.7,color:0x9a6a3a,radius:.7,n:'Mímico'},
-  cristal:{hp:260,speed:1.4,dmg:28,rate:1.3,color:0x7fd8f0,radius:.9,n:'Golem de Cristal'},
-  cavaleiro:{hp:150,speed:3.6,dmg:24,rate:1,color:0x7a5a3a,radius:.8,n:'Cavaleiro da Bruma'},
-  shard:{hp:30,speed:3.2,dmg:8,rate:.6,color:0x9fe8ff,radius:.45,n:'Estilhaço'}});
+  mimico:{hp:150,speed:3.4,dmg:12,rate:.7,color:0x9a6a3a,radius:.7,n:'Mímico'},
+  cristal:{hp:160,speed:1.4,dmg:28,rate:1.3,color:0x7fd8f0,radius:.9,n:'Golem de Cristal'},
+  cavaleiro:{hp:130,speed:3.6,dmg:24,rate:1,color:0x7a5a3a,radius:.8,n:'Cavaleiro da Bruma'},
+  shard:{hp:22,speed:3.2,dmg:8,rate:.6,color:0x9fe8ff,radius:.45,n:'Estilhaço'}});
 const SCX={cristal:1.3,cavaleiro:1.15,mimico:1.05,shard:.7,bombardeiro:.9};
 const _L=(g,sc,c,pts)=>pts.map(([x,y,z,w,h])=>{const lg=box(w*sc,h*sc,w*sc,c,x*sc,y*sc,z*sc,g);return{mesh:lg,alive:true,ox:x*sc,oz:z*sc}});
 Object.assign(CREATURES,{
@@ -628,16 +628,16 @@ const NEW_BRAINS={
     e.under=false;e.surfaced=true;e.path=null;e.gy=surfE(e.pos.x,e.pos.z);e.group.position.y=e.gy;for(let k=0;k<10;k++)spawnDebris(e.pos.x,GY+.5,e.pos.z,0x8a6a48,1,.35);label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'⛏️ por baixo da muralha!','#ffb13d');shake=Math.max(shake,.3);return false},
   bombardeiro(e,dt,sf){e.curY=(e.curY??e.alt)+((e.alt+2)-(e.curY??e.alt))*Math.min(1,dt*2);e.group.position.y=e.curY+Math.sin(e.bob*.6)*.3;e.gy=e.curY-1;e.bob+=dt*3;const w=e.group.userData.wings;if(w){w[0].rotation.z=Math.sin(e.bob*2.5)*.5;w[1].rotation.z=-Math.sin(e.bob*2.5)*.5}
     if(!e.bt||(e.bt.t&&!e.bt.t.alive)){const ts=turrets.filter(t=>t.alive&&t.team!=='r');e.bt=ts.length?{t:pick(ts)}:{p:{x:CHEST.x+rnd(-6,6),z:CHEST.z+rnd(-6,6)}}}const tp=e.bt.t?e.bt.t.pos:e.bt.p;const d=_walkStraight(e,tp.x,tp.z,e.speed*sf,dt);
-    e.bT=(e.bT??1)-dt;if(d<2.2&&e.bT<=0){e.bT=e.T.rate;throwRock(e,tp.x+rnd(-.8,.8),tp.z+rnd(-.8,.8),2.2,(22+state.wave*2.2)*(1+e.rarity*.3),0x2b2d4a,true);if(Math.random()<.4)e.bt=null}return true},
+    e.bT=(e.bT??1)-dt;if(d<2.2&&e.bT<=0){e.bT=e.T.rate;throwRock(e,tp.x+rnd(-.8,.8),tp.z+rnd(-.8,.8),2,(16+state.wave*1.8)*(1+e.rarity*.3),0x2b2d4a,true);if(Math.random()<.4)e.bt=null}return true},
   mimico(e,dt){if(e.dormant===undefined){e.dormant=rnd(9,14);const a=rnd(0,Math.PI*2),r=rnd(WR+6,WR+14);e.pos.x=clamp(CX+Math.cos(a)*r,4,W-5);e.pos.z=clamp(CZ+Math.sin(a)*r,4,D-5);e.gy=surfE(e.pos.x,e.pos.z);e.group.position.y=e.gy}
     const lid=e.parts[1];e.under=e.dormant>0;if(e.dormant>0){e.dormant-=dt;if(minions.some(m=>!m.wounded&&hd(m.pos,e.pos)<3))e.dormant=0;if(lid)lid.rotation.x=Math.random()<.01?-.2:0;e.group.position.y=e.gy;if(e.dormant<=0)label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'É UM MÍMICO!','#ffcf3d');return true}
     if(lid)lid.rotation.x=-.35-Math.abs(Math.sin(simTime*12))*.4;return false},
-  cristal(e){e.afire=0;if(!e.armd){e.armd=1;e.armor=Math.min(.75,e.armor+.35)}return false},
+  cristal(e){e.afire=0;if(!e.armd){e.armd=1;e.armor=Math.min(.55,e.armor+.12)}return false},
   cavaleiro(e,dt,sf){if(e.mounted===undefined)e.mounted=true;if(e.mounted&&e.hp<e.maxhp*.5){e.mounted=false;e.speed*=.55;label({x:e.pos.x,y:e.gy+2.2,z:e.pos.z},'desmontado!','#ec5f6b');for(const L of e.legs)L.mesh.scale.y=.4}
-    if(!e.mounted)return false;const C=e.chg;if(C){C.t-=dt;if(C.t>0)return true;const sp=e.speed*2.6*sf;const x=e.pos.x+Math.sin(C.ang)*sp*dt,z=e.pos.z+Math.cos(C.ang)*sp*dt;let hit=false;const fx=Math.floor(x+Math.sin(C.ang)),fz=Math.floor(z+Math.cos(C.ang));for(let y=Math.floor(e.gy);y<Math.floor(e.gy)+2;y++)if(inb(fx,y,fz)&&SOLIDM(vox[idx(fx,y,fz)])){damageVox(idx(fx,y,fz),45+state.wave*3,'enemy',e);hit=true}
-      if(!hit){e.pos.x=x;e.pos.z=z;e.gy=surfE(x,z);e.group.position.y=e.gy}C.dash+=sp*dt;for(const m of minions)if(!m.wounded&&hd(m.pos,e.pos)<1.6&&!C.h.has(m)){C.h.add(m);hurtMinion(m,e.T.dmg*1.5,e)}if(C.dash>9||hit){e.chg=null;e.chT=6;e.path=null}return true}
+    if(!e.mounted)return false;const C=e.chg;if(C){C.t-=dt;if(C.t>0)return true;const sp=e.speed*2.6*sf;const x=e.pos.x+Math.sin(C.ang)*sp*dt,z=e.pos.z+Math.cos(C.ang)*sp*dt;let hit=false;const fx=Math.floor(x+Math.sin(C.ang)),fz=Math.floor(z+Math.cos(C.ang));for(let y=Math.floor(e.gy);y<Math.floor(e.gy)+2;y++)if(inb(fx,y,fz)&&SOLIDM(vox[idx(fx,y,fz)])){damageVox(idx(fx,y,fz),30+state.wave*2,'enemy',e);hit=true}
+      if(!hit){e.pos.x=x;e.pos.z=z;e.gy=surfE(x,z);e.group.position.y=e.gy}C.dash+=sp*dt;for(const m of minions)if(!m.wounded&&hd(m.pos,e.pos)<1.6&&!C.h.has(m)){C.h.add(m);hurtMinion(m,e.T.dmg*1.5,e)}if(C.dash>9||hit){e.chg=null;e.chT=8;e.path=null}return true}
     e.chT=(e.chT??rnd(3,6))-dt;const dC=Math.hypot(CHEST.x-e.pos.x,CHEST.z-e.pos.z);if(e.chT<=0&&dC<WR+14&&dC>6){const ang=Math.atan2(CHEST.x-e.pos.x,CHEST.z-e.pos.z);e.group.rotation.y=ang;markLine(e.pos.x,e.pos.z,ang,9,1.6,.7);e.chg={t:.7,ang,dash:0,h:new Set()};return true}return false}};
-const NEW_DEATH={cristal(e){for(let k=0;k<3;k++){const s=makeEnemy('shard',e.rarity,e.pos.x+rnd(-1,1),e.pos.z+rnd(-1,1));s.viaWall=true}},
+const NEW_DEATH={cristal(e){for(let k=0;k<2;k++){const s=makeEnemy('shard',e.rarity,e.pos.x+rnd(-1,1),e.pos.z+rnd(-1,1));s.viaWall=true}},
   mimico(e){spawnLoot(e.pos.x,e.gy+1.5,e.pos.z,'treasure',Math.min(4,2+Math.floor(state.wave/12)),{});spawnLoot(e.pos.x+.5,e.gy+1.5,e.pos.z,'material',0,{amount:10+state.wave});label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'💰 tesouro!','#ffcf3d')}};
 
 // v1.6 RAIDS: opcional no descanso, três estágios de inimigos insanos e o Arauto do Abismo
