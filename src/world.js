@@ -69,7 +69,7 @@ function setFluid(i,m,lv,src){if(SOLIDM(vox[i]))return;vox[i]=m;hp[i]=lv;fluids.
 // src: 'enemy' | 'player' | 'env'. Player damage never touches the fortress (blue) — no friendly fire.
 function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m))return false;if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
   if(blue[i]){if(src==='player')return false;if(src==='env')d*=.4;if(state.wardT>0)d*=.08}
-  if(m===5&&src==='enemy')d*=2;
+  if(m===5&&src==='enemy')d*=1.5;
   if(m===20)d*=.45;if(m===14)d*=.7;
   if(m===5&&src==='enemy')d*=.45;
   if(src==='enemy'&&who&&m===16&&blue[i])dmgEnemy(who,d*.7+6,true);

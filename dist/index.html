@@ -464,7 +464,7 @@ function setFluid(i,m,lv,src){if(SOLIDM(vox[i]))return;vox[i]=m;hp[i]=lv;fluids.
 // src: 'enemy' | 'player' | 'env'. Player damage never touches the fortress (blue) — no friendly fire.
 function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m))return false;if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
   if(blue[i]){if(src==='player')return false;if(src==='env')d*=.4;if(state.wardT>0)d*=.08}
-  if(m===5&&src==='enemy')d*=2;
+  if(m===5&&src==='enemy')d*=1.5;
   if(m===20)d*=.45;if(m===14)d*=.7;
   if(m===5&&src==='enemy')d*=.45;
   if(src==='enemy'&&who&&m===16&&blue[i])dmgEnemy(who,d*.7+6,true);
@@ -1090,7 +1090,7 @@ function supported(i){const x=ix(i),y=iy(i),z=iz(i);if(y===0||SOLIDM(vox[idx(x,y
 function cellBusy(i){const x=ix(i),y=iy(i),z=iz(i);for(const m of minions)if(Math.floor(m.pos.x)===x&&Math.floor(m.pos.z)===z&&Math.abs(m.group.position.y-y)<1.8)return true;
   for(const e of enemies)if(!e.dead&&!e.fly&&Math.abs(e.pos.x-x-.5)<e.radius+.5&&Math.abs(e.pos.z-z-.5)<e.radius+.5&&Math.abs(e.gy-y)<1.8)return true;for(const L of loot)if(!L.carried&&Math.floor(L.x)===x&&Math.floor(L.z)===z&&Math.abs(L.y-y-.5)<1)return false;return false}
 function findRepairTask(m){let best=null,bs=1e9;const mx=m.pos.x,mz=m.pos.z;
-  for(const i of blueList){const b=blue[i];if(!b||vox[i]===b)continue;if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;
+  for(const i of blueList){const b=blue[i];if(!b||vox[i]===b)continue;if(b===5&&!vox[i]&&state.phase==='wave'&&!state.rebuildChest)continue;if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;
     const cost=0;
     let ti=i,kind='build';if(!supported(i)){if(iy(i)>GY+1)continue;const x=ix(i),z=iz(i);let y=1;while(y<iy(i)&&vox[idx(x,y,z)]&&!FLUID(vox[idx(x,y,z)]))y++;if(y>=iy(i))continue;ti=idx(x,y,z);kind='fill';if((m.skip.get(ti)||0)>simTime)continue}
     const s=(b===5?-80:0)+(iy(i)-GY)*4+Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:kind,i:ti}}}
@@ -2082,7 +2082,7 @@ function rushBonus(){if(state.phase!=='rest'||state.wave<3||state.restStart==nul
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.56;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.57;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2094,7 +2094,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.53,'🤝 Aliados mandam soldados quando uma fortaleza rival cerca você; aliadas aparecem com 🤝 no mapa do reino.'],
   [0.54,'🚩 Porta-estandarte inimigo (horda 12+): acelera e protege a horda ao redor; derrube-o para causar pânico. Mapa do reino mais legível no celular.'],
   [0.55,'🛡️ Égide do Guardião (horda 8+): botão no dock que deixa a cidadela quase invulnerável por 7 s, recarga de 100 s.'],
-  [0.56,'⚡ Ímpeto: chamar a próxima horda nos primeiros 12 s de descanso rende material (o botão mostra quanto). Normal ficou um pouco mais difícil e o baú sofre o dobro de dano quando alcançado.']];
+  [0.56,'⚡ Ímpeto: chamar a próxima horda nos primeiros 12 s de descanso rende material (o botão mostra quanto). Normal ficou um pouco mais difícil e o baú sofre o dobro de dano quando alcançado.'],
+  [0.57,'💔 Pedaços do baú destruídos durante a horda só são reconstruídos no descanso (antes os reparadores refaziam na hora). A Engenheira ainda pode reerguê-los com Reconstrução.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
