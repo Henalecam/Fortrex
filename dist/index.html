@@ -193,9 +193,11 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 @media (max-width:600px){.stats:has(#chestSt:not([hidden])) #clock{display:none}}
 #bossbar .tr{position:relative}#bossShield{position:absolute;left:0;top:0;height:100%;width:0;background:repeating-linear-gradient(45deg,rgba(79,156,242,.85) 0 6px,rgba(143,214,255,.85) 6px 12px);border-radius:999px;transition:width .15s}
 #buffSt{order:5;background:#fff7e0;color:#8a5a00;font-weight:700}
+#rainFx{position:fixed;inset:-40px;pointer-events:none;z-index:0;background:repeating-linear-gradient(105deg,rgba(200,220,240,0) 0 22px,rgba(200,220,240,.35) 22px 23px,rgba(200,220,240,0) 23px 47px);animation:rain .45s linear infinite;mix-blend-mode:screen}@keyframes rain{to{transform:translate(-12px,46px)}}
 </style>
 
 <canvas id="c"></canvas>
+<div id="rainFx" hidden></div>
 <div id="bloodVig" hidden style="position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at center,rgba(120,10,25,0) 45%,rgba(120,10,25,.42) 100%),rgba(150,20,30,.12);mix-blend-mode:multiply"></div>
 
 <div id="top" class="bar">
@@ -516,7 +518,7 @@ function explode(cx,cy,cz,r,dmg,o={}){const src0=o.src||'env',rv=src0==='rival',
 function processBooms(dt){for(let i=pendingBooms.length-1;i>=0;i--){const b=pendingBooms[i];b.t-=dt;if(b.t<=0){pendingBooms.splice(i,1);explode(b.x,b.y,b.z,b.r,b.dmg,b.o)}}}
 
 // ───────── fire (remembers who lit it: player fire never burns the fortress)
-function ignite(i,src='env'){const m=vox[i];if(!isFlam(m)||burning.has(i))return;if(src==='player'&&blue[i]&&m!==31)return;burning.set(i,{t:m===31?12+rnd(0,5):3.5+rnd(0,3),src});paint(i)}
+function ignite(i,src='env'){const m=vox[i];if(!isFlam(m)||burning.has(i))return;if(state.ev==='rain'&&state.phase==='wave'&&Math.random()<.85)return;if(src==='player'&&blue[i]&&m!==31)return;burning.set(i,{t:m===31?12+rnd(0,5):3.5+rnd(0,3),src});paint(i)}
 let fireAcc=0;
 function tickFire(dt){fireAcc+=dt;if(fireAcc<.12)return;fireAcc=0;
   for(const [i,b] of [...burning]){if(!isFlam(vox[i])){burning.delete(i);continue}const x=ix(i),z=iz(i),y=iy(i);
@@ -820,7 +822,7 @@ function killTurret(t,drop){if(!t.alive)return;t.alive=false;scene.remove(t.grou
   if(drop){const L=spawnLoot(t.pos.x,t.pos.y+.4,t.pos.z,'turret',t.r,{type:t.type});if(L)L.prio=true;toast(`${t.T.n} caiu! Um coletor vai buscá-la.`,'r0')}}
 function damageTurret(t,d){if(!t.alive)return;t.hp-=d;t.hit=.1;if(t.hp<=0)killTurret(t,true)}
 function checkTurretAnchor(i){const t=turretAt(i);if(t)killTurret(t,true)}
-const turretRange=t=>t.T.range*(state.rangeMul||1)*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?((state.expStage||0)>=6||state.rangeMul>1?.92:.72):state.ev==='sandstorm'?((state.expStage||0)>=6?.88:.65):1);
+const turretRange=t=>t.T.range*(state.rangeMul||1)*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?((state.expStage||0)>=6||state.rangeMul>1?.92:.72):state.ev==='sandstorm'?((state.expStage||0)>=6?.88:.65):state.ev==='rain'?.9:1);
 function enemyAim(e){return new THREE.Vector3(e.pos.x,e.fly?e.group.position.y+.5:e.gy+(e.type==='colossus'?2.2:.9),e.pos.z)}
 function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRivalTurret(t,dt);const man=t.gunner&&t.gunner.state==='man';const g=t.gunner;
   if(t.hit>0)t.hit-=dt;if(t.station&&walkCell(Math.floor(t.station.x),Math.floor(t.station.z))<=-99)t.station=findStation(t.pos.x,t.pos.z);
@@ -1021,7 +1023,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(e.aff==='regen'&&e.hp
   if(e.afire>0){e.afire-=dt;if(e.inWater||e.type==='titan'||e.type==='imp')e.afire=0;dmgEnemy(e,5*dt,false);if(Math.random()<dt*10)spawnFlame(e.pos.x+rnd(-.4,.4),e.group.position.y+rnd(.3,1.2)*e.sc,e.pos.z+rnd(-.4,.4),.6);if(e.dead)return}
   e.iceT-=dt;if(e.iceT<=0&&!e.fly){e.iceT=.3;const y0=Math.floor(e.gy+.05);for(const [dx,dz] of NB4){for(let y=y0;y<y0+2;y++){const x=fx+dx,z=fz+dz;if(inb(x,y,z)&&vox[idx(x,y,z)]===18){e.slowT=Math.max(e.slowT,.8)}}}}
   if(e.slowT>0){e.slowT-=dt;if(Math.random()<dt*4)spawnFlame(e.pos.x+rnd(-.4,.4),e.group.position.y+.8,e.pos.z+rnd(-.4,.4),.4,true)}
-  const sf=(!e.fly&&vox[idx(clamp(Math.floor(e.pos.x),0,W-1),clamp(Math.floor(e.gy)-1,0,H-1),clamp(Math.floor(e.pos.z),0,D-1))]===31?.4:1)*(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1)*(state.ev==='blizzard'?.7:state.ev==='sandstorm'?1.12:1)*(state.biomeKey==='pantano'&&!e.fly?.88:1);e.timer-=dt*(e.slowT>0?.5:1);
+  const sf=(!e.fly&&vox[idx(clamp(Math.floor(e.pos.x),0,W-1),clamp(Math.floor(e.gy)-1,0,H-1),clamp(Math.floor(e.pos.z),0,D-1))]===31?.4:1)*(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1)*(state.ev==='blizzard'?.7:state.ev==='sandstorm'?1.12:state.ev==='rain'&&!e.fly?.9:1)*(state.biomeKey==='pantano'&&!e.fly?.88:1);e.timer-=dt*(e.slowT>0?.5:1);
   if(e.type==='ship'){e.group.position.y=e.gy+Math.sin(e.bob*.3)*.15;e.group.rotation.z=Math.sin(e.bob*.2)*.05;e.spawnT=(e.spawnT??2)-dt;e.fireT=(e.fireT??3)-dt;if(e.spawnT<=0&&(e.crew||0)<10+Math.floor(state.wave/3)){e.spawnT=5;for(let k=0;k<2;k++){const p=makeEnemy('pirate',Math.min(3,rollRarity(state.wave*.01)),e.pos.x+rnd(-2,2),e.pos.z+rnd(-2,2));p.viaWall=Math.random()<.4}e.crew=(e.crew||0)+2}if(e.fireT<=0){e.fireT=4;let tg=null,bd=60;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd){bd=d;tg=t.pos}}if(!tg)tg={x:CX+rnd(-10,10),z:CZ+rnd(-10,10)};throwRock(e,tg.x,tg.z,2.4,45+state.wave*3,0x2b2d4a,false)}return}
   if(e.stun>0){e.stun-=dt;e.vel.set(0,0,0);e.group.rotation.z=Math.sin(e.stun*9)*.12;if(e.stun<=0)e.group.rotation.z=0;return}
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
@@ -2205,7 +2207,7 @@ let buffAcc=0;function buffTick(dt){buffAcc+=dt;if(buffAcc<.5)return;buffAcc=0;c
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.80;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.81;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2241,7 +2243,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.77,'🪽 Novo evento Revoada (horda 9+): boa parte da horda vem voando. Efeitos ativos (bênção, pacto, expedição, estandartes) aparecem num selo no topo.'],
   [0.78,'🏆 6 conquistas novas: Matilha, Explorador, Negociante, Caçador de estandartes, Diplomata e Construtor de maravilhas.'],
   [0.79,'🕯️ Nova heroína: Selene, a Sacerdotisa (tecla O) — Luz Restauradora cura e levanta os feridos ao redor e restaura os blocos da muralha.'],
-  [0.80,'⭐ Quarta vaga de herói com 8 relíquias. README do projeto com a lista completa de recursos.']];
+  [0.80,'⭐ Quarta vaga de herói com 8 relíquias. README do projeto com a lista completa de recursos.'],
+  [0.81,'🌧️ Novo evento Chuva forte (fora do deserto): o fogo quase não pega, armas enxergam 10% menos e a horda anda 10% mais devagar na lama.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2310,10 +2313,11 @@ const EVENTS={
   quake:{n:'Terremoto',d:'O chão racha sob os pés: crateras, muralhas abaladas e inimigos derrubados.',css:'r3',w:7},
   eclipse:{n:'Eclipse',d:'A escuridão fortalece os inimigos (+1 raridade). Loot muito melhor.',css:'r3',w:9},
   bloodmoon:{n:'Lua de sangue',d:'A lua sangra: muitos inimigos de elite com afixos, mas cada abate rende +1 material e os soldados se curam ao matar.',css:'r3',w:10},
+  rain:{n:'Chuva forte',d:'Chove sem parar: o fogo não pega, armas enxergam 10% menos e a horda escorrega na lama (10% mais lenta).',css:'r1',w:3},
   skies:{n:'Revoada',d:'O céu escurece de asas: boa parte da horda vem voando. Balistas e Tesla brilham.',css:'r2',w:9},
   golden:{n:'Horda dourada',d:'Todos os Devoradores são Raros ou acima. Curta e brutal.',css:'r3',w:8},
 };
-function rollEvent(w){if(w<3||w%5===0||Math.random()<.5)return null;const b=state.biomeKey;const pool=[];for(const k of Object.keys(EVENTS)){if(EVENTS[k].w>w)continue;if(k==='sandstorm'&&b!=='deserto')continue;if(k==='blizzard'&&b==='deserto')continue;const n=(k==='blizzard'&&b==='neve')||(k==='sandstorm'&&b==='deserto')||(k==='mist'&&b==='pantano')?4:1;for(let i=0;i<n;i++)pool.push(k)}return pick(pool)}
+function rollEvent(w){if(w<3||w%5===0||Math.random()<.5)return null;const b=state.biomeKey;const pool=[];for(const k of Object.keys(EVENTS)){if(EVENTS[k].w>w)continue;if(k==='sandstorm'&&b!=='deserto')continue;if(k==='rain'&&b==='deserto')continue;if(k==='blizzard'&&b==='deserto')continue;const n=(k==='blizzard'&&b==='neve')||(k==='sandstorm'&&b==='deserto')||(k==='mist'&&b==='pantano')?4:1;for(let i=0;i<n;i++)pool.push(k)}return pick(pool)}
 function startWave(){if(state.choosing||state.phase==='wave')return;state.bearerSpawned=false;state.phase='wave';state.wk=0;state.wwound=0;state.ev=window.__forceEv||(state.siege>0?'siege':rollEvent(state.wave));window.__forceEv=null;state.queue=waveSpec(state.wave);if(state.ev==='skies'){const q=state.queue;for(let k=0;k<q.length;k++)if(!BIG(q[k])&&Math.random()<.4)q[k]='flyer';for(let k=0;k<Math.floor(state.wave/2);k++)q.push('flyer')}if(state.nextWaveMul){const n=Math.round(state.queue.length*(state.nextWaveMul-1));for(let k=0;k<n;k++)state.queue.push(state.queue[(Math.random()*state.queue.length)|0]);state.nextWaveMul=0}if(state.wave>=2)scatterTraps();state.meteorT=3;if(state.ev==='pirates'){const a=rnd(0,Math.PI*2);const s=makeEnemy('ship',2,clamp(CX+Math.cos(a)*44,6,W-7),clamp(CZ+Math.sin(a)*44,6,D-7));s.maxhp*=1+state.wave*.08;s.hp=s.maxhp;s.armor=0;if(!state.boss)showBoss(s)}if(isNight()){for(let k=0;k<Math.ceil(state.queue.length*.25);k++)state.queue.push(pick(['crawler','climber','flyer']));toast('É noite: a bruma vem mais forte','r2')}
   if(state.ev==='siege'&&state.siege===0)state.siege=3;if(state.ev==='golden')state.queue=state.queue.slice(0,Math.ceil(state.queue.length*.5));
   state.spawnT=0;$('report').style.display='none';
@@ -2432,7 +2436,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)if(!m.away)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);volcanoTick(dt);biomeTick(dt);dogTick(dt);buffTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on;const rf=$('rainFx'),ro=state.phase==='wave'&&state.ev==='rain'&&!OPTS.lowGfx;if(rf.hidden===ro)rf.hidden=!ro}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);volcanoTick(dt);biomeTick(dt);dogTick(dt);buffTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';$('bossShield').style.width=(b.shield>0?b.shield/b.maxhp*100:0)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':'r1');state.combo=0}
@@ -2527,10 +2531,11 @@ window.__matTrace2=()=>{window.__matTrace()};
 window.__zoo=()=>{const ts=['goblin','crawler','wolf','spider','slime','imp','brute','beetle','climber','ram','shaman','sapper'];ts.forEach((t,k)=>{const e=makeEnemy(t,k%3,CX-14+k*2.8,WB+14);e.speed=0;e.T={...e.T,speed:0}});cam.target.set(CX,GY+1,WB+14);cam.dist=24;cam.pitch=.75};
 
 // ───────── weather events: blizzard, earthquake, eclipse
-let wxT=0;const _snow=new THREE.Color(0xe8f2fa),_dark=new THREE.Color(0x1d1e33),_blood=new THREE.Color(0x6a1622);
+let wxT=0;const _snow=new THREE.Color(0xe8f2fa),_dark=new THREE.Color(0x1d1e33),_blood=new THREE.Color(0x6a1622),_rain=new THREE.Color(0x8a97a8);
 const _sand=new THREE.Color(0xe8c98a);function weatherTick(dt){const ev=state.ev;if(ev==='sandstorm'){scene.background.lerp(_sand,.6);scene.fog.color.copy(scene.background);for(let k=0;k<4;k++)spawnDebris(cam.target.x+rnd(-30,30),GY+rnd(2,10),cam.target.z+rnd(-30,30),0xd9b56a,1,.1);return}if(ev!=='blizzard'&&ev!=='quake'&&ev!=='eclipse')return;wxT-=dt;
   if(ev==='blizzard'){scene.background.lerp(_snow,.55);scene.fog.color.copy(scene.background);for(let k=0;k<3;k++)spawnDebris(cam.target.x+rnd(-30,30),GY+rnd(12,20),cam.target.z+rnd(-30,30),0xffffff,1,.12);
     if(wxT<=0){wxT=.35;for(let k=0;k<6;k++){const x=rint(2,W-3),z=rint(2,D-3);const i=idx(x,GY-1,z);if(vox[i]===9){setVox(i,18);fluids.delete(i);fluidSrc.delete(i)}}}}
+  if(ev==='rain'){scene.background.lerp(_rain,.5);scene.fog.color.copy(scene.background);sun.intensity*=.6;if(burning.size&&Math.random()<dt*3){for(const [i] of burning){burning.delete(i);paint(i)}}for(let k=0;k<6;k++)spawnDebris(cam.target.x+rnd(-35,35),GY+rnd(8,18),cam.target.z+rnd(-35,35),0x9fc6e8,1,.08)}
   if(ev==='bloodmoon'){scene.background.lerp(_blood,.55);scene.fog.color.copy(scene.background);sun.intensity*=.75;sun.color.setHex(0xff6a5a);hemi.color.setHex(0xff8a7a);hemi.groundColor.setHex(0x7a2a2a)}else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}
   if(ev==='eclipse'){scene.background.lerp(_dark,.7);scene.fog.color.copy(scene.background);sun.intensity*=.3;hemi.intensity*=.45}
   if(ev==='quake'&&wxT<=0){wxT=rnd(6,9);shake=Math.max(shake,1.3);SFX.boom(true);for(let k=0;k<3;k++){const a=rnd(0,Math.PI*2),r=rnd(12,50);const x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;explode(x,GY,z,2.2,35,{src:'env'})}
