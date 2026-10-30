@@ -87,7 +87,7 @@ function clickAt(cx,cy,right){if(!state.running)return;
   if(state.bombMode){const ray=rayFrom(cx,cy);const h=voxRay(ray.origin,ray.direction,true);let px,pz;if(h){px=ix(h.i)+.5;pz=iz(h.i)+.5}else if(ray.direction.y<-1e-4){const t=(GY-ray.origin.y)/ray.direction.y;px=ray.origin.x+ray.direction.x*t;pz=ray.origin.z+ray.direction.z*t}
     if(px!==undefined&&px>0&&pz>0&&px<W&&pz<D)dropBomb(px,pz);else toast('Mire na ilha','r0');return}
   if(state.build.on){doBuild(cx,cy,right);return}
-  const u=pickObj(cx,cy,[...lanterns.map(L=>L.g),...enemies.filter(e=>!e.dead).map(e=>e.group),...loot.filter(L=>!L.carried).map(L=>L.g),...minions.map(m=>m.group),...turrets.filter(t=>t.alive).map(t=>t.group)]);
+  const u=pickObj(cx,cy,[...lanterns.map(L=>L.g),...enemies.filter(e=>!e.dead).map(e=>e.group),...loot.filter(L=>!L.carried).map(L=>L.g),...minions.filter(m=>!m.away).map(m=>m.group),...turrets.filter(t=>t.alive).map(t=>t.group)]);
   if(!u){closeCard();return}
   if(u.lantern){popLantern(u.lantern,false);return}
   if(u.enemy){const e=u.enemy;if(state.focusCd<=0){state.focus=e;state.focusT=state.focusLong?8:5;state.focusCd=state.focusLong?10:14;toast(`Fogo Concentrado no ${e.T.n}!`,'r2');label({x:e.pos.x,y:e.gy,z:e.pos.z},'🔥 ALVO','#ec5f6b');updateHud()}else toast('Fogo Concentrado recarregando','r0');return}
@@ -283,3 +283,4 @@ window.__chestHit=n=>{let k=0;for(const i of _chestVox)if(vox[i]===5&&k<n){remov
 window.__wind=()=>{const a=TOWER_ANCHORS[1];const t=makeTurret("wind",a,2);state.wave=Math.max(8,state.wave);startWave();return {x:t.pos.x,z:t.pos.z}};
 window.__bossAff=k=>{state.wave=Math.max(15,state.wave);startWave();const e=makeEnemy('golem',2,CX+34,CZ);e.bossAff=k;if(k==='escudo'){e.shieldMax=e.maxhp*.3;e.shield=e.shieldMax}return {x:e.pos.x,z:e.pos.z,hp:Math.round(e.maxhp)}};
 window.__dogs=n=>{state.ups.kennel=n;state.wave=Math.max(5,state.wave);startWave();return n};window.__bites=()=>state.dogBites||0;
+window.__exp=()=>({x:state.expedition,away:minions.filter(m=>m.away).length});

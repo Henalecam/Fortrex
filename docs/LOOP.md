@@ -117,6 +117,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.72: 🐕 Cães: tooltip (vida, dano da mordida, nº de mordidas; ferido mostra o tempo de volta) e, feridos, deitam no canil com curativo. Erupções nunca caem a menos de 7 blocos do centro (não acertam o baú). Teste passivo (sem gastar nada) teve muita variância por bioma: hordas 8, 12 e 17.
 - v0.73: Passivo por bioma (sem gastar): Verdes, Gelada e Bruma passaram de 15 min reais vivos; Rubro morria na 10 e Vulcânico na 9 (aríetes no baú). Ajustes: aríetes causam 0,6× no baú (era 1,5×), erupções só a partir da horda 4, calor do deserto 0,7%/s. Depois: Rubro 12, Vulcânico 13 (agora morrem por escaladores — o Óleo resolve).
 - v0.74: 🧭 Expedições no painel do Reino (horda 3+, só no descanso, precisa de 4 coletores livres): 3 coletores somem por 2 hordas (m.away, não atualizam) e voltam ao portão com 30+9×horda material e 45–75% de chance de tesouro; save carregado com expedição faz ela voltar na próxima horda. Dica do Óleo agora dispara quando um escalador/aranha atinge o baú (state.climbHitChest).
+- v0.75: Expedição conferida com log: sai na horda 4 (3 ausentes), volta na 6 (0 ausentes) e o material salta de 87 para 182. Coletores ausentes fora do pickObj (não clicáveis). Mapa do reino no celular (< 560 px) mostra só 3 linhas de notícias.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

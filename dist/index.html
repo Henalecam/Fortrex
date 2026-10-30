@@ -1595,8 +1595,8 @@ function drawRealm(){if(!REALM.open||!rctx)return;const dpr=Math.min(2,window.de
   const [kx,ky]=[V.w-38,38];g.fillStyle='rgba(255,255,255,.7)';g.beginPath();g.arc(kx,ky,22,0,Math.PI*2);g.fill();g.fillStyle='#d9414f';g.beginPath();g.moveTo(kx,ky-18);g.lineTo(kx+5,ky);g.lineTo(kx-5,ky);g.fill();g.fillStyle='#2b2d4a';g.beginPath();g.moveTo(kx,ky+18);g.lineTo(kx+5,ky);g.lineTo(kx-5,ky);g.fill();g.font='700 9px Fredoka,sans-serif';g.textAlign='center';g.fillText('N',kx,ky-21+(-2));
   g.font='700 18px Fredoka,sans-serif';g.textAlign='left';g.fillStyle='rgba(43,45,74,.8)';g.fillText('Reino de Fortrex',16,28);
   // event log
-  g.font='600 12px Nunito,sans-serif';let ly2=V.h-14;const nl=Math.min(6,REALM.log.length);if(nl){g.fillStyle='rgba(255,255,255,.78)';g.beginPath();g.roundRect?g.roundRect(8,V.h-18-nl*17,Math.min(V.w-16,480),nl*17+10,10):g.rect(8,V.h-18-nl*17,Math.min(V.w-16,480),nl*17+10);g.fill()}
-  const maxW=Math.min(V.w-16,480)-16;if(V.w<520)g.font='600 10.5px Nunito,sans-serif';for(const L of REALM.log.slice(0,6)){g.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--'+L.css)||'#2b2d4a';if(L.css==='r0')g.fillStyle='#6b6e8f';let t='• '+L.txt;if(g.measureText(t).width>maxW){while(t.length>4&&g.measureText(t+'…').width>maxW)t=t.slice(0,-1);t+='…'}g.fillText(t,16,ly2);ly2-=17}}
+  g.font='600 12px Nunito,sans-serif';let ly2=V.h-14;const NL=V.w<560?3:6,nl=Math.min(NL,REALM.log.length);if(nl){g.fillStyle='rgba(255,255,255,.78)';g.beginPath();g.roundRect?g.roundRect(8,V.h-18-nl*17,Math.min(V.w-16,480),nl*17+10,10):g.rect(8,V.h-18-nl*17,Math.min(V.w-16,480),nl*17+10);g.fill()}
+  const maxW=Math.min(V.w-16,480)-16;if(V.w<520)g.font='600 10.5px Nunito,sans-serif';for(const L of REALM.log.slice(0,NL)){g.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--'+L.css)||'#2b2d4a';if(L.css==='r0')g.fillStyle='#6b6e8f';let t='• '+L.txt;if(g.measureText(t).width>maxW){while(t.length>4&&g.measureText(t+'…').width>maxW)t=t.slice(0,-1);t+='…'}g.fillText(t,16,ly2);ly2-=17}}
 function renderRealmInfo(){const el=$('realmInfo');if(!el)return;const c=REALM.sel&&REALM.sel.kind?null:REALM.sel,Q=REALM.sel&&REALM.sel.kind?REALM.sel:null;const mine=REALM.cities.filter(o=>o.fac.isMe);const facs=new Set(REALM.cities.map(o=>o.fac.id)).size;const F=ourForce();
   let h=`<div class="rh">🗺️ Reino</div><div class="ds">${REALM.cities.length} fortalezas · ${facs} impérios · você tem ${mine.length} ${mine.length===1?'cidade':'cidades'}${state.realmIncome?` (+${state.realmIncome}/horda)`:''}</div><div class="ds">Sua força: ataque ${F.atk.toFixed(0)} · defesa ${F.def.toFixed(0)}</div>`;
   if(state.quest)h+=`<div class="ds">🎯 Objetivo ativo: <b>${state.quest.P.name}</b> (${state.quest.units.filter(e=>!e.dead).length} inimigos restantes)</div>`;
@@ -1828,7 +1828,7 @@ function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName
 function hideBoss(){state.boss=null;$('bossbar').style.display='none'}
 function showTip(cx,cy,t,s){const el=$('tip');el.innerHTML=esc(t)+(s?`<small>${esc(s)}</small>`:'');el.style.left=cx+'px';el.style.top=cy+'px';el.style.display='block'}
 function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}
-  const u=pickObj(cx,cy,[...loot.filter(L=>!L.carried).map(L=>L.g),...minions.map(m=>m.group),...enemies.filter(e=>!e.dead).map(e=>e.group),...turrets.filter(t=>t.alive).map(t=>t.group),...dogs.map(d=>d.g)]);
+  const u=pickObj(cx,cy,[...loot.filter(L=>!L.carried).map(L=>L.g),...minions.filter(m=>!m.away).map(m=>m.group),...enemies.filter(e=>!e.dead).map(e=>e.group),...turrets.filter(t=>t.alive).map(t=>t.group),...dogs.map(d=>d.g)]);
   if(!u){$('tip').style.display='none';canvas.style.cursor='';return}canvas.style.cursor='pointer';
   if(u.loot){const L=u.loot;showTip(cx,cy,`${lootName(L)} · ${RARITY[L.r].n}`,L.kind==='treasure'?'Clique para abrir':L.prio?'Prioridade dos coletores':'Clique: coletores buscam primeiro')}
   else if(u.minion){const m=u.minion;showTip(cx,cy,`${m.name} · ${m.R.n} · nv ${m.lvl}`,m.wounded>0?'Ferido':'Clique para ver e equipar')}
@@ -2173,7 +2173,7 @@ function expeditionReturn(){const X=state.expedition;if(!X||state.wave<X.back)re
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.74;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.75;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2203,7 +2203,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.71,'🐕 Canil (Upgrades → Exército, horda 5+): cães de guarda correm atrás dos Devoradores perto do portão e mordem.'],
   [0.72,'🐕 Cães mostram vida e mordidas ao passar o mouse; feridos deitam com curativo no canil.'],
   [0.73,'⚖️ Equilíbrio por bioma: aríetes fazem menos dano ao baú (são feitos para portões), erupções só a partir da horda 4 e o calor do deserto cansa menos.'],
-  [0.74,'🧭 Expedições (painel do Reino): mande 3 coletores por 2 hordas e eles voltam com material e chance de tesouro. A dica do Óleo aparece assim que escaladores atingem o baú.']];
+  [0.74,'🧭 Expedições (painel do Reino): mande 3 coletores por 2 hordas e eles voltam com material e chance de tesouro. A dica do Óleo aparece assim que escaladores atingem o baú.'],
+  [0.75,'📱 Mapa do reino no celular mostra só as 3 notícias mais recentes (menos coisa cobrindo as cidades). Coletores em expedição não podem ser clicados.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2339,7 +2340,7 @@ function clickAt(cx,cy,right){if(!state.running)return;
   if(state.bombMode){const ray=rayFrom(cx,cy);const h=voxRay(ray.origin,ray.direction,true);let px,pz;if(h){px=ix(h.i)+.5;pz=iz(h.i)+.5}else if(ray.direction.y<-1e-4){const t=(GY-ray.origin.y)/ray.direction.y;px=ray.origin.x+ray.direction.x*t;pz=ray.origin.z+ray.direction.z*t}
     if(px!==undefined&&px>0&&pz>0&&px<W&&pz<D)dropBomb(px,pz);else toast('Mire na ilha','r0');return}
   if(state.build.on){doBuild(cx,cy,right);return}
-  const u=pickObj(cx,cy,[...lanterns.map(L=>L.g),...enemies.filter(e=>!e.dead).map(e=>e.group),...loot.filter(L=>!L.carried).map(L=>L.g),...minions.map(m=>m.group),...turrets.filter(t=>t.alive).map(t=>t.group)]);
+  const u=pickObj(cx,cy,[...lanterns.map(L=>L.g),...enemies.filter(e=>!e.dead).map(e=>e.group),...loot.filter(L=>!L.carried).map(L=>L.g),...minions.filter(m=>!m.away).map(m=>m.group),...turrets.filter(t=>t.alive).map(t=>t.group)]);
   if(!u){closeCard();return}
   if(u.lantern){popLantern(u.lantern,false);return}
   if(u.enemy){const e=u.enemy;if(state.focusCd<=0){state.focus=e;state.focusT=state.focusLong?8:5;state.focusCd=state.focusLong?10:14;toast(`Fogo Concentrado no ${e.T.n}!`,'r2');label({x:e.pos.x,y:e.gy,z:e.pos.z},'🔥 ALVO','#ec5f6b');updateHud()}else toast('Fogo Concentrado recarregando','r0');return}
@@ -2535,6 +2536,7 @@ window.__chestHit=n=>{let k=0;for(const i of _chestVox)if(vox[i]===5&&k<n){remov
 window.__wind=()=>{const a=TOWER_ANCHORS[1];const t=makeTurret("wind",a,2);state.wave=Math.max(8,state.wave);startWave();return {x:t.pos.x,z:t.pos.z}};
 window.__bossAff=k=>{state.wave=Math.max(15,state.wave);startWave();const e=makeEnemy('golem',2,CX+34,CZ);e.bossAff=k;if(k==='escudo'){e.shieldMax=e.maxhp*.3;e.shield=e.shieldMax}return {x:e.pos.x,z:e.pos.z,hp:Math.round(e.maxhp)}};
 window.__dogs=n=>{state.ups.kennel=n;state.wave=Math.max(5,state.wave);startWave();return n};window.__bites=()=>state.dogBites||0;
+window.__exp=()=>({x:state.expedition,away:minions.filter(m=>m.away).length});
 
 })();
 </script>

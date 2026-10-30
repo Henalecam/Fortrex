@@ -177,7 +177,7 @@ function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName
 function hideBoss(){state.boss=null;$('bossbar').style.display='none'}
 function showTip(cx,cy,t,s){const el=$('tip');el.innerHTML=esc(t)+(s?`<small>${esc(s)}</small>`:'');el.style.left=cx+'px';el.style.top=cy+'px';el.style.display='block'}
 function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}
-  const u=pickObj(cx,cy,[...loot.filter(L=>!L.carried).map(L=>L.g),...minions.map(m=>m.group),...enemies.filter(e=>!e.dead).map(e=>e.group),...turrets.filter(t=>t.alive).map(t=>t.group),...dogs.map(d=>d.g)]);
+  const u=pickObj(cx,cy,[...loot.filter(L=>!L.carried).map(L=>L.g),...minions.filter(m=>!m.away).map(m=>m.group),...enemies.filter(e=>!e.dead).map(e=>e.group),...turrets.filter(t=>t.alive).map(t=>t.group),...dogs.map(d=>d.g)]);
   if(!u){$('tip').style.display='none';canvas.style.cursor='';return}canvas.style.cursor='pointer';
   if(u.loot){const L=u.loot;showTip(cx,cy,`${lootName(L)} · ${RARITY[L.r].n}`,L.kind==='treasure'?'Clique para abrir':L.prio?'Prioridade dos coletores':'Clique: coletores buscam primeiro')}
   else if(u.minion){const m=u.minion;showTip(cx,cy,`${m.name} · ${m.R.n} · nv ${m.lvl}`,m.wounded>0?'Ferido':'Clique para ver e equipar')}
