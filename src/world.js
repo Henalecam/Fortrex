@@ -210,6 +210,7 @@ const looted=new Uint8Array(N);// a cell pays material only once, so regrown/reb
 const BIOMES={campo:{n:'Campos Verdes',ico:'🌿',g:0x8fd08a,gn:'Grama',d:0x9c7a55,l:0x6fbf6a,t:0x7fc98f,lava:14,ponds:17,trees:330,hills:38},
   deserto:{n:'Deserto Rubro',ico:'🏜️',g:0xe8cf8a,gn:'Areia',d:0xd4b06a,l:0x8fbf5a,t:0xd8bf78,lava:12,ponds:5,trees:80,hills:46},
   neve:{n:'Tundra Gelada',ico:'❄️',g:0xf1f5fa,gn:'Neve',d:0xb9a48a,l:0x2f6b4f,t:0xe6eef5,lava:6,ponds:17,trees:300,hills:42,frozen:true},
+  vulcao:{n:'Ermo Vulcânico',ico:'🌋',g:0x5a5658,gn:'Cinza',d:0x3e3436,l:0x5a6b3a,t:0x7a6464,lava:34,ponds:3,trees:70,hills:52,volcanic:true},
   pantano:{n:'Pântano da Bruma',ico:'🐸',g:0x5f8a4a,gn:'Lodo',d:0x5a4a35,l:0x4f6b3a,t:0x4f7a3f,lava:4,ponds:42,trees:260,hills:20}};
 let BIOME=BIOMES.campo;
 function genWorld(){state.biomeKey=BIOMES[state.biome]?state.biome:pick(Object.keys(BIOMES));BIOME=BIOMES[state.biomeKey];state.biomeName=BIOME.n;MAT[13].c=BIOME.g;MAT[13].n=BIOME.gn;MAT[12].c=BIOME.d;MAT[11].c=BIOME.l;tuftMesh.material.color.setHex(BIOME.t);

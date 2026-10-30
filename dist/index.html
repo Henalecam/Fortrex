@@ -609,6 +609,7 @@ const looted=new Uint8Array(N);// a cell pays material only once, so regrown/reb
 const BIOMES={campo:{n:'Campos Verdes',ico:'🌿',g:0x8fd08a,gn:'Grama',d:0x9c7a55,l:0x6fbf6a,t:0x7fc98f,lava:14,ponds:17,trees:330,hills:38},
   deserto:{n:'Deserto Rubro',ico:'🏜️',g:0xe8cf8a,gn:'Areia',d:0xd4b06a,l:0x8fbf5a,t:0xd8bf78,lava:12,ponds:5,trees:80,hills:46},
   neve:{n:'Tundra Gelada',ico:'❄️',g:0xf1f5fa,gn:'Neve',d:0xb9a48a,l:0x2f6b4f,t:0xe6eef5,lava:6,ponds:17,trees:300,hills:42,frozen:true},
+  vulcao:{n:'Ermo Vulcânico',ico:'🌋',g:0x5a5658,gn:'Cinza',d:0x3e3436,l:0x5a6b3a,t:0x7a6464,lava:34,ponds:3,trees:70,hills:52,volcanic:true},
   pantano:{n:'Pântano da Bruma',ico:'🐸',g:0x5f8a4a,gn:'Lodo',d:0x5a4a35,l:0x4f6b3a,t:0x4f7a3f,lava:4,ponds:42,trees:260,hills:20}};
 let BIOME=BIOMES.campo;
 function genWorld(){state.biomeKey=BIOMES[state.biome]?state.biome:pick(Object.keys(BIOMES));BIOME=BIOMES[state.biomeKey];state.biomeName=BIOME.n;MAT[13].c=BIOME.g;MAT[13].n=BIOME.gn;MAT[12].c=BIOME.d;MAT[11].c=BIOME.l;tuftMesh.material.color.setHex(BIOME.t);
@@ -2099,9 +2100,16 @@ let chestAcc=0,chestLast=-1;function chestTick(dt){chestAcc+=dt;if(chestAcc<.3)r
   if(n<tot){el.hidden=false;el.textContent=`📦 ${n}/${tot}`;el.classList.toggle('hurt',state.phase==='wave')}else el.hidden=true;
   if(chestLast>=0&&n<chestLast&&state.phase==='wave'&&simTime-(state.chestWarnT||-99)>12){state.chestWarnT=simTime;toast(`💔 O baú está sendo destruído: ${n}/${tot} pedaços! Pedaços perdidos só voltam no descanso.`,'r3')}chestLast=n}
 
+// volcanic wastes: during waves the earth erupts — marked spots get hit by lava bombs (hurt everyone, set fires, scar the ground)
+let eruptT=14;const pendingLava=[];
+function volcanoTick(dt){if(!BIOME.volcanic||state.phase!=='wave'){if(state.phase!=="wave")eruptT=14;return}eruptT-=dt;
+  if(eruptT<=0){eruptT=rnd(32,48);const n=3+Math.floor(state.wave/6);for(let k=0;k<n;k++){const a=rnd(0,Math.PI*2),r=Math.random()<.2?rnd(4,WR-2):rnd(WR+4,60);const x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;markGround(x,z,2.4,0xff5a1a,1.6);pendingLava.push({x,z,t:1.6+k*.25})}
+    toast('🌋 Erupção! Bombas de lava vão cair nas marcas laranja.','r3');shake=Math.max(shake,.35);SFX.boom&&SFX.boom(true)}
+  for(let i=pendingLava.length-1;i>=0;i--){const L=pendingLava[i];L.t-=dt;if(L.t>0)continue;pendingLava.splice(i,1);explode(Math.floor(L.x),Math.floor(surf(L.x,L.z)),Math.floor(L.z),2.4,60+state.wave*4,{fire:true,src:'env'});for(let k=0;k<6;k++)spawnFlame(L.x+rnd(-1.5,1.5),surf(L.x,L.z)+rnd(.2,1.2),L.z+rnd(-1.5,1.5),1)}}
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.61;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.62;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2118,7 +2126,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.58,'📦 Contador do baú no topo da tela aparece piscando quando ele perde pedaços, com aviso.'],
   [0.59,'🌀 Nova arma: Torre de vento (horda 8+) — rajada em cone que empurra a horda para trás e derruba escaladores.'],
   [0.60,'😡🔷 Chefes da horda 15+ podem vir Furiosos (enfurecem abaixo da metade da vida) ou com Escudo (bolha que absorve dano e se regenera se você parar de atacar). Torre de vento não empurra o mesmo inimigo de novo por 4 s.'],
-  [0.61,'🔷 A barra do chefe mostra o escudo em azul listrado. 🏳️ Cada estandarte inimigo capturado dá +2% de dano permanente (até 15).']];
+  [0.61,'🔷 A barra do chefe mostra o escudo em azul listrado. 🏳️ Cada estandarte inimigo capturado dá +2% de dano permanente (até 15).'],
+  [0.62,'🌋 Novo bioma: Ermo Vulcânico (em partidas novas) — muita lava e erupções durante as hordas: bombas de lava caem nas marcas laranja.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2308,7 +2317,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);volcanoTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';$('bossShield').style.width=(b.shield>0?b.shield/b.maxhp*100:0)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':'r1');state.combo=0}

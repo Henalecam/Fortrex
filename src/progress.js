@@ -279,3 +279,10 @@ function rushBonus(){if(state.phase!=='rest'||state.wave<3||state.restStart==nul
 let chestAcc=0,chestLast=-1;function chestTick(dt){chestAcc+=dt;if(chestAcc<.3)return;chestAcc=0;const n=chestAlive(),tot=_chestVox.length||18;const el=$('chestSt');if(!el)return;
   if(n<tot){el.hidden=false;el.textContent=`📦 ${n}/${tot}`;el.classList.toggle('hurt',state.phase==='wave')}else el.hidden=true;
   if(chestLast>=0&&n<chestLast&&state.phase==='wave'&&simTime-(state.chestWarnT||-99)>12){state.chestWarnT=simTime;toast(`💔 O baú está sendo destruído: ${n}/${tot} pedaços! Pedaços perdidos só voltam no descanso.`,'r3')}chestLast=n}
+
+// volcanic wastes: during waves the earth erupts — marked spots get hit by lava bombs (hurt everyone, set fires, scar the ground)
+let eruptT=14;const pendingLava=[];
+function volcanoTick(dt){if(!BIOME.volcanic||state.phase!=='wave'){if(state.phase!=="wave")eruptT=14;return}eruptT-=dt;
+  if(eruptT<=0){eruptT=rnd(32,48);const n=3+Math.floor(state.wave/6);for(let k=0;k<n;k++){const a=rnd(0,Math.PI*2),r=Math.random()<.2?rnd(4,WR-2):rnd(WR+4,60);const x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;markGround(x,z,2.4,0xff5a1a,1.6);pendingLava.push({x,z,t:1.6+k*.25})}
+    toast('🌋 Erupção! Bombas de lava vão cair nas marcas laranja.','r3');shake=Math.max(shake,.35);SFX.boom&&SFX.boom(true)}
+  for(let i=pendingLava.length-1;i>=0;i--){const L=pendingLava[i];L.t-=dt;if(L.t>0)continue;pendingLava.splice(i,1);explode(Math.floor(L.x),Math.floor(surf(L.x,L.z)),Math.floor(L.z),2.4,60+state.wave*4,{fire:true,src:'env'});for(let k=0;k<6;k++)spawnFlame(L.x+rnd(-1.5,1.5),surf(L.x,L.z)+rnd(.2,1.2),L.z+rnd(-1.5,1.5),1)}}
