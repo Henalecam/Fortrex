@@ -54,6 +54,8 @@ function rollRarity(b=0){const r=Math.random()+b;if(r>1.02)return 4;if(r>.965)re
 const NAMES=['Bolota','Tijolo','Pipoca','Faísca','Migalha','Biscoito','Torresmo','Pudim','Cocada','Paçoca','Chiclete','Pirulito','Rabisco','Trovão','Tampinha','Bigode','Farofa','Quindim','Jujuba','Feijão','Pitoco','Zica','Brigadeiro','Caju','Moranga','Bacuri','Pequi','Graveto','Cascalho','Fuligem','Pamonha','Canjica','Mandioca','Tapioca','Sirigado','Xodó','Fubá','Gengibre','Dendê','Jabuti'];
 
 const OPTS=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_opts')||'{}')}catch(e){return{}}})();function saveOpts(){try{localStorage.setItem('fortrex_opts',JSON.stringify(OPTS))}catch(e){}}
+const DIFFS={calmo:{n:'Tranquilo',ico:'🌱',hp:.72,cnt:.75,dmg:.7,sp:.95,d:'Para relaxar e construir.'},normal:{n:'Normal',ico:'⚔️',hp:1.2,cnt:1.1,dmg:1.1,sp:1,arm:0,d:'O desafio pensado para o jogo.'},brutal:{n:'Brutal',ico:'💀',hp:2.3,cnt:1.6,dmg:1.6,sp:1.12,arm:.15,d:'A bruma não perdoa: pressão desde a horda 10.'}};
+const DIFF=()=>DIFFS[OPTS.diff]||DIFFS.normal;
 let simTime=0,shake=0,hitstop=0,gameSpeed=1,slowmo=0;const SPEEDS=[1,2,3,5];const MAX_MINIONS=60;
 function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:15,auto:false,
   focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,

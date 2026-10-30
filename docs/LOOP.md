@@ -58,8 +58,9 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.27: Moral dos minions (😄/🙂/😟/😩 na faixa de status): sobe vencendo hordas (+8), chefes (+15) e descansando à noite; cai com feridos e hordas longas (>90 s); muda o rendimento de todos ±20%. Hordas maiores (n ≈ 6 + 2,6·horda) e vida um pouco mais alta no início/meio. Teste passivo (AUTO=0, sem jogador): cai na horda 22–23 por escaladores/aranhas no baú; bot ativo: horda 21 em 25 min.
 
+- v0.28: seletor de dificuldade na tela inicial (salvo no navegador): 🌱 Tranquilo (vida 0,72×, menos inimigos, dano 0,7×), ⚔️ Normal (vida 1,2×, +10% inimigos e dano), 💀 Brutal (vida 2,3×, +60% inimigos, dano 1,6×, +12% velocidade, armadura base 15% a partir da horda 6). Bot ativo no Brutal: base sob pressão desde a horda 7 (plan 800–900), horda 17 em 25 min. Teste: `DIFF=brutal node t5b.js 1500`.
+
 ## Backlog (próximas rodadas)
-- [ ] Dificuldade: o jogo ainda segura bem até a 20+; avaliar seletor de dificuldade (Tranquilo/Normal/Brutal) no início
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
 - [ ] Ficha do minion e Arsenal no estilo HUD v0.16; tooltips de comparação
 - [ ] Reino: mensagens de embaixada (tributo/aliança)
