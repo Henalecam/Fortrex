@@ -98,6 +98,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.53: 🤝 Aliados mandam reforços: quando uma fortaleza rival cerca você, cada cidade aliada envia 1–3 soldados (até 8, com o chapéu na cor da facção) que vão embora quando a batalha acaba (não entram no save). Cidades aliadas mostram 🤝 no mapa do reino.
 - v0.54: 🚩 Porta-estandarte (horda 12+, ~50% das hordas): cavaleiro com bandeira vermelha, 2,2× vida; inimigos a até 8 blocos ficam 20% mais rápidos e levam 20% menos dano; ao cair, os vizinhos entram em pânico (atordoados 1,8 s). Mapa do reino no celular mostra só o primeiro nome das cidades (o selecionado e Fortrex completos). Soldados aliados confirmados indo embora ao fim do cerco.
 - v0.55: 🛡️ Égide do Guardião (horda 8+): botão no dock — 7 s em que os blocos da planta (inclusive o baú) levam só 8% do dano, cúpula azul visível; recarga 100 s. Bot agora foca o porta-estandarte e usa a Égide quando o baú apanha. Perfil em horda alta: sistemas novos não aparecem entre os gargalos (debris, fluidos e inimigos dominam).
+- v0.56: ⚡ Ímpeto: chamar a horda nos primeiros 12 s de descanso rende (12−s)×(1+0,12×horda) material, mostrado no botão. Equilíbrio: comparei teste passivo (sem gastar material) em v0.45/v0.50/v0.55 — todos sobreviviam até a horda 20–23, Normal estava fácil. Normal agora hp 1,35 / quantidade 1,2 / dano 1,2 e o baú leva 2× dano de inimigos. Égide cabe no dock do celular (2 linhas, 2 heróis na coluna).
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
