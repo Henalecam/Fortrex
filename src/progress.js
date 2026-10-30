@@ -13,7 +13,7 @@ function canInstall(){if(turretCount()<turretCap())return true;toast(`Limite de 
 const ROLE_BASE={rep:6,col:7,gun:4,sol:6,med:2};
 function roleCap(r){const u=state.ups;return ROLE_BASE[r]+(r==='sol'?3*(u.quartel||0):r==='med'?(u.quartel||0):r==='rep'||r==='col'?2*(u.oficina||0):r==='gun'?2*(u.escola||0):0)}
 function roleCount(r){return minions.filter(m=>m.role===r).length}
-function roleFree(r){return isUnlocked('role',r)&&roleCount(r)<roleCap(r)}
+function roleFree(r){return state.banRole!==r&&isUnlocked('role',r)&&roleCount(r)<roleCap(r)}
 function roleBlock(r){if(!isUnlocked('role',r))return`🔒 ${ROLES[r].n} libera na horda ${unlockWave('role',r)}`;if(roleCount(r)>=roleCap(r))return`Limite de ${roleCap(r)} ${ROLES[r].n}s. ${r==='sol'||r==='med'?'Compre 🏯 Quartel':r==='gun'?'Compre 🎓 Escola de artilharia':'Compre 🏭 Oficina'} nos Upgrades.`;return''}
 const POSTS={auto:{n:'Livre',ico:'🔄'},sul:{n:'Portão (sul)',ico:'⬇️'},norte:{n:'Norte',ico:'⬆️'},leste:{n:'Leste',ico:'➡️'},oeste:{n:'Oeste',ico:'⬅️'},torre:{n:'Torre',ico:'🏰'}};
 function postPos(p){switch(p){case'norte':return{x:CX,z:WA-7};case'leste':return{x:WB+8,z:CZ};case'oeste':return{x:WA-8,z:CZ};case'torre':return{x:CX,z:CZ+3};default:return{x:CX,z:WB+9}}}
@@ -672,3 +672,6 @@ let _raidT=0;function raidTick(dt){_raidT-=dt;if(_raidT<=0){_raidT=.4;const b=$(
 $('raidGo').onclick=()=>startRaid();
 window.__raid=()=>{state.maxWave=Math.max(state.maxWave||1,8);state.nextRaid=0;startRaid();return state.raid?{...state.raid,q:state.queue.length}:null};
 window.__raidSt=()=>state.raid?{st:state.raid.st,q:state.queue.length,en:enemies.filter(e=>!e.dead).length,wave:state.wave}:{done:state.raidsDone||0,wave:state.wave,next:state.nextRaid};
+
+// v2.1 contratar fica mais caro a cada minion do mesmo papel (progressão mais lenta)
+function hireCost(r){return Math.round(ROLES[r].cost*(1+roleCount(r)*.22+Math.max(0,minions.length-14)*.04))}

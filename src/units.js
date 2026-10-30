@@ -306,7 +306,7 @@ function updGun(m,dt){
 function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;const RL=state.rally;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||(RL?Math.hypot(e.pos.x-RL.x,e.pos.z-RL.z)>14:Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+30)||(e.fly&&e.group.position.y>m.group.position.y+3.2)||(!e.fly&&e.gy>GY+3))continue;const d=hd(e.pos,m.pos);const pri=postDist(m,e.pos.x,e.pos.z)*.6+(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+d;if(pri<bd){bd=pri;tgt=e}}
   if(tgt&&(inside(tgt.pos.x,tgt.pos.z)||state.phase!=='wave'||tgt.state==='attack'||hd(tgt.pos,m.pos)<14)){const reach=tgt.radius+1.3+m.st.reach;
     if(walkTo(m,tgt.pos.x,tgt.pos.z,dt,reach)||hd(tgt.pos,m.pos)<reach+.1){m.group.rotation.y=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);
-      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);tgt.lastSol=m;hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
+      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=16*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);tgt.lastSol=m;hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
         if(tgt.dead)gainXP(m,6+tgt.maxhp/12);if(m.st.stun&&Math.random()<m.st.stun)tgt.stun=Math.max(tgt.stun,.6);if(m.st.burn)tgt.afire=Math.max(tgt.afire,2);m.wpn.rotation.x=-1.2;spawnDebris(tgt.pos.x,tgt.gy+.8,tgt.pos.z,tgt.T.color,2,.2)}}
     m.wpn.rotation.x*=.85;return}
   // soldiers hold the field outside the walls, in front of the gate
@@ -334,7 +334,7 @@ function updateRings(dt){for(let i=rings.length-1;i>=0;i--){const r=rings[i];r.t
 
 const xpNeed=l=>Math.round(18*Math.pow(l,1.45));
 function gainXP(m,n){if(!m||!minions.includes(m))return;m.xp+=n;while(m.xp>=xpNeed(m.lvl)&&m.lvl<30){m.xp-=xpNeed(m.lvl);m.lvl++;recompute(m);m.hp=m.maxhp;if(m.hero&&TALENT_LV.includes(m.lvl))setTimeout(()=>offerTalent(m),400);
-  sparkle(m.pos.x,m.group.position.y+1.6,m.pos.z,0xffcf3d,10);label({x:m.pos.x,y:m.group.position.y,z:m.pos.z},`NÍVEL ${m.lvl}!`,'#e0a000');SFX.loot(Math.min(4,Math.floor(m.lvl/5)));if(m.lvl%5===0)toast(`${m.name} chegou ao nível ${m.lvl}!`,'r3')}}
+  sparkle(m.pos.x,m.group.position.y+1.6,m.pos.z,0xffcf3d,14);ringFx(m.pos.x,m.group.position.y+.2,m.pos.z,2.4,0xffcf3d);label({x:m.pos.x,y:m.group.position.y,z:m.pos.z},`NÍVEL ${m.lvl}! ↑`,'#e0a000');SFX.loot(Math.min(4,Math.floor(m.lvl/5)));if(m.lvl%5===0)toast(`${m.name} chegou ao nível ${m.lvl}!`,'r3')}}
 
 // ───────── body destruction: enemies are built from chunks that break off as they take damage
 const _cv=new THREE.Vector3();

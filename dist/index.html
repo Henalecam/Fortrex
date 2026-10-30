@@ -1239,7 +1239,7 @@ function updGun(m,dt){
 function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;const RL=state.rally;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||(RL?Math.hypot(e.pos.x-RL.x,e.pos.z-RL.z)>14:Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+30)||(e.fly&&e.group.position.y>m.group.position.y+3.2)||(!e.fly&&e.gy>GY+3))continue;const d=hd(e.pos,m.pos);const pri=postDist(m,e.pos.x,e.pos.z)*.6+(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+d;if(pri<bd){bd=pri;tgt=e}}
   if(tgt&&(inside(tgt.pos.x,tgt.pos.z)||state.phase!=='wave'||tgt.state==='attack'||hd(tgt.pos,m.pos)<14)){const reach=tgt.radius+1.3+m.st.reach;
     if(walkTo(m,tgt.pos.x,tgt.pos.z,dt,reach)||hd(tgt.pos,m.pos)<reach+.1){m.group.rotation.y=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);
-      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);tgt.lastSol=m;hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
+      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=16*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);tgt.lastSol=m;hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
         if(tgt.dead)gainXP(m,6+tgt.maxhp/12);if(m.st.stun&&Math.random()<m.st.stun)tgt.stun=Math.max(tgt.stun,.6);if(m.st.burn)tgt.afire=Math.max(tgt.afire,2);m.wpn.rotation.x=-1.2;spawnDebris(tgt.pos.x,tgt.gy+.8,tgt.pos.z,tgt.T.color,2,.2)}}
     m.wpn.rotation.x*=.85;return}
   // soldiers hold the field outside the walls, in front of the gate
@@ -1267,7 +1267,7 @@ function updateRings(dt){for(let i=rings.length-1;i>=0;i--){const r=rings[i];r.t
 
 const xpNeed=l=>Math.round(18*Math.pow(l,1.45));
 function gainXP(m,n){if(!m||!minions.includes(m))return;m.xp+=n;while(m.xp>=xpNeed(m.lvl)&&m.lvl<30){m.xp-=xpNeed(m.lvl);m.lvl++;recompute(m);m.hp=m.maxhp;if(m.hero&&TALENT_LV.includes(m.lvl))setTimeout(()=>offerTalent(m),400);
-  sparkle(m.pos.x,m.group.position.y+1.6,m.pos.z,0xffcf3d,10);label({x:m.pos.x,y:m.group.position.y,z:m.pos.z},`NÍVEL ${m.lvl}!`,'#e0a000');SFX.loot(Math.min(4,Math.floor(m.lvl/5)));if(m.lvl%5===0)toast(`${m.name} chegou ao nível ${m.lvl}!`,'r3')}}
+  sparkle(m.pos.x,m.group.position.y+1.6,m.pos.z,0xffcf3d,14);ringFx(m.pos.x,m.group.position.y+.2,m.pos.z,2.4,0xffcf3d);label({x:m.pos.x,y:m.group.position.y,z:m.pos.z},`NÍVEL ${m.lvl}! ↑`,'#e0a000');SFX.loot(Math.min(4,Math.floor(m.lvl/5)));if(m.lvl%5===0)toast(`${m.name} chegou ao nível ${m.lvl}!`,'r3')}}
 
 // ───────── body destruction: enemies are built from chunks that break off as they take damage
 const _cv=new THREE.Vector3();
@@ -1841,10 +1841,10 @@ function closeCard(){state.card=null;$('mcard').style.display='none'}
 let cardSlot=null,cardAcc=0;
 function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;if(cardAcc%4)return}const el=$('mcard');let h='';
   if(c.m){const m=c.m;if(!minions.includes(m)){closeCard();return}
-    h+=`<div class="ch"><b>${m.R.ico} ${esc(m.name)}</b><button class="btn x" id="cClose">✕</button></div><div class="ds"><span style="color:var(--${RARITY[m.rarity].css})">${RARITY[m.rarity].n}</span> · ${m.R.n}${m.trait?` · <b>${m.trait}</b>: ${TRAIT_DESC[m.trait]}`:''}</div><div class="ds"><b>Nível ${m.lvl}</b> · XP ${Math.floor(m.xp)}/${xpNeed(m.lvl)}${m.role==='sol'&&!m.hero?` · ${m.rank?`${VET[m.rank-1][2]} <b>${VET[m.rank-1][1]}</b> · `:''}${m.kills||0} abates${m.rank<VET.length?` (próx. patente: ${VET[m.rank||0][0]})`:''}`:''}</div>`;if(m.hero&&state.heroTal&&state.heroTal[m.hero]&&state.heroTal[m.hero].length)h+=`<div class="ds">Talentos: ${state.heroTal[m.hero].map(t=>TALENTS[t]?`${TALENTS[t].ico} ${TALENTS[t].n}`:'').join(' · ')}</div>`;
+    h+=`<div class="ch"><b>${m.R.ico} ${esc(m.name)}</b><button class="btn x" id="cClose">✕</button></div><div class="ds"><span style="color:var(--${RARITY[m.rarity].css})">${RARITY[m.rarity].n}</span> · ${m.R.n}${m.trait?` · <b>${m.trait}</b>: ${TRAIT_DESC[m.trait]}`:''}</div><div class="ds"><b>Nível ${m.lvl}</b> · XP ${Math.floor(m.xp)}/${xpNeed(m.lvl)}${m.lvl>1?` · <span style="color:var(--r1)">+${(m.lvl-1)*7}% dano, +${(m.lvl-1)*5}% armas</span>`:''}${m.role==='sol'&&!m.hero?` · ${m.rank?`${VET[m.rank-1][2]} <b>${VET[m.rank-1][1]}</b> · `:''}${m.kills||0} abates${m.rank<VET.length?` (próx. patente: ${VET[m.rank||0][0]})`:''}`:''}</div>`;if(m.hero&&state.heroTal&&state.heroTal[m.hero]&&state.heroTal[m.hero].length)h+=`<div class="ds">Talentos: ${state.heroTal[m.hero].map(t=>TALENTS[t]?`${TALENTS[t].ico} ${TALENTS[t].n}`:'').join(' · ')}</div>`;
     if(m.hero){const H=HEROES.find(x=>x.id===m.hero),S=state.heroes&&state.heroes[m.hero];if(H)h+=`<div class="herobox"><div><b>${H.ico} ${H.ab}</b> · tecla ${H.key} · ${S&&S.cd>0?`recarga ${Math.ceil(S.cd)} s`:'pronto'}</div><div class="ds">${esc(H.d)}. Fica mais forte a cada nível (+7% de efeito, recarga menor).</div><div class="ds" style="font-style:italic">${esc(HERO_LORE[H.id]||'')}</div><button class="btn sm primary" id="cHeroAb">Usar ${H.ab}</button></div>`}
     h+=`<div class="hpbar"><i style="width:${m.wounded>0?0:Math.round(m.hp/m.maxhp*100)}%"></i></div><div class="ds">${m.wounded>0?`Ferido · volta em ${Math.ceil(m.wounded/state.healMul)}s`:`Vida ${Math.ceil(m.hp)}/${Math.ceil(m.maxhp)} · ${({idle:'à toa',go:'indo trabalhar',work:'trabalhando',fetch:'buscando loot',haul:'levando ao baú',man:'operando arma'})[m.state]||m.state}`}</div>`;
-    h+='<div class="slots">';for(const sl of ['arma','armadura','acessorio']){const it=m.eq[sl];h+=`<button class="slot ${it?'r'+it.r:''} ${cardSlot===sl?'sel':''}" data-sl="${sl}">${it?`<span class="ico">${itemIco(it)}</span>${esc(it.n)}`:`<span class="ct">${SLOT_N[sl]}</span>vazio`}</button>`}h+='</div>';
+    h+='<div class="slots">';for(const sl of ['arma','armadura','acessorio']){const it=m.eq[sl];h+=`<button class="slot ${it?'r'+it.r:''} ${cardSlot===sl?'sel':''}" data-sl="${sl}">${it?`<span class="ico">${itemIco(it)}</span>${esc(it.n)}`:`<span class="ct">${SLOT_N[sl]}</span>vazio`}</button>`}h+='</div>';if(m.st){const S=m.st,o=[];if(S.atk&&Math.abs(S.atk-1)>.01)o.push(`⚔️ dano ×${S.atk.toFixed(2)}`);if(S.def>.01)o.push(`🛡️ defesa ${Math.round(S.def*100)}%`);if(S.hp&&S.hp>1.01)o.push(`❤️ vida ×${S.hp.toFixed(2)}`);if(S.rate&&S.rate>1.01)o.push(`⚡ ataque ×${S.rate.toFixed(2)}`);if(S.gun&&S.gun>1.01)o.push(`🎯 armas ×${S.gun.toFixed(2)}`);if(S.spd&&Math.abs(S.spd-1)>.01)o.push(`👟 ×${S.spd.toFixed(2)}`);if(o.length)h+=`<div class="ds" style="margin:4px 0 2px;font-weight:600">${o.join(' · ')}</div>`}
     if(cardSlot){const opts=state.inv.armory.filter(i=>i.slot===cardSlot).sort((a,b)=>itemScore(b,m.role)-itemScore(a,m.role));h+='<div class="mlist">';if(m.eq[cardSlot])h+=`<button class="mrow" data-un="1"><span>Tirar ${esc(m.eq[cardSlot].n)}</span></button>`;
       for(const it of opts.slice(0,6))h+=`<button class="mrow" data-it="${it.id}"><span style="color:var(--${RARITY[it.r].css})">${itemIco(it)} ${esc(it.n)}</span><span class="ct">${esc(itemLines(it).slice(0,2).join(' · '))}</span></button>`;if(!opts.length)h+='<div class="ds">Nada no arsenal para este espaço.</div>';h+='</div>'}
     if(!m.hero){h+='<div class="ds" style="margin-top:6px">Função</div><div class="roles">';}for(const r in ROLES)if(!m.hero)h+=`<button class="btn sm ${m.role===r?'on':''}" data-role="${r}" title="${esc(ROLES[r].d)}">${ROLES[r].ico} ${ROLES[r].n}</button>`;if(!m.hero)h+='</div>';
@@ -1863,9 +1863,9 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
 
 // ── hire
 function renderHire(){const el=$('hire');let h=`<div class="ds" style="width:100%;text-align:center">${minions.length}/${MAX_MINIONS+MAX_MINIONS_BONUS} minions · vagas por função sobem com Quartel, Oficina e Escola</div>`;
-  for(const r in ROLES){const R=ROLES[r];const lock=!isUnlocked('role',r);h+=`<button class="btn" data-h="${r}" ${state.material<R.cost||lock||!roleFree(r)?'disabled':''} title="${esc(roleBlock(r)||R.d)}">${R.ico} ${R.n} ${lock?`<span class="cost">🔒 h${unlockWave('role',r)}</span>`:`<span class="cost">${roleCount(r)}/${roleCap(r)} · ${R.cost}</span>`}</button>`}el.innerHTML=h;
+  for(const r in ROLES){const R=ROLES[r];const C=hireCost(r);const lock=!isUnlocked('role',r);h+=`<button class="btn" data-h="${r}" ${state.material<C||lock||!roleFree(r)?'disabled':''} title="${esc(roleBlock(r)||R.d)}">${R.ico} ${R.n} ${lock?`<span class="cost">🔒 h${unlockWave('role',r)}</span>`:`<span class="cost">${roleCount(r)}/${roleCap(r)} · ${C}</span>`}</button>`}el.innerHTML=h;
   for(const b of el.querySelectorAll('[data-h]'))b.onclick=()=>{hire(b.dataset.h);renderHire()}}
-function hire(role){const R=ROLES[role];const blk=roleBlock(role);if(blk){toast(blk,'r0');return false}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){toast(`Limite de ${MAX_MINIONS+MAX_MINIONS_BONUS} minions: a cidadela está lotada`,'r0');return}if(state.material<R.cost)return;state.material-=R.cost;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);
+function hire(role){const R=ROLES[role];const blk=roleBlock(role);if(blk){toast(blk,'r0');return false}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS){toast(`Limite de ${MAX_MINIONS+MAX_MINIONS_BONUS} minions: a cidadela está lotada`,'r0');return}const C=hireCost(role);if(state.material<C)return;state.material-=C;const r=rollRarity(-.1+state.luck);const m=makeMinion(role,r,CHEST.x+rnd(-1,1),CHEST.z+2.5);
   toast(`${m.name}, ${R.n} ${RARITY[r].n}${m.trait?' · '+m.trait:''}`,RARITY[r].css);SFX.pop();if(state.autoEquip)for(const it of state.inv.armory.slice())autoEquip(it);updateHud()}
 
 // ── upgrades
@@ -1943,7 +1943,7 @@ function canInstall(){if(turretCount()<turretCap())return true;toast(`Limite de 
 const ROLE_BASE={rep:6,col:7,gun:4,sol:6,med:2};
 function roleCap(r){const u=state.ups;return ROLE_BASE[r]+(r==='sol'?3*(u.quartel||0):r==='med'?(u.quartel||0):r==='rep'||r==='col'?2*(u.oficina||0):r==='gun'?2*(u.escola||0):0)}
 function roleCount(r){return minions.filter(m=>m.role===r).length}
-function roleFree(r){return isUnlocked('role',r)&&roleCount(r)<roleCap(r)}
+function roleFree(r){return state.banRole!==r&&isUnlocked('role',r)&&roleCount(r)<roleCap(r)}
 function roleBlock(r){if(!isUnlocked('role',r))return`🔒 ${ROLES[r].n} libera na horda ${unlockWave('role',r)}`;if(roleCount(r)>=roleCap(r))return`Limite de ${roleCap(r)} ${ROLES[r].n}s. ${r==='sol'||r==='med'?'Compre 🏯 Quartel':r==='gun'?'Compre 🎓 Escola de artilharia':'Compre 🏭 Oficina'} nos Upgrades.`;return''}
 const POSTS={auto:{n:'Livre',ico:'🔄'},sul:{n:'Portão (sul)',ico:'⬇️'},norte:{n:'Norte',ico:'⬆️'},leste:{n:'Leste',ico:'➡️'},oeste:{n:'Oeste',ico:'⬅️'},torre:{n:'Torre',ico:'🏰'}};
 function postPos(p){switch(p){case'norte':return{x:CX,z:WA-7};case'leste':return{x:WB+8,z:CZ};case'oeste':return{x:WA-8,z:CZ};case'torre':return{x:CX,z:CZ+3};default:return{x:CX,z:WB+9}}}
@@ -2603,9 +2603,12 @@ $('raidGo').onclick=()=>startRaid();
 window.__raid=()=>{state.maxWave=Math.max(state.maxWave||1,8);state.nextRaid=0;startRaid();return state.raid?{...state.raid,q:state.queue.length}:null};
 window.__raidSt=()=>state.raid?{st:state.raid.st,q:state.queue.length,en:enemies.filter(e=>!e.dead).length,wave:state.wave}:{done:state.raidsDone||0,wave:state.wave,next:state.nextRaid};
 
+// v2.1 contratar fica mais caro a cada minion do mesmo papel (progressão mais lenta)
+function hireCost(r){return Math.round(ROLES[r].cost*(1+roleCount(r)*.22+Math.max(0,minions.length-14)*.04))}
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.0;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.1;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2667,7 +2670,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [1.7,'🧭 Interface enxuta: a barra de baixo virou uma pílula pequena (horda, Auto, velocidade, som; ☠️ Raid quando disponível). Painéis (construir, arsenal, contratar, upgrades, reino, mercador) ficam num trilho de ícones à esquerda e as ações (heróis, bomba, égide, portão, reunir, atacar) num trilho à direita, com o nome ao passar o mouse. No celular o topo ficou mais limpo e a barra do chefe não cobre mais os chips. Corrigido: o botão ⚔️ Atacar voltou a funcionar.'],
   [1.8,'💎 Drops com peso: itens raros, épicos e lendários ficaram bem mais raros (lendário de verdade é um evento), e cada um chega com feixe de luz colorido pulsante — maior e com faíscas nos lendários —, tremor, som crescente e uma carta de revelação ao entrar no baú. Menos lixo comum, menos recrutas e baús, progressão mais lenta (horda 10 em ~14 min em vez de 10).'],
   [1.9,'⚖️ Inimigos afinados: Golem de Cristal, Mímico, Cavaleiro, Escudeiro e Bombardeiro estavam fortes demais e foram ajustados. Cada horda agora tem 1–2 temas (🐜 Enxame, 🐺 Matilha, 🪨 Cerco, 🦅 Céu, 🛡️ Guarda) mostrados no topo, em vez de tudo misturado.'],
-  [2.0,'🎯 Armas equilibradas (DPS medido uma a uma): Canhão bem mais forte, Morteiro com mais dano e recarga menor, Gelo bate mais; Lança-chamas e Raio-sol um pouco menos absurdos. Equipamentos: a raridade agora pesa muito mais (lendário ≈3,7× o bônus do comum) e épicos/lendários ainda dão vida extra.']];
+  [2.0,'🎯 Armas equilibradas (DPS medido uma a uma): Canhão bem mais forte, Morteiro com mais dano e recarga menor, Gelo bate mais; Lança-chamas e Raio-sol um pouco menos absurdos. Equipamentos: a raridade agora pesa muito mais (lendário ≈3,7× o bônus do comum) e épicos/lendários ainda dão vida extra.'],
+  [2.1,'👥 Minions: contratar fica mais caro a cada um do mesmo papel (o exército cresce mais devagar e cada contratação pesa). Subir de nível agora brilha com anel dourado e a ficha mostra o bônus do nível e um resumo dos atributos com equipamento (dano ×, defesa %, vida ×). Soldados batem um pouco mais forte.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','retreating','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2924,7 +2928,7 @@ function autoBuildTick(){const reserve=reserveMat();let acted=false;
   if(state.material>reserve+70&&state.wave>=3){for(const [x,z] of MID_TOWERS()){const top=idx(x+1,GY+TOWER_H-1,z+1);if(blue[top])continue;for(let dx=0;dx<4;dx++)for(let dz=0;dz<4;dz++)for(let y=0;y<TOWER_H;y++){const i=idx(x+dx,GY+y,z+dz);if(!blue[i]||blue[i]===3)placeBlue(i,6)}toast('Construção auto: nova torre na muralha','r1');acted=true;break}}
   const want=Math.min(60,10+Math.floor(state.wave*1.3));if(minions.length<want){const n={};for(const m of minions)n[m.role]=(n[m.role]||0)+1;const guns=turrets.filter(t=>t.alive).length;
     const need=[['gun',guns-(n.gun||0)],['sol',Math.ceil(minions.length*.3)-(n.sol||0)],['rep',Math.ceil(minions.length*.2)-(n.rep||0)],['col',Math.max(4,Math.ceil(minions.length*.25))+Math.floor(loot.filter(L=>!L.carried&&!L.claimed).length/25)-(n.col||0)],['med',Math.floor(minions.length/8)-(n.med||0)]].sort((a,b)=>b[1]-a[1]);
-    const nf=need.filter(([r])=>roleFree(r));const role=nf.length&&nf[0][1]>0?nf[0][0]:roleFree('sol')?'sol':null;if(role&&state.material>=ROLES[role].cost+reserve){hire(role);acted=true}}
+    const nf=need.filter(([r])=>roleFree(r));const role=nf.length&&nf[0][1]>0?nf[0][0]:roleFree('sol')?'sol':null;if(role&&state.material>=hireCost(role)+reserve){hire(role);acted=true}}
   if(acted)refreshPanels()}
 // upgrades: always replace the worst piece with a better one
 const TIER=[3,4,14,20];
@@ -3066,6 +3070,10 @@ window.__wtest=(type,r)=>{for(const t of turrets.slice())if(t.alive)killTurret(t
   state.wave=8;document.getElementById('next').click();state.queue=[];for(const e of enemies)if(!e.dead){e.dead=true;scene.remove(e.group)}
   const an=TOWER_ANCHORS[2];const t=makeTurret(type,an,r||0);window.__wt={t,x:ix(an),z:iz(an),d0:DMG_ACC,t0:simTime,k0:state.kills};return t.T.n};
 window.__wtick=()=>{const W=window.__wt;const alive=enemies.filter(e=>!e.dead).length;for(let k=alive;k<8;k++){const a=rnd(2.2,4.1),r=rnd(14,22);makeEnemy('crawler',0,W.x+Math.cos(a)*r,W.z+Math.sin(a)*r)}return {dps:+((DMG_ACC-W.d0)/Math.max(1,simTime-W.t0)).toFixed(1),kills:state.kills-W.k0}};
+
+window.__noRole=r=>{state.banRole=r;for(const m of minions.slice())if(m.role===r&&!m.hero){releaseTask&&releaseTask(m);scene.remove(m.group);minions.splice(minions.indexOf(m),1)}return minions.length};
+window.__rsum=()=>({w:state.wave,mat:Math.round(state.material),mins:minions.length,miss:blueList.filter(i=>blue[i]&&vox[i]!==blue[i]).length,kills:state.kills,losses:state.losses||0});
+window.__cardTest=()=>{const m=minions.find(m=>m.role==='sol'&&!m.hero);m.lvl=6;for(const [r,sl] of [[4,'arma'],[3,'armadura'],[2,'acessorio']]){let it;for(let k=0;k<30;k++){it=makeEquip(r);if(it.slot===sl)break}state.inv.armory.push(it);equipItem(m,it)}recompute(m);openCard({m});return m.name};
 
 })();
 </script>

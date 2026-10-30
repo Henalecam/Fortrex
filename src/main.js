@@ -201,7 +201,7 @@ function autoBuildTick(){const reserve=reserveMat();let acted=false;
   if(state.material>reserve+70&&state.wave>=3){for(const [x,z] of MID_TOWERS()){const top=idx(x+1,GY+TOWER_H-1,z+1);if(blue[top])continue;for(let dx=0;dx<4;dx++)for(let dz=0;dz<4;dz++)for(let y=0;y<TOWER_H;y++){const i=idx(x+dx,GY+y,z+dz);if(!blue[i]||blue[i]===3)placeBlue(i,6)}toast('Construção auto: nova torre na muralha','r1');acted=true;break}}
   const want=Math.min(60,10+Math.floor(state.wave*1.3));if(minions.length<want){const n={};for(const m of minions)n[m.role]=(n[m.role]||0)+1;const guns=turrets.filter(t=>t.alive).length;
     const need=[['gun',guns-(n.gun||0)],['sol',Math.ceil(minions.length*.3)-(n.sol||0)],['rep',Math.ceil(minions.length*.2)-(n.rep||0)],['col',Math.max(4,Math.ceil(minions.length*.25))+Math.floor(loot.filter(L=>!L.carried&&!L.claimed).length/25)-(n.col||0)],['med',Math.floor(minions.length/8)-(n.med||0)]].sort((a,b)=>b[1]-a[1]);
-    const nf=need.filter(([r])=>roleFree(r));const role=nf.length&&nf[0][1]>0?nf[0][0]:roleFree('sol')?'sol':null;if(role&&state.material>=ROLES[role].cost+reserve){hire(role);acted=true}}
+    const nf=need.filter(([r])=>roleFree(r));const role=nf.length&&nf[0][1]>0?nf[0][0]:roleFree('sol')?'sol':null;if(role&&state.material>=hireCost(role)+reserve){hire(role);acted=true}}
   if(acted)refreshPanels()}
 // upgrades: always replace the worst piece with a better one
 const TIER=[3,4,14,20];
@@ -343,3 +343,7 @@ window.__wtest=(type,r)=>{for(const t of turrets.slice())if(t.alive)killTurret(t
   state.wave=8;document.getElementById('next').click();state.queue=[];for(const e of enemies)if(!e.dead){e.dead=true;scene.remove(e.group)}
   const an=TOWER_ANCHORS[2];const t=makeTurret(type,an,r||0);window.__wt={t,x:ix(an),z:iz(an),d0:DMG_ACC,t0:simTime,k0:state.kills};return t.T.n};
 window.__wtick=()=>{const W=window.__wt;const alive=enemies.filter(e=>!e.dead).length;for(let k=alive;k<8;k++){const a=rnd(2.2,4.1),r=rnd(14,22);makeEnemy('crawler',0,W.x+Math.cos(a)*r,W.z+Math.sin(a)*r)}return {dps:+((DMG_ACC-W.d0)/Math.max(1,simTime-W.t0)).toFixed(1),kills:state.kills-W.k0}};
+
+window.__noRole=r=>{state.banRole=r;for(const m of minions.slice())if(m.role===r&&!m.hero){releaseTask&&releaseTask(m);scene.remove(m.group);minions.splice(minions.indexOf(m),1)}return minions.length};
+window.__rsum=()=>({w:state.wave,mat:Math.round(state.material),mins:minions.length,miss:blueList.filter(i=>blue[i]&&vox[i]!==blue[i]).length,kills:state.kills,losses:state.losses||0});
+window.__cardTest=()=>{const m=minions.find(m=>m.role==='sol'&&!m.hero);m.lvl=6;for(const [r,sl] of [[4,'arma'],[3,'armadura'],[2,'acessorio']]){let it;for(let k=0;k<30;k++){it=makeEquip(r);if(it.slot===sl)break}state.inv.armory.push(it);equipItem(m,it)}recompute(m);openCard({m});return m.name};
