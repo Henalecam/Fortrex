@@ -4,7 +4,7 @@ function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i
   if(w>=6)for(let i=0;i<Math.floor((w-3)/3);i++)list.push('flyer');if(w>=6)for(let i=0;i<Math.floor((w-3)/4);i++)list.push('shaman');
   if(w>12)for(let i=0;i<(w-12)*2;i++)list.push(pick(['crawler','climber','ram','sapper','flyer']));
   {const k=DIFF().cnt;if(k<1){for(let i=list.length-1;i>=0;i--)if(Math.random()>k&&list[i]!=='boss')list.splice(i,1)}else{const extra=Math.round(list.length*(k-1));for(let i=0;i<extra;i++)list.push(list[(Math.random()*list.length)|0])}}
-  shuffle(list);if(w%5===0){list.push(bossOfWave(w));if(w>=25)list.push(BOSS_ROT[(w/5+3)%BOSS_ROT.length])}return list}
+  shuffle(list);if(w%25===0){list.push('mistking');if(w>=50)list.push(bossOfWave(w))}else if(w%5===0){list.push(bossOfWave(w));if(w>=25)list.push(BOSS_ROT[(w/5+3)%BOSS_ROT.length])}return list}
 const BOSS_ROT=['boss','golem','wyrm','colossus','necro','queen','titan'];function bossOfWave(w){return BOSS_ROT[(w/5-1)%BOSS_ROT.length]}
 const EVENTS={
   elite:{n:'Horda de elite',d:'Devoradores mais fortes e rápidos. Recruta garantido.',css:'r1',w:3},
@@ -24,7 +24,7 @@ function startWave(){if(state.choosing||state.phase==='wave')return;state.phase=
   if(state.ev==='siege'&&state.siege===0)state.siege=3;if(state.ev==='golden')state.queue=state.queue.slice(0,Math.ceil(state.queue.length*.5));
   state.spawnT=0;$('report').style.display='none';
   if(state.ev){const E=EVENTS[state.ev];toast(`${E.n}: ${E.d}`,E.css);$('event').style.display='inline-flex';$('event').textContent=E.n+(state.ev==='siege'?` ${4-state.siege}/3`:'');$('event').style.color=`var(--${E.css})`}else $('event').style.display='none';
-  const w=state.wave;if(w%5===0){const b=bossOfWave(w);const tip={boss:'cospe ácido',golem:'arremessa rochas nas armas',wyrm:'voa e solta bolas de fogo',colossus:'mire nas pernas',necro:'ergue mortos: mate os esqueletos para quebrar o escudo',queen:'invoca enxames',titan:'use água e gelo'}[b];toast(`Horda ${w}: ${ETYPES[b].n} nv ${1+Math.floor(w/5)} — ${tip}!`,'r4')}updateHud()}
+  const w=state.wave;if(w%25===0){toast(`Horda ${w}: 👑 O REI DA BRUMA invade! Ele se teleporta perto da cidadela e atordoa suas armas.`,'r4')}else if(w%5===0){const b=bossOfWave(w);const tip={boss:'cospe ácido',golem:'arremessa rochas nas armas',wyrm:'voa e solta bolas de fogo',colossus:'mire nas pernas',necro:'ergue mortos: mate os esqueletos para quebrar o escudo',queen:'invoca enxames',titan:'use água e gelo'}[b];toast(`Horda ${w}: ${ETYPES[b].n} nv ${1+Math.floor(w/5)} — ${tip}!`,'r4')}updateHud()}
 function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.length)return;state.spawnT=rnd(.14,.4);const type=state.queue.shift();const side=rint(0,3),mg=state.ev==='mist'?6:1;let x,z;
   // waves come out of the mist on a ring around the citadel (the big map stays for battles, lairs and fortresses)
   {const a=rnd(0,Math.PI*2),r=rnd(54,72)*(state.ev==='mist'?.85:1);x=clamp(CX+Math.cos(a)*r,3,W-4);z=clamp(CZ+Math.sin(a)*r,3,D-4)}{const B=battle();if(B&&Math.abs(x-B.cx)<B.wr+6&&Math.abs(z-B.cz)<B.wr+6){x=W-x;z=D-z}}
@@ -246,3 +246,4 @@ window.__biome=b=>{state.biome=b};
 function renderDiffs(){const el=$('diffs');if(!el)return;const cur=OPTS.diff||'normal';el.innerHTML=Object.entries(DIFFS).map(([k,D])=>`<button class="btn ${k===cur?'on':''}" data-diff="${k}">${D.ico} ${D.n}</button>`).join('');$('diffD').textContent=DIFF().d;for(const b of el.querySelectorAll('[data-diff]'))b.onclick=()=>{OPTS.diff=b.dataset.diff;saveOpts();renderDiffs()}}
 renderDiffs();$('overAch').innerHTML=achSummary();window.__diff=k=>{OPTS.diff=k};
 window.__gameOver=()=>gameOver();
+window.__king=()=>{const e=makeEnemy('mistking',3,CX+20,CZ+30);return e.blvl};

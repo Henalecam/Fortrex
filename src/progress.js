@@ -47,7 +47,8 @@ const RELICS={boss:{ico:'🦷',n:'Dente do Devorador',d:'+8% de dano das armas',
   colossus:{ico:'🦶',n:'Pata do Colosso',d:'+0,8 de raio da Bomba',go(){state.bombR+=.8}},
   necro:{ico:'📕',n:'Tomo do Necromante',d:'Feridos voltam 30% mais rápido',go(){state.healMul*=1.3}},
   queen:{ico:'👑',n:'Coroa da Rainha',d:'Drops mais raros',go(){state.luck+=.03}},
-  titan:{ico:'🌋',n:'Núcleo de Lava',d:'+5% de chance de crítico',go(){state.critBonus+=.05}}};
+  titan:{ico:'🌋',n:'Núcleo de Lava',d:'+5% de chance de crítico',go(){state.critBonus+=.05}},
+  mistking:{ico:'🌫️',n:'Coroa da Bruma',d:'+15% de dano, +2 vagas de arma e +10 de moral',go(){state.dmgMul*=1.15;state.ups.platform=(state.ups.platform||0)+1;state.morale=Math.min(100,(state.morale||60)+10)}}};
 function grantRelic(t){const R=RELICS[t];if(!R)return;state.relics=state.relics||{};state.relics[t]=(state.relics[t]||0)+1;R.go();toast(`${R.ico} Relíquia: ${R.n} — ${R.d}`,'r4');renderGoals();checkHeroes()}
 function relicsHtml(){const r=state.relics||{};const k=Object.keys(r);if(!k.length)return'';return`<div class="rel">${k.map(t=>`<span title="${RELICS[t].n}: ${RELICS[t].d}">${RELICS[t].ico}${r[t]>1?`<sub>×${r[t]}</sub>`:''}</span>`).join('')}</div>`}
 // ───────── heroes: unique legendaries who join as you collect relics (1, 3 and 5), each with an active ability
@@ -121,6 +122,7 @@ const ACH=[
   {id:'rank6',ico:'🎖️',n:'Coroado',d:'Alcance o título de Rei',c:()=>rankIdx()>=6},
   {id:'exp8',ico:'🏗️',n:'Arquiteto',d:'Complete toda a expansão da cidadela',c:()=>(state.expStage||0)>=EXP_STAGES.length},
   {id:'brutal15',ico:'💀',n:'Brutalmente Honesto',d:'Chegue à horda 15 no Brutal',c:()=>OPTS.diff==='brutal'&&state.wave>=15},
+  {id:'king',ico:'🌫️',n:'Regicida',d:'Derrote o Rei da Bruma',c:()=>!!(state.relics&&state.relics.mistking)},
   {id:'quest5',ico:'🗺️',n:'Aventureiro',d:'Conclua 5 objetivos do mapa',c:()=>(state.questsDone||0)>=5}];
 const ACHS=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_ach')||'{}')}catch(e){return{}}})();
 function achTick(dt){state.achT=(state.achT||0)-dt;if(state.achT>0)return;state.achT=2;for(const A of ACH){if(ACHS[A.id])continue;let ok=false;try{ok=A.c()}catch(e){}if(ok){ACHS[A.id]=Date.now();(state.achRun=state.achRun||[]).push(A.id);try{localStorage.setItem('fortrex_ach',JSON.stringify(ACHS))}catch(e){}toast(`🏆 Conquista: ${A.ico} ${A.n} — ${A.d}`,'r4',true);SFX.loot(4)}}}

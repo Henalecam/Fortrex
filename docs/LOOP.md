@@ -62,6 +62,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.29: 15 conquistas salvas no navegador (horda 10/20/30, 1000/5000 abates, chefes, relíquias, fortalezas, 3 heróis, combo ×50, título de Rei, expansão completa, horda 15 no Brutal, 5 objetivos) com aviso 🏆; tela de fim de jogo com estatísticas da partida e grade de conquistas (cinza = falta). Contadores: fortalezas destruídas e objetivos concluídos.
 
+- v0.30: 👑 Rei da Bruma (horda 25, 50, …; a partir da 50 vem acompanhado de outro chefe): manto, coroa e cetro brilhantes; teleporta-se para perto da cidadela trazendo sombras (rasteiros, lobos, diabretes), e o Pulso da Bruma atordoa as armas num raio de 28. Relíquia 🌫️ Coroa da Bruma (+15% dano, +2 vagas de arma, +10 moral) e conquista "Regicida".
+
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.

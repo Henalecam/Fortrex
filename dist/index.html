@@ -880,15 +880,16 @@ const ETYPES={
   imp:{hp:18,speed:4.2,dmg:6,rate:.5,color:0xe0443a,radius:.4,n:'Diabrete'},
   brute:{hp:140,speed:1.7,dmg:30,rate:1.3,color:0x8a5a44,radius:.85,n:'Bruto'},
   beetle:{hp:90,speed:2.0,dmg:14,rate:.9,color:0x2f6b6b,radius:.75,n:'Besouro Blindado'},
+  mistking:{hp:4200,speed:1.1,dmg:90,rate:1.3,color:0x2a1f45,radius:2.0,n:'Rei da Bruma'},
   golem:{hp:1700,speed:.9,dmg:65,rate:1.8,color:0x8d8578,radius:1.9,n:'Golem de Pedra'},
   wyrm:{hp:1100,speed:2.6,dmg:40,rate:1.2,color:0xe0662c,radius:1.5,n:'Serpe de Fogo'},
   necro:{hp:950,speed:1.4,dmg:35,rate:1.4,color:0x4b2e6b,radius:1.2,n:'Necromante da Bruma'},
 };
 const CLIMBS=t=>t==='climber'||t==='spider';
-const BIG=t=>t==='boss'||t==='colossus'||t==='queen'||t==='titan'||t==='general'||t==='golem'||t==='wyrm'||t==='necro';
+const BIG=t=>t==='boss'||t==='colossus'||t==='queen'||t==='titan'||t==='general'||t==='golem'||t==='wyrm'||t==='necro'||t==='mistking';
 const enemies=[];const fuses=[];
 function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group();const col=new THREE.Color(T.color).lerp(new THREE.Color(RARITY[rarity].c),rarity?.35:0).getHex();
-  const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='general'?2.1:type==='golem'?3.7:type==='wyrm'?2.9:type==='necro'?2.7:type==='ram'?1.35:type==='flyer'?.8:type==='brute'?1.5:type==='imp'?.7:type==='slime'?1.15:type==='beetle'?1.2:1)*(BIG(type)?1:rnd(.9,1.12));
+  const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='general'?2.1:type==='mistking'?3.4:type==='golem'?3.7:type==='wyrm'?2.9:type==='necro'?2.7:type==='ram'?1.35:type==='flyer'?.8:type==='brute'?1.5:type==='imp'?.7:type==='slime'?1.15:type==='beetle'?1.2:1)*(BIG(type)?1:rnd(.9,1.12));
   let body,head,legs=[];if(CREATURES[type]){({body,head,legs}=CREATURES[type](sc,col,g))}else{
   body=box(.9*sc,.7*sc,1.1*sc,col,0,.5*sc,0,g);head=box(.7*sc,.6*sc,.6*sc,col,0,.6*sc,.75*sc,g);eyes(head,.08*sc,.32*sc,.17*sc);
   for(const sx of [-1,1])for(const sz of [-1,1]){const lg=box(.22*sc,.4*sc,.22*sc,type==='colossus'?0xcfd6e3:0x2b2d4a,sx*.35*sc,.2*sc,sz*.35*sc,g);legs.push({mesh:lg,hp:150,alive:true,ox:sx*.35*sc,oz:sz*.35*sc})}}
@@ -901,6 +902,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(type==='climber'){box(.5*US,.15*US,.9*US,0x3f6b3c,0,.95*US,0,g);for(const s of[-1,1])box(.15*US,.5*US,.15*US,0x3f6b3c,s*.5*US,.9*US,.3*US,g)}
   if(type==='sapper'){const k=box(.5*US,.5*US,.5*US,0x2b2d4a,0,1.0*US,-.1*US,g);k.material.emissive.setHex(0xff5a3c);k.material.emissiveIntensity=.6;fuses.push(k)}
   if(type==='flyer'){const w1=box(1.1*US,.08*US,.4*US,0xd9ecf7,-.7*US,.75*US,0,g),w2=box(1.1*US,.08*US,.4*US,0xd9ecf7,.7*US,.75*US,0,g);g.userData.wings=[w1,w2]}
+  if(type==='mistking'){box(1.3*sc,.9*sc,.25*sc,0x1a1430,0,.65*sc,-.6*sc,g);for(let k=-2;k<=2;k++){const c=box(.14*sc,.35*sc*(k%2?1:1.6),.14*sc,0xb56cf2,k*.16*sc,1.05*sc,.75*sc,g);c.material.emissive.setHex(0xb56cf2);c.material.emissiveIntensity=.8}for(const s of[-1,1]){const e2=box(.12*sc,.08*sc,.05*sc,0xff4af0,s*.14*sc,.72*sc,1.06*sc,g);e2.material.emissive.setHex(0xff4af0)}box(.1*US,2.4*US,.1*US,0x3b2a50,.85*sc,1.0*sc,.4*sc,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.35*US,0),lmat(0xb56cf2,.95));o.position.set(.85*sc,1.75*sc,.4*sc);g.add(o)}
   if(type==='golem'){for(const s of[-1,1]){box(.55*sc,.5*sc,.55*sc,0x6f8f55,s*.6*sc,.95*sc,.1*sc,g);box(.4*sc,.8*sc,.4*sc,0x75706a,s*.7*sc,.45*sc,.35*sc,g)}box(.3*sc,.15*sc,.1*sc,0xffb13d,0,.7*sc,1.06*sc,g).material.emissive.setHex(0xffb13d)}
   if(type==='wyrm'){const w1=box(1.5*sc,.06*sc,.6*sc,0xb83a2e,-.95*sc,.65*sc,0,g),w2=box(1.5*sc,.06*sc,.6*sc,0xb83a2e,.95*sc,.65*sc,0,g);g.userData.wings=[w1,w2];box(.3*sc,.25*sc,.9*sc,0xe0662c,0,.45*sc,-.95*sc,g);box(.2*sc,.18*sc,.5*sc,0xffb13d,0,.4*sc,-1.55*sc,g);for(const s of[-1,1])box(.08*sc,.25*sc,.08*sc,0xfff2c0,s*.22*sc,1.0*sc,.8*sc,g)}
   if(type==='necro'){box(1.0*sc,.6*sc,1.0*sc,0x2e1d45,0,.15*sc,0,g);box(.12*US,1.8*US,.12*US,0x3b2a20,.75*sc,.9*sc,.3*sc,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.3*US,0),lmat(0x7dff9a,.9));o.position.set(.75*sc,1.45*sc,.3*sc);g.add(o);head.material.color.setHex(0xe8e2d0)}
@@ -933,7 +935,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   dropTable(e);state.kills++;state.wk++;addCombo(e)}
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
-  if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22})[t]??2)*.4+r*.5))});
+  if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22,mistking:60})[t]??2)*.4+r*.5))});
   const luck=state.wave*.004+r*.04+state.luck+(state.ev==='golden'||state.ev==='eclipse'?.1:0);
   const P=({crawler:.11,ram:.24,climber:.14,sapper:.12,flyer:.16,shaman:.45,boss:1,colossus:1,queen:1,titan:1,knight:.3,archer:.25,rammer:.35,general:1,golem:1,wyrm:1,necro:1})[t]??.15;
   const n=t==='titan'?7:t==='queen'||t==='colossus'?5:t==='boss'?3:1;for(let k=0;k<n;k++)if(Math.random()<P*(big?1:.4)){const rr=Math.max(Math.min(r,3),rollRarity(luck+(big?.15:0)));const [kind,data]=lootPick('any',rr);at(kind,rr,data)}
@@ -963,6 +965,10 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
     if(!e.stun){let v=null,bd=11;for(const m of minions){if(m.wounded>0||inside(m.pos.x,m.pos.z))continue;const d=hd(m.pos,e.pos);if(d<bd){bd=d;v=m}}
       if(v){const dx=v.pos.x-e.pos.x,dz=v.pos.z-e.pos.z,d=Math.hypot(dx,dz)||1;e.group.rotation.y=Math.atan2(dx,dz);if(d<e.radius+1.2){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;hurtMinion(v,e.T.dmg*(e.pack?1.4:1),e)}return}
         const sp=e.speed*(e.slowT>0?.4:1)*(state.ev==='blizzard'?.7:state.ev==='sandstorm'?1.12:1)*(state.biomeKey==='pantano'&&!e.fly?.88:1);e.pos.x+=dx/d*sp*dt;e.pos.z+=dz/d*sp*dt;e.gy+=(surfE(e.pos.x,e.pos.z)-e.gy)*Math.min(1,dt*9);e.group.position.y=e.gy+Math.abs(Math.sin(e.bob+=dt*12))*.15;return}}}
+  if(e.type==='mistking'){e.tpT=(e.tpT??5)-dt;e.pulseT=(e.pulseT??3)-dt;
+    if(e.pulseT<=0){e.pulseT=Math.max(4,8-e.blvl*.3);for(const t of turrets)if(t.alive&&t.team!=='r'&&hd(t.pos,e.pos)<28)t.reload=Math.max(t.reload,2.5);ringFx(e.pos.x,e.gy+1,e.pos.z,14,0xb56cf2);label({x:e.pos.x,y:e.gy+e.sc*1.8,z:e.pos.z},'🌫️ Pulso da Bruma: armas atordoadas!','#b56cf2')}
+    if(e.tpT<=0){e.tpT=Math.max(6,11-e.blvl*.3);for(let k=0;k<14;k++)spawnDebris(e.pos.x,e.gy+2,e.pos.z,0x2a1f45,1,.5);const a=rnd(0,Math.PI*2),r=rnd(14,22);e.pos.x=clamp(CX+Math.cos(a)*r,4,W-5);e.pos.z=clamp(CZ+Math.sin(a)*r,4,D-5);e.gy=surfE(e.pos.x,e.pos.z);e.path=null;
+      if(enemies.length<170)for(let k=0;k<4+Math.floor(e.blvl/2);k++){const s=makeEnemy(pick(['crawler','wolf','imp']),Math.min(3,1+Math.floor(e.blvl/4)),e.pos.x+rnd(-3,3),e.pos.z+rnd(-3,3));for(const p of s.parts)p.material.color.setHex(0x3a2f5a)}shake=Math.max(shake,.6);SFX.zap();label({x:e.pos.x,y:e.gy+e.sc*1.8,z:e.pos.z},'👑 O Rei da Bruma surge!','#b56cf2')}}
   if(e.type==='golem'){e.thrT=(e.thrT??4)-dt;if(e.thrT<=0){e.thrT=Math.max(2.8,7.5-e.blvl*.35);let tg=null,bd=48;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd){bd=d;tg=t.pos}}if(!tg)tg={x:CHEST.x+rnd(-8,8),z:CHEST.z+rnd(-8,8)};throwRock(e,tg.x,tg.z,2.6+e.blvl*.12,55+e.blvl*14,0x75706a,false);label({x:e.pos.x,y:e.gy+e.sc*1.6,z:e.pos.z},'🪨','#75706a')}}
   if(e.type==='wyrm'){e.fbT=(e.fbT??2)-dt;if(e.fbT<=0){e.fbT=Math.max(1.2,3.4-e.blvl*.14);throwRock(e,e.pos.x+rnd(-2,2),e.pos.z+rnd(-2,2),2+e.blvl*.08,30+e.blvl*8,0xff7a2a,true)}}
   if(e.type==='necro'){e.raiseT=(e.raiseT??3)-dt;e.summ=(e.summ||[]).filter(s=>!s.dead);if(e.raiseT<=0){e.raiseT=Math.max(3,7-e.blvl*.3);if(enemies.length<160)for(let k=0;k<2+Math.floor(e.blvl/2);k++){const a=rnd(0,Math.PI*2);const s=makeEnemy('crawler',Math.min(3,Math.floor(e.blvl/3)),e.pos.x+Math.cos(a)*3,e.pos.z+Math.sin(a)*3);s.viaWall=true;for(const p of s.parts)p.material.color.setHex(0xe8e2d0);e.summ.push(s)}for(let k=0;k<10;k++)spawnDebris(e.pos.x,e.gy+2,e.pos.z,0x7dff9a,1,.3);label({x:e.pos.x,y:e.gy+3,z:e.pos.z},'💀 Erguei-vos!','#7dff9a')}}
@@ -1768,7 +1774,8 @@ const RELICS={boss:{ico:'🦷',n:'Dente do Devorador',d:'+8% de dano das armas',
   colossus:{ico:'🦶',n:'Pata do Colosso',d:'+0,8 de raio da Bomba',go(){state.bombR+=.8}},
   necro:{ico:'📕',n:'Tomo do Necromante',d:'Feridos voltam 30% mais rápido',go(){state.healMul*=1.3}},
   queen:{ico:'👑',n:'Coroa da Rainha',d:'Drops mais raros',go(){state.luck+=.03}},
-  titan:{ico:'🌋',n:'Núcleo de Lava',d:'+5% de chance de crítico',go(){state.critBonus+=.05}}};
+  titan:{ico:'🌋',n:'Núcleo de Lava',d:'+5% de chance de crítico',go(){state.critBonus+=.05}},
+  mistking:{ico:'🌫️',n:'Coroa da Bruma',d:'+15% de dano, +2 vagas de arma e +10 de moral',go(){state.dmgMul*=1.15;state.ups.platform=(state.ups.platform||0)+1;state.morale=Math.min(100,(state.morale||60)+10)}}};
 function grantRelic(t){const R=RELICS[t];if(!R)return;state.relics=state.relics||{};state.relics[t]=(state.relics[t]||0)+1;R.go();toast(`${R.ico} Relíquia: ${R.n} — ${R.d}`,'r4');renderGoals();checkHeroes()}
 function relicsHtml(){const r=state.relics||{};const k=Object.keys(r);if(!k.length)return'';return`<div class="rel">${k.map(t=>`<span title="${RELICS[t].n}: ${RELICS[t].d}">${RELICS[t].ico}${r[t]>1?`<sub>×${r[t]}</sub>`:''}</span>`).join('')}</div>`}
 // ───────── heroes: unique legendaries who join as you collect relics (1, 3 and 5), each with an active ability
@@ -1842,6 +1849,7 @@ const ACH=[
   {id:'rank6',ico:'🎖️',n:'Coroado',d:'Alcance o título de Rei',c:()=>rankIdx()>=6},
   {id:'exp8',ico:'🏗️',n:'Arquiteto',d:'Complete toda a expansão da cidadela',c:()=>(state.expStage||0)>=EXP_STAGES.length},
   {id:'brutal15',ico:'💀',n:'Brutalmente Honesto',d:'Chegue à horda 15 no Brutal',c:()=>OPTS.diff==='brutal'&&state.wave>=15},
+  {id:'king',ico:'🌫️',n:'Regicida',d:'Derrote o Rei da Bruma',c:()=>!!(state.relics&&state.relics.mistking)},
   {id:'quest5',ico:'🗺️',n:'Aventureiro',d:'Conclua 5 objetivos do mapa',c:()=>(state.questsDone||0)>=5}];
 const ACHS=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_ach')||'{}')}catch(e){return{}}})();
 function achTick(dt){state.achT=(state.achT||0)-dt;if(state.achT>0)return;state.achT=2;for(const A of ACH){if(ACHS[A.id])continue;let ok=false;try{ok=A.c()}catch(e){}if(ok){ACHS[A.id]=Date.now();(state.achRun=state.achRun||[]).push(A.id);try{localStorage.setItem('fortrex_ach',JSON.stringify(ACHS))}catch(e){}toast(`🏆 Conquista: ${A.ico} ${A.n} — ${A.d}`,'r4',true);SFX.loot(4)}}}
@@ -1855,7 +1863,7 @@ function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i
   if(w>=6)for(let i=0;i<Math.floor((w-3)/3);i++)list.push('flyer');if(w>=6)for(let i=0;i<Math.floor((w-3)/4);i++)list.push('shaman');
   if(w>12)for(let i=0;i<(w-12)*2;i++)list.push(pick(['crawler','climber','ram','sapper','flyer']));
   {const k=DIFF().cnt;if(k<1){for(let i=list.length-1;i>=0;i--)if(Math.random()>k&&list[i]!=='boss')list.splice(i,1)}else{const extra=Math.round(list.length*(k-1));for(let i=0;i<extra;i++)list.push(list[(Math.random()*list.length)|0])}}
-  shuffle(list);if(w%5===0){list.push(bossOfWave(w));if(w>=25)list.push(BOSS_ROT[(w/5+3)%BOSS_ROT.length])}return list}
+  shuffle(list);if(w%25===0){list.push('mistking');if(w>=50)list.push(bossOfWave(w))}else if(w%5===0){list.push(bossOfWave(w));if(w>=25)list.push(BOSS_ROT[(w/5+3)%BOSS_ROT.length])}return list}
 const BOSS_ROT=['boss','golem','wyrm','colossus','necro','queen','titan'];function bossOfWave(w){return BOSS_ROT[(w/5-1)%BOSS_ROT.length]}
 const EVENTS={
   elite:{n:'Horda de elite',d:'Devoradores mais fortes e rápidos. Recruta garantido.',css:'r1',w:3},
@@ -1875,7 +1883,7 @@ function startWave(){if(state.choosing||state.phase==='wave')return;state.phase=
   if(state.ev==='siege'&&state.siege===0)state.siege=3;if(state.ev==='golden')state.queue=state.queue.slice(0,Math.ceil(state.queue.length*.5));
   state.spawnT=0;$('report').style.display='none';
   if(state.ev){const E=EVENTS[state.ev];toast(`${E.n}: ${E.d}`,E.css);$('event').style.display='inline-flex';$('event').textContent=E.n+(state.ev==='siege'?` ${4-state.siege}/3`:'');$('event').style.color=`var(--${E.css})`}else $('event').style.display='none';
-  const w=state.wave;if(w%5===0){const b=bossOfWave(w);const tip={boss:'cospe ácido',golem:'arremessa rochas nas armas',wyrm:'voa e solta bolas de fogo',colossus:'mire nas pernas',necro:'ergue mortos: mate os esqueletos para quebrar o escudo',queen:'invoca enxames',titan:'use água e gelo'}[b];toast(`Horda ${w}: ${ETYPES[b].n} nv ${1+Math.floor(w/5)} — ${tip}!`,'r4')}updateHud()}
+  const w=state.wave;if(w%25===0){toast(`Horda ${w}: 👑 O REI DA BRUMA invade! Ele se teleporta perto da cidadela e atordoa suas armas.`,'r4')}else if(w%5===0){const b=bossOfWave(w);const tip={boss:'cospe ácido',golem:'arremessa rochas nas armas',wyrm:'voa e solta bolas de fogo',colossus:'mire nas pernas',necro:'ergue mortos: mate os esqueletos para quebrar o escudo',queen:'invoca enxames',titan:'use água e gelo'}[b];toast(`Horda ${w}: ${ETYPES[b].n} nv ${1+Math.floor(w/5)} — ${tip}!`,'r4')}updateHud()}
 function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.length)return;state.spawnT=rnd(.14,.4);const type=state.queue.shift();const side=rint(0,3),mg=state.ev==='mist'?6:1;let x,z;
   // waves come out of the mist on a ring around the citadel (the big map stays for battles, lairs and fortresses)
   {const a=rnd(0,Math.PI*2),r=rnd(54,72)*(state.ev==='mist'?.85:1);x=clamp(CX+Math.cos(a)*r,3,W-4);z=clamp(CZ+Math.sin(a)*r,3,D-4)}{const B=battle();if(B&&Math.abs(x-B.cx)<B.wr+6&&Math.abs(z-B.cz)<B.wr+6){x=W-x;z=D-z}}
@@ -2097,6 +2105,7 @@ window.__biome=b=>{state.biome=b};
 function renderDiffs(){const el=$('diffs');if(!el)return;const cur=OPTS.diff||'normal';el.innerHTML=Object.entries(DIFFS).map(([k,D])=>`<button class="btn ${k===cur?'on':''}" data-diff="${k}">${D.ico} ${D.n}</button>`).join('');$('diffD').textContent=DIFF().d;for(const b of el.querySelectorAll('[data-diff]'))b.onclick=()=>{OPTS.diff=b.dataset.diff;saveOpts();renderDiffs()}}
 renderDiffs();$('overAch').innerHTML=achSummary();window.__diff=k=>{OPTS.diff=k};
 window.__gameOver=()=>gameOver();
+window.__king=()=>{const e=makeEnemy('mistking',3,CX+20,CZ+30);return e.blvl};
 
 })();
 </script>
