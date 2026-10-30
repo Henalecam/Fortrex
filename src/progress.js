@@ -114,7 +114,7 @@ function heroTick(dt){for(const k in state.heroes||{}){const m=state.heroes[k].m
 // Building is free (repairers' labour is the only limit); after each wave everything mends itself.
 const EXP_STAGES=[{w:3,n:'Paliçada de madeira'},{w:6,n:'Muralha externa de pedra'},{w:9,n:'Quatro bastiões com plataformas de armas'},{w:12,n:'Reforço de metal e portão externo'},{w:15,n:'Fosso de água (aríetes e rastejadores afundam e se afogam)'},{w:18,n:'Torres de vigia (enxergam através da bruma e da areia)'},{w:21,n:'Campo de espinhos além do fosso'},{w:24,n:'Base de obsidiana e ameias de aço rúnico'}];
 function ringCells(R,f){for(let x=CX-R;x<=CX+R;x++)for(let z=CZ-R;z<=CZ+R;z++){const edge=Math.max(Math.abs(x-CX),Math.abs(z-CZ));if(edge<R-1||edge>R)continue;f(x,z)}}
-function clearFor(i){if(vox[i]&&!blue[i]&&!rown[i]&&vox[i]!==5){removeVox(i,'dig')}if(natBlue)natBlue[i]=0}
+function clearFor(i){if(vox[i]&&!blue[i]&&!rown[i]&&vox[i]!==5){removeVox(i,'dig')}}
 function expansionTick(){const st=state.expStage||0;if(st>=EXP_STAGES.length||state.wave<EXP_STAGES[st].w)return;state.expStage=st+1;const R=WR+8,gap=(x,z)=>z>CZ&&Math.abs(x-CX+.5)<2.6;
   const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);if(blue[i]===5)return;clearFor(i);placeBlue(i,m)};
   if(st===0)ringCells(R,(x,z)=>{if(gap(x,z))return;for(let y=0;y<3;y++)put(x,GY+y,z,2)});
@@ -547,3 +547,38 @@ function crewTick(n){const crew=minions.filter(m=>m.crew);const want=n>40&&state
 window.__castle=id=>{const ok=setCastle(id);return [ok,state.demol?state.demol.size:0,state.swapQ?state.swapQ.size:0,blueList.length]};
 window.__miss=()=>{const o={};let n=0;for(const i of blueList){const b=blue[i];if(b&&b!==5&&vox[i]!==b){n++;const k=`v${vox[i]}b${b}s${supported(i)?1:0}y${iy(i)-GY}`;o[k]=(o[k]||0)+1}}return [n,Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,12)]};
 window.__ref=()=>[state.demol?state.demol.size:0,state.swapQ?state.swapQ.size:0,blueList.filter(i=>vox[i]!==blue[i]&&blue[i]!==5).length,minions.filter(m=>m.crew).length,state.blockTier||0];
+
+// v1.4 ferramentas de construção: fileira arrastando, altura (− / =), pequenas obras com rotação
+const CRAFT={a:null,b:null,cells:[]};
+const gInst=new THREE.InstancedMesh(new THREE.BoxGeometry(1.02,1.02,1.02),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.32,depthWrite:false}),900);gInst.count=0;gInst.frustumCulled=false;scene.add(gInst);
+function craftH(d){const B=state.build;B.h=clamp((B.h||1)+d,1,12);if(typeof renderBuild==='function')renderBuild();toast(`Altura: ${B.h}`,'r0')}
+function craftColumn(i){const o=[];for(let k=0;k<(state.build.h||1);k++){const j=i+k*W*D;if(iy(j)>=H-1)break;o.push(j)}return o}
+function craftLine(a,b){const x0=ix(a),z0=iz(a),y=iy(a),x1=ix(b),z1=iz(b);const n=Math.min(48,Math.max(Math.abs(x1-x0),Math.abs(z1-z0)));const o=[];const seen=new Set();for(let t=0;t<=n;t++){const x=Math.round(x0+(x1-x0)*(n?t/n:0)),z=Math.round(z0+(z1-z0)*(n?t/n:0));if(!inb(x,y,z))continue;const i=idx(x,y,z);if(seen.has(i))continue;seen.add(i);o.push(...craftColumn(i))}return o}
+const cellFree=i=>(vox[i]===0||(FLUID(vox[i])&&!fluidSrc.has(i)))&&!blue[i]&&!(natBlue&&natBlue[i])&&!turretAt(i-W*D)&&!cellBusy(i);
+const _gm=new THREE.Matrix4(),_gc=new THREE.Color();
+function ghostCells(list){let n=0;for(const [i,ok] of list){if(n>=900)break;_gm.makeTranslation(ix(i)+.5,iy(i)+.5,iz(i)+.5);gInst.setMatrixAt(n,_gm);gInst.setColorAt(n,_gc.setHex(ok?0x5cc08c:0xec5f6b));n++}gInst.count=n;gInst.instanceMatrix.needsUpdate=true;if(gInst.instanceColor)gInst.instanceColor.needsUpdate=true}
+function craftPreview(T){if(!T||!state.build.on){if(gInst.count){gInst.count=0}return}const B=state.build;
+  if(T.kind==='prefab'){ghostCells(prefabCells(T.i).map(([i,m])=>[i,cellFree(i)]));return}
+  if(T.kind==='place'&&(B.h||1)>1){ghostCells(craftColumn(T.i).map(i=>[i,cellFree(i)]));return}gInst.count=0}
+function craftDown(cx,cy){const T=buildTarget(cx,cy);if(!T||T.kind!=='place'){CRAFT.a=null;return}CRAFT.a=T.i;CRAFT.b=T.i;CRAFT.m=T.m}
+function craftMove(cx,cy){const T=buildTarget(cx,cy);if(T&&(T.kind==='place')){CRAFT.b=idx(ix(T.i),iy(CRAFT.a),iz(T.i))}const cells=craftLine(CRAFT.a,CRAFT.b);CRAFT.cells=cells;ghostCells(cells.map(i=>[i,cellFree(i)]));ghost.visible=false;const n=cells.filter(cellFree).length;showTip(cx,cy,`Fileira: ${n} blocos de ${MAT[CRAFT.m].n}`,'')}
+function craftUp(dragged){const a=CRAFT.a;CRAFT.a=null;if(!dragged){gInst.count=0;return}const cells=CRAFT.cells.length?CRAFT.cells:craftLine(a,CRAFT.b);CRAFT.cells=[];gInst.count=0;placeCells(cells,CRAFT.m)}
+function placeCells(cells,m){let n=0;const special=!BASIC_BLOCKS.includes(m);for(const i of cells){if(!cellFree(i))continue;if(special){if(!(state.inv.blocks[m]>0))break;state.inv.blocks[m]--;state.prepaid.add(i)}placeBlue(i,m);n++}
+  if(n){SFX.build();toast(`🧱 ${n} bloco${n>1?'s':''} de ${MAT[m].n} na planta — os reparadores constroem`,'r1')}else SFX.hurt();if(special&&!state.inv.blocks[m])state.build.sel=3;if(typeof renderBuild==='function')renderBuild();updateHud();return n}
+// pequenas obras (relativas ao bloco mirado; rot gira 90°)
+const PREFABS={
+  vigia:{ico:'🗼',n:'Torre de vigia',d:'Torre 3×3 de 8 de altura com ameias — ótimo lugar para uma arma.',cells(){const o=[];for(let x=-1;x<=1;x++)for(let z=-1;z<=1;z++){for(let y=0;y<8;y++)o.push([x,y,z,3]);if((x+z)&1)o.push([x,8,z,3])}return o}},
+  muro:{ico:'🧱',n:'Muro com ameias',d:'Trecho de muralha 7×2 com 4 de altura e ameias.',cells(){const o=[];for(let x=-3;x<=3;x++)for(let z=0;z<=1;z++){for(let y=0;y<4;y++)o.push([x,y,z,3]);if(z===0&&!(x&1))o.push([x,4,z,3])}return o}},
+  bunker:{ico:'🛖',n:'Bunker',d:'Casamata 5×5 de metal, oca, com teto e seteiras.',cells(){const o=[];for(let x=-2;x<=2;x++)for(let z=-2;z<=2;z++){const sh=Math.abs(x)===2||Math.abs(z)===2;for(let y=0;y<3;y++)if(sh&&!(y===1&&(x===0||z===0)))o.push([x,y,z,4]);o.push([x,3,z,4])}return o}},
+  ponte:{ico:'🌉',n:'Ponte',d:'Passarela de madeira de 11 blocos sobre pilares de pedra.',cells(){const o=[];for(let x=-5;x<=5;x++){o.push([x,3,0,2]);if(x%5===0)for(let y=0;y<3;y++)o.push([x,y,0,3])}return o}},
+  escada:{ico:'🪜',n:'Escadaria',d:'Degraus de pedra subindo 6 blocos.',cells(){const o=[];for(let k=0;k<6;k++)for(let y=0;y<=k;y++)for(let z=0;z<=1;z++)o.push([k,y,z,3]);return o}},
+  portal:{ico:'⛩️',n:'Arco',d:'Arco de pedra 5 de largura e 5 de altura com estandartes.',cells(){const o=[];for(const x of[-2,2])for(let y=0;y<5;y++)o.push([x,y,0,3]);for(let x=-2;x<=2;x++)o.push([x,5,0,3]);o.push([-2,6,0,23],[2,6,0,23]);return o}},
+  minado:{ico:'💣',n:'Campo minado',d:'Xadrez de minas 5×5 (usa minas do inventário; faltando, vira espinhos ou pedra).',cells(){const o=[];for(let x=-2;x<=2;x++)for(let z=-2;z<=2;z++)if((x+z)%2===0)o.push([x,0,z,17]);return o}},
+  barricada:{ico:'🛢️',n:'Barricada de barris',d:'Linha de 7 barris explosivos atrás de um murinho.',cells(){const o=[];for(let x=-3;x<=3;x++){o.push([x,0,0,10]);o.push([x,0,1,3]);o.push([x,1,1,3])}return o}},
+};
+function prefabCells(i){const P=PREFABS[state.build.pf];if(!P)return[];const r=state.build.rot||0;const x0=ix(i),y0=iy(i),z0=iz(i);const o=[];for(const [dx,dy,dz,m] of P.cells()){let ax=dx,az=dz;for(let k=0;k<r;k++){const t=ax;ax=-az;az=t}const x=x0+ax,y=y0+dy,z=z0+az;if(inb(x,y,z))o.push([idx(x,y,z),m])}return o}
+function placePrefab(i){const cs=prefabCells(i);let n=0,sub=0;for(const [j,m0] of cs){if(!cellFree(j))continue;let m=m0;if(!BASIC_BLOCKS.includes(m)&&m!==23){if(state.inv.blocks[m]>0){state.inv.blocks[m]--;state.prepaid.add(j)}else if(m===17&&state.inv.blocks[16]>0){m=16;state.inv.blocks[16]--;state.prepaid.add(j);sub++}else{m=3;sub++}}placeBlue(j,m);n++}
+  const P=PREFABS[state.build.pf];if(n){SFX.build();toast(`${P.ico} ${P.n}: ${n} blocos na planta${sub?` (${sub} substituídos por falta no inventário)`:''} — os reparadores constroem`,'r1')}else SFX.hurt();renderBuild();updateHud()}
+window.__craft=(kind,a)=>{const i=idx(CX+40,GY,CZ+6);if(kind==='line'){CRAFT.a=i;CRAFT.b=idx(CX+50,GY,CZ+6);CRAFT.m=3;CRAFT.cells=craftLine(CRAFT.a,CRAFT.b);craftUp(true);return blueList.length}if(kind==='pf'){state.build.pf=a;return placePrefab(idx(CX+40,GY,CZ-8))||blueList.length}};
+window.__rebuildTest=()=>{const i=idx(CX+45,GY,CZ+6);const had=vox[i];removeVox(i,'enemy');return [had,vox[i],blue[i]]};
+window.__cellAt=(dx,dz)=>{const i=idx(CX+dx,GY,CZ+dz);return [vox[i],blue[i]]};

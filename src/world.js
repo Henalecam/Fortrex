@@ -71,7 +71,7 @@ function surf(x,z){x=Math.floor(x);z=Math.floor(z);if(x<0||z<0||x>=W||z>=D)retur
 function surfE(x,z){x=Math.floor(x);z=Math.floor(z);if(x<0||z<0||x>=W||z>=D)return GY;const c=x+z*W;let s=colE[c];if(s<0){s=0;while(s<H){const m=vox[idx(x,s,z)];if(!m||FLUID(m))break;s++}colE[c]=s}return s}
 function topY(x,z){x=Math.floor(x);z=Math.floor(z);if(x<0||z<0||x>=W||z>=D)return -20;const c=x+z*W;let s=colT[c];if(s<0){s=0;for(let y=H-1;y>=0;y--)if(SOLIDM(vox[idx(x,y,z)])){s=y+1;break}colT[c]=s}return s}
 
-function setVox(i,m){const old=vox[i];if(SOLIDM(old)&&!SOLIDM(m)){removedQ.push(i);if(natBlue&&natBlue[i])natLost.push(i,simTime)}if(FLUID(old)){fluids.delete(i);fluidSrc.delete(i)}burning.delete(i);specials.delete(i);damaged.delete(i);
+function setVox(i,m){const old=vox[i];if(SOLIDM(old)&&!SOLIDM(m)){removedQ.push(i);if(natBlue&&natBlue[i])natLost.push(i,simTime)}else if(FLUID(old)&&!m&&natBlue&&natBlue[i]===old)natLost.push(i,simTime);if(FLUID(old)){fluids.delete(i);fluidSrc.delete(i)}burning.delete(i);specials.delete(i);damaged.delete(i);
   vox[i]=m;hp[i]=m?(FLUID(m)?4:maxHpOf(m)):0;if(FLUID(m))fluids.add(i);if(m===15||m===19)specials.add(i);
   const x=ix(i),z=iz(i),y=iy(i);markCol(x,z);if((y===GY&&SOLIDM(m))||(y===GY-1&&m!==13))hideTufts(x,z);touch(i)}
 function setFluid(i,m,lv,src){if(SOLIDM(vox[i]))return;vox[i]=m;hp[i]=lv;fluids.add(i);if(src)fluidSrc.add(i);burning.delete(i);markCol(ix(i),iz(i));touch(i)}
@@ -88,7 +88,6 @@ function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m)
   if(m!==12&&m!==13)damaged.add(i);paint(i);if(Math.random()<.5)SFX.crunch(m===4||m===20);return false}
 function removeVox(i,src){const m=vox[i];if(!m)return;const x=ix(i),y=iy(i),z=iz(i);
   spawnDebris(x+.5,y+.5,z+.5,MAT[m].c,m>=11&&m<=13?3:5,.45);
-  if(src==='dig'&&natBlue)natBlue[i]=0;
   if(m!==11&&src!=='dig'&&!blue[i]&&!looted[i]&&(looted[i]=1)&&Math.random()<(rown[i]?.06:m===12||m===13?.04:.15))spawnLoot(x+.5,y+.6,z+.5,'material',0,{amount:1});
   setVox(i,0);SFX.crunch(m===4);settleDirty=true;checkTurretAnchor(i);if(m===5)checkChest();
   if(m===10)pendingBooms.push({x:x+.5,y:y+.5,z:z+.5,r:2.7,dmg:95,o:{fire:true,src:blue[i]?'player':'env'},t:.12});

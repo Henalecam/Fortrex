@@ -88,7 +88,7 @@ function smartTrapSpot(kind){let best=-1,bs=.5;const minWall=kind===10?5:1,maxWa
 // ───────── day / night and the world healing itself
 const NIGHT_SKY=new THREE.Color(0x1d2244),DAY_SKY=new THREE.Color(0xdff1f7),DUSK_SKY=new THREE.Color(0xf2b48a);const _sky=new THREE.Color();
 const DAY_LEN=240;let natBlue=null,natLost=[];
-function snapshotNature(){natLost=[];natBlue=new Uint8Array(N);for(let i=0;i<N;i++){const m=vox[i];if(m&&!blue[i]&&!rown[i]&&!FLUID(m)&&m!==10)natBlue[i]=m}}
+function snapshotNature(){natLost=[];natBlue=new Uint8Array(N);for(let i=0;i<N;i++){const m=vox[i];if(m&&!blue[i]&&!rown[i]&&m!==10&&!(FLUID(m)&&!fluidSrc.has(i)&&iy(i)>=GY))natBlue[i]=m}}
 function dayPhase(){return ((simTime/DAY_LEN)+.3)%1}// 0 = midnight, .5 = noon
 function isNight(){const p=dayPhase();return p<.2||p>.82}
 let regrowT=0;
@@ -99,8 +99,8 @@ let lifeAcc=0;function lifeTick(dt0){lifeAcc+=dt0;if(lifeAcc<.1)return;const dt=
   if(natBlue){regrowT+=dt;const rate=isNight()?.12:.35;if(regrowT>rate){regrowT=0;const tries=isNight()?60:25;let n=0;
     // only environment cells regrow; base/player cells are the player's own management (repairers + blueprint)
     const keep=[],later=[];const lim=(isNight()?10:5)+Math.floor(natLost.length/600);
-    const L=natLost.length;let scanned=0;for(let k=0;k<L;k+=2){const i=natLost[k],t0=natLost[k+1];if(scanned>=600||n>=lim||simTime-t0<40){keep.push(i,t0);continue}scanned++;const m=natBlue[i];if(!m||blue[i]||state.custom.has(i)){continue}if(vox[i]&&SOLIDM(vox[i]))continue;
-      if(Math.random()<.5){keep.push(i,t0);continue}if(vox[i]||!supported(i)||cellBusy(i)){later.push(i,t0);continue}setVox(i,m);n++;if(Math.random()<.2)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,m===11?0x6fbf6a:0x9fe39a,1,.15)}
+    const L=natLost.length;let scanned=0;for(let k=0;k<L;k+=2){const i=natLost[k],t0=natLost[k+1];if(scanned>=600||n>=lim||simTime-t0<40){keep.push(i,t0);continue}scanned++;const m=natBlue[i];if(!m||vox[i]===m)continue;if(blue[i]||state.custom.has(i)||(vox[i]&&SOLIDM(vox[i]))){later.push(i,t0);continue}
+      if(Math.random()<.5){keep.push(i,t0);continue}if(vox[i]||!supported(i)||cellBusy(i)){later.push(i,t0);continue}if(FLUID(m))setFluid(i,m,4,true);else setVox(i,m);n++;if(Math.random()<.2)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,m===11?0x6fbf6a:0x9fe39a,1,.15)}
     natLost=later.length?keep.concat(later):keep;
     for(let t=0;t<0;t++){const i=0;const m=natBlue[i];if(!m||vox[i])continue;if(!supported(i)||cellBusy(i))continue;if(iy(i)<GY-1&&!SOLIDM(vox[i-W*D]))continue;setVox(i,m);n++;if(Math.random()<.25)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,0x9fe39a,1,.15)}
     for(let t=0;t<12;t++){const x=rint(0,W-1),z=rint(0,D-1);const s=surf(x,z);if(s>0&&s<=GY&&vox[idx(x,s-1,z)]===12&&!blue[idx(x,s-1,z)]){setVox(idx(x,s-1,z),13)}}}}

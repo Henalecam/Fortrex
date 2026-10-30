@@ -73,12 +73,12 @@ function newGame(){for(const e of enemies)scene.remove(e.group);enemies.length=0
 
 // ───────── input
 let dragging=false,moved=0,lx=0,ly=0,pinch=0,downBtn=0,lastHover=0;
-canvas.addEventListener('pointerdown',e=>{dragging=true;moved=0;downBtn=e.button;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointerdown',e=>{dragging=true;moved=0;downBtn=e.button;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId);if(state.build.on&&e.button===0&&!e.shiftKey&&(state.build.tool==='place'))craftDown(e.clientX,e.clientY)});
 canvas.addEventListener('pointermove',e=>{const now=performance.now();if(now-lastHover>45&&state.running){lastHover=now;hoverAt(e.clientX,e.clientY)}
-  if(!dragging)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);if(moved<6)return;
+  if(!dragging)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);if(moved<6)return;if(CRAFT.a!==null){craftMove(e.clientX,e.clientY);return}
   if(e.buttons===2||e.buttons===4||e.shiftKey){const s=cam.dist*.0016,sy=Math.sin(cam.yaw),cy=Math.cos(cam.yaw);cam.target.x=clamp(cam.target.x-(dx*cy-dy*sy)*s,0,W);cam.target.z=clamp(cam.target.z-(-dx*sy-dy*cy)*s,0,D)}
   else{cam.yaw-=dx*.006;cam.pitch=clamp(cam.pitch+dy*.005,.35,1.4)}});
-canvas.addEventListener('pointerup',e=>{dragging=false;if(moved<6)clickAt(e.clientX,e.clientY,downBtn===2)});
+canvas.addEventListener('pointerup',e=>{dragging=false;if(CRAFT.a!==null){const was=moved>=6;craftUp(was);if(was)return}if(moved<6)clickAt(e.clientX,e.clientY,downBtn===2)});
 canvas.addEventListener('pointerleave',()=>{$('tip').style.display='none'});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('wheel',e=>{e.preventDefault();cam.dist=clamp(cam.dist*(1+Math.sign(e.deltaY)*.08),14,200)},{passive:false});
@@ -101,7 +101,9 @@ window.addEventListener('keydown',e=>{{const H=HEROES.find(h=>h.key===e.key.toUp
   else if(k==='b'&&state.running)openSide('buildPanel');else if(k==='i'&&state.running)openSide('arsenal');else if(k==='u'&&state.running)openSide('shop');
   else if(k==='escape'){state.bombMode=false;closeCard();$('hire').style.display='none';if(state.build.on)closeSide('buildPanel');updateHud()}
   else if(k==='f'&&state.running)cycleSpeed();
+  else if(k==='r'&&state.build.on&&state.build.tool==='prefab'){state.build.rot=((state.build.rot||0)+1)%4;renderBuild()}
   else if(k==='r'&&state.build.on){state.build.tool=state.build.tool==='remove'?'place':'remove';renderBuild()}
+  else if((k==='='||k==='+')&&state.build.on){craftH(1)}else if((k==='-'||k==='_')&&state.build.on){craftH(-1)}
   keys[k]=true});
 const keys={};window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
 $('bBuild').onclick=()=>openSide('buildPanel');$('buildClose').onclick=()=>closeSide('buildPanel');

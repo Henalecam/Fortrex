@@ -33,7 +33,9 @@ function renderBuild(){const B=state.build,body=$('buildBody');for(const t of do
   if(B.tab==='castle'){const cur=state.castle||'classico';h+='<div class="ds" style="margin-bottom:8px">Escolha um estilo: os reparadores desmontam o que sobra e constroem o novo, bloco por bloco. Seus blocos próprios e expansões continuam.</div>';for(const [k,C] of Object.entries(CASTLES))h+=`<button class="pi ${cur===k?'sel':''}" data-castle="${k}" style="width:100%;justify-content:flex-start;text-align:left"><span class="sw" style="background:none;font-size:18px;width:auto">${C.ico}</span><span><b>${C.n}</b><br><span class="ct" style="white-space:normal">${C.d}</span></span></button>`;const n=(state.demol?state.demol.size:0)+(state.swapQ?state.swapQ.size:0);if(n)h+=`<div class="ds" style="margin-top:6px">🔨 Obra em andamento: ${n} blocos para desmontar/trocar.</div>`;h+=`<div class="ds" style="margin-top:6px">🧱 Com <b>Upgrade automático</b> ligado, cada bloco é trocado pelo melhor disponível (${MAT[tierMat(3)].n} agora).</div>`}
   if(B.tab==='blocks'){h+='<div class="pal">';h+=`<button class="pi ${B.tool==='remove'?'sel':''}" data-rm="1"><span class="sw" style="background:repeating-linear-gradient(45deg,#ec5f6b 0 4px,#fff 4px 8px)"></span>Remover<span class="ct">blocos, armas, cavar</span></button>`;
     for(const p of palBlocks()){const M=MAT[p.m];h+=`<button class="pi ${B.tool==='place'&&B.sel===p.m?'sel':''}" data-m="${p.m}" title="${esc(M.special||'')}"><span class="sw" style="background:${hex(M.c)}"></span>${esc(M.n)}<span class="ct">${p.count===Infinity?`${M.cost} material`:'×'+p.count}</span></button>`}
-    h+='</div>';const sm=MAT[B.sel];h+=`<div class="detail"><div class="nm">${B.tool==='remove'?'Remover':esc(sm.n)}</div><div class="ds">${B.tool==='remove'?'Bloco da planta: volta para você. Terreno: cava por 1 material. Arma: volta ao arsenal.':esc(sm.special||'Bloco básico. O reparador constrói gastando material do baú.')}</div></div>`}
+    h+='</div>';h+=`<div class="crow"><span>Altura</span><button class="btn" id="hMinus">−</button><b>${B.h||1}</b><button class="btn" id="hPlus">+</button><span class="ct">teclas − e = · arraste para fileira</span></div>`;
+    h+='<div class="sec" style="margin-top:8px">Pequenas obras <span class="ct">R gira</span></div><div class="pal">';for(const [k,P] of Object.entries(PREFABS))h+=`<button class="pi ${B.tool==='prefab'&&B.pf===k?'sel':''}" data-pf="${k}" title="${esc(P.d)}"><span class="sw" style="background:none;font-size:15px">${P.ico}</span>${esc(P.n)}<span class="ct">${P.cells(0).length} blocos</span></button>`;h+='</div>';
+    const sm=MAT[B.sel];h+=`<div class="detail"><div class="nm">${B.tool==='remove'?'Remover':B.tool==='prefab'&&PREFABS[B.pf]?PREFABS[B.pf].ico+' '+esc(PREFABS[B.pf].n):esc(sm.n)}</div><div class="ds">${B.tool==='remove'?'Bloco da planta: volta para você. Terreno: cava por 1 material. Arma: volta ao arsenal.':esc(sm.special||'Bloco básico. O reparador constrói gastando material do baú.')}</div></div>`}
   else if(B.tab==='turrets'){h+='<div class="pal">';h+=`<button class="pi ${B.tool==='remove'?'sel':''}" data-rm="1"><span class="sw" style="background:repeating-linear-gradient(45deg,#ec5f6b 0 4px,#fff 4px 8px)"></span>Recolher<span class="ct">volta ao arsenal</span></button>`;
     h+=`<div class="ds" style="grid-column:1/-1">Armas instaladas <b>${turretCount()}/${turretCap()}</b> · +2 vagas por 🧱 Plataformas de armas</div>`;
     state.inv.turrets.forEach((t,k)=>{const T=TURRETS[t.type];h+=`<button class="pi ${B.tool==='turret'&&B.tsel===k?'sel':''} rr${t.r}" data-t="${k}"><span class="sw ico">${T.ico}</span>${esc(T.n)}<span class="ct" style="color:var(--${RARITY[t.r].css})">${RARITY[t.r].n}</span></button>`});
@@ -42,6 +44,7 @@ function renderBuild(){const B=state.build,body=$('buildBody');for(const t of do
   body.innerHTML=h;
   for(const b of body.querySelectorAll('[data-m]'))b.onclick=()=>{B.tool='place';B.sel=+b.dataset.m;renderBuild()};
   for(const b of body.querySelectorAll('[data-t]'))b.onclick=()=>{B.tool='turret';B.tsel=+b.dataset.t;renderBuild()};
+  for(const b of body.querySelectorAll('[data-pf]'))b.onclick=()=>{B.tool='prefab';B.pf=b.dataset.pf;renderBuild()};{const a=$('hMinus'),b2=$('hPlus');if(a)a.onclick=()=>craftH(-1);if(b2)b2.onclick=()=>craftH(1)}
   for(const b of body.querySelectorAll('[data-castle]'))b.onclick=()=>{setCastle(b.dataset.castle)};
   for(const b of body.querySelectorAll('[data-rm]'))b.onclick=()=>{B.tool='remove';renderBuild()};
   const bc=$('buyCannon');if(bc)bc.onclick=()=>{if(state.material<40)return;state.material-=40;state.inv.turrets.push({type:'cannon',r:0});B.tool='turret';B.tsel=state.inv.turrets.length-1;SFX.coin();renderBuild();updateHud()}}
@@ -54,13 +57,13 @@ function buildTarget(cx,cy){const B=state.build,ray=rayFrom(cx,cy);
     const h=voxRay(ray.origin,ray.direction,true);if(!h)return null;const m=vox[h.i];const ok=m!==1&&m!==5&&(blue[h.i]||FLUID(m)||state.material>=1);return{kind:'remove',i:h.i,ok}}
   const h=voxRay(ray.origin,ray.direction,false);if(!h)return null;
   if(B.tool==='turret'){const a=h.i,up=a+W*D;const ok=!!state.inv.turrets[B.tsel]&&iy(a)<H-2&&!vox[up]&&!turretAt(a)&&vox[a]!==5&&vox[a]!==10&&!blue[up];return{kind:'turret',i:a,ok}}
-  const i=h.prev;if(i<0)return null;const m=B.sel;const ok=(vox[i]===0||(FLUID(vox[i])&&!fluidSrc.has(i)))&&!blue[i]&&iy(i)<H-1&&!turretAt(i-W*D)&&(BASIC_BLOCKS.includes(m)||(state.inv.blocks[m]||0)>0)&&!cellBusy(i);return{kind:'place',i,ok,m}}
-function updateGhost(cx,cy){const T=buildTarget(cx,cy);if(!T){ghost.visible=false;$('tip').style.display='none';return}ghost.visible=true;
+  const i=h.prev;if(i<0)return null;if(B.tool==='prefab'){const P=PREFABS[B.pf];return{kind:'prefab',i,ok:!!P&&iy(i)<H-2}}const m=B.sel;const ok=(vox[i]===0||(FLUID(vox[i])&&!fluidSrc.has(i)))&&!blue[i]&&!(natBlue&&natBlue[i])&&iy(i)<H-1&&!turretAt(i-W*D)&&(BASIC_BLOCKS.includes(m)||(state.inv.blocks[m]||0)>0)&&!cellBusy(i);return{kind:'place',i,ok,m}}
+function updateGhost(cx,cy){if(CRAFT.a!==null)return;const T=buildTarget(cx,cy);craftPreview(T);if(!T){ghost.visible=false;$('tip').style.display='none';return}ghost.visible=true;
   if(T.kind==='rmturret'){ghost.position.set(T.t.pos.x,T.t.pos.y+.5,T.t.pos.z);ghost.scale.set(1.1,1.3,1.1)}
   else if(T.kind==='turret'){ghost.position.set(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5);ghost.scale.set(.9,1,.9)}else{ghost.position.set(ix(T.i)+.5,iy(T.i)+.5,iz(T.i)+.5);ghost.scale.set(1,1,1)}
   ghost.material.color.setHex(!T.ok?0xec5f6b:T.kind.startsWith('rm')||T.kind==='remove'?0xff8a5c:0x5cc08c);
-  let tip='';if(T.kind==='remove'){const m=vox[T.i];tip=blue[T.i]?`Remover ${MAT[m].n} da planta`:FLUID(m)?`Drenar ${MAT[m].n}`:`Cavar ${MAT[m].n} · 1 material`}else if(T.kind==='rmturret')tip=`Recolher ${T.t.T.n}`;else if(T.kind==='turret')tip=`Instalar ${TURRETS[state.inv.turrets[state.build.tsel]?.type||'cannon'].n}`;else tip=`Colocar ${MAT[T.m].n}`;
-  showTip(cx,cy,tip,T.ok?'':'não dá aqui')}
+  let tip='';if(T.kind==='remove'){const m=vox[T.i];tip=blue[T.i]?`Remover ${MAT[m].n} da planta`:FLUID(m)?`Drenar ${MAT[m].n}`:`Cavar ${MAT[m].n} · 1 material`}else if(T.kind==='rmturret')tip=`Recolher ${T.t.T.n}`;else if(T.kind==='turret')tip=`Instalar ${TURRETS[state.inv.turrets[state.build.tsel]?.type||'cannon'].n}`;else if(T.kind==='prefab')tip=`${PREFABS[state.build.pf].ico} ${PREFABS[state.build.pf].n} · R gira`;else tip=`Colocar ${MAT[T.m].n}${(state.build.h||1)>1?` ×${state.build.h} de altura`:''} · arraste p/ fileira`;
+  showTip(cx,cy,tip,T.ok?'':(T.kind==='place'&&natBlue&&natBlue[T.i]?'terreno natural: construa por cima':'não dá aqui'))}
 function doBuild(cx,cy,forceRemove){const B=state.build;const tool=B.tool;if(forceRemove)B.tool='remove';const T=buildTarget(cx,cy);B.tool=tool;if(!T||!T.ok){if(T)SFX.hurt();return}
   if(T.kind==='rmturret'){killTurret(T.t,false);state.inv.turrets.push({type:T.t.type,r:T.t.r});toast(`${T.t.T.n} recolhida`,'r0');SFX.pop()}
   else if(T.kind==='remove'){const i=T.i,m=vox[i];
@@ -68,6 +71,8 @@ function doBuild(cx,cy,forceRemove){const B=state.build;const tool=B.tool;if(for
     else if(FLUID(m)){if(fluidSrc.has(i)&&state.placed&&state.placed.has(i)){addBlocks(m,1);state.placed.delete(i)}setVox(i,0);settleDirty=true}
     else{state.material-=1;removeVox(i,'dig')}SFX.crunch(false)}
   else if(T.kind==='turret'){if(!canInstall())return;const it=state.inv.turrets.splice(B.tsel,1)[0];makeTurret(it.type,T.i,it.r);sparkle(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5,RARITY[it.r].c,8);SFX.build();toast(`${TURRETS[it.type].n} instalada`,'r1');if(!state.inv.turrets.length)B.tool='remove';else B.tsel=clamp(B.tsel,0,state.inv.turrets.length-1)}
+  else if(T.kind==='prefab'){placePrefab(T.i)}
+  else if((B.h||1)>1&&!FLUID(T.m)){placeCells(craftColumn(T.i),T.m)}
   else{const m=T.m;if(FLUID(m)){state.inv.blocks[m]--;setFluid(T.i,m,4,true);(state.placed=state.placed||new Set()).add(T.i)}
     else{placeBlue(T.i,m);if(!BASIC_BLOCKS.includes(m)){state.inv.blocks[m]--;state.prepaid.add(T.i)}}SFX.build();if(!BASIC_BLOCKS.includes(m)&&!state.inv.blocks[m])B.sel=3}
   renderBuild();updateHud()}

@@ -188,6 +188,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #buffSt{order:5;background:#fff7e0;color:#8a5a00;font-weight:700}
 #rainFx{position:fixed;inset:-40px;pointer-events:none;z-index:0;background:repeating-linear-gradient(105deg,rgba(200,220,240,0) 0 22px,rgba(200,220,240,.35) 22px 23px,rgba(200,220,240,0) 23px 47px);animation:rain .45s linear infinite;mix-blend-mode:screen}@keyframes rain{to{transform:translate(-12px,46px)}}
 .wn{border:0;background:rgba(0,0,0,.06);border-radius:6px;width:20px;height:20px;font:700 14px/1 inherit;cursor:pointer;color:inherit;padding:0;margin:0 3px}.wn:hover{background:rgba(0,0,0,.12)}.wn:disabled{opacity:.25;cursor:default}
+.crow{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px}.crow .btn{width:30px;height:30px;padding:0;font-size:16px}.crow b{min-width:18px;text-align:center}.crow .ct{opacity:.6;font-size:11px}
 </style>
 
 <canvas id="c"></canvas>
@@ -232,7 +233,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 
 <div id="buildPanel" class="side left">
   <div class="hd"><span>Construir</span><button class="btn x" id="buildClose" aria-label="Fechar">✕</button></div>
-  <div class="sub">Clique numa face para colocar; os reparadores constroem. Clique direito remove. Tecla R alterna Remover.</div>
+  <div class="sub">Clique para colocar, arraste para fileira, − / = muda a altura. Clique direito remove (R alterna). O que você constrói é reconstruído pelos reparadores.</div>
   <div class="tabs"><button class="tab on" data-tab="blocks">Blocos</button><button class="tab" data-tab="turrets">Armas</button><button class="tab" data-tab="castle">Castelo</button></div>
   <div class="body" id="buildBody"></div>
 </div>

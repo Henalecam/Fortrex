@@ -195,6 +195,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #buffSt{order:5;background:#fff7e0;color:#8a5a00;font-weight:700}
 #rainFx{position:fixed;inset:-40px;pointer-events:none;z-index:0;background:repeating-linear-gradient(105deg,rgba(200,220,240,0) 0 22px,rgba(200,220,240,.35) 22px 23px,rgba(200,220,240,0) 23px 47px);animation:rain .45s linear infinite;mix-blend-mode:screen}@keyframes rain{to{transform:translate(-12px,46px)}}
 .wn{border:0;background:rgba(0,0,0,.06);border-radius:6px;width:20px;height:20px;font:700 14px/1 inherit;cursor:pointer;color:inherit;padding:0;margin:0 3px}.wn:hover{background:rgba(0,0,0,.12)}.wn:disabled{opacity:.25;cursor:default}
+.crow{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px}.crow .btn{width:30px;height:30px;padding:0;font-size:16px}.crow b{min-width:18px;text-align:center}.crow .ct{opacity:.6;font-size:11px}
 </style>
 
 <canvas id="c"></canvas>
@@ -239,7 +240,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 
 <div id="buildPanel" class="side left">
   <div class="hd"><span>Construir</span><button class="btn x" id="buildClose" aria-label="Fechar">✕</button></div>
-  <div class="sub">Clique numa face para colocar; os reparadores constroem. Clique direito remove. Tecla R alterna Remover.</div>
+  <div class="sub">Clique para colocar, arraste para fileira, − / = muda a altura. Clique direito remove (R alterna). O que você constrói é reconstruído pelos reparadores.</div>
   <div class="tabs"><button class="tab on" data-tab="blocks">Blocos</button><button class="tab" data-tab="turrets">Armas</button><button class="tab" data-tab="castle">Castelo</button></div>
   <div class="body" id="buildBody"></div>
 </div>
@@ -489,7 +490,7 @@ function surf(x,z){x=Math.floor(x);z=Math.floor(z);if(x<0||z<0||x>=W||z>=D)retur
 function surfE(x,z){x=Math.floor(x);z=Math.floor(z);if(x<0||z<0||x>=W||z>=D)return GY;const c=x+z*W;let s=colE[c];if(s<0){s=0;while(s<H){const m=vox[idx(x,s,z)];if(!m||FLUID(m))break;s++}colE[c]=s}return s}
 function topY(x,z){x=Math.floor(x);z=Math.floor(z);if(x<0||z<0||x>=W||z>=D)return -20;const c=x+z*W;let s=colT[c];if(s<0){s=0;for(let y=H-1;y>=0;y--)if(SOLIDM(vox[idx(x,y,z)])){s=y+1;break}colT[c]=s}return s}
 
-function setVox(i,m){const old=vox[i];if(SOLIDM(old)&&!SOLIDM(m)){removedQ.push(i);if(natBlue&&natBlue[i])natLost.push(i,simTime)}if(FLUID(old)){fluids.delete(i);fluidSrc.delete(i)}burning.delete(i);specials.delete(i);damaged.delete(i);
+function setVox(i,m){const old=vox[i];if(SOLIDM(old)&&!SOLIDM(m)){removedQ.push(i);if(natBlue&&natBlue[i])natLost.push(i,simTime)}else if(FLUID(old)&&!m&&natBlue&&natBlue[i]===old)natLost.push(i,simTime);if(FLUID(old)){fluids.delete(i);fluidSrc.delete(i)}burning.delete(i);specials.delete(i);damaged.delete(i);
   vox[i]=m;hp[i]=m?(FLUID(m)?4:maxHpOf(m)):0;if(FLUID(m))fluids.add(i);if(m===15||m===19)specials.add(i);
   const x=ix(i),z=iz(i),y=iy(i);markCol(x,z);if((y===GY&&SOLIDM(m))||(y===GY-1&&m!==13))hideTufts(x,z);touch(i)}
 function setFluid(i,m,lv,src){if(SOLIDM(vox[i]))return;vox[i]=m;hp[i]=lv;fluids.add(i);if(src)fluidSrc.add(i);burning.delete(i);markCol(ix(i),iz(i));touch(i)}
@@ -506,7 +507,6 @@ function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m)
   if(m!==12&&m!==13)damaged.add(i);paint(i);if(Math.random()<.5)SFX.crunch(m===4||m===20);return false}
 function removeVox(i,src){const m=vox[i];if(!m)return;const x=ix(i),y=iy(i),z=iz(i);
   spawnDebris(x+.5,y+.5,z+.5,MAT[m].c,m>=11&&m<=13?3:5,.45);
-  if(src==='dig'&&natBlue)natBlue[i]=0;
   if(m!==11&&src!=='dig'&&!blue[i]&&!looted[i]&&(looted[i]=1)&&Math.random()<(rown[i]?.06:m===12||m===13?.04:.15))spawnLoot(x+.5,y+.6,z+.5,'material',0,{amount:1});
   setVox(i,0);SFX.crunch(m===4);settleDirty=true;checkTurretAnchor(i);if(m===5)checkChest();
   if(m===10)pendingBooms.push({x:x+.5,y:y+.5,z:z+.5,r:2.7,dmg:95,o:{fire:true,src:blue[i]?'player':'env'},t:.12});
@@ -1139,7 +1139,7 @@ function findRepairTask(m){let best=null,bs=1e9;const mx=m.pos.x,mz=m.pos.z;
   if(state.demol&&state.demol.size){for(const i of state.demol){if(!vox[i]||vox[i]===5||blue[i]){state.demol.delete(i);continue}if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;const s=-60-(iy(i)-GY)*5+Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:'demol',i}}}}
   if(state.swapQ&&state.swapQ.size){for(const i of state.swapQ){const b=blue[i];if(!b||!vox[i]||vox[i]===b||vox[i]===5){state.swapQ.delete(i);continue}if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;const s=-40+(iy(i)-GY)*3+Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:'swap',i}}}}
   for(const i of blueList){const b=blue[i];if(!b||vox[i]===b)continue;if(b===5&&!vox[i]&&state.phase==='wave'&&!state.rebuildChest)continue;if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;
-    const cost=0;
+    const cost=SPECIAL_BLOCKS.includes(b)&&!TIER_RANK[b]&&!state.prepaid.has(i)?(MAT[b].cost||3):0;if(cost>state.material)continue;
     let ti=i,kind='build';if(!supported(i)){if(iy(i)>GY+1)continue;const x=ix(i),z=iz(i);let y=1;while(y<iy(i)&&vox[idx(x,y,z)]&&!FLUID(vox[idx(x,y,z)]))y++;if(y>=iy(i))continue;ti=idx(x,y,z);kind='fill';if((m.skip.get(ti)||0)>simTime)continue}
     const s=(b===5?-80:0)+(iy(i)-GY)*4+Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:kind,i:ti}}}
   for(const t of turrets){if(!t.alive||t.hp>=t.maxhp*.85||t.team==='r')continue;const cl=t.fixer;if(cl&&cl!==m)continue;const s=hd(t.pos,m.pos)-6;if(s<bs){bs=s;best={k:'turret',t}}}
@@ -1172,7 +1172,7 @@ function updRep(m,dt){
   if(T.k==='demol'||T.k==='swap'){const i=T.i,v=vox[i];if(v){const c=MAT[v]?MAT[v].c:0x888888;if(T.k==='demol'){setVox(i,0);state.demol.delete(i);settleDirty=true;spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,c,4,.22);SFX.crunch&&SFX.crunch(false)}else{const b=blue[i];setVox(i,b);hp[i]=maxHpOf(b);damaged.delete(i);state.swapQ.delete(i);spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,c,3,.2);sparkle(ix(i)+.5,iy(i)+.9,iz(i)+.5,MAT[b].c,2);SFX.build()}gainXP(m,1)}releaseTask(m);m.state='idle';
     const nx=findRepairTask(m);if(nx&&nx.i!==undefined&&Math.hypot(ix(nx.i)+.5-m.pos.x,iz(nx.i)+.5-m.pos.z)<3.2){m.task=nx;m.state='work';m.timer=.5/(m.work*state.repMul*reformMul())}else if(nx){m.task=nx;m.state='go';m.bestD=1e9}return}
   if(T.k==='fill'){const i=T.i;if(!cellBusy(i)){setVox(i,iy(i)===GY-1?13:12);settleDirty=true;SFX.build();spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[12].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';return}
-  if(T.k==='build'){const i=T.i,b=blue[i];const cost=0;if(!cellBusy(i)&&state.material>=cost&&supported(i)){state.material-=cost;state.prepaid.delete(i);setVox(i,b);settleDirty=true;SFX.build();gainXP(m,1);spawnDebris(ix(i)+.5,y+.5,iz(i)+.5,MAT[b].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';
+  if(T.k==='build'){const i=T.i,b=blue[i];const cost=SPECIAL_BLOCKS.includes(b)&&!TIER_RANK[b]&&!state.prepaid.has(i)?(MAT[b].cost||3):0;if(!cellBusy(i)&&state.material>=cost&&supported(i)){state.material-=cost;state.prepaid.delete(i);setVox(i,b);settleDirty=true;SFX.build();gainXP(m,1);spawnDebris(ix(i)+.5,y+.5,iz(i)+.5,MAT[b].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';
     // keep building nearby blocks without going idle
     const nx=findRepairTask(m);if(nx&&(nx.i===undefined||Math.hypot(ix(nx.i)+.5-m.pos.x,iz(nx.i)+.5-m.pos.z)<3.2)){m.task=nx;m.state='work';m.timer=.5/(m.work*state.repMul*reformMul())}else if(nx){m.task=nx;m.state='go';m.bestD=1e9}return}
   if(T.k==='fix'){const i=T.i;if(vox[i]){hp[i]=Math.min(maxHpOf(vox[i]),hp[i]+maxHpOf(vox[i])*.5);if(hp[i]>=maxHpOf(vox[i]))damaged.delete(i);paint(i);SFX.pop()}releaseTask(m);m.state='idle';return}
@@ -1419,7 +1419,7 @@ function smartTrapSpot(kind){let best=-1,bs=.5;const minWall=kind===10?5:1,maxWa
 // ───────── day / night and the world healing itself
 const NIGHT_SKY=new THREE.Color(0x1d2244),DAY_SKY=new THREE.Color(0xdff1f7),DUSK_SKY=new THREE.Color(0xf2b48a);const _sky=new THREE.Color();
 const DAY_LEN=240;let natBlue=null,natLost=[];
-function snapshotNature(){natLost=[];natBlue=new Uint8Array(N);for(let i=0;i<N;i++){const m=vox[i];if(m&&!blue[i]&&!rown[i]&&!FLUID(m)&&m!==10)natBlue[i]=m}}
+function snapshotNature(){natLost=[];natBlue=new Uint8Array(N);for(let i=0;i<N;i++){const m=vox[i];if(m&&!blue[i]&&!rown[i]&&m!==10&&!(FLUID(m)&&!fluidSrc.has(i)&&iy(i)>=GY))natBlue[i]=m}}
 function dayPhase(){return ((simTime/DAY_LEN)+.3)%1}// 0 = midnight, .5 = noon
 function isNight(){const p=dayPhase();return p<.2||p>.82}
 let regrowT=0;
@@ -1430,8 +1430,8 @@ let lifeAcc=0;function lifeTick(dt0){lifeAcc+=dt0;if(lifeAcc<.1)return;const dt=
   if(natBlue){regrowT+=dt;const rate=isNight()?.12:.35;if(regrowT>rate){regrowT=0;const tries=isNight()?60:25;let n=0;
     // only environment cells regrow; base/player cells are the player's own management (repairers + blueprint)
     const keep=[],later=[];const lim=(isNight()?10:5)+Math.floor(natLost.length/600);
-    const L=natLost.length;let scanned=0;for(let k=0;k<L;k+=2){const i=natLost[k],t0=natLost[k+1];if(scanned>=600||n>=lim||simTime-t0<40){keep.push(i,t0);continue}scanned++;const m=natBlue[i];if(!m||blue[i]||state.custom.has(i)){continue}if(vox[i]&&SOLIDM(vox[i]))continue;
-      if(Math.random()<.5){keep.push(i,t0);continue}if(vox[i]||!supported(i)||cellBusy(i)){later.push(i,t0);continue}setVox(i,m);n++;if(Math.random()<.2)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,m===11?0x6fbf6a:0x9fe39a,1,.15)}
+    const L=natLost.length;let scanned=0;for(let k=0;k<L;k+=2){const i=natLost[k],t0=natLost[k+1];if(scanned>=600||n>=lim||simTime-t0<40){keep.push(i,t0);continue}scanned++;const m=natBlue[i];if(!m||vox[i]===m)continue;if(blue[i]||state.custom.has(i)||(vox[i]&&SOLIDM(vox[i]))){later.push(i,t0);continue}
+      if(Math.random()<.5){keep.push(i,t0);continue}if(vox[i]||!supported(i)||cellBusy(i)){later.push(i,t0);continue}if(FLUID(m))setFluid(i,m,4,true);else setVox(i,m);n++;if(Math.random()<.2)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,m===11?0x6fbf6a:0x9fe39a,1,.15)}
     natLost=later.length?keep.concat(later):keep;
     for(let t=0;t<0;t++){const i=0;const m=natBlue[i];if(!m||vox[i])continue;if(!supported(i)||cellBusy(i))continue;if(iy(i)<GY-1&&!SOLIDM(vox[i-W*D]))continue;setVox(i,m);n++;if(Math.random()<.25)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,0x9fe39a,1,.15)}
     for(let t=0;t<12;t++){const x=rint(0,W-1),z=rint(0,D-1);const s=surf(x,z);if(s>0&&s<=GY&&vox[idx(x,s-1,z)]===12&&!blue[idx(x,s-1,z)]){setVox(idx(x,s-1,z),13)}}}}
@@ -1732,7 +1732,9 @@ function renderBuild(){const B=state.build,body=$('buildBody');for(const t of do
   if(B.tab==='castle'){const cur=state.castle||'classico';h+='<div class="ds" style="margin-bottom:8px">Escolha um estilo: os reparadores desmontam o que sobra e constroem o novo, bloco por bloco. Seus blocos próprios e expansões continuam.</div>';for(const [k,C] of Object.entries(CASTLES))h+=`<button class="pi ${cur===k?'sel':''}" data-castle="${k}" style="width:100%;justify-content:flex-start;text-align:left"><span class="sw" style="background:none;font-size:18px;width:auto">${C.ico}</span><span><b>${C.n}</b><br><span class="ct" style="white-space:normal">${C.d}</span></span></button>`;const n=(state.demol?state.demol.size:0)+(state.swapQ?state.swapQ.size:0);if(n)h+=`<div class="ds" style="margin-top:6px">🔨 Obra em andamento: ${n} blocos para desmontar/trocar.</div>`;h+=`<div class="ds" style="margin-top:6px">🧱 Com <b>Upgrade automático</b> ligado, cada bloco é trocado pelo melhor disponível (${MAT[tierMat(3)].n} agora).</div>`}
   if(B.tab==='blocks'){h+='<div class="pal">';h+=`<button class="pi ${B.tool==='remove'?'sel':''}" data-rm="1"><span class="sw" style="background:repeating-linear-gradient(45deg,#ec5f6b 0 4px,#fff 4px 8px)"></span>Remover<span class="ct">blocos, armas, cavar</span></button>`;
     for(const p of palBlocks()){const M=MAT[p.m];h+=`<button class="pi ${B.tool==='place'&&B.sel===p.m?'sel':''}" data-m="${p.m}" title="${esc(M.special||'')}"><span class="sw" style="background:${hex(M.c)}"></span>${esc(M.n)}<span class="ct">${p.count===Infinity?`${M.cost} material`:'×'+p.count}</span></button>`}
-    h+='</div>';const sm=MAT[B.sel];h+=`<div class="detail"><div class="nm">${B.tool==='remove'?'Remover':esc(sm.n)}</div><div class="ds">${B.tool==='remove'?'Bloco da planta: volta para você. Terreno: cava por 1 material. Arma: volta ao arsenal.':esc(sm.special||'Bloco básico. O reparador constrói gastando material do baú.')}</div></div>`}
+    h+='</div>';h+=`<div class="crow"><span>Altura</span><button class="btn" id="hMinus">−</button><b>${B.h||1}</b><button class="btn" id="hPlus">+</button><span class="ct">teclas − e = · arraste para fileira</span></div>`;
+    h+='<div class="sec" style="margin-top:8px">Pequenas obras <span class="ct">R gira</span></div><div class="pal">';for(const [k,P] of Object.entries(PREFABS))h+=`<button class="pi ${B.tool==='prefab'&&B.pf===k?'sel':''}" data-pf="${k}" title="${esc(P.d)}"><span class="sw" style="background:none;font-size:15px">${P.ico}</span>${esc(P.n)}<span class="ct">${P.cells(0).length} blocos</span></button>`;h+='</div>';
+    const sm=MAT[B.sel];h+=`<div class="detail"><div class="nm">${B.tool==='remove'?'Remover':B.tool==='prefab'&&PREFABS[B.pf]?PREFABS[B.pf].ico+' '+esc(PREFABS[B.pf].n):esc(sm.n)}</div><div class="ds">${B.tool==='remove'?'Bloco da planta: volta para você. Terreno: cava por 1 material. Arma: volta ao arsenal.':esc(sm.special||'Bloco básico. O reparador constrói gastando material do baú.')}</div></div>`}
   else if(B.tab==='turrets'){h+='<div class="pal">';h+=`<button class="pi ${B.tool==='remove'?'sel':''}" data-rm="1"><span class="sw" style="background:repeating-linear-gradient(45deg,#ec5f6b 0 4px,#fff 4px 8px)"></span>Recolher<span class="ct">volta ao arsenal</span></button>`;
     h+=`<div class="ds" style="grid-column:1/-1">Armas instaladas <b>${turretCount()}/${turretCap()}</b> · +2 vagas por 🧱 Plataformas de armas</div>`;
     state.inv.turrets.forEach((t,k)=>{const T=TURRETS[t.type];h+=`<button class="pi ${B.tool==='turret'&&B.tsel===k?'sel':''} rr${t.r}" data-t="${k}"><span class="sw ico">${T.ico}</span>${esc(T.n)}<span class="ct" style="color:var(--${RARITY[t.r].css})">${RARITY[t.r].n}</span></button>`});
@@ -1741,6 +1743,7 @@ function renderBuild(){const B=state.build,body=$('buildBody');for(const t of do
   body.innerHTML=h;
   for(const b of body.querySelectorAll('[data-m]'))b.onclick=()=>{B.tool='place';B.sel=+b.dataset.m;renderBuild()};
   for(const b of body.querySelectorAll('[data-t]'))b.onclick=()=>{B.tool='turret';B.tsel=+b.dataset.t;renderBuild()};
+  for(const b of body.querySelectorAll('[data-pf]'))b.onclick=()=>{B.tool='prefab';B.pf=b.dataset.pf;renderBuild()};{const a=$('hMinus'),b2=$('hPlus');if(a)a.onclick=()=>craftH(-1);if(b2)b2.onclick=()=>craftH(1)}
   for(const b of body.querySelectorAll('[data-castle]'))b.onclick=()=>{setCastle(b.dataset.castle)};
   for(const b of body.querySelectorAll('[data-rm]'))b.onclick=()=>{B.tool='remove';renderBuild()};
   const bc=$('buyCannon');if(bc)bc.onclick=()=>{if(state.material<40)return;state.material-=40;state.inv.turrets.push({type:'cannon',r:0});B.tool='turret';B.tsel=state.inv.turrets.length-1;SFX.coin();renderBuild();updateHud()}}
@@ -1753,13 +1756,13 @@ function buildTarget(cx,cy){const B=state.build,ray=rayFrom(cx,cy);
     const h=voxRay(ray.origin,ray.direction,true);if(!h)return null;const m=vox[h.i];const ok=m!==1&&m!==5&&(blue[h.i]||FLUID(m)||state.material>=1);return{kind:'remove',i:h.i,ok}}
   const h=voxRay(ray.origin,ray.direction,false);if(!h)return null;
   if(B.tool==='turret'){const a=h.i,up=a+W*D;const ok=!!state.inv.turrets[B.tsel]&&iy(a)<H-2&&!vox[up]&&!turretAt(a)&&vox[a]!==5&&vox[a]!==10&&!blue[up];return{kind:'turret',i:a,ok}}
-  const i=h.prev;if(i<0)return null;const m=B.sel;const ok=(vox[i]===0||(FLUID(vox[i])&&!fluidSrc.has(i)))&&!blue[i]&&iy(i)<H-1&&!turretAt(i-W*D)&&(BASIC_BLOCKS.includes(m)||(state.inv.blocks[m]||0)>0)&&!cellBusy(i);return{kind:'place',i,ok,m}}
-function updateGhost(cx,cy){const T=buildTarget(cx,cy);if(!T){ghost.visible=false;$('tip').style.display='none';return}ghost.visible=true;
+  const i=h.prev;if(i<0)return null;if(B.tool==='prefab'){const P=PREFABS[B.pf];return{kind:'prefab',i,ok:!!P&&iy(i)<H-2}}const m=B.sel;const ok=(vox[i]===0||(FLUID(vox[i])&&!fluidSrc.has(i)))&&!blue[i]&&!(natBlue&&natBlue[i])&&iy(i)<H-1&&!turretAt(i-W*D)&&(BASIC_BLOCKS.includes(m)||(state.inv.blocks[m]||0)>0)&&!cellBusy(i);return{kind:'place',i,ok,m}}
+function updateGhost(cx,cy){if(CRAFT.a!==null)return;const T=buildTarget(cx,cy);craftPreview(T);if(!T){ghost.visible=false;$('tip').style.display='none';return}ghost.visible=true;
   if(T.kind==='rmturret'){ghost.position.set(T.t.pos.x,T.t.pos.y+.5,T.t.pos.z);ghost.scale.set(1.1,1.3,1.1)}
   else if(T.kind==='turret'){ghost.position.set(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5);ghost.scale.set(.9,1,.9)}else{ghost.position.set(ix(T.i)+.5,iy(T.i)+.5,iz(T.i)+.5);ghost.scale.set(1,1,1)}
   ghost.material.color.setHex(!T.ok?0xec5f6b:T.kind.startsWith('rm')||T.kind==='remove'?0xff8a5c:0x5cc08c);
-  let tip='';if(T.kind==='remove'){const m=vox[T.i];tip=blue[T.i]?`Remover ${MAT[m].n} da planta`:FLUID(m)?`Drenar ${MAT[m].n}`:`Cavar ${MAT[m].n} · 1 material`}else if(T.kind==='rmturret')tip=`Recolher ${T.t.T.n}`;else if(T.kind==='turret')tip=`Instalar ${TURRETS[state.inv.turrets[state.build.tsel]?.type||'cannon'].n}`;else tip=`Colocar ${MAT[T.m].n}`;
-  showTip(cx,cy,tip,T.ok?'':'não dá aqui')}
+  let tip='';if(T.kind==='remove'){const m=vox[T.i];tip=blue[T.i]?`Remover ${MAT[m].n} da planta`:FLUID(m)?`Drenar ${MAT[m].n}`:`Cavar ${MAT[m].n} · 1 material`}else if(T.kind==='rmturret')tip=`Recolher ${T.t.T.n}`;else if(T.kind==='turret')tip=`Instalar ${TURRETS[state.inv.turrets[state.build.tsel]?.type||'cannon'].n}`;else if(T.kind==='prefab')tip=`${PREFABS[state.build.pf].ico} ${PREFABS[state.build.pf].n} · R gira`;else tip=`Colocar ${MAT[T.m].n}${(state.build.h||1)>1?` ×${state.build.h} de altura`:''} · arraste p/ fileira`;
+  showTip(cx,cy,tip,T.ok?'':(T.kind==='place'&&natBlue&&natBlue[T.i]?'terreno natural: construa por cima':'não dá aqui'))}
 function doBuild(cx,cy,forceRemove){const B=state.build;const tool=B.tool;if(forceRemove)B.tool='remove';const T=buildTarget(cx,cy);B.tool=tool;if(!T||!T.ok){if(T)SFX.hurt();return}
   if(T.kind==='rmturret'){killTurret(T.t,false);state.inv.turrets.push({type:T.t.type,r:T.t.r});toast(`${T.t.T.n} recolhida`,'r0');SFX.pop()}
   else if(T.kind==='remove'){const i=T.i,m=vox[i];
@@ -1767,6 +1770,8 @@ function doBuild(cx,cy,forceRemove){const B=state.build;const tool=B.tool;if(for
     else if(FLUID(m)){if(fluidSrc.has(i)&&state.placed&&state.placed.has(i)){addBlocks(m,1);state.placed.delete(i)}setVox(i,0);settleDirty=true}
     else{state.material-=1;removeVox(i,'dig')}SFX.crunch(false)}
   else if(T.kind==='turret'){if(!canInstall())return;const it=state.inv.turrets.splice(B.tsel,1)[0];makeTurret(it.type,T.i,it.r);sparkle(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5,RARITY[it.r].c,8);SFX.build();toast(`${TURRETS[it.type].n} instalada`,'r1');if(!state.inv.turrets.length)B.tool='remove';else B.tsel=clamp(B.tsel,0,state.inv.turrets.length-1)}
+  else if(T.kind==='prefab'){placePrefab(T.i)}
+  else if((B.h||1)>1&&!FLUID(T.m)){placeCells(craftColumn(T.i),T.m)}
   else{const m=T.m;if(FLUID(m)){state.inv.blocks[m]--;setFluid(T.i,m,4,true);(state.placed=state.placed||new Set()).add(T.i)}
     else{placeBlue(T.i,m);if(!BASIC_BLOCKS.includes(m)){state.inv.blocks[m]--;state.prepaid.add(T.i)}}SFX.build();if(!BASIC_BLOCKS.includes(m)&&!state.inv.blocks[m])B.sel=3}
   renderBuild();updateHud()}
@@ -2002,7 +2007,7 @@ function heroTick(dt){for(const k in state.heroes||{}){const m=state.heroes[k].m
 // Building is free (repairers' labour is the only limit); after each wave everything mends itself.
 const EXP_STAGES=[{w:3,n:'Paliçada de madeira'},{w:6,n:'Muralha externa de pedra'},{w:9,n:'Quatro bastiões com plataformas de armas'},{w:12,n:'Reforço de metal e portão externo'},{w:15,n:'Fosso de água (aríetes e rastejadores afundam e se afogam)'},{w:18,n:'Torres de vigia (enxergam através da bruma e da areia)'},{w:21,n:'Campo de espinhos além do fosso'},{w:24,n:'Base de obsidiana e ameias de aço rúnico'}];
 function ringCells(R,f){for(let x=CX-R;x<=CX+R;x++)for(let z=CZ-R;z<=CZ+R;z++){const edge=Math.max(Math.abs(x-CX),Math.abs(z-CZ));if(edge<R-1||edge>R)continue;f(x,z)}}
-function clearFor(i){if(vox[i]&&!blue[i]&&!rown[i]&&vox[i]!==5){removeVox(i,'dig')}if(natBlue)natBlue[i]=0}
+function clearFor(i){if(vox[i]&&!blue[i]&&!rown[i]&&vox[i]!==5){removeVox(i,'dig')}}
 function expansionTick(){const st=state.expStage||0;if(st>=EXP_STAGES.length||state.wave<EXP_STAGES[st].w)return;state.expStage=st+1;const R=WR+8,gap=(x,z)=>z>CZ&&Math.abs(x-CX+.5)<2.6;
   const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);if(blue[i]===5)return;clearFor(i);placeBlue(i,m)};
   if(st===0)ringCells(R,(x,z)=>{if(gap(x,z))return;for(let y=0;y<3;y++)put(x,GY+y,z,2)});
@@ -2436,9 +2441,44 @@ window.__castle=id=>{const ok=setCastle(id);return [ok,state.demol?state.demol.s
 window.__miss=()=>{const o={};let n=0;for(const i of blueList){const b=blue[i];if(b&&b!==5&&vox[i]!==b){n++;const k=`v${vox[i]}b${b}s${supported(i)?1:0}y${iy(i)-GY}`;o[k]=(o[k]||0)+1}}return [n,Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,12)]};
 window.__ref=()=>[state.demol?state.demol.size:0,state.swapQ?state.swapQ.size:0,blueList.filter(i=>vox[i]!==blue[i]&&blue[i]!==5).length,minions.filter(m=>m.crew).length,state.blockTier||0];
 
+// v1.4 ferramentas de construção: fileira arrastando, altura (− / =), pequenas obras com rotação
+const CRAFT={a:null,b:null,cells:[]};
+const gInst=new THREE.InstancedMesh(new THREE.BoxGeometry(1.02,1.02,1.02),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.32,depthWrite:false}),900);gInst.count=0;gInst.frustumCulled=false;scene.add(gInst);
+function craftH(d){const B=state.build;B.h=clamp((B.h||1)+d,1,12);if(typeof renderBuild==='function')renderBuild();toast(`Altura: ${B.h}`,'r0')}
+function craftColumn(i){const o=[];for(let k=0;k<(state.build.h||1);k++){const j=i+k*W*D;if(iy(j)>=H-1)break;o.push(j)}return o}
+function craftLine(a,b){const x0=ix(a),z0=iz(a),y=iy(a),x1=ix(b),z1=iz(b);const n=Math.min(48,Math.max(Math.abs(x1-x0),Math.abs(z1-z0)));const o=[];const seen=new Set();for(let t=0;t<=n;t++){const x=Math.round(x0+(x1-x0)*(n?t/n:0)),z=Math.round(z0+(z1-z0)*(n?t/n:0));if(!inb(x,y,z))continue;const i=idx(x,y,z);if(seen.has(i))continue;seen.add(i);o.push(...craftColumn(i))}return o}
+const cellFree=i=>(vox[i]===0||(FLUID(vox[i])&&!fluidSrc.has(i)))&&!blue[i]&&!(natBlue&&natBlue[i])&&!turretAt(i-W*D)&&!cellBusy(i);
+const _gm=new THREE.Matrix4(),_gc=new THREE.Color();
+function ghostCells(list){let n=0;for(const [i,ok] of list){if(n>=900)break;_gm.makeTranslation(ix(i)+.5,iy(i)+.5,iz(i)+.5);gInst.setMatrixAt(n,_gm);gInst.setColorAt(n,_gc.setHex(ok?0x5cc08c:0xec5f6b));n++}gInst.count=n;gInst.instanceMatrix.needsUpdate=true;if(gInst.instanceColor)gInst.instanceColor.needsUpdate=true}
+function craftPreview(T){if(!T||!state.build.on){if(gInst.count){gInst.count=0}return}const B=state.build;
+  if(T.kind==='prefab'){ghostCells(prefabCells(T.i).map(([i,m])=>[i,cellFree(i)]));return}
+  if(T.kind==='place'&&(B.h||1)>1){ghostCells(craftColumn(T.i).map(i=>[i,cellFree(i)]));return}gInst.count=0}
+function craftDown(cx,cy){const T=buildTarget(cx,cy);if(!T||T.kind!=='place'){CRAFT.a=null;return}CRAFT.a=T.i;CRAFT.b=T.i;CRAFT.m=T.m}
+function craftMove(cx,cy){const T=buildTarget(cx,cy);if(T&&(T.kind==='place')){CRAFT.b=idx(ix(T.i),iy(CRAFT.a),iz(T.i))}const cells=craftLine(CRAFT.a,CRAFT.b);CRAFT.cells=cells;ghostCells(cells.map(i=>[i,cellFree(i)]));ghost.visible=false;const n=cells.filter(cellFree).length;showTip(cx,cy,`Fileira: ${n} blocos de ${MAT[CRAFT.m].n}`,'')}
+function craftUp(dragged){const a=CRAFT.a;CRAFT.a=null;if(!dragged){gInst.count=0;return}const cells=CRAFT.cells.length?CRAFT.cells:craftLine(a,CRAFT.b);CRAFT.cells=[];gInst.count=0;placeCells(cells,CRAFT.m)}
+function placeCells(cells,m){let n=0;const special=!BASIC_BLOCKS.includes(m);for(const i of cells){if(!cellFree(i))continue;if(special){if(!(state.inv.blocks[m]>0))break;state.inv.blocks[m]--;state.prepaid.add(i)}placeBlue(i,m);n++}
+  if(n){SFX.build();toast(`🧱 ${n} bloco${n>1?'s':''} de ${MAT[m].n} na planta — os reparadores constroem`,'r1')}else SFX.hurt();if(special&&!state.inv.blocks[m])state.build.sel=3;if(typeof renderBuild==='function')renderBuild();updateHud();return n}
+// pequenas obras (relativas ao bloco mirado; rot gira 90°)
+const PREFABS={
+  vigia:{ico:'🗼',n:'Torre de vigia',d:'Torre 3×3 de 8 de altura com ameias — ótimo lugar para uma arma.',cells(){const o=[];for(let x=-1;x<=1;x++)for(let z=-1;z<=1;z++){for(let y=0;y<8;y++)o.push([x,y,z,3]);if((x+z)&1)o.push([x,8,z,3])}return o}},
+  muro:{ico:'🧱',n:'Muro com ameias',d:'Trecho de muralha 7×2 com 4 de altura e ameias.',cells(){const o=[];for(let x=-3;x<=3;x++)for(let z=0;z<=1;z++){for(let y=0;y<4;y++)o.push([x,y,z,3]);if(z===0&&!(x&1))o.push([x,4,z,3])}return o}},
+  bunker:{ico:'🛖',n:'Bunker',d:'Casamata 5×5 de metal, oca, com teto e seteiras.',cells(){const o=[];for(let x=-2;x<=2;x++)for(let z=-2;z<=2;z++){const sh=Math.abs(x)===2||Math.abs(z)===2;for(let y=0;y<3;y++)if(sh&&!(y===1&&(x===0||z===0)))o.push([x,y,z,4]);o.push([x,3,z,4])}return o}},
+  ponte:{ico:'🌉',n:'Ponte',d:'Passarela de madeira de 11 blocos sobre pilares de pedra.',cells(){const o=[];for(let x=-5;x<=5;x++){o.push([x,3,0,2]);if(x%5===0)for(let y=0;y<3;y++)o.push([x,y,0,3])}return o}},
+  escada:{ico:'🪜',n:'Escadaria',d:'Degraus de pedra subindo 6 blocos.',cells(){const o=[];for(let k=0;k<6;k++)for(let y=0;y<=k;y++)for(let z=0;z<=1;z++)o.push([k,y,z,3]);return o}},
+  portal:{ico:'⛩️',n:'Arco',d:'Arco de pedra 5 de largura e 5 de altura com estandartes.',cells(){const o=[];for(const x of[-2,2])for(let y=0;y<5;y++)o.push([x,y,0,3]);for(let x=-2;x<=2;x++)o.push([x,5,0,3]);o.push([-2,6,0,23],[2,6,0,23]);return o}},
+  minado:{ico:'💣',n:'Campo minado',d:'Xadrez de minas 5×5 (usa minas do inventário; faltando, vira espinhos ou pedra).',cells(){const o=[];for(let x=-2;x<=2;x++)for(let z=-2;z<=2;z++)if((x+z)%2===0)o.push([x,0,z,17]);return o}},
+  barricada:{ico:'🛢️',n:'Barricada de barris',d:'Linha de 7 barris explosivos atrás de um murinho.',cells(){const o=[];for(let x=-3;x<=3;x++){o.push([x,0,0,10]);o.push([x,0,1,3]);o.push([x,1,1,3])}return o}},
+};
+function prefabCells(i){const P=PREFABS[state.build.pf];if(!P)return[];const r=state.build.rot||0;const x0=ix(i),y0=iy(i),z0=iz(i);const o=[];for(const [dx,dy,dz,m] of P.cells()){let ax=dx,az=dz;for(let k=0;k<r;k++){const t=ax;ax=-az;az=t}const x=x0+ax,y=y0+dy,z=z0+az;if(inb(x,y,z))o.push([idx(x,y,z),m])}return o}
+function placePrefab(i){const cs=prefabCells(i);let n=0,sub=0;for(const [j,m0] of cs){if(!cellFree(j))continue;let m=m0;if(!BASIC_BLOCKS.includes(m)&&m!==23){if(state.inv.blocks[m]>0){state.inv.blocks[m]--;state.prepaid.add(j)}else if(m===17&&state.inv.blocks[16]>0){m=16;state.inv.blocks[16]--;state.prepaid.add(j);sub++}else{m=3;sub++}}placeBlue(j,m);n++}
+  const P=PREFABS[state.build.pf];if(n){SFX.build();toast(`${P.ico} ${P.n}: ${n} blocos na planta${sub?` (${sub} substituídos por falta no inventário)`:''} — os reparadores constroem`,'r1')}else SFX.hurt();renderBuild();updateHud()}
+window.__craft=(kind,a)=>{const i=idx(CX+40,GY,CZ+6);if(kind==='line'){CRAFT.a=i;CRAFT.b=idx(CX+50,GY,CZ+6);CRAFT.m=3;CRAFT.cells=craftLine(CRAFT.a,CRAFT.b);craftUp(true);return blueList.length}if(kind==='pf'){state.build.pf=a;return placePrefab(idx(CX+40,GY,CZ-8))||blueList.length}};
+window.__rebuildTest=()=>{const i=idx(CX+45,GY,CZ+6);const had=vox[i];removeVox(i,'enemy');return [had,vox[i],blue[i]]};
+window.__cellAt=(dx,dz)=>{const i=idx(CX+dx,GY,CZ+dz);return [vox[i],blue[i]]};
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=1.3;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=1.4;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2493,7 +2533,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [1.0,'♾️ Fortrex agora é infinito de verdade: perder uma horda não encerra a partida — a cidadela recua uma horda (−15% material) e você navega livremente entre as hordas já alcançadas com ‹ › no topo. Os biomas viraram climas que chegam e vão embora durante o jogo (Estação fértil, Onda de calor, Inverno rigoroso, Despertar vulcânico, Bruma do pântano); só a dificuldade é escolhida no início.'],
   [1.1,'🧩 Inimigos refeitos em voxels pequenos: corpos arredondados com padrões (listras, carapaças, manchas), cabeça e acessórios em cubinhos, olhos maiores. Eles estão ~30% maiores, se despedaçam cubinho por cubinho ao levar dano (mostrando o interior) e explodem em dezenas de voxels ao morrer.'],
   [1.2,'👹 Chefes de verdade: chifres, placas de armadura, espinhos nas costas e olhos em brasa. Cada chefe tem golpes telegrafados — pisão em área (círculo vermelho), investida em linha que atravessa muralhas, rajada de projéteis e invocação — e muda de fase a 66% e 33% de vida: fica mais rápido, mais forte, brilha em fúria e chama reforços. A barra mostra a fase.'],
-  [1.3,'🏰 Estilos de castelo (Construir → Castelo): Cidadela Colossal, Zigurate Solar, Agulhas Góticas e Forte Estrela. Ao trocar, os reparadores e uma equipe de pedreiros desmontam e constroem bloco por bloco. 🧱 Alvenaria saiu da loja: com Upgrade automático ligado, cada bloco é trocado pelo melhor disponível conforme você avança. 🌱 O terreno volta a se regenerar (inclusive depois de carregar um save).']];
+  [1.3,'🏰 Estilos de castelo (Construir → Castelo): Cidadela Colossal, Zigurate Solar, Agulhas Góticas e Forte Estrela. Ao trocar, os reparadores e uma equipe de pedreiros desmontam e constroem bloco por bloco. 🧱 Alvenaria saiu da loja: com Upgrade automático ligado, cada bloco é trocado pelo melhor disponível conforme você avança. 🌱 O terreno volta a se regenerar (inclusive depois de carregar um save).'],
+  [1.4,'🛠️ Ferramentas de construção: arraste para fazer uma fileira de blocos, − e = (ou os botões) mudam a altura, e Pequenas obras prontas (torre de vigia, muro com ameias, bunker, ponte, escadaria, arco, campo minado, barricada de barris; R gira). Tudo o que você constrói — dentro ou fora da base — entra na planta e os reparadores reconstroem quando é destruído; minas, barris e outros especiais custam seu material para refazer. 🌱 O ambiente natural se regenera 100% (terra, árvores, água, até o que você cavar) e só dá para construir nas camadas acima dele.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','retreating','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2622,12 +2663,12 @@ function newGame(){for(const e of enemies)scene.remove(e.group);enemies.length=0
 
 // ───────── input
 let dragging=false,moved=0,lx=0,ly=0,pinch=0,downBtn=0,lastHover=0;
-canvas.addEventListener('pointerdown',e=>{dragging=true;moved=0;downBtn=e.button;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener('pointerdown',e=>{dragging=true;moved=0;downBtn=e.button;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId);if(state.build.on&&e.button===0&&!e.shiftKey&&(state.build.tool==='place'))craftDown(e.clientX,e.clientY)});
 canvas.addEventListener('pointermove',e=>{const now=performance.now();if(now-lastHover>45&&state.running){lastHover=now;hoverAt(e.clientX,e.clientY)}
-  if(!dragging)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);if(moved<6)return;
+  if(!dragging)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);if(moved<6)return;if(CRAFT.a!==null){craftMove(e.clientX,e.clientY);return}
   if(e.buttons===2||e.buttons===4||e.shiftKey){const s=cam.dist*.0016,sy=Math.sin(cam.yaw),cy=Math.cos(cam.yaw);cam.target.x=clamp(cam.target.x-(dx*cy-dy*sy)*s,0,W);cam.target.z=clamp(cam.target.z-(-dx*sy-dy*cy)*s,0,D)}
   else{cam.yaw-=dx*.006;cam.pitch=clamp(cam.pitch+dy*.005,.35,1.4)}});
-canvas.addEventListener('pointerup',e=>{dragging=false;if(moved<6)clickAt(e.clientX,e.clientY,downBtn===2)});
+canvas.addEventListener('pointerup',e=>{dragging=false;if(CRAFT.a!==null){const was=moved>=6;craftUp(was);if(was)return}if(moved<6)clickAt(e.clientX,e.clientY,downBtn===2)});
 canvas.addEventListener('pointerleave',()=>{$('tip').style.display='none'});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('wheel',e=>{e.preventDefault();cam.dist=clamp(cam.dist*(1+Math.sign(e.deltaY)*.08),14,200)},{passive:false});
@@ -2650,7 +2691,9 @@ window.addEventListener('keydown',e=>{{const H=HEROES.find(h=>h.key===e.key.toUp
   else if(k==='b'&&state.running)openSide('buildPanel');else if(k==='i'&&state.running)openSide('arsenal');else if(k==='u'&&state.running)openSide('shop');
   else if(k==='escape'){state.bombMode=false;closeCard();$('hire').style.display='none';if(state.build.on)closeSide('buildPanel');updateHud()}
   else if(k==='f'&&state.running)cycleSpeed();
+  else if(k==='r'&&state.build.on&&state.build.tool==='prefab'){state.build.rot=((state.build.rot||0)+1)%4;renderBuild()}
   else if(k==='r'&&state.build.on){state.build.tool=state.build.tool==='remove'?'place':'remove';renderBuild()}
+  else if((k==='='||k==='+')&&state.build.on){craftH(1)}else if((k==='-'||k==='_')&&state.build.on){craftH(-1)}
   keys[k]=true});
 const keys={};window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
 $('bBuild').onclick=()=>openSide('buildPanel');$('buildClose').onclick=()=>closeSide('buildPanel');
