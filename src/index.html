@@ -179,6 +179,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #ftip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--dock) + 22px + env(safe-area-inset-bottom,0px));width:min(520px,calc(100vw - 24px));background:#2b2d4a;color:#fff;border-radius:14px;padding:10px 12px;display:none;align-items:center;gap:10px;font-size:13.5px;line-height:1.35;z-index:6;box-shadow:0 10px 30px rgba(43,45,74,.3)}#ftip span{flex:1}#ftip .btn{background:#fff;color:#2b2d4a;flex:none}
 @media (max-width:560px){#reward{padding:0 10px}#reward h2{font-size:21px}#reward .cards{gap:8px;flex-wrap:nowrap}#reward .rcard{width:auto;flex:1 1 0;min-width:0;padding:10px}#reward .rcard .ds{font-size:12px}#reward .rcard .nm{font-size:15px}}
 @media (max-width:430px){.dock #camHome{display:none}}
+#shopTabs{overflow-x:auto;scrollbar-width:none}#shopTabs .tab{flex:none;white-space:nowrap;padding:6px 10px}
+#news{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(43,45,74,.35);z-index:60;padding:16px}#news[hidden]{display:none!important}#news .nc{background:#fff;border-radius:20px;max-width:440px;width:100%;max-height:80vh;overflow:auto;padding:18px 20px;box-shadow:0 12px 40px rgba(43,45,74,.25)}#news h2{margin:0 0 4px;font-family:var(--display)}#news ul{padding-left:18px;margin:10px 0 14px;font-size:13.5px;line-height:1.45}#news li{margin:4px 0}#news .v{font-size:11px;color:#8a8ca8;font-weight:600}
 </style>
 
 <canvas id="c"></canvas>
@@ -231,6 +233,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 <div id="shop" class="side right">
   <div class="hd"><span>Upgrades</span><button class="btn x" id="shopClose" aria-label="Fechar">✕</button></div>
   <div class="sub">Gaste material do baú. Cada nível custa mais.</div>
+  <div class="tabs" id="shopTabs"></div>
   <div id="shopList"></div>
 </div>
 <div id="mcard"></div>
@@ -267,6 +270,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 <div id="goals"></div>
 <div id="ftip"></div>
 <div id="realm"><div class="rwrap"><canvas id="realmCanvas"></canvas><div id="realmSide"><button class="btn" id="realmClose" style="align-self:flex-end">✕ Fechar</button><div id="realmInfo"></div></div></div></div>
+<div id="news" hidden><div class="nc"><h2>✨ Novidades</h2><div class="ds" id="newsSub"></div><ul id="newsList"></ul><button class="btn primary" id="newsOk" style="width:100%">Continuar jogando</button></div></div>
 <div id="over"><div class="card">
   <h1 id="overTitle">Fortrex</h1>
   <p id="overText">Você é o Guardião. Minions constroem, reparam, coletam, lutam e operam armas sozinhos. Projete a base, equipe seu exército e assista a bruma se despedaçar.</p>

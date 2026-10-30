@@ -144,9 +144,15 @@ const UPGRADES=[
   {id:'crit',ico:'🎯',nm:'Pontaria crítica',ds:'+5% de chance de crítico (dano dobrado).',max:4,cost:l=>50+l*50,go(){state.critBonus+=.05}},
   {id:'general',ico:'🎖️',nm:'General veterano',ds:'Fogo Concentrado dura 8 s e recarrega em 10 s.',max:1,cost:()=>120,go(){state.focusLong=true}},
 ];
-function renderShop(){const box=$('shopList');box.innerHTML='';for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const lock=!upReady(U);const el=document.createElement('div');el.className='up';
+const UP_CAT={explosive:'arm',greek:'arm',powder:'arm',gears:'arm',plating:'arm',crit:'arm',platform:'arm',escola:'arm',forge:'arm',bomb:'arm',oil:'arm',sappers:'arm',
+  blades:'exe',tools:'exe',infirm:'exe',magnet:'exe',luck:'exe',general:'exe',quartel:'exe',oficina:'exe',bulwark:'exe',portal:'exe',
+  wall:'cid',door:'cid',masonry:'cid',cathedral:'mar',observatory:'mar',greatwall:'mar',statue:'mar'};
+const SHOP_TABS=[['now','✨ Pronto'],['arm','🎯 Armas'],['exe','👥 Exército'],['cid','🏰 Cidadela'],['mar','🏛️ Maravilhas']];let shopTab='now';
+function renderShop(){const tb=$('shopTabs');if(tb){tb.innerHTML=SHOP_TABS.map(([k,n])=>`<button class="tab ${shopTab===k?'on':''}" data-st="${k}">${n}</button>`).join('');for(const b of tb.querySelectorAll('[data-st]'))b.onclick=()=>{shopTab=b.dataset.st;renderShop()}}
+  const box=$('shopList');box.innerHTML='';let shown=0;for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const lock=!upReady(U);
+  if(shopTab==='now'){if(lock||maxed)continue}else if((UP_CAT[U.id]||'cid')!==shopTab)continue;shown++;const el=document.createElement('div');el.className='up';
   el.innerHTML=`<div class="ico">${U.ico}</div><div><div class="nm">${U.nm}</div><div class="ds">${U.ds}</div><div class="lv">${Array.from({length:U.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')} ${lv}/${U.max}</div></div><button class="btn buy" ${maxed||lock||state.material<cost?'disabled':''}>${lock?`🔒 h${upLockWave(U)}`:maxed?'máx':cost}</button>`;
-  el.querySelector('button').onclick=()=>{if(maxed||lock||state.material<cost)return;state.material-=cost;state.ups[U.id]=lv+1;U.go();SFX.loot(1);toast(`${U.nm} nível ${lv+1}`,'r1');renderShop();updateHud()};box.appendChild(el)}}
+  el.querySelector('button').onclick=()=>{if(maxed||lock||state.material<cost)return;state.material-=cost;state.ups[U.id]=lv+1;U.go();SFX.loot(1);toast(`${U.nm} nível ${lv+1}`,'r1');renderShop();updateHud()};box.appendChild(el)}if(!shown)box.innerHTML='<div class="ds" style="text-align:center;padding:16px">Nada disponível agora nesta aba. Veja as outras abas para o que vem pela frente.</div>'}
 
 // ── rewards: pick 1 of 3
 function rewardPool(){const w=state.wave,rr=()=>rollRarity(w*.006+state.luck),P=[];

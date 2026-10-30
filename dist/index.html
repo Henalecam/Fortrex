@@ -186,6 +186,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #ftip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--dock) + 22px + env(safe-area-inset-bottom,0px));width:min(520px,calc(100vw - 24px));background:#2b2d4a;color:#fff;border-radius:14px;padding:10px 12px;display:none;align-items:center;gap:10px;font-size:13.5px;line-height:1.35;z-index:6;box-shadow:0 10px 30px rgba(43,45,74,.3)}#ftip span{flex:1}#ftip .btn{background:#fff;color:#2b2d4a;flex:none}
 @media (max-width:560px){#reward{padding:0 10px}#reward h2{font-size:21px}#reward .cards{gap:8px;flex-wrap:nowrap}#reward .rcard{width:auto;flex:1 1 0;min-width:0;padding:10px}#reward .rcard .ds{font-size:12px}#reward .rcard .nm{font-size:15px}}
 @media (max-width:430px){.dock #camHome{display:none}}
+#shopTabs{overflow-x:auto;scrollbar-width:none}#shopTabs .tab{flex:none;white-space:nowrap;padding:6px 10px}
+#news{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(43,45,74,.35);z-index:60;padding:16px}#news[hidden]{display:none!important}#news .nc{background:#fff;border-radius:20px;max-width:440px;width:100%;max-height:80vh;overflow:auto;padding:18px 20px;box-shadow:0 12px 40px rgba(43,45,74,.25)}#news h2{margin:0 0 4px;font-family:var(--display)}#news ul{padding-left:18px;margin:10px 0 14px;font-size:13.5px;line-height:1.45}#news li{margin:4px 0}#news .v{font-size:11px;color:#8a8ca8;font-weight:600}
 </style>
 
 <canvas id="c"></canvas>
@@ -238,6 +240,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 <div id="shop" class="side right">
   <div class="hd"><span>Upgrades</span><button class="btn x" id="shopClose" aria-label="Fechar">✕</button></div>
   <div class="sub">Gaste material do baú. Cada nível custa mais.</div>
+  <div class="tabs" id="shopTabs"></div>
   <div id="shopList"></div>
 </div>
 <div id="mcard"></div>
@@ -274,6 +277,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 <div id="goals"></div>
 <div id="ftip"></div>
 <div id="realm"><div class="rwrap"><canvas id="realmCanvas"></canvas><div id="realmSide"><button class="btn" id="realmClose" style="align-self:flex-end">✕ Fechar</button><div id="realmInfo"></div></div></div></div>
+<div id="news" hidden><div class="nc"><h2>✨ Novidades</h2><div class="ds" id="newsSub"></div><ul id="newsList"></ul><button class="btn primary" id="newsOk" style="width:100%">Continuar jogando</button></div></div>
 <div id="over"><div class="card">
   <h1 id="overTitle">Fortrex</h1>
   <p id="overText">Você é o Guardião. Minions constroem, reparam, coletam, lutam e operam armas sozinhos. Projete a base, equipe seu exército e assista a bruma se despedaçar.</p>
@@ -1748,9 +1752,15 @@ const UPGRADES=[
   {id:'crit',ico:'🎯',nm:'Pontaria crítica',ds:'+5% de chance de crítico (dano dobrado).',max:4,cost:l=>50+l*50,go(){state.critBonus+=.05}},
   {id:'general',ico:'🎖️',nm:'General veterano',ds:'Fogo Concentrado dura 8 s e recarrega em 10 s.',max:1,cost:()=>120,go(){state.focusLong=true}},
 ];
-function renderShop(){const box=$('shopList');box.innerHTML='';for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const lock=!upReady(U);const el=document.createElement('div');el.className='up';
+const UP_CAT={explosive:'arm',greek:'arm',powder:'arm',gears:'arm',plating:'arm',crit:'arm',platform:'arm',escola:'arm',forge:'arm',bomb:'arm',oil:'arm',sappers:'arm',
+  blades:'exe',tools:'exe',infirm:'exe',magnet:'exe',luck:'exe',general:'exe',quartel:'exe',oficina:'exe',bulwark:'exe',portal:'exe',
+  wall:'cid',door:'cid',masonry:'cid',cathedral:'mar',observatory:'mar',greatwall:'mar',statue:'mar'};
+const SHOP_TABS=[['now','✨ Pronto'],['arm','🎯 Armas'],['exe','👥 Exército'],['cid','🏰 Cidadela'],['mar','🏛️ Maravilhas']];let shopTab='now';
+function renderShop(){const tb=$('shopTabs');if(tb){tb.innerHTML=SHOP_TABS.map(([k,n])=>`<button class="tab ${shopTab===k?'on':''}" data-st="${k}">${n}</button>`).join('');for(const b of tb.querySelectorAll('[data-st]'))b.onclick=()=>{shopTab=b.dataset.st;renderShop()}}
+  const box=$('shopList');box.innerHTML='';let shown=0;for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const lock=!upReady(U);
+  if(shopTab==='now'){if(lock||maxed)continue}else if((UP_CAT[U.id]||'cid')!==shopTab)continue;shown++;const el=document.createElement('div');el.className='up';
   el.innerHTML=`<div class="ico">${U.ico}</div><div><div class="nm">${U.nm}</div><div class="ds">${U.ds}</div><div class="lv">${Array.from({length:U.max},(_,k)=>`<i class="${k<lv?'on':''}"></i>`).join('')} ${lv}/${U.max}</div></div><button class="btn buy" ${maxed||lock||state.material<cost?'disabled':''}>${lock?`🔒 h${upLockWave(U)}`:maxed?'máx':cost}</button>`;
-  el.querySelector('button').onclick=()=>{if(maxed||lock||state.material<cost)return;state.material-=cost;state.ups[U.id]=lv+1;U.go();SFX.loot(1);toast(`${U.nm} nível ${lv+1}`,'r1');renderShop();updateHud()};box.appendChild(el)}}
+  el.querySelector('button').onclick=()=>{if(maxed||lock||state.material<cost)return;state.material-=cost;state.ups[U.id]=lv+1;U.go();SFX.loot(1);toast(`${U.nm} nível ${lv+1}`,'r1');renderShop();updateHud()};box.appendChild(el)}if(!shown)box.innerHTML='<div class="ds" style="text-align:center;padding:16px">Nada disponível agora nesta aba. Veja as outras abas para o que vem pela frente.</div>'}
 
 // ── rewards: pick 1 of 3
 function rewardPool(){const w=state.wave,rr=()=>rollRarity(w*.006+state.luck),P=[];
@@ -1885,7 +1895,7 @@ function ringFx(x,y,z,r,c){for(let k=0;k<40;k++){const a=k/40*Math.PI*2;spawnDeb
 function heroTick(dt){for(const o of minions)if(o.rage>0){o.rage-=dt;if(Math.random()<dt*6)spawnFlame(o.pos.x,o.group.position.y+1,o.pos.z,.4)}state.volleys=state.volleys||[];for(let i=state.volleys.length-1;i>=0;i--){const V=state.volleys[i];V.t-=dt;if(V.t>0)continue;state.volleys.splice(i,1);
     for(let k=0;k<26;k++)spawnDebris(V.x+rnd(-5,5),GY+rnd(3,9),V.z+rnd(-5,5),0x8a6a45,1,.18);for(const e of enemies)if(!e.dead&&Math.abs(e.pos.x-V.x)<6&&Math.abs(e.pos.z-V.z)<6)dmgEnemy(e,V.dmg,true);SFX.twang()}
   checkHeroes();for(const H of HEROES){const S=state.heroes&&state.heroes[H.id];const b=$('bHero_'+H.id);if(!b)continue;if(!S){b.hidden=true;continue}if(S.cd>0)S.cd-=dt;if(!minions.includes(S.m)){b.hidden=true;continue}b.hidden=false;
-    b.querySelector('.cost').textContent=innerWidth<600?(S.m.wounded>0?'✚':S.cd>0?Math.ceil(S.cd)+'s':'✓'):(S.m.wounded>0?'ferido':S.cd>0?Math.ceil(S.cd)+'s':'pronto')+` · nv ${S.m.lvl||1}`;b.title=`${H.name} (nv ${S.m.lvl||1}): ${H.ab} (${H.key}) — ${H.d}. Sobe de nível lutando.`;b.classList.toggle('on',S.cd<=0&&!(S.m.wounded>0))}}
+    b.querySelector('.cost').textContent=innerWidth<600?(S.m.wounded>0?'✚':S.cd>0?Math.ceil(S.cd)+'s':''):(S.m.wounded>0?'ferido':S.cd>0?Math.ceil(S.cd)+'s':'pronto')+` · nv ${S.m.lvl||1}`;b.title=`${H.name} (nv ${S.m.lvl||1}): ${H.ab} (${H.key}) — ${H.d}. Sobe de nível lutando.`;b.classList.toggle('on',S.cd<=0&&!(S.m.wounded>0))}}
 
 // ───────── the citadel grows by itself: a new outer ring, bastions and a moat are drawn into the blueprint as waves go by.
 // Building is free (repairers' labour is the only limit); after each wave everything mends itself.
@@ -2027,7 +2037,14 @@ function huntTick(dt){if(state.phase!=='rest'||state.wave<5||!isNight()||state.c
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.50;
+// player-facing changelog shown once when a save from an older version is continued
+const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
+  [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
+  [0.46,'🏘️ Distritos: nas hordas 4, 10, 16 e 22 escolha Ferraria, Torre arcana, Celeiro, Mercado, Caserna ou Santuário.'],[0.47,'🐺 Caçada noturna: um lobo alfa ronda à noite e deixa tesouro raro.'],
+  [0.48,'🔕 Menos avisos repetidos; inimigos tardios mais resistentes.'],[0.49,'🏛️ Maravilhas (Observatório, Catedral, Grande Muralha, Estátua) e dock do celular em 2 linhas.'],
+  [0.50,'🗂️ Upgrades em abas (✨ Pronto mostra só o que dá para comprar) e esta tela de novidades.']];
+function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
   const u=new Uint8Array(out);let s='';for(let k=0;k<u.length;k+=8192)s+=String.fromCharCode.apply(null,u.subarray(k,k+8192));return btoa(s)}
@@ -2040,7 +2057,7 @@ function revive(v){if(v===null||typeof v!=='object')return v;if(Array.isArray(v)
 function canSave(){return state.running&&state.phase==='rest'&&!state.choosing&&!battle()&&!state.quest&&!state.caravan&&!enemies.some(e=>!e.dead&&!e.alpha)}
 function saveGame(manual){if(!canSave()){if(manual)toast('Só dá para salvar entre hordas, sem batalha ou missão em andamento','r0');return false}
   try{const st={};for(const k in state){if(SAVE_SKIP.has(k))continue;const x=plain(state[k]);if(x!==undefined)st[k]=x}
-    const d={v:1,at:Date.now(),wave:state.wave,diff:OPTS.diff||'normal',biome:state.biomeKey,simTime,state:st,
+    const d={v:1,ver:GAME_VERSION,at:Date.now(),wave:state.wave,diff:OPTS.diff||'normal',biome:state.biomeKey,simTime,state:st,
       vox:rleEnc(vox),looted:rleEnc(looted),rown:rleEnc(rown),
       minions:minions.map(m=>({role:m.role,r:m.rarity,name:m.name,lvl:m.lvl,xp:m.xp,trait:m.trait,kills:m.kills,hero:m.hero||null,x:m.pos.x,z:m.pos.z,eq:plain(m.eq)})),
       turrets:turrets.filter(t=>t.alive&&t.team!=='r').map(t=>({type:t.type,r:t.r,anchor:t.anchor})),
@@ -2070,7 +2087,7 @@ function loadGame(){const d=readSave();if(!d)return false;
     REALM.armies.length=0;REALM.pois.length=0;for(const p of revive(R.pois||[]))REALM.pois.push(p);REALM.t=R.t||0;REALM.spawnT=R.spawnT||100;REALM.poiT=R.poiT||45;REALM.nextId=R.nextId||REALM.cities.length+REALM.pois.length+5;REALM.log.length=0;for(const l of R.log||[])REALM.log.push(l);REALM.deco=null}
   if(state.merchant)$('bMerch').hidden=false;
   state.ups=state.ups||{};state.inv=state.inv||{blocks:{},turrets:[],armory:[]};
-  renderGoals();refreshSaveUi();updateHud();cam.target.set(CX,GY+1.5,CZ);toast(`💾 Partida retomada na horda ${state.wave}`,'r4');return true}
+  renderGoals();refreshSaveUi();updateHud();cam.target.set(CX,GY+1.5,CZ);toast(`💾 Partida retomada na horda ${state.wave}`,'r4');showNews(+d.ver||0.41);return true}
 function refreshSaveUi(){const d=readSave();const b=$('continue');if(b){b.hidden=!d;if(d)b.textContent=`▶ Continuar · horda ${d.wave}`}const s=$('saveInfo');if(s)s.textContent=d?`Último save: horda ${d.wave} · ${new Date(d.at).toLocaleString('pt-BR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'})}`:'Nenhum save ainda'}
 
 // ───────── main: waves, events, game flow, input, loop
