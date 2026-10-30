@@ -714,7 +714,7 @@ function spawnLoot(x,y,z,kind,r,data={}){if(spawnLootHook)spawnLootHook(x,y,z,ki
   g.position.set(x,y,z);g.traverse(o=>{if(o.isMesh)o.castShadow=true});scene.add(g);
   const L={g,main,ring,bm,kind,r,data,x,y,z,vx:rnd(-2,2),vy:rnd(3,6),vz:rnd(-2,2),claimed:null,carried:null,t:rnd(0,6),age:0,prio:false,unreach:0,rest:false};
   g.userData.loot=L;loot.push(L);
-  if(r>=2){toast(`${lootName(L)} ${RARITY[r].n}!`,RARITY[r].css);SFX.loot(r)}
+  if(r>=2){if(r>=4&&L.kind!=='treasure'&&L.kind!=='turret')toast(`${lootName(L)} ${RARITY[r].n}!`,RARITY[r].css);SFX.loot(r)}
   return L}
 function removeLoot(L){scene.remove(L.g);const i=loot.indexOf(L);if(i>=0)loot.splice(i,1)}
 function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)continue;if(L.home){L.home.t+=dt;const f=Math.min(1,L.home.t/1.3),h=L.home;L.x=h.x+(CHEST.x-h.x)*f;L.z=h.z+(CHEST.z-h.z)*f;L.y=h.y+(GY+2-h.y)*f+Math.sin(f*Math.PI)*8;L.g.position.set(L.x,L.y,L.z);L.main.rotation.y+=dt*8;if(Math.random()<.5)spawnFlame(L.x,L.y,L.z,.35,true);if(f>=1)deposit(L,null);continue}
@@ -929,7 +929,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(type==='shaman'){box(.1*US,1.4*US,.1*US,0x6b5235,.45*US,.9*US,.2*US,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.2*US,0),lmat(0x7dff9a,.8));o.position.set(.45*US,1.7*US,.2*US);g.add(o)}
   if(rarity>=2){head.material.emissive.setHex(RARITY[rarity].c);head.material.emissiveIntensity=.5;head.userData.em=RARITY[rarity].c}
   g.position.set(x,0,z);scene.add(g);
-  const w=state.wave;const scale=(1+.16*(w-1))*(w>10?1+.09*(w-10):1)*(w>15?1+.06*(w-15):1)*(w>14?Math.pow(1.07,w-14):1)*(w>20?1+.05*(w-20):1)*(w>18?1+.06*(w-18):1)*(1+(state.rank||0)*.08);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?.8:1)*DIFF().hp;
+  const w=state.wave;const scale=(1+.16*(w-1))*(w>10?1+.09*(w-10):1)*(w>15?1+.06*(w-15):1)*(w>14?Math.pow(1.07,w-14):1)*(w>20?1+.05*(w-20):1)*(w>18?1+.1*(w-18):1)*(1+(state.rank||0)*.08);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?.8:1)*DIFF().hp;
   const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US,state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
     speed:T.speed*1.5*rnd(.9,1.1)*DIFF().sp*(state.ev==='elite'?1.15:1)*Math.min(1.3,1+Math.max(0,state.wave-12)*.015),armor:Math.min(.55,Math.max(0,state.wave-14)*.025+(state.wave>=6?(DIFF().arm||0):0)),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+12:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   if(DIFF().dmg!==1)e.T={...T,dmg:T.dmg*DIFF().dmg};
@@ -2104,7 +2104,7 @@ function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.len
   if(type==='wolf'){if(state.packN>0&&state.packPos){x=state.packPos.x+rnd(-2.5,2.5);z=state.packPos.z+rnd(-2.5,2.5);state.packN--}else{state.packPos={x,z};state.packN=rint(2,4)}}
   if(state.ev==='ambush'&&Math.random()<.5&&!BIG(type)){x=rnd(5,16);z=rnd(5,D-5);if(Math.random()<.5)x=W-x}
   let r=type==='titan'||type==='queen'?Math.max(3,rollRarity(.15)):type==='colossus'?Math.max(2,rollRarity(.1)):type==='boss'?Math.max(1,rollRarity(.05)):rollRarity(state.wave*.004);if(state.ev==='elite'||state.ev==='eclipse')r=Math.min(4,r+1);if(state.ev==='golden')r=Math.max(2,r);
-  const e=makeEnemy(type,r,x,z);if(r>=2&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
+  const e=makeEnemy(type,r,x,z);if(r>=4&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
 function endWave(){const ev=state.ev;state.wave++;SFX.fanfare((state.wave-1)%5===0);state.morale=Math.min(100,(state.morale??60)+8);checkUnlocks();expansionTick();spawnVein();if(BUILD_WAVES.includes(state.wave)&&!(state.buildings&&Object.keys(state.buildings).length>=BUILD_WAVES.indexOf(state.wave)+1))setTimeout(offerBuilding,1200);if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();if(state.wave%7===0)startFestival();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
@@ -2214,7 +2214,7 @@ function simulate(dt){simTime+=dt;
     rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
-    if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':state.combo>=15?'r3':'r2');state.combo=0}
+    if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':'r1');state.combo=0}
     $('combo').hidden=!(state.combo>=3&&simTime-state.comboT<1.6);if(!$('combo').hidden)$('combo').textContent=`×${state.combo}`;
     if(state.autoBuild||state.autoUp){state.mgAcc+=dt;if(state.mgAcc>2.5){state.mgAcc=0;if(state.autoBuild)autoBuildTick();if(state.autoUp)autoUpgradeTick()}}
     hudAcc+=dt;if(hudAcc>.25){hudAcc=0;updateHud()}}

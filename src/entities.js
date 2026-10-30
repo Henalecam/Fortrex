@@ -86,7 +86,7 @@ function spawnLoot(x,y,z,kind,r,data={}){if(spawnLootHook)spawnLootHook(x,y,z,ki
   g.position.set(x,y,z);g.traverse(o=>{if(o.isMesh)o.castShadow=true});scene.add(g);
   const L={g,main,ring,bm,kind,r,data,x,y,z,vx:rnd(-2,2),vy:rnd(3,6),vz:rnd(-2,2),claimed:null,carried:null,t:rnd(0,6),age:0,prio:false,unreach:0,rest:false};
   g.userData.loot=L;loot.push(L);
-  if(r>=2){toast(`${lootName(L)} ${RARITY[r].n}!`,RARITY[r].css);SFX.loot(r)}
+  if(r>=2){if(r>=4&&L.kind!=='treasure'&&L.kind!=='turret')toast(`${lootName(L)} ${RARITY[r].n}!`,RARITY[r].css);SFX.loot(r)}
   return L}
 function removeLoot(L){scene.remove(L.g);const i=loot.indexOf(L);if(i>=0)loot.splice(i,1)}
 function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)continue;if(L.home){L.home.t+=dt;const f=Math.min(1,L.home.t/1.3),h=L.home;L.x=h.x+(CHEST.x-h.x)*f;L.z=h.z+(CHEST.z-h.z)*f;L.y=h.y+(GY+2-h.y)*f+Math.sin(f*Math.PI)*8;L.g.position.set(L.x,L.y,L.z);L.main.rotation.y+=dt*8;if(Math.random()<.5)spawnFlame(L.x,L.y,L.z,.35,true);if(f>=1)deposit(L,null);continue}
