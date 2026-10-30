@@ -119,7 +119,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #realmSide{width:260px;display:flex;flex-direction:column;gap:8px;background:var(--card);border-radius:20px;padding:14px;box-shadow:0 8px 30px rgba(43,45,74,.12);overflow:auto}
 #realmSide .odds{display:flex;flex-direction:column;gap:4px;font-size:13px;margin:4px 0}#realmSide .obar{height:8px;border-radius:99px;background:rgba(43,45,74,.1);overflow:hidden}#realmSide .obar i{display:block;height:100%;border-radius:99px}#realmSide .btn{justify-content:center}
 #realmSide .rh{font-family:var(--display);font-size:20px;font-weight:700}#realmSide .rc{margin-top:10px;display:flex;flex-direction:column;gap:6px}#realmSide .ds{color:var(--ink-soft);font-size:13px;line-height:1.4}
-@media (max-width:760px){#realm .rwrap{flex-direction:column}#realmSide{width:auto;max-height:38%}}
+@media (max-width:760px){#realm{padding:calc(92px + env(safe-area-inset-top,0px)) 8px calc(108px + env(safe-area-inset-bottom,0px))}#realm .rwrap{flex-direction:column;gap:8px}#realmCanvas{flex:1 1 auto;min-height:0;height:auto}#realmSide{width:auto;flex:0 0 auto;max-height:42%;padding:10px 12px}#realmSide .rh{font-size:16px}}
 .diffs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:0 0 6px}.diffs .btn.on{box-shadow:inset 0 0 0 2px var(--accent)}#diffD{font-size:12px;color:var(--ink-soft);margin:0 0 12px}
 .achs{margin:0 0 14px}.achrow{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:6px;font-size:20px}.achrow span{filter:grayscale(1);opacity:.35}.achrow span.on{filter:none;opacity:1}
 .rstats{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;font-size:13px;margin:0 0 10px;color:var(--ink-soft)}.rstats b{color:var(--ink)}

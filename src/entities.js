@@ -107,7 +107,7 @@ function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)
     if(L.kind==='treasure')L.main.rotation.y=Math.sin(L.t*1.5)*.3}}
 function lootPick(kind,r,big){const k=Math.random();
   if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:2+r*2}]}}
-function randBlockPack(r){let pool=(r>=3?[16,17,18,15,10,14,19,20,9,8]:r>=2?[16,17,18,15,10,14,19,9]:r>=1?[16,17,18,15,10,14]:[16,17,18,10]).filter(m=>isUnlocked('block',m));if(!pool.length)pool=[16,17,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
+function randBlockPack(r){let pool=(r>=3?[16,17,18,31,15,10,14,19,20,9,8]:r>=2?[16,17,18,31,15,10,14,19,9]:r>=1?[16,17,18,31,15,10,14]:[16,17,18,31,10]).filter(m=>isUnlocked('block',m));if(!pool.length)pool=[16,17,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
 function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon','catapult','sunray'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
 function openTreasure(L){removeLoot(L);const r=L.r;const n=2+Math.ceil(r*.7)+rint(0,1);
   for(let k=0;k<n;k++){const rr=k===0?r:Math.max(0,Math.min(r,rollRarity(r*.06+state.luck)));const [kind,data]=lootPick('any',rr);

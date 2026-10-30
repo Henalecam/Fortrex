@@ -123,7 +123,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
   if(e.afire>0){e.afire-=dt;if(e.inWater||e.type==='titan'||e.type==='imp')e.afire=0;dmgEnemy(e,5*dt,false);if(Math.random()<dt*10)spawnFlame(e.pos.x+rnd(-.4,.4),e.group.position.y+rnd(.3,1.2)*e.sc,e.pos.z+rnd(-.4,.4),.6);if(e.dead)return}
   e.iceT-=dt;if(e.iceT<=0&&!e.fly){e.iceT=.3;const y0=Math.floor(e.gy+.05);for(const [dx,dz] of NB4){for(let y=y0;y<y0+2;y++){const x=fx+dx,z=fz+dz;if(inb(x,y,z)&&vox[idx(x,y,z)]===18){e.slowT=Math.max(e.slowT,.8)}}}}
   if(e.slowT>0){e.slowT-=dt;if(Math.random()<dt*4)spawnFlame(e.pos.x+rnd(-.4,.4),e.group.position.y+.8,e.pos.z+rnd(-.4,.4),.4,true)}
-  const sf=(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1)*(state.ev==='blizzard'?.7:state.ev==='sandstorm'?1.12:1)*(state.biomeKey==='pantano'&&!e.fly?.88:1);e.timer-=dt*(e.slowT>0?.5:1);
+  const sf=(!e.fly&&vox[idx(clamp(Math.floor(e.pos.x),0,W-1),clamp(Math.floor(e.gy)-1,0,H-1),clamp(Math.floor(e.pos.z),0,D-1))]===31?.4:1)*(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1)*(state.ev==='blizzard'?.7:state.ev==='sandstorm'?1.12:1)*(state.biomeKey==='pantano'&&!e.fly?.88:1);e.timer-=dt*(e.slowT>0?.5:1);
   if(e.stun>0){e.stun-=dt;e.vel.set(0,0,0);e.group.rotation.z=Math.sin(e.stun*9)*.12;if(e.stun<=0)e.group.rotation.z=0;return}
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
   if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}

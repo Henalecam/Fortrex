@@ -64,6 +64,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.30: 👑 Rei da Bruma (horda 25, 50, …; a partir da 50 vem acompanhado de outro chefe): manto, coroa e cetro brilhantes; teleporta-se para perto da cidadela trazendo sombras (rasteiros, lobos, diabretes), e o Pulso da Bruma atordoa as armas num raio de 28. Relíquia 🌫️ Coroa da Bruma (+15% dano, +2 vagas de arma, +10 moral) e conquista "Regicida".
 
+- v0.31: 🛢️ Poço de piche (bloco especial, horda 6): inimigos em cima ficam 60% mais lentos; seu fogo pode acendê-lo (sem fogo amigo) e ele queima ~15 s; Construção auto também o espalha no caminho dos inimigos. Mapa do Reino no celular: mapa e painel cabem na tela, registro com texto menor e cortado com "…".
+
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.

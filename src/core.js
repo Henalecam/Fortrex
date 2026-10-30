@@ -33,6 +33,7 @@ const MAT={
   13:{n:'Grama',hp:30,c:0x8fd08a},
   14:{n:'Obsidiana',hp:170,c:0x3a3150,cost:4,special:'Muito resistente, não queima'},
   21:{n:'Núcleo rival',hp:400,c:0xff3d5a},22:{n:'Telhado',hp:40,c:0xd0574a,cost:1},23:{n:'Estandarte',hp:16,c:0x4f7cf2,flam:1,cost:1},24:{n:'Pedra negra',hp:60,c:0x5e5670},25:{n:'Telhado rival',hp:40,c:0x3b3450},26:{n:'Estandarte inimigo',hp:16,c:0xd9414f,flam:1},
+  31:{n:'Poço de piche',hp:45,c:0x2a2422,flam:1,cost:2,special:'Gruda: inimigos em cima andam 60% mais devagar; se pegar fogo, queima por muito tempo'},
   15:{n:'Cristal',hp:120,c:0x8fe3ff,cost:3,special:'Se regenera sozinho'},
   16:{n:'Espinhos',hp:70,c:0x6b8f4e,cost:3,special:'Fere quem o ataca'},
   17:{n:'Mina',hp:20,c:0xff5a3c,cost:2,special:'Explode nos Devoradores ao quebrar'},
@@ -43,7 +44,7 @@ const MAT={
 const FLUID=m=>m===8||m===9;
 const SOLIDM=m=>m!==0&&m!==8&&m!==9;
 const BASIC_BLOCKS=[3,2,4];
-const SPECIAL_BLOCKS=[16,17,18,15,10,14,19,20,9,8];
+const SPECIAL_BLOCKS=[16,17,18,31,15,10,14,19,20,9,8];
 function maxHpOf(m){return m===7&&state.metalDoor?170:MAT[m].hp}
 function isFlam(m){return !!m&&MAT[m].flam===1&&!(m===7&&state.metalDoor)}
 

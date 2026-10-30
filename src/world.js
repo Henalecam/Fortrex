@@ -98,7 +98,7 @@ function explode(cx,cy,cz,r,dmg,o={}){const src0=o.src||'env',rv=src0==='rival',
 function processBooms(dt){for(let i=pendingBooms.length-1;i>=0;i--){const b=pendingBooms[i];b.t-=dt;if(b.t<=0){pendingBooms.splice(i,1);explode(b.x,b.y,b.z,b.r,b.dmg,b.o)}}}
 
 // ───────── fire (remembers who lit it: player fire never burns the fortress)
-function ignite(i,src='env'){const m=vox[i];if(!isFlam(m)||burning.has(i))return;if(src==='player'&&blue[i])return;burning.set(i,{t:3.5+rnd(0,3),src});paint(i)}
+function ignite(i,src='env'){const m=vox[i];if(!isFlam(m)||burning.has(i))return;if(src==='player'&&blue[i]&&m!==31)return;burning.set(i,{t:m===31?12+rnd(0,5):3.5+rnd(0,3),src});paint(i)}
 let fireAcc=0;
 function tickFire(dt){fireAcc+=dt;if(fireAcc<.12)return;fireAcc=0;
   for(const [i,b] of [...burning]){if(!isFlam(vox[i])){burning.delete(i);continue}const x=ix(i),z=iz(i),y=iy(i);
