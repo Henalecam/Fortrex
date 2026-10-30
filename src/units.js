@@ -81,6 +81,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(type==='knight'){box(.08*US,.9*US,.08*US,0xdfe6f0,.45*US,.9*US,.2*US,g);box(.5*US,.5*US,.1*US,0x5e5670,-.45*US,.6*US,.2*US,g);box(.75*US,.15*US,.65*US,0x5e5670,0,1.0*US,.75*US,g)}
   if(type==='archer'){box(.1*US,.9*US,.1*US,0x8a6a45,.4*US,.8*US,.3*US,g)}
   if(type==='shaman'){box(.1*US,1.4*US,.1*US,0x6b5235,.45*US,.9*US,.2*US,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.2*US,0),lmat(0x7dff9a,.8));o.position.set(.45*US,1.7*US,.2*US);g.add(o)}
+  if(BIG(type)&&type!=='ship'&&type!=='general'&&!state.__rivalMake)bossLook(type,sc,col,g,body,head);
   if(rarity>=2){head.material.emissive.setHex(RARITY[rarity].c);head.material.emissiveIntensity=.5;head.userData.em=RARITY[rarity].c}
   g.position.set(x,0,z);scene.add(g);
   const w=state.wave;const scale=(1+.16*(w-1))*(w>10?1+.09*(w-10):1)*(w>15?1+.06*(w-15):1)*(w>14?Math.pow(1.07,w-14):1)*(w>20?1+.05*(w-20):1)*(w>18?1+.1*(w-18):1)*(1+(state.rank||0)*.08);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?.8:1)*DIFF().hp;
@@ -88,6 +89,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
     speed:T.speed*1.5*rnd(.9,1.1)*DIFF().sp*(hasMod('veloz')?1.2:1)*(state.ev==='elite'?1.15:1)*Math.min(1.3,1+Math.max(0,state.wave-12)*.015),armor:(hasMod('blindados')?.15:0)+Math.min(.55,Math.max(0,state.wave-14)*.025+(state.wave>=6?(DIFF().arm||0):0)),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+12:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   if(DIFF().dmg!==1)e.T={...T,dmg:T.dmg*DIFF().dmg};
   rollAffix(e);if(BIG(type)&&type!=='ship'&&type!=='general'&&state.wave>=15&&Math.random()<.6){e.bossAff=pick(['furioso','escudo']);if(e.bossAff==='escudo'){e.shieldMax=e.maxhp*.3;e.shield=e.shieldMax}}if(state.vein&&state.phase==='wave'&&!BIG(type)&&!CLIMBS(type)&&type!=='goblin'&&type!=='flyer'&&type!=='ship'&&Math.random()<.15)e.veinRaid=true;
+  if(BIG(type)&&type!=='ship'&&type!=='general'){e.boss2=true;e.ph=1;e.mvT=rnd(3,5)}
   setupChunks(e,body,head);
   e.gy=CLIMBS(type)?topY(x,z):surfE(x,z);g.position.y=e.fly?e.alt:e.gy;g.userData.enemy=e;
   if(BIG(type)){showBoss(e);const ring=new THREE.Mesh(new THREE.RingGeometry(e.radius*1.15,e.radius*1.45,32),new THREE.MeshBasicMaterial({color:RARITY[Math.max(2,rarity)].c,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.08;g.add(ring);e.aura=ring}enemies.push(e);return e}
@@ -143,6 +145,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(e.aff==='regen'&&e.hp
   const sf=(!e.fly&&vox[idx(clamp(Math.floor(e.pos.x),0,W-1),clamp(Math.floor(e.gy)-1,0,H-1),clamp(Math.floor(e.pos.z),0,D-1))]===31?.4:1)*(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1)*(state.ev==='blizzard'?.7:state.ev==='sandstorm'?1.12:state.ev==='rain'&&!e.fly?.9:1)*(state.climate==='pantano'&&!e.fly?.88:1);e.timer-=dt*(e.slowT>0?.5:1);
   if(e.type==='ship'){e.group.position.y=e.gy+Math.sin(e.bob*.3)*.15;e.group.rotation.z=Math.sin(e.bob*.2)*.05;e.spawnT=(e.spawnT??2)-dt;e.fireT=(e.fireT??3)-dt;if(e.spawnT<=0&&(e.crew||0)<10+Math.floor(state.wave/3)){e.spawnT=5;for(let k=0;k<2;k++){const p=makeEnemy('pirate',Math.min(3,rollRarity(state.wave*.01)),e.pos.x+rnd(-2,2),e.pos.z+rnd(-2,2));p.viaWall=Math.random()<.4}e.crew=(e.crew||0)+2}if(e.fireT<=0){e.fireT=4;let tg=null,bd=60;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd){bd=d;tg=t.pos}}if(!tg)tg={x:CX+rnd(-10,10),z:CZ+rnd(-10,10)};throwRock(e,tg.x,tg.z,2.4,45+state.wave*3,0x2b2d4a,false)}return}
   if(e.stun>0){e.stun-=dt;e.vel.set(0,0,0);e.group.rotation.z=Math.sin(e.stun*9)*.12;if(e.stun<=0)e.group.rotation.z=0;return}
+  if(e.boss2&&bossAI(e,dt))return;
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
   if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}
   if(e.rival&&rivalBrain(e,dt))return;
@@ -338,7 +341,7 @@ function vcells(mesh,vsz,maxN,flesh,pat,round){const p=mesh.geometry.parameters;
   for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)for(let k=0;k<nz;k++){const u=nx>1?(i+.5)/nx*2-1:0,w=ny>1?(j+.5)/ny*2-1:0,q=nz>1?(k+.5)/nz*2-1:0;const r=Math.pow(Math.abs(u),P)+Math.pow(Math.abs(w),P)+Math.pow(Math.abs(q),P);if(round&&r>1.08&&!(j===0&&r<1.6))continue;
     const shell=(i===0||i===nx-1||j===0||j===ny-1||k===0||k===nz-1)||r>.42;const c=new THREE.Color().copy(base);
     if(!shell&&flesh)c.lerp(_vflesh,.65);else{c.offsetHSL(0,0,w*.07+(Math.random()-.5)*.07);if(w<-.5&&round)c.lerp(_vc2.setHex(0x1d1f33),.18);if(pat&&pat({i,j,k,u,w,q}))c.lerp(_vc2.setHex(pat.col),.55)}
-    const pos=new THREE.Vector3((i-(nx-1)/2)*sx,(j-(ny-1)/2)*sy,(k-(nz-1)/2)*sz).applyMatrix4(mesh.matrix);out.push({pos,q:_vq.clone(),sc:new THREE.Vector3(sx*.96,sy*.96,sz*.96),c,s:Math.max(sx,sy,sz),key:r+Math.random()*.5+(w>0?.2:0)+(shell?1:0)})}
+    const pos=new THREE.Vector3((i-(nx-1)/2)*sx,(j-(ny-1)/2)*sy,(k-(nz-1)/2)*sz).applyMatrix4(mesh.matrix);out.push({pos,q:_vq.clone(),sc:new THREE.Vector3(sx*.96,sy*.96,sz*.96),c,sh:shell,s:Math.max(sx,sy,sz),key:r+Math.random()*.5+(w>0?.2:0)+(shell?1:0)})}
   return out}
 function vinst(e,cells,parent,emSrc){if(!cells.length)return[];const im=new THREE.InstancedMesh(_vgeo,new THREE.MeshLambertMaterial({color:0xffffff}),cells.length);im.castShadow=true;
   if(emSrc){const em=emSrc.material.emissive;if(em&&em.getHex()){im.material.emissive.copy(em);im.material.emissiveIntensity=emSrc.material.emissiveIntensity}im.userData.em=emSrc.userData.em}
@@ -351,7 +354,8 @@ function setupChunks(e,body,head){const g=e.group,big=BIG(e.type);e.vmeshes=[];i
   const legSet=new Set(e.legs.map(L=>L.mesh));const wings=new Set(g.userData.wings||[]);const fx=new Set(fuses);
   // corpo + extras estáticos (chifres, placas, chapéus...) viram um único InstancedMesh no espaço do grupo
   let cells=vcells(body,vs,big?900:(e.rarity>=1||e.rival?300:190),true,pat,true);const done=[];
-  for(const m of g.children){if(!m.isMesh||m===body||m===head||legSet.has(m)||wings.has(m)||fx.has(m)||m.children.length)continue;const em=m.material.emissive&&m.material.emissive.getHex();if(em)continue;const c=vcells(m,vs*.8,big?120:28,false,null,false);if(c.length){cells=cells.concat(c.map(x=>({...x,key:x.key+.6})));done.push(m)}}
+  for(const m of g.children){if(!m.isMesh||m===body||m===head||legSet.has(m)||wings.has(m)||fx.has(m)||m.children.length)continue;const em=m.material.emissive&&m.material.emissive.getHex()&&m.material.emissiveIntensity>=.5;if(em)continue;const c=vcells(m,vs*.8,big?120:28,false,null,false);if(c.length){cells=cells.concat(c.map(x=>({...x,key:x.key+.6})));done.push(m)}}
+  {const cap=big?760:(e.rarity>=1||e.rival?320:230);if(cells.length>cap){const inn=cells.filter(c=>!c.sh),sh=cells.filter(c=>c.sh);cells=sh.concat(inn.slice(0,Math.max(0,cap-sh.length)));if(cells.length>cap*1.25)cells=cells.filter((c,i)=>!c.sh||i%Math.ceil(cells.length/(cap*1.25))===0||c.key>1.9)}}
   const bv=vinst(e,cells,g,body);if(bv.length){body.visible=false;for(const m of done)g.remove(m);e.parts[0]=bv[0].im}
   let hv=[];if(head&&head!==body&&head.geometry.parameters){const hc=vcells(head,vs*.85,big?260:80,true,null,true);hc.forEach(c=>c.pos.sub(head.position).applyQuaternion(_vq.copy(head.quaternion).invert()));hv=vinst(e,hc,head,head);if(hv.length){hv[0].im.position.set(0,0,0);head.material.colorWrite=false;head.material.depthWrite=false;head.castShadow=false;e.headVox=hv[0].im;e.parts.push(hv[0].im)}}
   const skip=new Set([body,...e.vmeshes]);if(e.type==='colossus')for(const L of e.legs)skip.add(L.mesh);
@@ -369,7 +373,7 @@ function detachChunk(e,m){if(m&&m.im){if(!m.im.parent)return;m.im.getMatrixAt(m.
 
 // boss projectiles: boulders and fireballs lobbed onto the base (explode with 'enemy' source)
 const marks=[];function markGround(x,z,r,color,t){const m=new THREE.Mesh(new THREE.RingGeometry(r*.85,r,28),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(x,Math.min(topY(x,z),GY+12)+.06,z);scene.add(m);marks.push({m,t,T:t})}
-function updateMarks(dt){for(let i=marks.length-1;i>=0;i--){const k=marks[i];k.t-=dt;k.m.material.opacity=.8*Math.max(0,k.t/k.T)*(.6+.4*Math.sin(k.t*18));const s=1+(1-k.t/k.T)*.25;k.m.scale.set(s,s,s);if(k.t<=0){scene.remove(k.m);marks.splice(i,1)}}}
+function updateMarks(dt){for(let i=marks.length-1;i>=0;i--){const k=marks[i];k.t-=dt;k.m.material.opacity=.8*Math.max(0,k.t/k.T)*(.6+.4*Math.sin(k.t*18));const s=k.line?1:1+(1-k.t/k.T)*.25;k.m.scale.set(s,s,s);if(k.t<=0){scene.remove(k.m);marks.splice(i,1)}}}
 function throwRock(e,tx,tz,r,dmg,color,fire){markGround(tx,tz,r,fire?0xff7a2a:0xd9414f,e.fly?.7:1.5);const sx=e.pos.x,sy=e.gy+e.sc*1.4,sz=e.pos.z;const T=e.fly?.7:1.5;const ty=Math.min(topY(tx,tz),GY+12);const m=new THREE.Mesh(new THREE.DodecahedronGeometry(fire?.55:.8,0),lmat(color,fire?.9:.4));m.position.set(sx,sy,sz);scene.add(m);
   bombs.push({mesh:m,x:tx,z:tz,vx:(tx-sx)/T,vz:(tz-sz)/T,vy:(ty-sy+.5*30*T*T)/T,enemy:true,r,dmg,fire});if(!fire)SFX.thud();else SFX.whoosh()}
 

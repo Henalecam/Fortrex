@@ -320,3 +320,4 @@ window.__nav=d=>{waveNav(d);return [state.wave,state.maxWave]};
 window.__lineup=()=>{const ts=['crawler','wolf','spider','slime','imp','brute','beetle','goblin','climber','sapper','ram','shaman','pirate','flyer'];const out=[];ts.forEach((t,k)=>{const e=makeEnemy(t,k%4===3?2:k%3===2?1:0,CX-14+(k%7)*4,CZ+30+Math.floor(k/7)*5);e.stun=999;e.lineup=true;out.push(t)});return out};
 window.__lineupB=()=>{const ts=['boss','golem','necro','titan'];ts.forEach((t,k)=>{const e=makeEnemy(t,1,CX-15+k*10,CZ+34);e.stun=999});return ts};
 window.__hitAll=f=>{for(const e of enemies)if(!e.dead)dmgEnemy(e,e.maxhp*f,true);return enemies.filter(e=>!e.dead).length};
+window.__einfo=t=>{const e=enemies.find(o=>!o.dead&&o.type===t);if(!e)return null;const im=e.vmeshes[0];const c=new THREE.Color();im.getColorAt(0,c);return {em:im.material.emissive.getHexString(),ei:im.material.emissiveIntensity,c0:c.getHexString(),hit:e.hit,afire:e.afire,n:im.count}};
