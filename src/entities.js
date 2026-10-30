@@ -108,7 +108,7 @@ function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)
 function lootPick(kind,r,big){const k=Math.random();
   if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:2+r*2}]}}
 function randBlockPack(r){let pool=(r>=3?[16,17,18,31,15,10,14,19,20,9,8]:r>=2?[16,17,18,31,15,10,14,19,9]:r>=1?[16,17,18,31,15,10,14]:[16,17,18,31,10]).filter(m=>isUnlocked('block',m));if(!pool.length)pool=[16,17,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
-function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon','catapult','sunray'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
+function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon','catapult','sunray','wind'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
 function openTreasure(L){removeLoot(L);const r=L.r;const n=2+Math.ceil(r*.7)+rint(0,1);
   for(let k=0;k<n;k++){const rr=k===0?r:Math.max(0,Math.min(r,rollRarity(r*.06+state.luck)));const [kind,data]=lootPick('any',rr);
     const it=spawnLoot(L.x,L.y+.6,L.z,kind,rr,data);if(it){const a=k/n*Math.PI*2;it.vx=Math.cos(a)*rnd(3,5);it.vz=Math.sin(a)*rnd(3,5);it.vy=rnd(6,9)}}
@@ -134,6 +134,7 @@ const TURRETS={
   tesla:{n:'Torre Tesla',ico:'⚡',range:20,reload:1.5,dmg:22,hp:110,v:2,d:'Raio que salta entre 4 alvos; dobra na água.'},
   sunray:{n:'Torre de raio-sol',ico:'☀️',range:30,reload:.12,dmg:4.2,hp:130,v:4,d:'Feixe contínuo que esquenta: quanto mais tempo no mesmo alvo, mais dano (até 4×).'},
   catapult:{n:'Catapulta',ico:'🛢️',range:58,minRange:10,reload:5.2,dmg:95,hp:140,v:4,d:'Arremessa barris explosivos em arco: área enorme e fogo. Não acerta Voadores.'},
+  wind:{n:'Torre de vento',ico:'🌀',range:16,reload:2.6,dmg:8,hp:120,v:3,d:'Rajada em cone que empurra os Devoradores para trás e derruba escaladores. Não acerta chefes grandes.'},
   frost:{n:'Canhão de gelo',ico:'❄️',range:28,reload:1.1,dmg:9,hp:120,v:2,d:'Congela Devoradores e transforma lava em obsidiana.'},
 };
 const turrets=[];const LOB=t=>t==='mortar'||t==='catapult';const BARREL_MAT=new THREE.MeshLambertMaterial({color:0xc9413b,emissive:0x5a1a10});
@@ -146,6 +147,7 @@ function buildTurretModel(type,r,g,pivot){const dark=0x4a4866,mid=0x6d6a8a;
   else if(type==='catapult'){box(1.1,.3,1.1,0x8a6a45,0,.15,0,g);for(const s of[-1,1])box(.12,.7,.12,0x6b5235,s*.4,.5,0,g);const arm=box(.12,.12,1.4,0xb5895a,0,.55,.1,pivot);arm.rotation.x=-.5;box(.4,.35,.4,0xc9413b,0,.95,-.45,pivot)}
   else if(type==='mortar'){box(1,.3,1,mid,0,.15,0,g);const b=box(.6,.6,.8,dark,0,.25,.1,pivot);b.rotation.x=-.8}
   else if(type==='tesla'){box(.7,.3,.7,0x5b6fae,0,.15,0,g);box(.3,1.1,.3,0x8ea9c6,0,.85,0,g);const s=new THREE.Mesh(new THREE.SphereGeometry(.3,10,10),lmat(0x9fe8ff,.8));s.position.y=1.55;g.add(s)}
+  else if(type==='wind'){box(.9,.3,.9,0xd8e6ee,0,.15,0,g);box(.22,1.2,.22,0x9fb6c8,0,.75,0,g);const hub=new THREE.Group();hub.position.set(0,1.35,.2);pivot.add(hub);for(let k=0;k<4;k++){const b=box(.12,.7,.05,0xffffff,0,.35,0,hub);b.parent.remove(b);const arm=new THREE.Group();arm.rotation.z=k*Math.PI/2;arm.add(b);hub.add(arm)}g.userData.fan=hub}
   else if(type==='frost'){box(.8,.3,.8,0xbcd6e8,0,.15,0,g);box(.4,.4,1.1,0x9fd6f2,0,.12,.4,pivot);const c=new THREE.Mesh(new THREE.OctahedronGeometry(.22,0),lmat(0xd8f3ff,.6));c.position.set(0,.45,0);pivot.add(c)}
   if(r>=1){const ring=new THREE.Mesh(new THREE.TorusGeometry(.55,.05,6,20),new THREE.MeshBasicMaterial({color:RARITY[r].c}));ring.rotation.x=Math.PI/2;ring.position.y=.03;g.add(ring)}}
 function findStation(x,z){const cx=Math.floor(x),cz=Math.floor(z);const wantIn=inside(x,z);let best=null,bd=1e9;
@@ -174,6 +176,8 @@ function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRiva
   let dy=t.yaw-t.group.rotation.y;while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;t.group.rotation.y+=dy*Math.min(1,dt*7);
   t.pivot.rotation.x+=(0-t.pivot.rotation.x)*Math.min(1,dt*5);
   if(t.reload>0)return;t.reload=t.T.reload;const from=new THREE.Vector3(t.pos.x,t.pos.y+.9,t.pos.z);
+  if(t.type==='wind'){const fx=Math.sin(t.yaw),fz=Math.cos(t.yaw);let n=0;for(const e of enemies){if(e.dead||BIG(e.type))continue;const ex=e.pos.x-t.pos.x,ez=e.pos.z-t.pos.z,d=Math.hypot(ex,ez);if(d>range||d<.1)continue;if((ex*fx+ez*fz)/d<.6)continue;const push=(4+t.r*.8)*(1-d/range*.5);e.pos.x+=ex/d*push;e.pos.z+=ez/d*push;e.stun=Math.max(e.stun||0,.5);dmgEnemy(e,dmg,false);if(CLIMBS(e.type))e.gy=GY;n++}
+    for(let k=0;k<8;k++){const s=rnd(1,range);spawnDebris(t.pos.x+fx*s+rnd(-1,1),from.y+rnd(-.3,.8),t.pos.z+fz*s+rnd(-1,1),0xe8f4ff,1,.12)}if(t.group.userData.fan)t.group.userData.fan.rotation.z+=2;SFX.pop&&SFX.pop();return}
   if(t.type==='flamer'){const fx=Math.sin(t.yaw),fz=Math.cos(t.yaw);for(let k=0;k<5;k++){const s=rnd(.5,range);spawnFlame(t.pos.x+fx*s+rnd(-.4,.4)*s*.2,from.y+rnd(-.2,.2),t.pos.z+fz*s+rnd(-.4,.4)*s*.2,.9)}
     for(const e of enemies){if(e.dead)continue;const ex=e.pos.x-t.pos.x,ez=e.pos.z-t.pos.z,d=Math.hypot(ex,ez);if(d>range||d<.1)continue;if((ex*fx+ez*fz)/d<.82)continue;dmgEnemy(e,dmg,false);e.afire=Math.max(e.afire,2.5)}
     if(Math.random()<.15){const s=rnd(2,range);const x=Math.floor(t.pos.x+fx*s),z=Math.floor(t.pos.z+fz*s);for(let y=GY-1;y<GY+5;y++)if(inb(x,y,z))ignite(idx(x,y,z),'player')}SFX.whoosh();return}

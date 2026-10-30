@@ -279,3 +279,4 @@ window.__helpers=()=>minions.filter(m=>m.allyHelp).length;
 window.__bearer=()=>{const e=makeEnemy('knight',1,CX+30,CZ);makeBearer(e);for(let k=0;k<5;k++)makeEnemy('crawler',0,CX+30+rnd(-2,2),CZ+rnd(-2,2));return e.maxhp};
 window.__ward=()=>{state.wave=Math.max(8,state.wave);startWave();return wardUp()};
 window.__chestHit=n=>{let k=0;for(const i of _chestVox)if(vox[i]===5&&k<n){removeVox(i,'enemy');k++}return chestAlive()};
+window.__wind=()=>{const a=TOWER_ANCHORS[1];const t=makeTurret("wind",a,2);state.wave=Math.max(8,state.wave);startWave();return {x:t.pos.x,z:t.pos.z}};
