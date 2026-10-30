@@ -500,6 +500,9 @@ function explode(cx,cy,cz,r,dmg,o={}){const src0=o.src||'env',rv=src0==='rival',
   for(let dy=-R;dy<=R;dy++)for(let dz=-R;dz<=R;dz++)for(let dx=-R;dx<=R;dx++){const x=Math.floor(cx)+dx,y=Math.floor(cy)+dy,z=Math.floor(cz)+dz;if(!inb(x,y,z))continue;const d=Math.hypot(dx,dy,dz);if(d>r)continue;const i=idx(x,y,z);const m=vox[i];if(!m)continue;
     if(FLUID(m)){if(d<r*.55&&!fluidSrc.has(i)){setVox(i,0)}continue}
     if(fr&&blue[i])continue;if(rv&&rown[i])continue;damageVox(i,dmg*(1-d/r*.55)*(m===5?.25:1),src,null);if(o.fire&&vox[i]&&isFlam(vox[i])&&Math.random()<.6)ignite(i,src)}
+  // buried treasure: a player blast that digs into the ground outside the walls can unearth a chest (once per wave)
+  if(fr&&r>=3&&state.digWave!==state.wave&&!inside(cx,cz)&&Math.random()<.22){let dug=0;for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const x=Math.floor(cx)+dx,z=Math.floor(cz)+dz;if(inb(x,GY-1,z)&&!vox[idx(x,GY-1,z)])dug++}
+    if(dug>=3){state.digWave=state.wave;spawnLoot(cx,GY+.5,cz,'treasure',Math.max(1,rollRarity(.08+state.wave*.006)),{});toast('💎 A explosão desenterrou um tesouro!','r3')}}
   if(o.fire){const R2=Math.ceil(r+1.5);for(let k=0;k<30;k++){const x=Math.floor(cx+rnd(-R2,R2)),y=Math.floor(cy+rnd(-R2,R2)),z=Math.floor(cz+rnd(-R2,R2));if(inb(x,y,z))ignite(idx(x,y,z),src)}}
   for(const e of enemies){if(e.dead||(rv&&e.rival))continue;const d=Math.hypot(e.pos.x-cx,e.pos.z-cz,e.group.position.y+.5-cy);if(d<r+1.2){hurtEnemy(e,dmg*1.5*(1-d/(r+1.2)),{x:e.pos.x,y:e.gy+.5,z:e.pos.z});if(o.fire)e.afire=3}}
   if(!fr){for(const m of minions){if(m.wounded)continue;const d=Math.hypot(m.pos.x-cx,m.pos.z-cz);if(d<r+.8)hurtMinion(m,dmg*(src==='enemy'?.6:.35)*(1-d/(r+.8)))}
@@ -2132,7 +2135,7 @@ let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAc
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.68;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.69;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2156,7 +2159,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.65,'🌾 Campos Verdes: colheita após cada horda rende material. A regra de cada bioma aparece na tela inicial e ao passar o mouse no relógio.'],
   [0.66,'⚡ Opção Gráficos leves (Automação → Opções): sombras simples e resolução menor; já vem ligada no celular.'],
   [0.67,'⚡ Gráficos leves agora desligam as sombras e a suavização — bem mais rápido em celulares e notebooks fracos.'],
-  [0.68,'🚀 O chão plano agora é desenhado como uma única superfície em vez de milhares de cubos: ~30% menos blocos para a placa de vídeo desenhar.']];
+  [0.68,'🚀 O chão plano agora é desenhado como uma única superfície em vez de milhares de cubos: ~30% menos blocos para a placa de vídeo desenhar.'],
+  [0.69,'💎 Bombas que abrem cratera fora das muralhas podem desenterrar um tesouro (no máximo 1 por horda).']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}

@@ -111,6 +111,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.66: ⚡ Opção Gráficos leves (OPTS.lowGfx; padrão ligado em telas < 600 px): pixel ratio 1, sombras básicas 1024². Coluna de heróis no celular subiu (não cobre mais o botão das dicas). Teste longo: bot horda 24 em 30 min, baú intacto, sem erros (swiftshader não serve para medir FPS).
 - v0.67: Perfil do loop de render em horda 19: JS é ~1% do quadro, o custo é GPU (55k instâncias de voxel + passe de sombra). Gráficos leves agora desligam o mapa de sombras e o MSAA (antialias), powerPreference high-performance — 2× mais quadros no swiftshader (0,4→0,8).
 - v0.68: 🚀 Chão plano como superfície única: células da camada GY-1 com os 4 vizinhos sólidos não viram instância de cubo — viram texel (4×4 px, borda 6% mais escura imitando a grade) de uma DataTexture 768² num plano em GY-0,03; buracos/água/bordas continuam cubos (texel transparente, alphaTest). Upload da textura no máx. a cada 200 ms. Instâncias em horda 19: 55k → 39,7k.
+- v0.69: Chão novo conferido com terremoto + bombas: crateras, paredes de terra e água aparecem certas; sombras no plano ok. 💎 Tesouro enterrado: explosão do jogador (r≥3) fora das muralhas que abre ≥3 células do chão tem 22% de chance de desenterrar um baú (1 por horda).
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
