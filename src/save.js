@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.3;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.4;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -65,7 +65,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [2.0,'🎯 Armas equilibradas (DPS medido uma a uma): Canhão bem mais forte, Morteiro com mais dano e recarga menor, Gelo bate mais; Lança-chamas e Raio-sol um pouco menos absurdos. Equipamentos: a raridade agora pesa muito mais (lendário ≈3,7× o bônus do comum) e épicos/lendários ainda dão vida extra.'],
   [2.1,'👥 Minions: contratar fica mais caro a cada um do mesmo papel (o exército cresce mais devagar e cada contratação pesa). Subir de nível agora brilha com anel dourado e a ficha mostra o bônus do nível e um resumo dos atributos com equipamento (dano ×, defesa %, vida ×). Soldados batem um pouco mais forte.'],
   [2.2,'🔕 Menos ruído: avisos de combo, níveis de minions, equipamentos automáticos, baús comuns, inimigos lendários e tesouros enterrados viraram rótulos no mapa (−40% de avisos). Dicas menores e espaçadas, painel de objetivos recolhido por padrão (toque para abrir) e o pisão do Colosso agora tem aviso no chão.'],
-  [2.3,'📈 Curva de longo prazo: hordas a partir da 12 ficam progressivamente mais duras e os chefes a partir da 15 têm mais vida — o meio de jogo deixa de ser passeio. 🪨 O chão da área da cidadela (até 12 blocos além da muralha) não é mais destruído por inimigos, erupções ou terremotos: a horda fica sempre na superfície.']];
+  [2.3,'📈 Curva de longo prazo: hordas a partir da 12 ficam progressivamente mais duras e os chefes a partir da 15 têm mais vida — o meio de jogo deixa de ser passeio. 🪨 O chão em volta da cidadela (até 48 blocos além da muralha) não é mais destruído por inimigos, erupções ou terremotos: a horda fica sempre na superfície.'],
+  [2.4,'★ Lendários ÚNICOS: 35% dos drops lendários viram um item com nome e poder próprio — Trovão de Aurora (raios em cadeia), Lança do Norte (congela), Coroa Solar (explosão de fogo), Boca do Abismo (puxa e esmaga), Coração do Golem (conserta blocos e armas por perto), Lâmina da Fúria Rubra (críticos ×3) e Égide do Último Rei (salva o portador uma vez por horda). Chegam com carta dourada animada e anel dourado em quem usa.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','retreating','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -84,7 +85,7 @@ function saveGame(manual){if(!canSave()){if(manual)toast('Só dá para salvar en
     const d={v:1,ver:GAME_VERSION,at:Date.now(),wave:state.wave,diff:OPTS.diff||'normal',biome:state.biomeKey,simTime,state:st,
       nat:natBlue?rleEnc(natBlue):null,vox:rleEnc(battle()?voxNoRival():vox),looted:rleEnc(looted),rown:rleEnc(battle()?new Uint8Array(N):rown),
       minions:minions.filter(m=>!m.allyHelp&&!m.crew).map(m=>({role:m.role,r:m.rarity,name:m.name,lvl:m.lvl,xp:m.xp,trait:m.trait,kills:m.kills,hero:m.hero||null,x:m.pos.x,z:m.pos.z,eq:plain(m.eq)})),
-      turrets:turrets.filter(t=>t.alive&&t.team!=='r').map(t=>({type:t.type,r:t.r,anchor:t.anchor})),
+      turrets:turrets.filter(t=>t.alive&&t.team!=='r').map(t=>({type:t.type,r:t.r,anchor:t.anchor,u:t.u||null})),
       realm:{t:REALM.t,spawnT:REALM.spawnT,poiT:REALM.poiT,nextId:REALM.nextId,facs:REALM.facs.map(f=>({...f})),cities:REALM.cities.map(c=>({...c,fac:c.fac.id})),pois:plain(REALM.pois),log:REALM.log.slice(-30)}};
     localStorage.setItem(SAVE_KEY,JSON.stringify(d));state.savedWave=state.wave;refreshSaveUi();if(manual)toast(`💾 Jogo salvo na horda ${state.wave}`,'r2');return true}
   catch(e){console.warn('save failed',e);if(manual)toast('Não foi possível salvar (armazenamento do navegador cheio ou bloqueado)','r0');return false}}
@@ -103,7 +104,7 @@ function loadGame(){const d=readSave();if(!d)return false;
   if(state.vein&&Array.isArray(state.vein.cells))for(const i of state.vein.cells)if(vox[i]===19)hp[i]=MAT[19].hp*4;else if(state.vein&&!Array.isArray(state.vein.cells))state.vein=null;
   colS.fill(-1);colE.fill(-1);colT.fill(-1);for(let i=0;i<N;i++)if(vox[i])paint(i);initTufts();snapshotNature();restoreNature(d);voxDirty=true;fluidDirty=true;
   // army
-  for(const T of d.turrets||[])if(TURRETS[T.type]&&vox[T.anchor])makeTurret(T.type,T.anchor,T.r||0);
+  for(const T of d.turrets||[])if(TURRETS[T.type]&&vox[T.anchor])makeTurret(T.type,T.anchor,T.r||0,T.u||null);
   for(const s of d.minions||[]){let m;if(s.hero){const H=HEROES.find(h=>h.id===s.hero);if(!H)continue;spawnHero(H);m=state.heroes[H.id].m}else{if(!ROLES[s.role])continue;m=makeMinion(s.role,s.r||0,s.x,s.z);m.name=s.name||m.name;m.trait=s.trait||m.trait}
     m.lvl=s.lvl||1;m.xp=s.xp||0;m.kills=s.kills||0;vetRestore(m);const eq=revive(s.eq||{});for(const k in m.eq)m.eq[k]=eq[k]||null;recompute(m);m.hp=m.maxhp}
   // realm

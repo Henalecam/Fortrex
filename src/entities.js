@@ -106,7 +106,7 @@ function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)
     L.g.position.set(L.x,L.y+bob,L.z);L.main.rotation.y+=dt*1.5;
     if(L.ring){const p=L.prio?1.3+Math.sin(L.t*8)*.25:1;L.ring.scale.set(p,p,p)}if(L.bm)L.bm.material.opacity=.14+Math.sin(L.t*3)*.08;
     if(L.kind==='treasure')L.main.rotation.y=Math.sin(L.t*1.5)*.3}}
-function lootPick(kind,r,big){const k=Math.random();
+function lootPick(kind,r,big){const k=Math.random();if(r>=4&&Math.random()<.35){if(Math.random()<.5){const U=pick(Object.entries(UNIQ_T));return['turret',{type:U[1].type,u:U[0]}]}return['equip',{item:makeUniqueEquip()}]}
   if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:2+r*2}]}}
 function randBlockPack(r){let pool=(r>=3?[16,17,18,31,15,10,14,19,20,9,8]:r>=2?[16,17,18,31,15,10,14,19,9]:r>=1?[16,17,18,31,15,10,14]:[16,17,18,31,10]).filter(m=>isUnlocked('block',m));if(!pool.length)pool=[16,17,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
 function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon','catapult','sunray','wind'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
@@ -120,9 +120,9 @@ function addBlocks(m,n){state.inv.blocks[m]=(state.inv.blocks[m]||0)+n}
 function deposit(L,m){const d=L.data;ECON.dep[L.kind+L.r]=(ECON.dep[L.kind+L.r]||0)+1;if(L.kind==='material')ECON.matLoot+=d.amount;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treasure'){L.y=GY+1.5;L.x=CHEST.x;L.z=CHEST.z+2.5;openTreasure(L);return}removeLoot(L);
   switch(L.kind){
     case'material':{let a=d.amount;if(m&&m.trait==='Sortudo'&&Math.random()<.2){a*=2;label(m.pos,'Sorte! ×2','#5cc08c')}state.material+=a;label(m?m.pos:CHEST,`+${a}`,'#b8862f');SFX.coin();break}
-    case'equip':{state.inv.armory.push(d.item);state.newItems++;if(L.r>=3)revealCard(itemIco(d.item),d.item.n,L.r,itemLines(d.item).slice(0,2).join(' · '));if(!(state.autoEquip&&autoEquip(d.item))&&L.r>=2&&L.r<3)toast(`${d.item.n} ${RARITY[L.r].n} no arsenal`,RARITY[L.r].css);break}
+    case'equip':{state.inv.armory.push(d.item);state.newItems++;if(d.item.u&&UNIQ_E[d.item.u])revealCard(UNIQ_E[d.item.u].ico,d.item.n,4,UNIQ_E[d.item.u].d,true);else if(L.r>=3)revealCard(itemIco(d.item),d.item.n,L.r,itemLines(d.item).slice(0,2).join(' · '));if(!(state.autoEquip&&autoEquip(d.item))&&L.r>=2&&L.r<3)toast(`${d.item.n} ${RARITY[L.r].n} no arsenal`,RARITY[L.r].css);break}
     case'block':{addBlocks(d.m,d.n);state.newItems++;if(L.r>=2)toast(`+${d.n} ${MAT[d.m].n} para construir`,RARITY[L.r].css);break}
-    case'turret':{state.inv.turrets.push({type:d.type,r:L.r});state.newItems++;if(L.r>=3)revealCard('🏹',TURRETS[d.type].n,L.r,TURRETS[d.type].d);else toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
+    case'turret':{state.inv.turrets.push({type:d.type,r:L.r,u:d.u||null});state.newItems++;if(d.u&&UNIQ_T[d.u])revealCard(UNIQ_T[d.u].ico,UNIQ_T[d.u].n,4,UNIQ_T[d.u].d,true);else if(L.r>=3)revealCard('🏹',TURRETS[d.type].n,L.r,TURRETS[d.type].d);else toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
     case'recruit':{if(!roleFree(d.role)){const alt=Object.keys(ROLES).filter(roleFree);if(alt.length)d.role=pick(alt)}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS||!roleFree(d.role)){const g=2*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
   if(L.r>=1)SFX.loot(L.r);if(L.r>=4){const p=m?m.pos:CHEST;for(let k=0;k<36;k++)spawnDebris(p.x,(m?m.group.position.y:GY)+1.5,p.z,pick([0xffcf3d,0xff8a5c,0xb56cf2,0x5cc08c,0x4f9cf2,0xec5f6b]),1,.16);label({x:p.x,y:(p.y||GY)+2.5,z:p.z},'✨ LENDÁRIO!','#e0a000')}refreshPanels()}
 
@@ -153,13 +153,13 @@ function buildTurretModel(type,r,g,pivot){const dark=0x4a4866,mid=0x6d6a8a;
   if(r>=1){const ring=new THREE.Mesh(new THREE.TorusGeometry(.55,.05,6,20),new THREE.MeshBasicMaterial({color:RARITY[r].c}));ring.rotation.x=Math.PI/2;ring.position.y=.03;g.add(ring)}}
 function findStation(x,z){const cx=Math.floor(x),cz=Math.floor(z);const wantIn=inside(x,z);let best=null,bd=1e9;
   for(let dz=-7;dz<=7;dz++)for(let dx=-7;dx<=7;dx++){const nx=cx+dx,nz=cz+dz;if(walkCell(nx,nz)<=-99)continue;const d=Math.hypot(dx,dz)+(wantIn&&!inside(nx+.5,nz+.5)?12:0);if(d<bd){bd=d;best={x:nx+.5,z:nz+.5}}}return best}
-function makeTurret(type,anchor,r=0){const T=TURRETS[type];const g=new THREE.Group(),pivot=new THREE.Group();pivot.position.y=.45;g.add(pivot);buildTurretModel(type,r,g,pivot);
+function makeTurret(type,anchor,r=0,u=null){const T=TURRETS[type];const g=new THREE.Group(),pivot=new THREE.Group();pivot.position.y=.45;g.add(pivot);buildTurretModel(type,r,g,pivot);
   const pos=new THREE.Vector3(ix(anchor)+.5,iy(anchor)+1,iz(anchor)+.5);g.position.copy(pos);g.scale.setScalar(US);scene.add(g);
-  const mh=T.hp*(1+r*.25)*state.turretHp;const t={type,T,r,anchor,group:g,pivot,pos,gunner:null,reload:rnd(0,1),alive:true,hp:mh,maxhp:mh,yaw:0,station:findStation(pos.x,pos.z),hit:0,beamT:0};
+  const mh=T.hp*(1+r*.25)*state.turretHp;const t={u,type,T,r,anchor,group:g,pivot,pos,gunner:null,reload:rnd(0,1),alive:true,hp:mh,maxhp:mh,yaw:0,station:findStation(pos.x,pos.z),hit:0,beamT:0};
   g.userData.turret=t;turrets.push(t);return t}
 function killTurret(t,drop){if(!t.alive)return;t.alive=false;scene.remove(t.group);spawnDebris(t.pos.x,t.pos.y+.3,t.pos.z,0x6d6a8a,8,.45);
   if(t.gunner){const g=t.gunner;t.gunner=null;g.turret=null;if(g.state==='man'){g.state='idle';if(t.station){g.pos.x=t.station.x;g.pos.z=t.station.z}g.group.position.y=standY(g.pos.x,g.pos.z)}}
-  if(drop){const L=spawnLoot(t.pos.x,t.pos.y+.4,t.pos.z,'turret',t.r,{type:t.type});if(L)L.prio=true;toast(`${t.T.n} caiu! Um coletor vai buscá-la.`,'r0')}}
+  if(drop){const L=spawnLoot(t.pos.x,t.pos.y+.4,t.pos.z,'turret',t.r,{type:t.type,u:t.u});if(L)L.prio=true;toast(`${t.T.n} caiu! Um coletor vai buscá-la.`,'r0')}}
 function damageTurret(t,d){if(!t.alive)return;t.hp-=d;t.hit=.1;if(t.hp<=0)killTurret(t,true)}
 function checkTurretAnchor(i){const t=turretAt(i);if(t)killTurret(t,true)}
 const turretRange=t=>t.T.range*(state.rangeMul||1)*(state.ups.farol&&Math.hypot(t.pos.x-CX,t.pos.z-(CZ-12))<24?1.15:1)*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?((state.expStage||0)>=6||state.rangeMul>1||state.ups.farol?.92:.72):state.ev==='sandstorm'?((state.expStage||0)>=6?.88:.65):state.ev==='rain'?.9:1);
@@ -222,5 +222,5 @@ function impact(p,pos,e,cell){const fire=state.greek>0;if(e)setTimeout(()=>{},0)
   if(p.kind==='ball'&&state.explosive>0)explode(pos.x,pos.y,pos.z,1.2+state.explosive*.55,p.dmg*.5,{src:'player',fire})}
 
 // v1.8 revelação de item épico/lendário: carta deslizante, sem bloquear o jogo
-function revealCard(ico,name,r,line){const box=$('reveal');if(!box)return;const c=document.createElement('div');c.className='rv r'+r;c.innerHTML=`<div class="ri">${ico}</div><div class="rt"><div class="rr">${RARITY[r].n}</div><div class="rn">${esc(name)}</div><div class="rl">${esc(line||'')}</div></div>`;box.prepend(c);while(box.children.length>3)box.lastChild.remove();
+function revealCard(ico,name,r,line,uniq){const box=$('reveal');if(!box)return;const c=document.createElement('div');c.className='rv r'+r+(uniq?' u':'');c.innerHTML=`<div class="ri">${ico}</div><div class="rt"><div class="rr">${uniq?'★ ÚNICO LENDÁRIO':RARITY[r].n}</div><div class="rn">${esc(name)}</div><div class="rl">${esc(line||'')}</div></div>`;box.prepend(c);while(box.children.length>3)box.lastChild.remove();
   SFX.loot(r);if(r>=4){shake=Math.max(shake,.3)}if(window.__revealHold)return;setTimeout(()=>c.classList.add('out'),r>=4?5200:3800);setTimeout(()=>c.remove(),r>=4?5800:4400)}

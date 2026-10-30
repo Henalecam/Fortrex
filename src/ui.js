@@ -65,12 +65,12 @@ function updateGhost(cx,cy){if(CRAFT.a!==null)return;const T=buildTarget(cx,cy);
   let tip='';if(T.kind==='remove'){const m=vox[T.i];tip=blue[T.i]?`Remover ${MAT[m].n} da planta`:FLUID(m)?`Drenar ${MAT[m].n}`:`Cavar ${MAT[m].n} · 1 material`}else if(T.kind==='rmturret')tip=`Recolher ${T.t.T.n}`;else if(T.kind==='turret')tip=`Instalar ${TURRETS[state.inv.turrets[state.build.tsel]?.type||'cannon'].n}`;else if(T.kind==='prefab')tip=`${PREFABS[state.build.pf].ico} ${PREFABS[state.build.pf].n} · R gira`;else tip=`Colocar ${MAT[T.m].n}${(state.build.h||1)>1?` ×${state.build.h} de altura`:''} · arraste p/ fileira`;
   showTip(cx,cy,tip,T.ok?'':(T.kind==='place'&&natBlue&&natBlue[T.i]?'terreno natural: construa por cima':'não dá aqui'))}
 function doBuild(cx,cy,forceRemove){const B=state.build;const tool=B.tool;if(forceRemove)B.tool='remove';const T=buildTarget(cx,cy);B.tool=tool;if(!T||!T.ok){if(T)SFX.hurt();return}
-  if(T.kind==='rmturret'){killTurret(T.t,false);state.inv.turrets.push({type:T.t.type,r:T.t.r});toast(`${T.t.T.n} recolhida`,'r0');SFX.pop()}
+  if(T.kind==='rmturret'){killTurret(T.t,false);state.inv.turrets.push({type:T.t.type,r:T.t.r,u:T.t.u});toast(`${T.t.T.n} recolhida`,'r0');SFX.pop()}
   else if(T.kind==='remove'){const i=T.i,m=vox[i];
     if(blue[i]){const b=blue[i];const wasPre=state.prepaid.has(i);eraseBlue(i);if(m===b){removeVox(i,'dig');if(SPECIAL_BLOCKS.includes(b))addBlocks(b,1);else state.material+=1}else if(wasPre&&SPECIAL_BLOCKS.includes(b))addBlocks(b,1);toast(`${MAT[b].n} removido da planta`,'r0')}
     else if(FLUID(m)){if(fluidSrc.has(i)&&state.placed&&state.placed.has(i)){addBlocks(m,1);state.placed.delete(i)}setVox(i,0);settleDirty=true}
     else{state.material-=1;removeVox(i,'dig')}SFX.crunch(false)}
-  else if(T.kind==='turret'){if(!canInstall())return;const it=state.inv.turrets.splice(B.tsel,1)[0];makeTurret(it.type,T.i,it.r);sparkle(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5,RARITY[it.r].c,8);SFX.build();toast(`${TURRETS[it.type].n} instalada`,'r1');if(!state.inv.turrets.length)B.tool='remove';else B.tsel=clamp(B.tsel,0,state.inv.turrets.length-1)}
+  else if(T.kind==='turret'){if(!canInstall())return;const it=state.inv.turrets.splice(B.tsel,1)[0];makeTurret(it.type,T.i,it.r,it.u);sparkle(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5,RARITY[it.r].c,8);SFX.build();toast(`${TURRETS[it.type].n} instalada`,'r1');if(!state.inv.turrets.length)B.tool='remove';else B.tsel=clamp(B.tsel,0,state.inv.turrets.length-1)}
   else if(T.kind==='prefab'){placePrefab(T.i)}
   else if((B.h||1)>1&&!FLUID(T.m)){placeCells(craftColumn(T.i),T.m)}
   else{const m=T.m;if(FLUID(m)){state.inv.blocks[m]--;setFluid(T.i,m,4,true);(state.placed=state.placed||new Set()).add(T.i)}
@@ -89,7 +89,7 @@ function renderArsenal(){const A=state.inv,body=$('arsBody');let h='<div class="
     h+=`</div><button class="btn wide" id="sellIt">Vender <span class="cost">+${sellValue(it)} material</span></button></div>`}
   const commons=A.armory.filter(i=>i.r===0);if(commons.length)h+=`<button class="btn wide" id="sellCommon">Vender ${commons.length} comuns <span class="cost">+${commons.reduce((a,i)=>a+sellValue(i),0)}</span></button>`;
   const bl=Object.entries(A.blocks).filter(([,n])=>n>0);h+='<div class="sec">Blocos especiais</div>';h+=bl.length?'<div class="chips">'+bl.map(([m,n])=>`<span class="bchip"><i style="background:${hex(MAT[m].c)}"></i>${esc(MAT[m].n)} ×${n}</span>`).join('')+'</div>':'<div class="ds">Nenhum. Caem como loot.</div>';
-  h+='<div class="sec">Armas guardadas</div>';h+=A.turrets.length?'<div class="chips">'+A.turrets.map(t=>`<span class="bchip" style="border-color:var(--${RARITY[t.r].css})">${TURRETS[t.type].ico} ${esc(TURRETS[t.type].n)}</span>`).join('')+'</div><div class="ds">Instale pelo botão Construir → Armas.</div>':'<div class="ds">Nenhuma guardada.</div>';
+  h+='<div class="sec">Armas guardadas</div>';h+=A.turrets.length?'<div class="chips">'+A.turrets.map(t=>`<span class="bchip" style="border-color:var(--${RARITY[t.r].css})">${t.u&&UNIQ_T[t.u]?UNIQ_T[t.u].ico+' ★ '+esc(UNIQ_T[t.u].n):TURRETS[t.type].ico+' '+esc(TURRETS[t.type].n)}</span>`).join('')+'</div><div class="ds">Instale pelo botão Construir → Armas.</div>':'<div class="ds">Nenhuma guardada.</div>';
   const tg={};for(const t of A.turrets){const k=t.type+'|'+t.r;tg[k]=(tg[k]||0)+1}for(const k in tg)if(tg[k]>=3&&+k.split('|')[1]<4){const [ty,r]=k.split('|');h+=`<button class="btn wide" data-tf="${k}">⚒️ Forjar 3 ${esc(TURRETS[ty].n)} → ${RARITY[+r+1].n}</button>`}
   body.innerHTML=h;
   for(const b of body.querySelectorAll('[data-tf]'))b.onclick=()=>{const [ty,r]=b.dataset.tf.split('|');let n=0;for(let i=A.turrets.length-1;i>=0&&n<3;i--)if(A.turrets[i].type===ty&&A.turrets[i].r===+r){A.turrets.splice(i,1);n++}A.turrets.push({type:ty,r:+r+1});SFX.open();toast(`Forjado: ${TURRETS[ty].n} ${RARITY[+r+1].n}!`,RARITY[+r+1].css);renderArsenal()};
@@ -113,7 +113,7 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
       for(const it of opts.slice(0,6))h+=`<button class="mrow" data-it="${it.id}"><span style="color:var(--${RARITY[it.r].css})">${itemIco(it)} ${esc(it.n)}</span><span class="ct">${esc(itemLines(it).slice(0,2).join(' · '))}</span></button>`;if(!opts.length)h+='<div class="ds">Nada no arsenal para este espaço.</div>';h+='</div>'}
     if(!m.hero){h+='<div class="ds" style="margin-top:6px">Função</div><div class="roles">';}for(const r in ROLES)if(!m.hero)h+=`<button class="btn sm ${m.role===r?'on':''}" data-role="${r}" title="${esc(ROLES[r].d)}">${ROLES[r].ico} ${ROLES[r].n}</button>`;if(!m.hero)h+='</div>';
     h+='<div class="ds" style="margin-top:6px">Posto</div><div class="roles">';for(const k in POSTS)h+=`<button class="btn sm ${(m.post||'auto')===k?'on':''}" data-mpost="${k}">${POSTS[k].ico} ${POSTS[k].n}</button>`;h+='</div>'}
-  else if(c.t){const t=c.t;if(!t.alive){closeCard();return}h+=`<div class="ch"><b>${t.T.ico} ${esc(t.T.n)}</b><button class="btn x" id="cClose">✕</button></div><div class="ds"><span style="color:var(--${RARITY[t.r].css})">${RARITY[t.r].n}</span> · ${esc(t.T.d)}</div>`;
+  else if(c.t){const t=c.t;if(!t.alive){closeCard();return}h+=`<div class="ch"><b>${t.u&&UNIQ_T[t.u]?UNIQ_T[t.u].ico+' <span style="color:#d99a00">'+esc(UNIQ_T[t.u].n)+'</span>':t.T.ico+' '+esc(t.T.n)}</b><button class="btn x" id="cClose">✕</button></div>${t.u&&UNIQ_T[t.u]?`<div class="ds" style="color:#b07800;font-weight:600">★ ${esc(UNIQ_T[t.u].d)}</div>`:''}<div class="ds"><span style="color:var(--${RARITY[t.r].css})">${RARITY[t.r].n}</span> · ${esc(t.T.d)}</div>`;
     h+=`<div class="hpbar"><i style="width:${Math.round(t.hp/t.maxhp*100)}%"></i></div><div class="ds">Integridade ${Math.ceil(t.hp)}/${Math.ceil(t.maxhp)} · Alcance ${turretRange(t).toFixed(0)} · ${t.gunner?(t.gunner.state==='man'?'Operada por '+esc(t.gunner.name):esc(t.gunner.name)+' a caminho'):'Sem artilheiro (metade da cadência)'}</div>`;
     h+=`<div class="roles"><button class="btn sm" id="tPick">Recolher ao arsenal</button></div>`}
   el.innerHTML=h;$('cClose').onclick=closeCard;
@@ -123,7 +123,7 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
   for(const b of el.querySelectorAll('[data-mpost]'))b.onclick=()=>{c.m.post=b.dataset.mpost;c.m.path=null;renderCard(true)};
   for(const b of el.querySelectorAll('[data-role]'))b.onclick=()=>{if(c.m.role!==b.dataset.role){const blk=roleBlock(b.dataset.role);if(blk){toast(blk,'r0');return}}setRole(c.m,b.dataset.role);toast(`${c.m.name} agora é ${ROLES[b.dataset.role].n}`,'r1');renderCard(true)};
   const ha=$('cHeroAb');if(ha)ha.onclick=()=>{heroAbility(c.m.hero);renderCard(true)};
-  const tp=$('tPick');if(tp)tp.onclick=()=>{killTurret(c.t,false);state.inv.turrets.push({type:c.t.type,r:c.t.r});toast(`${c.t.T.n} recolhida`,'r0');closeCard();refreshPanels()}}
+  const tp=$('tPick');if(tp)tp.onclick=()=>{killTurret(c.t,false);state.inv.turrets.push({type:c.t.type,r:c.t.r,u:c.t.u});toast(`${c.t.T.n} recolhida`,'r0');closeCard();refreshPanels()}}
 
 // ── hire
 function renderHire(){const el=$('hire');let h=`<div class="ds" style="width:100%;text-align:center">${minions.length}/${MAX_MINIONS+MAX_MINIONS_BONUS} minions · vagas por função sobem com Quartel, Oficina e Escola</div>`;

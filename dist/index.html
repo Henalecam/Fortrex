@@ -225,6 +225,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 @media (max-width:760px){#reveal{right:56px;top:calc(160px + env(safe-area-inset-top,0px));width:min(260px,64vw)}}
 #ftip{width:min(400px,calc(100vw - 120px))!important;font-size:12.5px!important;padding:7px 8px 7px 12px!important;border-radius:12px!important;opacity:.94}#ftip .btn{padding:3px 8px;min-width:0}
 #goals .gmin{display:none;font-size:11px;color:var(--ink-soft)}#goals.min .gmin{display:block}#goals.min .rel{display:none}#goals.min{width:auto;min-width:170px}
+#reveal .rv.u{--c:#ffcf3d;background:linear-gradient(120deg,#3a2608 0%,#6b4a10 35%,#ffdf7a 50%,#6b4a10 65%,#3a2608 100%);background-size:250% 100%;animation:rvIn .45s cubic-bezier(.2,1.4,.4,1),rvShine 2.2s linear infinite;box-shadow:0 0 34px rgba(255,190,60,.75),0 8px 30px rgba(0,0,0,.4)}
+#reveal .rv.u .rn{font-size:15px;text-shadow:0 1px 6px rgba(0,0,0,.6)}#reveal .rv.u .rl{opacity:.95}
+@keyframes rvShine{from{background-position:100% 0}to{background-position:-150% 0}}
 </style>
 
 <canvas id="c"></canvas>
@@ -529,7 +532,7 @@ function setVox(i,m){const old=vox[i];if(SOLIDM(old)&&!SOLIDM(m)){removedQ.push(
 function setFluid(i,m,lv,src){if(SOLIDM(vox[i]))return;vox[i]=m;hp[i]=lv;fluids.add(i);if(src)fluidSrc.add(i);burning.delete(i);markCol(ix(i),iz(i));touch(i)}
 
 // src: 'enemy' | 'player' | 'env'. Player damage never touches the fortress (blue) — no friendly fire.
-function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m))return false;if(src!=='player'&&iy(i)<GY&&Math.max(Math.abs(ix(i)-CX),Math.abs(iz(i)-CZ))<=WR+12)return false;if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
+function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m))return false;if(src!=='player'&&iy(i)<GY&&Math.max(Math.abs(ix(i)-CX),Math.abs(iz(i)-CZ))<=WR+48)return false;if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
   if(blue[i]){if(src==='player')return false;if(src==='env')d*=.4;if(state.wardT>0)d*=.08}
   if(m===5&&who&&who.type&&state.contract)state.contract.hit=1;if(m===5&&who&&CLIMBS(who.type))state.climbHitChest=true;
   if(m===5&&src==='enemy')d*=who&&(who.type==='ram'||who.type==='rammer')?.6:1.5;
@@ -814,7 +817,7 @@ function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)
     L.g.position.set(L.x,L.y+bob,L.z);L.main.rotation.y+=dt*1.5;
     if(L.ring){const p=L.prio?1.3+Math.sin(L.t*8)*.25:1;L.ring.scale.set(p,p,p)}if(L.bm)L.bm.material.opacity=.14+Math.sin(L.t*3)*.08;
     if(L.kind==='treasure')L.main.rotation.y=Math.sin(L.t*1.5)*.3}}
-function lootPick(kind,r,big){const k=Math.random();
+function lootPick(kind,r,big){const k=Math.random();if(r>=4&&Math.random()<.35){if(Math.random()<.5){const U=pick(Object.entries(UNIQ_T));return['turret',{type:U[1].type,u:U[0]}]}return['equip',{item:makeUniqueEquip()}]}
   if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:2+r*2}]}}
 function randBlockPack(r){let pool=(r>=3?[16,17,18,31,15,10,14,19,20,9,8]:r>=2?[16,17,18,31,15,10,14,19,9]:r>=1?[16,17,18,31,15,10,14]:[16,17,18,31,10]).filter(m=>isUnlocked('block',m));if(!pool.length)pool=[16,17,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
 function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon','catapult','sunray','wind'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
@@ -828,9 +831,9 @@ function addBlocks(m,n){state.inv.blocks[m]=(state.inv.blocks[m]||0)+n}
 function deposit(L,m){const d=L.data;ECON.dep[L.kind+L.r]=(ECON.dep[L.kind+L.r]||0)+1;if(L.kind==='material')ECON.matLoot+=d.amount;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treasure'){L.y=GY+1.5;L.x=CHEST.x;L.z=CHEST.z+2.5;openTreasure(L);return}removeLoot(L);
   switch(L.kind){
     case'material':{let a=d.amount;if(m&&m.trait==='Sortudo'&&Math.random()<.2){a*=2;label(m.pos,'Sorte! ×2','#5cc08c')}state.material+=a;label(m?m.pos:CHEST,`+${a}`,'#b8862f');SFX.coin();break}
-    case'equip':{state.inv.armory.push(d.item);state.newItems++;if(L.r>=3)revealCard(itemIco(d.item),d.item.n,L.r,itemLines(d.item).slice(0,2).join(' · '));if(!(state.autoEquip&&autoEquip(d.item))&&L.r>=2&&L.r<3)toast(`${d.item.n} ${RARITY[L.r].n} no arsenal`,RARITY[L.r].css);break}
+    case'equip':{state.inv.armory.push(d.item);state.newItems++;if(d.item.u&&UNIQ_E[d.item.u])revealCard(UNIQ_E[d.item.u].ico,d.item.n,4,UNIQ_E[d.item.u].d,true);else if(L.r>=3)revealCard(itemIco(d.item),d.item.n,L.r,itemLines(d.item).slice(0,2).join(' · '));if(!(state.autoEquip&&autoEquip(d.item))&&L.r>=2&&L.r<3)toast(`${d.item.n} ${RARITY[L.r].n} no arsenal`,RARITY[L.r].css);break}
     case'block':{addBlocks(d.m,d.n);state.newItems++;if(L.r>=2)toast(`+${d.n} ${MAT[d.m].n} para construir`,RARITY[L.r].css);break}
-    case'turret':{state.inv.turrets.push({type:d.type,r:L.r});state.newItems++;if(L.r>=3)revealCard('🏹',TURRETS[d.type].n,L.r,TURRETS[d.type].d);else toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
+    case'turret':{state.inv.turrets.push({type:d.type,r:L.r,u:d.u||null});state.newItems++;if(d.u&&UNIQ_T[d.u])revealCard(UNIQ_T[d.u].ico,UNIQ_T[d.u].n,4,UNIQ_T[d.u].d,true);else if(L.r>=3)revealCard('🏹',TURRETS[d.type].n,L.r,TURRETS[d.type].d);else toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
     case'recruit':{if(!roleFree(d.role)){const alt=Object.keys(ROLES).filter(roleFree);if(alt.length)d.role=pick(alt)}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS||!roleFree(d.role)){const g=2*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
   if(L.r>=1)SFX.loot(L.r);if(L.r>=4){const p=m?m.pos:CHEST;for(let k=0;k<36;k++)spawnDebris(p.x,(m?m.group.position.y:GY)+1.5,p.z,pick([0xffcf3d,0xff8a5c,0xb56cf2,0x5cc08c,0x4f9cf2,0xec5f6b]),1,.16);label({x:p.x,y:(p.y||GY)+2.5,z:p.z},'✨ LENDÁRIO!','#e0a000')}refreshPanels()}
 
@@ -861,13 +864,13 @@ function buildTurretModel(type,r,g,pivot){const dark=0x4a4866,mid=0x6d6a8a;
   if(r>=1){const ring=new THREE.Mesh(new THREE.TorusGeometry(.55,.05,6,20),new THREE.MeshBasicMaterial({color:RARITY[r].c}));ring.rotation.x=Math.PI/2;ring.position.y=.03;g.add(ring)}}
 function findStation(x,z){const cx=Math.floor(x),cz=Math.floor(z);const wantIn=inside(x,z);let best=null,bd=1e9;
   for(let dz=-7;dz<=7;dz++)for(let dx=-7;dx<=7;dx++){const nx=cx+dx,nz=cz+dz;if(walkCell(nx,nz)<=-99)continue;const d=Math.hypot(dx,dz)+(wantIn&&!inside(nx+.5,nz+.5)?12:0);if(d<bd){bd=d;best={x:nx+.5,z:nz+.5}}}return best}
-function makeTurret(type,anchor,r=0){const T=TURRETS[type];const g=new THREE.Group(),pivot=new THREE.Group();pivot.position.y=.45;g.add(pivot);buildTurretModel(type,r,g,pivot);
+function makeTurret(type,anchor,r=0,u=null){const T=TURRETS[type];const g=new THREE.Group(),pivot=new THREE.Group();pivot.position.y=.45;g.add(pivot);buildTurretModel(type,r,g,pivot);
   const pos=new THREE.Vector3(ix(anchor)+.5,iy(anchor)+1,iz(anchor)+.5);g.position.copy(pos);g.scale.setScalar(US);scene.add(g);
-  const mh=T.hp*(1+r*.25)*state.turretHp;const t={type,T,r,anchor,group:g,pivot,pos,gunner:null,reload:rnd(0,1),alive:true,hp:mh,maxhp:mh,yaw:0,station:findStation(pos.x,pos.z),hit:0,beamT:0};
+  const mh=T.hp*(1+r*.25)*state.turretHp;const t={u,type,T,r,anchor,group:g,pivot,pos,gunner:null,reload:rnd(0,1),alive:true,hp:mh,maxhp:mh,yaw:0,station:findStation(pos.x,pos.z),hit:0,beamT:0};
   g.userData.turret=t;turrets.push(t);return t}
 function killTurret(t,drop){if(!t.alive)return;t.alive=false;scene.remove(t.group);spawnDebris(t.pos.x,t.pos.y+.3,t.pos.z,0x6d6a8a,8,.45);
   if(t.gunner){const g=t.gunner;t.gunner=null;g.turret=null;if(g.state==='man'){g.state='idle';if(t.station){g.pos.x=t.station.x;g.pos.z=t.station.z}g.group.position.y=standY(g.pos.x,g.pos.z)}}
-  if(drop){const L=spawnLoot(t.pos.x,t.pos.y+.4,t.pos.z,'turret',t.r,{type:t.type});if(L)L.prio=true;toast(`${t.T.n} caiu! Um coletor vai buscá-la.`,'r0')}}
+  if(drop){const L=spawnLoot(t.pos.x,t.pos.y+.4,t.pos.z,'turret',t.r,{type:t.type,u:t.u});if(L)L.prio=true;toast(`${t.T.n} caiu! Um coletor vai buscá-la.`,'r0')}}
 function damageTurret(t,d){if(!t.alive)return;t.hp-=d;t.hit=.1;if(t.hp<=0)killTurret(t,true)}
 function checkTurretAnchor(i){const t=turretAt(i);if(t)killTurret(t,true)}
 const turretRange=t=>t.T.range*(state.rangeMul||1)*(state.ups.farol&&Math.hypot(t.pos.x-CX,t.pos.z-(CZ-12))<24?1.15:1)*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?((state.expStage||0)>=6||state.rangeMul>1||state.ups.farol?.92:.72):state.ev==='sandstorm'?((state.expStage||0)>=6?.88:.65):state.ev==='rain'?.9:1);
@@ -930,7 +933,7 @@ function impact(p,pos,e,cell){const fire=state.greek>0;if(e)setTimeout(()=>{},0)
   if(p.kind==='ball'&&state.explosive>0)explode(pos.x,pos.y,pos.z,1.2+state.explosive*.55,p.dmg*.5,{src:'player',fire})}
 
 // v1.8 revelação de item épico/lendário: carta deslizante, sem bloquear o jogo
-function revealCard(ico,name,r,line){const box=$('reveal');if(!box)return;const c=document.createElement('div');c.className='rv r'+r;c.innerHTML=`<div class="ri">${ico}</div><div class="rt"><div class="rr">${RARITY[r].n}</div><div class="rn">${esc(name)}</div><div class="rl">${esc(line||'')}</div></div>`;box.prepend(c);while(box.children.length>3)box.lastChild.remove();
+function revealCard(ico,name,r,line,uniq){const box=$('reveal');if(!box)return;const c=document.createElement('div');c.className='rv r'+r+(uniq?' u':'');c.innerHTML=`<div class="ri">${ico}</div><div class="rt"><div class="rr">${uniq?'★ ÚNICO LENDÁRIO':RARITY[r].n}</div><div class="rn">${esc(name)}</div><div class="rl">${esc(line||'')}</div></div>`;box.prepend(c);while(box.children.length>3)box.lastChild.remove();
   SFX.loot(r);if(r>=4){shake=Math.max(shake,.3)}if(window.__revealHold)return;setTimeout(()=>c.classList.add('out'),r>=4?5200:3800);setTimeout(()=>c.remove(),r>=4?5800:4400)}
 
 // ───────── units: pathing, enemies, minions
@@ -1168,7 +1171,7 @@ function recompute(m){const st={atk:1,def:0,spd:1,hp:1,gun:1,work:1,cap:0,rate:1
 function setRole(m,role){if(m.role===role)return;if(m.turret){m.turret.gunner=null;m.turret=null}dropBag(m);releaseTask(m);m.role=role;m.R=ROLES[role];for(const h of m.hats)h.material.color.setHex(m.R.hat);buildProp(m.prop,role);m.state='idle';recompute(m)}
 function dropBag(m){for(const L of m.bag){L.carried=null;L.claimed=null;L.y=m.group.position.y+1;L.x=m.pos.x+rnd(-.5,.5);L.z=m.pos.z+rnd(-.5,.5);L.vy=3;L.rest=false}m.bag=[]}
 function releaseTask(m){if(m.task&&m.task.i!==undefined&&claimed.get(m.task.i)===m)claimed.delete(m.task.i);if(m.task&&m.task.L&&m.task.L.claimed===m)m.task.L.claimed=null;m.task=null}
-function hurtMinion(m,d,from){if(m.wounded>0)return;if(from&&from.aff==='vamp'&&!from.dead){from.hp=Math.min(from.maxhp,from.hp+d*2.5)}if(m.hp-d*(1-m.st.def)<=0)state.morale=Math.max(0,(state.morale??60)-3);d*=(1-m.st.def);if(from&&m.st.thorns)dmgEnemy(from,d*m.st.thorns*3,true);m.hp-=d;SFX.hurt();
+function hurtMinion(m,d,from){if(m.wounded>0)return;if(from&&from.aff==='vamp'&&!from.dead){from.hp=Math.min(from.maxhp,from.hp+d*2.5)}if(m.hp-d*(1-m.st.def)<=0)state.morale=Math.max(0,(state.morale??60)-3);d*=(1-m.st.def);if(from&&m.st.thorns)dmgEnemy(from,d*m.st.thorns*3,true);m.hp-=d;if(m.hp<=0&&uniqueSave(m))return;SFX.hurt();
   if(m.hp<=0){m.wounded=24;m.hp=0;dropBag(m);releaseTask(m);if(m.turret){m.turret.gunner=null;if(m.state==='man'&&m.turret.station){m.pos.x=m.turret.station.x;m.pos.z=m.turret.station.z}m.turret=null}
     m.state='wounded';m.group.rotation.z=Math.PI/2;m.group.position.y=standY(m.pos.x,m.pos.z)+.35;m.path=null;toast(`${m.name} ferido`,'r0');state.wwound++}}
 function supported(i){const x=ix(i),y=iy(i),z=iz(i);if(y===0||SOLIDM(vox[idx(x,y-1,z)]))return true;for(const [dx,dz] of NB4){if(inb(x+dx,y,z+dz)&&SOLIDM(vox[idx(x+dx,y,z+dz)]))return true}return false}
@@ -1241,7 +1244,7 @@ function updGun(m,dt){
 function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;const RL=state.rally;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||(RL?Math.hypot(e.pos.x-RL.x,e.pos.z-RL.z)>14:Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+30)||(e.fly&&e.group.position.y>m.group.position.y+3.2)||(!e.fly&&e.gy>GY+3))continue;const d=hd(e.pos,m.pos);const pri=postDist(m,e.pos.x,e.pos.z)*.6+(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+d;if(pri<bd){bd=pri;tgt=e}}
   if(tgt&&(inside(tgt.pos.x,tgt.pos.z)||state.phase!=='wave'||tgt.state==='attack'||hd(tgt.pos,m.pos)<14)){const reach=tgt.radius+1.3+m.st.reach;
     if(walkTo(m,tgt.pos.x,tgt.pos.z,dt,reach)||hd(tgt.pos,m.pos)<reach+.1){m.group.rotation.y=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);
-      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=16*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);tgt.lastSol=m;hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
+      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=16*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);tgt.lastSol=m;hurtEnemy(tgt,uniqueCrit(m,dmg,tgt),{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
         if(tgt.dead)gainXP(m,6+tgt.maxhp/12);if(m.st.stun&&Math.random()<m.st.stun)tgt.stun=Math.max(tgt.stun,.6);if(m.st.burn)tgt.afire=Math.max(tgt.afire,2);m.wpn.rotation.x=-1.2;spawnDebris(tgt.pos.x,tgt.gy+.8,tgt.pos.z,tgt.T.color,2,.2)}}
     m.wpn.rotation.x*=.85;return}
   // soldiers hold the field outside the walls, in front of the gate
@@ -1803,12 +1806,12 @@ function updateGhost(cx,cy){if(CRAFT.a!==null)return;const T=buildTarget(cx,cy);
   let tip='';if(T.kind==='remove'){const m=vox[T.i];tip=blue[T.i]?`Remover ${MAT[m].n} da planta`:FLUID(m)?`Drenar ${MAT[m].n}`:`Cavar ${MAT[m].n} · 1 material`}else if(T.kind==='rmturret')tip=`Recolher ${T.t.T.n}`;else if(T.kind==='turret')tip=`Instalar ${TURRETS[state.inv.turrets[state.build.tsel]?.type||'cannon'].n}`;else if(T.kind==='prefab')tip=`${PREFABS[state.build.pf].ico} ${PREFABS[state.build.pf].n} · R gira`;else tip=`Colocar ${MAT[T.m].n}${(state.build.h||1)>1?` ×${state.build.h} de altura`:''} · arraste p/ fileira`;
   showTip(cx,cy,tip,T.ok?'':(T.kind==='place'&&natBlue&&natBlue[T.i]?'terreno natural: construa por cima':'não dá aqui'))}
 function doBuild(cx,cy,forceRemove){const B=state.build;const tool=B.tool;if(forceRemove)B.tool='remove';const T=buildTarget(cx,cy);B.tool=tool;if(!T||!T.ok){if(T)SFX.hurt();return}
-  if(T.kind==='rmturret'){killTurret(T.t,false);state.inv.turrets.push({type:T.t.type,r:T.t.r});toast(`${T.t.T.n} recolhida`,'r0');SFX.pop()}
+  if(T.kind==='rmturret'){killTurret(T.t,false);state.inv.turrets.push({type:T.t.type,r:T.t.r,u:T.t.u});toast(`${T.t.T.n} recolhida`,'r0');SFX.pop()}
   else if(T.kind==='remove'){const i=T.i,m=vox[i];
     if(blue[i]){const b=blue[i];const wasPre=state.prepaid.has(i);eraseBlue(i);if(m===b){removeVox(i,'dig');if(SPECIAL_BLOCKS.includes(b))addBlocks(b,1);else state.material+=1}else if(wasPre&&SPECIAL_BLOCKS.includes(b))addBlocks(b,1);toast(`${MAT[b].n} removido da planta`,'r0')}
     else if(FLUID(m)){if(fluidSrc.has(i)&&state.placed&&state.placed.has(i)){addBlocks(m,1);state.placed.delete(i)}setVox(i,0);settleDirty=true}
     else{state.material-=1;removeVox(i,'dig')}SFX.crunch(false)}
-  else if(T.kind==='turret'){if(!canInstall())return;const it=state.inv.turrets.splice(B.tsel,1)[0];makeTurret(it.type,T.i,it.r);sparkle(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5,RARITY[it.r].c,8);SFX.build();toast(`${TURRETS[it.type].n} instalada`,'r1');if(!state.inv.turrets.length)B.tool='remove';else B.tsel=clamp(B.tsel,0,state.inv.turrets.length-1)}
+  else if(T.kind==='turret'){if(!canInstall())return;const it=state.inv.turrets.splice(B.tsel,1)[0];makeTurret(it.type,T.i,it.r,it.u);sparkle(ix(T.i)+.5,iy(T.i)+1.5,iz(T.i)+.5,RARITY[it.r].c,8);SFX.build();toast(`${TURRETS[it.type].n} instalada`,'r1');if(!state.inv.turrets.length)B.tool='remove';else B.tsel=clamp(B.tsel,0,state.inv.turrets.length-1)}
   else if(T.kind==='prefab'){placePrefab(T.i)}
   else if((B.h||1)>1&&!FLUID(T.m)){placeCells(craftColumn(T.i),T.m)}
   else{const m=T.m;if(FLUID(m)){state.inv.blocks[m]--;setFluid(T.i,m,4,true);(state.placed=state.placed||new Set()).add(T.i)}
@@ -1827,7 +1830,7 @@ function renderArsenal(){const A=state.inv,body=$('arsBody');let h='<div class="
     h+=`</div><button class="btn wide" id="sellIt">Vender <span class="cost">+${sellValue(it)} material</span></button></div>`}
   const commons=A.armory.filter(i=>i.r===0);if(commons.length)h+=`<button class="btn wide" id="sellCommon">Vender ${commons.length} comuns <span class="cost">+${commons.reduce((a,i)=>a+sellValue(i),0)}</span></button>`;
   const bl=Object.entries(A.blocks).filter(([,n])=>n>0);h+='<div class="sec">Blocos especiais</div>';h+=bl.length?'<div class="chips">'+bl.map(([m,n])=>`<span class="bchip"><i style="background:${hex(MAT[m].c)}"></i>${esc(MAT[m].n)} ×${n}</span>`).join('')+'</div>':'<div class="ds">Nenhum. Caem como loot.</div>';
-  h+='<div class="sec">Armas guardadas</div>';h+=A.turrets.length?'<div class="chips">'+A.turrets.map(t=>`<span class="bchip" style="border-color:var(--${RARITY[t.r].css})">${TURRETS[t.type].ico} ${esc(TURRETS[t.type].n)}</span>`).join('')+'</div><div class="ds">Instale pelo botão Construir → Armas.</div>':'<div class="ds">Nenhuma guardada.</div>';
+  h+='<div class="sec">Armas guardadas</div>';h+=A.turrets.length?'<div class="chips">'+A.turrets.map(t=>`<span class="bchip" style="border-color:var(--${RARITY[t.r].css})">${t.u&&UNIQ_T[t.u]?UNIQ_T[t.u].ico+' ★ '+esc(UNIQ_T[t.u].n):TURRETS[t.type].ico+' '+esc(TURRETS[t.type].n)}</span>`).join('')+'</div><div class="ds">Instale pelo botão Construir → Armas.</div>':'<div class="ds">Nenhuma guardada.</div>';
   const tg={};for(const t of A.turrets){const k=t.type+'|'+t.r;tg[k]=(tg[k]||0)+1}for(const k in tg)if(tg[k]>=3&&+k.split('|')[1]<4){const [ty,r]=k.split('|');h+=`<button class="btn wide" data-tf="${k}">⚒️ Forjar 3 ${esc(TURRETS[ty].n)} → ${RARITY[+r+1].n}</button>`}
   body.innerHTML=h;
   for(const b of body.querySelectorAll('[data-tf]'))b.onclick=()=>{const [ty,r]=b.dataset.tf.split('|');let n=0;for(let i=A.turrets.length-1;i>=0&&n<3;i--)if(A.turrets[i].type===ty&&A.turrets[i].r===+r){A.turrets.splice(i,1);n++}A.turrets.push({type:ty,r:+r+1});SFX.open();toast(`Forjado: ${TURRETS[ty].n} ${RARITY[+r+1].n}!`,RARITY[+r+1].css);renderArsenal()};
@@ -1851,7 +1854,7 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
       for(const it of opts.slice(0,6))h+=`<button class="mrow" data-it="${it.id}"><span style="color:var(--${RARITY[it.r].css})">${itemIco(it)} ${esc(it.n)}</span><span class="ct">${esc(itemLines(it).slice(0,2).join(' · '))}</span></button>`;if(!opts.length)h+='<div class="ds">Nada no arsenal para este espaço.</div>';h+='</div>'}
     if(!m.hero){h+='<div class="ds" style="margin-top:6px">Função</div><div class="roles">';}for(const r in ROLES)if(!m.hero)h+=`<button class="btn sm ${m.role===r?'on':''}" data-role="${r}" title="${esc(ROLES[r].d)}">${ROLES[r].ico} ${ROLES[r].n}</button>`;if(!m.hero)h+='</div>';
     h+='<div class="ds" style="margin-top:6px">Posto</div><div class="roles">';for(const k in POSTS)h+=`<button class="btn sm ${(m.post||'auto')===k?'on':''}" data-mpost="${k}">${POSTS[k].ico} ${POSTS[k].n}</button>`;h+='</div>'}
-  else if(c.t){const t=c.t;if(!t.alive){closeCard();return}h+=`<div class="ch"><b>${t.T.ico} ${esc(t.T.n)}</b><button class="btn x" id="cClose">✕</button></div><div class="ds"><span style="color:var(--${RARITY[t.r].css})">${RARITY[t.r].n}</span> · ${esc(t.T.d)}</div>`;
+  else if(c.t){const t=c.t;if(!t.alive){closeCard();return}h+=`<div class="ch"><b>${t.u&&UNIQ_T[t.u]?UNIQ_T[t.u].ico+' <span style="color:#d99a00">'+esc(UNIQ_T[t.u].n)+'</span>':t.T.ico+' '+esc(t.T.n)}</b><button class="btn x" id="cClose">✕</button></div>${t.u&&UNIQ_T[t.u]?`<div class="ds" style="color:#b07800;font-weight:600">★ ${esc(UNIQ_T[t.u].d)}</div>`:''}<div class="ds"><span style="color:var(--${RARITY[t.r].css})">${RARITY[t.r].n}</span> · ${esc(t.T.d)}</div>`;
     h+=`<div class="hpbar"><i style="width:${Math.round(t.hp/t.maxhp*100)}%"></i></div><div class="ds">Integridade ${Math.ceil(t.hp)}/${Math.ceil(t.maxhp)} · Alcance ${turretRange(t).toFixed(0)} · ${t.gunner?(t.gunner.state==='man'?'Operada por '+esc(t.gunner.name):esc(t.gunner.name)+' a caminho'):'Sem artilheiro (metade da cadência)'}</div>`;
     h+=`<div class="roles"><button class="btn sm" id="tPick">Recolher ao arsenal</button></div>`}
   el.innerHTML=h;$('cClose').onclick=closeCard;
@@ -1861,7 +1864,7 @@ function renderCard(force){const c=state.card;if(!c)return;if(!force){cardAcc++;
   for(const b of el.querySelectorAll('[data-mpost]'))b.onclick=()=>{c.m.post=b.dataset.mpost;c.m.path=null;renderCard(true)};
   for(const b of el.querySelectorAll('[data-role]'))b.onclick=()=>{if(c.m.role!==b.dataset.role){const blk=roleBlock(b.dataset.role);if(blk){toast(blk,'r0');return}}setRole(c.m,b.dataset.role);toast(`${c.m.name} agora é ${ROLES[b.dataset.role].n}`,'r1');renderCard(true)};
   const ha=$('cHeroAb');if(ha)ha.onclick=()=>{heroAbility(c.m.hero);renderCard(true)};
-  const tp=$('tPick');if(tp)tp.onclick=()=>{killTurret(c.t,false);state.inv.turrets.push({type:c.t.type,r:c.t.r});toast(`${c.t.T.n} recolhida`,'r0');closeCard();refreshPanels()}}
+  const tp=$('tPick');if(tp)tp.onclick=()=>{killTurret(c.t,false);state.inv.turrets.push({type:c.t.type,r:c.t.r,u:c.t.u});toast(`${c.t.T.n} recolhida`,'r0');closeCard();refreshPanels()}}
 
 // ── hire
 function renderHire(){const el=$('hire');let h=`<div class="ds" style="width:100%;text-align:center">${minions.length}/${MAX_MINIONS+MAX_MINIONS_BONUS} minions · vagas por função sobem com Quartel, Oficina e Escola</div>`;
@@ -2608,9 +2611,35 @@ window.__raidSt=()=>state.raid?{st:state.raid.st,q:state.queue.length,en:enemies
 // v2.1 contratar fica mais caro a cada minion do mesmo papel (progressão mais lenta)
 function hireCost(r){return Math.round(ROLES[r].cost*(1+roleCount(r)*.22+Math.max(0,minions.length-14)*.04))}
 
+// v2.4 LENDÁRIOS ÚNICOS: nome próprio + efeito especial visível
+const UNIQ_T={
+  aurora:{type:'cannon',ico:'🌩️',n:'Trovão de Aurora',d:'Canhão lendário: a cada 2,5 s um raio salta entre até 5 inimigos.',cd:2.5},
+  norte:{type:'ballista',ico:'🧊',n:'Lança do Norte',d:'Balista lendária: a cada 2 s congela o inimigo mais próximo por 3 s.',cd:2},
+  solar:{type:'sunray',ico:'🌞',n:'Coroa Solar',d:'Raio-sol lendário: a cada 4 s uma explosão solar incendeia tudo num raio de 6.',cd:4},
+  abismo:{type:'mortar',ico:'🕳️',n:'Boca do Abismo',d:'Morteiro lendário: a cada 6 s puxa os inimigos de uma área e os esmaga.',cd:6}};
+const UNIQ_E={
+  golem:{k:'amuleto',ico:'💚',n:'Coração do Golem',d:'Amuleto único: a cada 3 s conserta blocos e armas perto do portador.'},
+  furia:{k:'machado',ico:'🩸',n:'Lâmina da Fúria Rubra',d:'Machado único: 20% dos golpes são críticos ×3 que incendeiam.'},
+  rei:{k:'placas',ico:'👑',n:'Égide do Último Rei',d:'Armadura única: uma vez por horda, em vez de cair, o portador explode num escudo que atordoa os inimigos.'}};
+function makeUniqueEquip(){const [id,U]=pick(Object.entries(UNIQ_E));const it=makeEquip(4,U.k);it.u=id;it.n=U.n;for(const k in it.st)if(typeof it.st[k]==='number'&&it.st[k]>1&&k!=='cap')it.st[k]=1+(it.st[k]-1)*1.25;return it}
+const _ulines=[];function zapLine(a,b,col){const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(a.x,a.y,a.z),new THREE.Vector3(b.x,b.y,b.z)]);const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:1}));scene.add(l);_ulines.push({l,t:.35})}
+function uniqueTick(dt){for(let i=_ulines.length-1;i>=0;i--){const L=_ulines[i];L.t-=dt;L.l.material.opacity=Math.max(0,L.t/.35);if(L.t<=0){scene.remove(L.l);L.l.geometry.dispose();_ulines.splice(i,1)}}
+  for(const t of turrets){if(!t.alive||!t.u||t.team==='r')continue;const U=UNIQ_T[t.u];if(!U)continue;if(!t.uRing){const r=new THREE.Mesh(new THREE.TorusGeometry(.75,.07,6,24),new THREE.MeshBasicMaterial({color:0xffb000}));r.rotation.x=Math.PI/2;r.position.y=.2;t.group.add(r);t.uRing=r}t.uRing.rotation.z+=dt*2;
+    if(state.phase!=='wave')continue;t.uT=(t.uT??U.cd)-dt;if(t.uT>0)continue;const R=turretRange?turretRange(t):t.T.range;const near=enemies.filter(e=>!e.dead&&!e.under&&hd(e.pos,t.pos)<R).sort((a,b)=>hd(a.pos,t.pos)-hd(b.pos,t.pos));if(!near.length){t.uT=.5;continue}t.uT=U.cd;const W=state.wave;
+    if(t.u==='aurora'){let p={x:t.pos.x,y:t.pos.y+1,z:t.pos.z};const hit=[];let cur=near[0];for(let k=0;k<5&&cur;k++){hit.push(cur);const q={x:cur.pos.x,y:cur.group.position.y+1,z:cur.pos.z};zapLine(p,q,0x9fd8ff);p=q;dmgEnemy(cur,(40+W*4)*state.dmgMul,true);cur=enemies.find(e=>!e.dead&&!hit.includes(e)&&hd(e.pos,cur.pos)<7)}SFX.zap&&SFX.zap()}
+    else if(t.u==='norte'){const e=near[0];e.slowT=Math.max(e.slowT||0,3);e.stun=Math.max(e.stun||0,.8);for(let k=0;k<6;k++)spawnDebris(e.pos.x,e.group.position.y+1,e.pos.z,0xbfefff,1,.2);label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'❄ congelado','#8fe3ff')}
+    else if(t.u==='solar'){const c=near[0];ringFx(c.pos.x,c.gy+.6,c.pos.z,6,0xffb000);for(const e of enemies)if(!e.dead&&hd(e.pos,c.pos)<6){e.afire=Math.max(e.afire||0,4);dmgEnemy(e,(25+W*2.5)*state.dmgMul,false)}}
+    else if(t.u==='abismo'){const c=near[Math.min(near.length-1,2)];ringFx(c.pos.x,c.gy+.6,c.pos.z,8,0x8a40ff);for(const e of enemies)if(!e.dead&&!BIG(e.type)&&hd(e.pos,c.pos)<8){const dx=c.pos.x-e.pos.x,dz=c.pos.z-e.pos.z;e.pos.x+=dx*.7;e.pos.z+=dz*.7;e.stun=Math.max(e.stun||0,.6)}setTimeout(()=>explode(c.pos.x,c.gy+.3,c.pos.z,3.4,(90+W*7)*state.dmgMul,{src:'player'}),350)}}
+  for(const m of minions){const has=['arma','armadura','acessorio'].map(s=>m.eq[s]).filter(it=>it&&it.u);if(!has.length){if(m.uRing){m.group.remove(m.uRing);m.uRing=null}continue}
+    if(!m.uRing){const r=new THREE.Mesh(new THREE.TorusGeometry(.55,.05,6,20),new THREE.MeshBasicMaterial({color:0xffb000}));r.rotation.x=Math.PI/2;r.position.y=.08;m.group.add(r);m.uRing=r}m.uRing.rotation.z+=dt*3;
+    for(const it of has){if(it.u==='golem'){m.ugT=(m.ugT??3)-dt;if(m.ugT<=0){m.ugT=3;let n=0;for(const i of damaged){if(n>=6)break;if(Math.hypot(ix(i)+.5-m.pos.x,iz(i)+.5-m.pos.z)<5&&vox[i]){hp[i]=Math.min(maxHpOf(vox[i]),hp[i]+maxHpOf(vox[i])*.3);paint(i);n++}}for(const t of turrets)if(t.alive&&hd(t.pos,m.pos)<5)t.hp=Math.min(t.maxhp,t.hp+t.maxhp*.08);if(n)sparkle(m.pos.x,m.group.position.y+1,m.pos.z,0x5cff9a,5)}}}}}
+function uniqueCrit(m,d,tgt){const w=m.eq.arma;if(w&&w.u==='furia'&&Math.random()<.2){tgt.afire=Math.max(tgt.afire||0,3);label({x:tgt.pos.x,y:tgt.gy+2,z:tgt.pos.z},'CRÍTICO!','#ff3b3b');return d*3}return d}
+function uniqueSave(m){const a=m.eq.armadura;if(a&&a.u==='rei'&&m.reiWave!==state.wave){m.reiWave=state.wave;m.hp=m.maxhp*.5;ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,6,0xffcf3d);for(const e of enemies)if(!e.dead&&hd(e.pos,m.pos)<6)e.stun=Math.max(e.stun||0,2);label(m.pos,'👑 Égide do Último Rei!','#ffcf3d');return true}return false}
+window.__uniq=()=>{const ts=Object.keys(UNIQ_T);ts.forEach((u,k)=>{const an=[...TOWER_ANCHORS,...KEEP_ANCHORS][k];const old=turretAt(an);if(old)killTurret(old,false);makeTurret(UNIQ_T[u].type,an,4,u)});const m=minions.find(m=>m.role==='sol'&&!m.hero);for(const id of Object.keys(UNIQ_E)){const it=makeUniqueEquip();it.u=id;it.n=UNIQ_E[id].n;state.inv.armory.push(it);equipItem(m,it)}revealCard(UNIQ_T.aurora.ico,UNIQ_T.aurora.n,4,UNIQ_T.aurora.d,true);return ts.length};
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.3;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.4;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2675,7 +2704,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [2.0,'🎯 Armas equilibradas (DPS medido uma a uma): Canhão bem mais forte, Morteiro com mais dano e recarga menor, Gelo bate mais; Lança-chamas e Raio-sol um pouco menos absurdos. Equipamentos: a raridade agora pesa muito mais (lendário ≈3,7× o bônus do comum) e épicos/lendários ainda dão vida extra.'],
   [2.1,'👥 Minions: contratar fica mais caro a cada um do mesmo papel (o exército cresce mais devagar e cada contratação pesa). Subir de nível agora brilha com anel dourado e a ficha mostra o bônus do nível e um resumo dos atributos com equipamento (dano ×, defesa %, vida ×). Soldados batem um pouco mais forte.'],
   [2.2,'🔕 Menos ruído: avisos de combo, níveis de minions, equipamentos automáticos, baús comuns, inimigos lendários e tesouros enterrados viraram rótulos no mapa (−40% de avisos). Dicas menores e espaçadas, painel de objetivos recolhido por padrão (toque para abrir) e o pisão do Colosso agora tem aviso no chão.'],
-  [2.3,'📈 Curva de longo prazo: hordas a partir da 12 ficam progressivamente mais duras e os chefes a partir da 15 têm mais vida — o meio de jogo deixa de ser passeio. 🪨 O chão da área da cidadela (até 12 blocos além da muralha) não é mais destruído por inimigos, erupções ou terremotos: a horda fica sempre na superfície.']];
+  [2.3,'📈 Curva de longo prazo: hordas a partir da 12 ficam progressivamente mais duras e os chefes a partir da 15 têm mais vida — o meio de jogo deixa de ser passeio. 🪨 O chão em volta da cidadela (até 48 blocos além da muralha) não é mais destruído por inimigos, erupções ou terremotos: a horda fica sempre na superfície.'],
+  [2.4,'★ Lendários ÚNICOS: 35% dos drops lendários viram um item com nome e poder próprio — Trovão de Aurora (raios em cadeia), Lança do Norte (congela), Coroa Solar (explosão de fogo), Boca do Abismo (puxa e esmaga), Coração do Golem (conserta blocos e armas por perto), Lâmina da Fúria Rubra (críticos ×3) e Égide do Último Rei (salva o portador uma vez por horda). Chegam com carta dourada animada e anel dourado em quem usa.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','retreating','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2694,7 +2724,7 @@ function saveGame(manual){if(!canSave()){if(manual)toast('Só dá para salvar en
     const d={v:1,ver:GAME_VERSION,at:Date.now(),wave:state.wave,diff:OPTS.diff||'normal',biome:state.biomeKey,simTime,state:st,
       nat:natBlue?rleEnc(natBlue):null,vox:rleEnc(battle()?voxNoRival():vox),looted:rleEnc(looted),rown:rleEnc(battle()?new Uint8Array(N):rown),
       minions:minions.filter(m=>!m.allyHelp&&!m.crew).map(m=>({role:m.role,r:m.rarity,name:m.name,lvl:m.lvl,xp:m.xp,trait:m.trait,kills:m.kills,hero:m.hero||null,x:m.pos.x,z:m.pos.z,eq:plain(m.eq)})),
-      turrets:turrets.filter(t=>t.alive&&t.team!=='r').map(t=>({type:t.type,r:t.r,anchor:t.anchor})),
+      turrets:turrets.filter(t=>t.alive&&t.team!=='r').map(t=>({type:t.type,r:t.r,anchor:t.anchor,u:t.u||null})),
       realm:{t:REALM.t,spawnT:REALM.spawnT,poiT:REALM.poiT,nextId:REALM.nextId,facs:REALM.facs.map(f=>({...f})),cities:REALM.cities.map(c=>({...c,fac:c.fac.id})),pois:plain(REALM.pois),log:REALM.log.slice(-30)}};
     localStorage.setItem(SAVE_KEY,JSON.stringify(d));state.savedWave=state.wave;refreshSaveUi();if(manual)toast(`💾 Jogo salvo na horda ${state.wave}`,'r2');return true}
   catch(e){console.warn('save failed',e);if(manual)toast('Não foi possível salvar (armazenamento do navegador cheio ou bloqueado)','r0');return false}}
@@ -2713,7 +2743,7 @@ function loadGame(){const d=readSave();if(!d)return false;
   if(state.vein&&Array.isArray(state.vein.cells))for(const i of state.vein.cells)if(vox[i]===19)hp[i]=MAT[19].hp*4;else if(state.vein&&!Array.isArray(state.vein.cells))state.vein=null;
   colS.fill(-1);colE.fill(-1);colT.fill(-1);for(let i=0;i<N;i++)if(vox[i])paint(i);initTufts();snapshotNature();restoreNature(d);voxDirty=true;fluidDirty=true;
   // army
-  for(const T of d.turrets||[])if(TURRETS[T.type]&&vox[T.anchor])makeTurret(T.type,T.anchor,T.r||0);
+  for(const T of d.turrets||[])if(TURRETS[T.type]&&vox[T.anchor])makeTurret(T.type,T.anchor,T.r||0,T.u||null);
   for(const s of d.minions||[]){let m;if(s.hero){const H=HEROES.find(h=>h.id===s.hero);if(!H)continue;spawnHero(H);m=state.heroes[H.id].m}else{if(!ROLES[s.role])continue;m=makeMinion(s.role,s.r||0,s.x,s.z);m.name=s.name||m.name;m.trait=s.trait||m.trait}
     m.lvl=s.lvl||1;m.xp=s.xp||0;m.kills=s.kills||0;vetRestore(m);const eq=revive(s.eq||{});for(const k in m.eq)m.eq[k]=eq[k]||null;recompute(m);m.hp=m.maxhp}
   // realm
@@ -2883,7 +2913,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)if(!m.away)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on;const rf=$('rainFx'),ro=state.phase==='wave'&&state.ev==='rain'&&!OPTS.lowGfx;if(rf.hidden===ro)rf.hidden=!ro}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);volcanoTick(dt);biomeTick(dt);dogTick(dt);buffTick(dt);gateTick(dt);lightTick(dt);crossbowTick(dt);dragonTick(dt);contractTick(dt);raidTick(dt);navTick(dt);reformTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on;const rf=$('rainFx'),ro=state.phase==='wave'&&state.ev==='rain'&&!OPTS.lowGfx;if(rf.hidden===ro)rf.hidden=!ro}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);volcanoTick(dt);biomeTick(dt);dogTick(dt);buffTick(dt);gateTick(dt);lightTick(dt);crossbowTick(dt);dragonTick(dt);uniqueTick(dt);contractTick(dt);raidTick(dt);navTick(dt);reformTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';$('bossShield').style.width=(b.shield>0?b.shield/b.maxhp*100:0)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;label({x:CHEST.x,y:GY+4,z:CHEST.z},`Combo ×${state.combo} · +${g}`,'#ff8a5c');state.combo=0}
@@ -2924,7 +2954,7 @@ const MID_ANCHORS=()=>MID_TOWERS().map(([x,z])=>idx(x+1,GY+TOWER_H-1,z+1));
 const reserveMat=()=>40+state.wave*4;
 // construction: decide where turrets, traps and new towers go, hire who is missing
 function autoBuildTick(){const reserve=reserveMat();let acted=false;
-  if(state.inv.turrets.length){state.inv.turrets.sort((a,b)=>TURRETS[b.type].v+b.r-(TURRETS[a.type].v+a.r));const spot=turretCount()<turretCap()?[...TURRET_SPOTS(),...MID_ANCHORS()].find(a=>vox[a]&&blue[a]&&!turretAt(a)&&!vox[a+W*D]):undefined;if(spot!==undefined){const t=state.inv.turrets.shift();makeTurret(t.type,spot,t.r);sparkle(ix(spot)+.5,iy(spot)+1.5,iz(spot)+.5,RARITY[t.r].c,8);toast(`Construção auto: ${TURRETS[t.type].n} instalada`,'r1');acted=true}}
+  if(state.inv.turrets.length){state.inv.turrets.sort((a,b)=>TURRETS[b.type].v+b.r-(TURRETS[a.type].v+a.r));const spot=turretCount()<turretCap()?[...TURRET_SPOTS(),...MID_ANCHORS()].find(a=>vox[a]&&blue[a]&&!turretAt(a)&&!vox[a+W*D]):undefined;if(spot!==undefined){const t=state.inv.turrets.shift();makeTurret(t.type,spot,t.r,t.u);sparkle(ix(spot)+.5,iy(spot)+1.5,iz(spot)+.5,RARITY[t.r].c,8);toast(`Construção auto: ${TURRETS[t.type].n} instalada`,'r1');acted=true}}
   for(const m of [17,16,18,31,10]){if(!(state.inv.blocks[m]>0))continue;let sp=smartTrapSpot(m);if(sp<0&&m!==10)sp=TRAP_SPOTS().find(i=>!vox[i]&&!blue[i]&&!cellBusy(i));if(sp===undefined||sp<0)continue;placeBlue(sp,m);state.inv.blocks[m]--;state.prepaid.add(sp);acted=true;if(Math.random()<.15)toast(`Construção auto: ${MAT[m].n} no caminho dos Devoradores`,'r1');break}
   if(state.inv.blocks[19]>0){const sp=[idx(WA+5,GY,WA+5),idx(WB-5,GY,WA+5),idx(WA+5,GY,WB-5),idx(WB-5,GY,WB-5),idx(WA+6,GY,WA+5),idx(WB-6,GY,WB-5)].find(i=>!vox[i]&&!blue[i]&&!cellBusy(i));if(sp!==undefined){placeBlue(sp,19);state.inv.blocks[19]--;state.prepaid.add(sp);acted=true}}
   for(const m of [9]){if(!(state.inv.blocks[m]>0))continue;const sp=[idx(CX-6,GY-1,CZ+5),idx(CX+6,GY-1,CZ+5),idx(CX-6,GY-1,CZ-5),idx(CX+6,GY-1,CZ-5)].find(i=>vox[i]===13);if(sp!==undefined){setVox(sp,0);setFluid(sp,9,4,true);state.inv.blocks[m]--;acted=true}}
@@ -2945,7 +2975,7 @@ function autoUpgradeTick(){{const res=reserveMat();if(state.material>res*2){cons
   if(n){acted=true;if(Math.random()<.3)toast(`Upgrade auto: ${n} bloco${n>1?'s':''} melhorado${n>1?'s':''}`,'r2')}
   // installed weapons: swap the weakest for a better one from the arsenal
   if(state.inv.turrets.length){const best=state.inv.turrets.slice().sort((a,b)=>TURRETS[b.type].v+b.r-(TURRETS[a.type].v+a.r))[0];const worst=turrets.filter(t=>t.alive).sort((a,b)=>TV(a)-TV(b))[0];
-    if(worst&&TURRETS[best.type].v+best.r>TV(worst)+.4&&!TURRET_SPOTS().concat(MID_ANCHORS()).some(a=>vox[a]&&blue[a]&&!turretAt(a)&&!vox[a+W*D])){const anchor=worst.anchor;killTurret(worst,false);state.inv.turrets.push({type:worst.type,r:worst.r});state.inv.turrets.splice(state.inv.turrets.indexOf(best),1);makeTurret(best.type,anchor,best.r);toast(`Upgrade auto: ${TURRETS[worst.type].n} → ${TURRETS[best.type].n} ${RARITY[best.r].n}`,RARITY[best.r].css);acted=true}}
+    if(worst&&TURRETS[best.type].v+best.r>TV(worst)+.4&&!TURRET_SPOTS().concat(MID_ANCHORS()).some(a=>vox[a]&&blue[a]&&!turretAt(a)&&!vox[a+W*D])){const anchor=worst.anchor;killTurret(worst,false);state.inv.turrets.push({type:worst.type,r:worst.r,u:worst.u});state.inv.turrets.splice(state.inv.turrets.indexOf(best),1);makeTurret(best.type,anchor,best.r,best.u);toast(`Upgrade auto: ${TURRETS[worst.type].n} → ${TURRETS[best.type].n} ${RARITY[best.r].n}`,RARITY[best.r].css);acted=true}}
   // equipment: everything goes to whoever gains most; forge triples
   for(const it of state.inv.armory.slice())if(autoEquip(it))acted=true;
   const g={};for(const it of state.inv.armory){const k=it.k+'|'+it.r;(g[k]=g[k]||[]).push(it)}for(const k in g)if(g[k].length>=3&&g[k][0].r<4){for(const o of g[k].slice(0,3))state.inv.armory.splice(state.inv.armory.indexOf(o),1);const nw=makeEquip(g[k][0].r+1,g[k][0].k);state.inv.armory.push(nw);toast(`Upgrade auto forjou ${nw.n} ${RARITY[nw.r].n}`,RARITY[nw.r].css);autoEquip(nw);acted=true;break}

@@ -218,6 +218,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 @media (max-width:760px){#reveal{right:56px;top:calc(160px + env(safe-area-inset-top,0px));width:min(260px,64vw)}}
 #ftip{width:min(400px,calc(100vw - 120px))!important;font-size:12.5px!important;padding:7px 8px 7px 12px!important;border-radius:12px!important;opacity:.94}#ftip .btn{padding:3px 8px;min-width:0}
 #goals .gmin{display:none;font-size:11px;color:var(--ink-soft)}#goals.min .gmin{display:block}#goals.min .rel{display:none}#goals.min{width:auto;min-width:170px}
+#reveal .rv.u{--c:#ffcf3d;background:linear-gradient(120deg,#3a2608 0%,#6b4a10 35%,#ffdf7a 50%,#6b4a10 65%,#3a2608 100%);background-size:250% 100%;animation:rvIn .45s cubic-bezier(.2,1.4,.4,1),rvShine 2.2s linear infinite;box-shadow:0 0 34px rgba(255,190,60,.75),0 8px 30px rgba(0,0,0,.4)}
+#reveal .rv.u .rn{font-size:15px;text-shadow:0 1px 6px rgba(0,0,0,.6)}#reveal .rv.u .rl{opacity:.95}
+@keyframes rvShine{from{background-position:100% 0}to{background-position:-150% 0}}
 </style>
 
 <canvas id="c"></canvas>

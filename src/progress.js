@@ -675,3 +675,29 @@ window.__raidSt=()=>state.raid?{st:state.raid.st,q:state.queue.length,en:enemies
 
 // v2.1 contratar fica mais caro a cada minion do mesmo papel (progressão mais lenta)
 function hireCost(r){return Math.round(ROLES[r].cost*(1+roleCount(r)*.22+Math.max(0,minions.length-14)*.04))}
+
+// v2.4 LENDÁRIOS ÚNICOS: nome próprio + efeito especial visível
+const UNIQ_T={
+  aurora:{type:'cannon',ico:'🌩️',n:'Trovão de Aurora',d:'Canhão lendário: a cada 2,5 s um raio salta entre até 5 inimigos.',cd:2.5},
+  norte:{type:'ballista',ico:'🧊',n:'Lança do Norte',d:'Balista lendária: a cada 2 s congela o inimigo mais próximo por 3 s.',cd:2},
+  solar:{type:'sunray',ico:'🌞',n:'Coroa Solar',d:'Raio-sol lendário: a cada 4 s uma explosão solar incendeia tudo num raio de 6.',cd:4},
+  abismo:{type:'mortar',ico:'🕳️',n:'Boca do Abismo',d:'Morteiro lendário: a cada 6 s puxa os inimigos de uma área e os esmaga.',cd:6}};
+const UNIQ_E={
+  golem:{k:'amuleto',ico:'💚',n:'Coração do Golem',d:'Amuleto único: a cada 3 s conserta blocos e armas perto do portador.'},
+  furia:{k:'machado',ico:'🩸',n:'Lâmina da Fúria Rubra',d:'Machado único: 20% dos golpes são críticos ×3 que incendeiam.'},
+  rei:{k:'placas',ico:'👑',n:'Égide do Último Rei',d:'Armadura única: uma vez por horda, em vez de cair, o portador explode num escudo que atordoa os inimigos.'}};
+function makeUniqueEquip(){const [id,U]=pick(Object.entries(UNIQ_E));const it=makeEquip(4,U.k);it.u=id;it.n=U.n;for(const k in it.st)if(typeof it.st[k]==='number'&&it.st[k]>1&&k!=='cap')it.st[k]=1+(it.st[k]-1)*1.25;return it}
+const _ulines=[];function zapLine(a,b,col){const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(a.x,a.y,a.z),new THREE.Vector3(b.x,b.y,b.z)]);const l=new THREE.Line(g,new THREE.LineBasicMaterial({color:col,transparent:true,opacity:1}));scene.add(l);_ulines.push({l,t:.35})}
+function uniqueTick(dt){for(let i=_ulines.length-1;i>=0;i--){const L=_ulines[i];L.t-=dt;L.l.material.opacity=Math.max(0,L.t/.35);if(L.t<=0){scene.remove(L.l);L.l.geometry.dispose();_ulines.splice(i,1)}}
+  for(const t of turrets){if(!t.alive||!t.u||t.team==='r')continue;const U=UNIQ_T[t.u];if(!U)continue;if(!t.uRing){const r=new THREE.Mesh(new THREE.TorusGeometry(.75,.07,6,24),new THREE.MeshBasicMaterial({color:0xffb000}));r.rotation.x=Math.PI/2;r.position.y=.2;t.group.add(r);t.uRing=r}t.uRing.rotation.z+=dt*2;
+    if(state.phase!=='wave')continue;t.uT=(t.uT??U.cd)-dt;if(t.uT>0)continue;const R=turretRange?turretRange(t):t.T.range;const near=enemies.filter(e=>!e.dead&&!e.under&&hd(e.pos,t.pos)<R).sort((a,b)=>hd(a.pos,t.pos)-hd(b.pos,t.pos));if(!near.length){t.uT=.5;continue}t.uT=U.cd;const W=state.wave;
+    if(t.u==='aurora'){let p={x:t.pos.x,y:t.pos.y+1,z:t.pos.z};const hit=[];let cur=near[0];for(let k=0;k<5&&cur;k++){hit.push(cur);const q={x:cur.pos.x,y:cur.group.position.y+1,z:cur.pos.z};zapLine(p,q,0x9fd8ff);p=q;dmgEnemy(cur,(40+W*4)*state.dmgMul,true);cur=enemies.find(e=>!e.dead&&!hit.includes(e)&&hd(e.pos,cur.pos)<7)}SFX.zap&&SFX.zap()}
+    else if(t.u==='norte'){const e=near[0];e.slowT=Math.max(e.slowT||0,3);e.stun=Math.max(e.stun||0,.8);for(let k=0;k<6;k++)spawnDebris(e.pos.x,e.group.position.y+1,e.pos.z,0xbfefff,1,.2);label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'❄ congelado','#8fe3ff')}
+    else if(t.u==='solar'){const c=near[0];ringFx(c.pos.x,c.gy+.6,c.pos.z,6,0xffb000);for(const e of enemies)if(!e.dead&&hd(e.pos,c.pos)<6){e.afire=Math.max(e.afire||0,4);dmgEnemy(e,(25+W*2.5)*state.dmgMul,false)}}
+    else if(t.u==='abismo'){const c=near[Math.min(near.length-1,2)];ringFx(c.pos.x,c.gy+.6,c.pos.z,8,0x8a40ff);for(const e of enemies)if(!e.dead&&!BIG(e.type)&&hd(e.pos,c.pos)<8){const dx=c.pos.x-e.pos.x,dz=c.pos.z-e.pos.z;e.pos.x+=dx*.7;e.pos.z+=dz*.7;e.stun=Math.max(e.stun||0,.6)}setTimeout(()=>explode(c.pos.x,c.gy+.3,c.pos.z,3.4,(90+W*7)*state.dmgMul,{src:'player'}),350)}}
+  for(const m of minions){const has=['arma','armadura','acessorio'].map(s=>m.eq[s]).filter(it=>it&&it.u);if(!has.length){if(m.uRing){m.group.remove(m.uRing);m.uRing=null}continue}
+    if(!m.uRing){const r=new THREE.Mesh(new THREE.TorusGeometry(.55,.05,6,20),new THREE.MeshBasicMaterial({color:0xffb000}));r.rotation.x=Math.PI/2;r.position.y=.08;m.group.add(r);m.uRing=r}m.uRing.rotation.z+=dt*3;
+    for(const it of has){if(it.u==='golem'){m.ugT=(m.ugT??3)-dt;if(m.ugT<=0){m.ugT=3;let n=0;for(const i of damaged){if(n>=6)break;if(Math.hypot(ix(i)+.5-m.pos.x,iz(i)+.5-m.pos.z)<5&&vox[i]){hp[i]=Math.min(maxHpOf(vox[i]),hp[i]+maxHpOf(vox[i])*.3);paint(i);n++}}for(const t of turrets)if(t.alive&&hd(t.pos,m.pos)<5)t.hp=Math.min(t.maxhp,t.hp+t.maxhp*.08);if(n)sparkle(m.pos.x,m.group.position.y+1,m.pos.z,0x5cff9a,5)}}}}}
+function uniqueCrit(m,d,tgt){const w=m.eq.arma;if(w&&w.u==='furia'&&Math.random()<.2){tgt.afire=Math.max(tgt.afire||0,3);label({x:tgt.pos.x,y:tgt.gy+2,z:tgt.pos.z},'CRÍTICO!','#ff3b3b');return d*3}return d}
+function uniqueSave(m){const a=m.eq.armadura;if(a&&a.u==='rei'&&m.reiWave!==state.wave){m.reiWave=state.wave;m.hp=m.maxhp*.5;ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,6,0xffcf3d);for(const e of enemies)if(!e.dead&&hd(e.pos,m.pos)<6)e.stun=Math.max(e.stun||0,2);label(m.pos,'👑 Égide do Último Rei!','#ffcf3d');return true}return false}
+window.__uniq=()=>{const ts=Object.keys(UNIQ_T);ts.forEach((u,k)=>{const an=[...TOWER_ANCHORS,...KEEP_ANCHORS][k];const old=turretAt(an);if(old)killTurret(old,false);makeTurret(UNIQ_T[u].type,an,4,u)});const m=minions.find(m=>m.role==='sol'&&!m.hero);for(const id of Object.keys(UNIQ_E)){const it=makeUniqueEquip();it.u=id;it.n=UNIQ_E[id].n;state.inv.armory.push(it);equipItem(m,it)}revealCard(UNIQ_T.aurora.ico,UNIQ_T.aurora.n,4,UNIQ_T.aurora.d,true);return ts.length};
