@@ -374,6 +374,7 @@ const SFX={
   open(){if(!soundOn)return;tone('triangle',392,0,.15,.15);tone('triangle',523,0,.15,.15,.1);tone('triangle',784,0,.5,.18,.2);nz(.6,'highpass',3000,0,.08,.05)},
   freeze(){if(!soundOn||throttle('fr',100))return;nz(.3,'highpass',4000,0,.12);tone('sine',1600,2400,.2,.05)},
   build(){if(!soundOn||throttle('bu',60))return;tone('square',220,330,.06,.05)},
+  fanfare(big){if(!soundOn)return;const n=big?[523,659,784,1047,784,1047]:[523,659,784];n.forEach((f,i)=>tone('triangle',f,0,big&&i===n.length-1?.7:.22,.13,i*.11));if(big)nz(.8,'highpass',3500,0,.06,.4)},
 };
 
 // ───────── world: renderer, voxel grid, terrain, blueprint, fluids, fire, explosions
@@ -738,7 +739,7 @@ function deposit(L,m){const d=L.data;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treas
     case'block':{addBlocks(d.m,d.n);state.newItems++;toast(`+${d.n} ${MAT[d.m].n} para construir`,RARITY[L.r].css);break}
     case'turret':{state.inv.turrets.push({type:d.type,r:L.r});state.newItems++;toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
     case'recruit':{if(!roleFree(d.role)){const alt=Object.keys(ROLES).filter(roleFree);if(alt.length)d.role=pick(alt)}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS||!roleFree(d.role)){const g=2*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
-  if(L.r>=1)SFX.loot(L.r);refreshPanels()}
+  if(L.r>=1)SFX.loot(L.r);if(L.r>=4){const p=m?m.pos:CHEST;for(let k=0;k<36;k++)spawnDebris(p.x,(m?m.group.position.y:GY)+1.5,p.z,pick([0xffcf3d,0xff8a5c,0xb56cf2,0x5cc08c,0x4f9cf2,0xec5f6b]),1,.16);label({x:p.x,y:(p.y||GY)+2.5,z:p.z},'✨ LENDÁRIO!','#e0a000')}refreshPanels()}
 
 // ───────── turrets: defensive weapons placed on any block
 const TURRETS={
@@ -1902,7 +1903,7 @@ function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.len
   const e=makeEnemy(type,r,x,z);if(r>=2&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
-function endWave(){const ev=state.ev;state.wave++;state.morale=Math.min(100,(state.morale??60)+8);checkUnlocks();expansionTick();if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();if(state.wave%7===0)startFestival();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
+function endWave(){const ev=state.ev;state.wave++;SFX.fanfare((state.wave-1)%5===0);state.morale=Math.min(100,(state.morale??60)+8);checkUnlocks();expansionTick();if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();if(state.wave%7===0)startFestival();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
   if(ev==='siege'&&state.siege>1){state.siege--;state.phase='rest';toast(`Cerco: horda ${4-state.siege} de 3. Sem descanso!`,'r2');startWave();return}
   if(ev==='siege'){state.siege=0;spawnLoot(CHEST.x+3,GY+3,CHEST.z+4,'treasure',3,{})}
   state.phase='rest';state.restT=15;$('event').style.display='none';

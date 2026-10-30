@@ -91,4 +91,5 @@ const SFX={
   open(){if(!soundOn)return;tone('triangle',392,0,.15,.15);tone('triangle',523,0,.15,.15,.1);tone('triangle',784,0,.5,.18,.2);nz(.6,'highpass',3000,0,.08,.05)},
   freeze(){if(!soundOn||throttle('fr',100))return;nz(.3,'highpass',4000,0,.12);tone('sine',1600,2400,.2,.05)},
   build(){if(!soundOn||throttle('bu',60))return;tone('square',220,330,.06,.05)},
+  fanfare(big){if(!soundOn)return;const n=big?[523,659,784,1047,784,1047]:[523,659,784];n.forEach((f,i)=>tone('triangle',f,0,big&&i===n.length-1?.7:.22,.13,i*.11));if(big)nz(.8,'highpass',3500,0,.06,.4)},
 };

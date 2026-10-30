@@ -68,6 +68,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.32: 🎉 Festival a cada 7 hordas: +10 de moral e 16 lanternas coloridas flutuando sobre a cidadela por ~15 s; clique para ganhar material (4 + horda) e +2 de moral cada; as que não forem clicadas rendem 25% sozinhas.
 
+- v0.33: juice — confete e "✨ LENDÁRIO!" quando um item lendário chega ao baú; fanfarra ao vencer horda (maior a cada 5). Teste longo com tudo: 30 min sem erros, horda 25 (Normal); Brutal: horda 16 em 20 min com a base sob pressão no início.
+
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
@@ -81,7 +83,6 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - [ ] Mercador de barco: vende/compra itens; loja rotativa com raridades
 - [ ] Combos de elementos: água + Tesla já existe; óleo inflamável, vapor (água+lava fere), gelo sobre água vira ponte
 - [ ] Pets/monturas lendárias, minions com nível/XP e kill count visível
-- [ ] Juice: confete em lendário
 - [ ] Mobile: botões maiores, toque longo para remover
 - [ ] Salvar partida (localStorage) e recorde
 - [ ] Desempenho: medir FPS real com muitos inimigos; reduzir sombras se preciso

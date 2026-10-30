@@ -123,7 +123,7 @@ function deposit(L,m){const d=L.data;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treas
     case'block':{addBlocks(d.m,d.n);state.newItems++;toast(`+${d.n} ${MAT[d.m].n} para construir`,RARITY[L.r].css);break}
     case'turret':{state.inv.turrets.push({type:d.type,r:L.r});state.newItems++;toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
     case'recruit':{if(!roleFree(d.role)){const alt=Object.keys(ROLES).filter(roleFree);if(alt.length)d.role=pick(alt)}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS||!roleFree(d.role)){const g=2*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
-  if(L.r>=1)SFX.loot(L.r);refreshPanels()}
+  if(L.r>=1)SFX.loot(L.r);if(L.r>=4){const p=m?m.pos:CHEST;for(let k=0;k<36;k++)spawnDebris(p.x,(m?m.group.position.y:GY)+1.5,p.z,pick([0xffcf3d,0xff8a5c,0xb56cf2,0x5cc08c,0x4f9cf2,0xec5f6b]),1,.16);label({x:p.x,y:(p.y||GY)+2.5,z:p.z},'✨ LENDÁRIO!','#e0a000')}refreshPanels()}
 
 // ───────── turrets: defensive weapons placed on any block
 const TURRETS={
