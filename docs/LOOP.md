@@ -79,6 +79,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.36: 🐫 Caravana (novo objetivo no Reino): uma carroça de mercadores atravessa o seu mapa até o portão caçada por piratas, lobos e cavaleiros; para quando cercada; mostra a integridade (%) acima dela. Se chegar: 3 tesouros + 12×nível de material no portão; se cair: nada.
 
 - v0.36.1: torres de vigia (expansão da horda 18) reduzem a penalidade de alcance da bruma (72%→92%) e da tempestade de areia (65%→88%). Teste longo 30 min: sem erros, horda 24.
+- v0.37: 🚩 Bandeira de reunião (dock "Reunir"): clique no mapa e os soldados se juntam ali por 30 s, caçando inimigos num raio de 14; clique de novo para cancelar.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

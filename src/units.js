@@ -280,13 +280,14 @@ function updGun(m,dt){
     if(!best){m.timer=.8;return}best.gunner=m;m.turret=best;m.bestD=1e9;m.stuckT=0}
   const t=m.turret,st=t.station;if(!st){t.gunner=null;m.turret=null;return}const d=hd(st,m.pos);
   if(walkTo(m,st.x,st.z,dt,.6)||d<.8){m.state='man';SFX.pop();label(m.pos,'🎯','#ec5f6b')}else progress(m,d,dt,()=>{m.skip.set(t,simTime+15);t.gunner=null;m.turret=null})}
-function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+30||(e.fly&&e.group.position.y>m.group.position.y+3.2)||(!e.fly&&e.gy>GY+3))continue;const d=hd(e.pos,m.pos);const pri=postDist(m,e.pos.x,e.pos.z)*.6+(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+d;if(pri<bd){bd=pri;tgt=e}}
+function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;const RL=state.rally;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||(RL?Math.hypot(e.pos.x-RL.x,e.pos.z-RL.z)>14:Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+30)||(e.fly&&e.group.position.y>m.group.position.y+3.2)||(!e.fly&&e.gy>GY+3))continue;const d=hd(e.pos,m.pos);const pri=postDist(m,e.pos.x,e.pos.z)*.6+(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+d;if(pri<bd){bd=pri;tgt=e}}
   if(tgt&&(inside(tgt.pos.x,tgt.pos.z)||state.phase!=='wave'||tgt.state==='attack'||hd(tgt.pos,m.pos)<14)){const reach=tgt.radius+1.3+m.st.reach;
     if(walkTo(m,tgt.pos.x,tgt.pos.z,dt,reach)||hd(tgt.pos,m.pos)<reach+.1){m.group.rotation.y=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);
       if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
         if(tgt.dead)gainXP(m,6+tgt.maxhp/12);if(m.st.stun&&Math.random()<m.st.stun)tgt.stun=Math.max(tgt.stun,.6);if(m.st.burn)tgt.afire=Math.max(tgt.afire,2);m.wpn.rotation.x=-1.2;spawnDebris(tgt.pos.x,tgt.gy+.8,tgt.pos.z,tgt.T.color,2,.2)}}
     m.wpn.rotation.x*=.85;return}
   // soldiers hold the field outside the walls, in front of the gate
+  if(RL){idleWander(m,dt,RL.x+(((m.bob*13)|0)%5-2)*1.2,RL.z+(((m.bob*7)|0)%3-1)*1.2);return}
   {const p=postPos(m.post);const sideways=m.post==='leste'||m.post==='oeste';idleWander(m,dt,p.x+(sideways?(((m.bob*7)|0)%3)*1.5:(((m.bob*13)|0)%9-4)*1.6),p.z+(sideways?(((m.bob*13)|0)%9-4)*1.6:(((m.bob*7)|0)%3)*1.5))}}
 function updMed(m,dt){let tgt=null,bd=1e9;for(const o of minions){if(o===m)continue;if(o.wounded>0){const d=hd(o.pos,m.pos);if(d<bd){bd=d;tgt=o}}}
   if(!tgt)for(const o of minions){if(o===m||o.state==='man')continue;if(o.hp<o.maxhp*.75){const d=hd(o.pos,m.pos)+8;if(d<bd&&d<45){bd=d;tgt=o}}}

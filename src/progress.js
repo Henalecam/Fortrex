@@ -152,3 +152,9 @@ const TIPS=[
 let tipT=0,tipShow=0;
 function tipTick(dt){if(window.__headless||state.choosing)return;if(tipShow>0){tipShow-=dt;if(tipShow<=0)$('ftip').style.display='none';return}tipT-=dt;if(tipT>0)return;tipT=1.5;for(const T of TIPS){if(TIPS_SEEN[T.id])continue;let ok=false;try{ok=T.c()}catch(e){}if(!ok)continue;TIPS_SEEN[T.id]=1;try{localStorage.setItem('fortrex_tips',JSON.stringify(TIPS_SEEN))}catch(e){}
   const el=$('ftip');el.innerHTML=`<span>${T.t}</span><button class="btn sm" id="tipX">Entendi</button>`;el.style.display='flex';$('tipX').onclick=()=>{el.style.display='none';tipShow=0};tipShow=9;break}}
+
+// ───────── rally flag: plant a banner and every soldier at home gathers there for 30 s (click again to cancel)
+let flagMesh=null;
+function removeFlag(){if(flagMesh){scene.remove(flagMesh);flagMesh=null}}
+function setRally(x,z){removeFlag();state.rally={x,z,t:30};const g=new THREE.Group();box(.12,3,.12,0x6b4a2a,0,1.5,0,g);box(1.1,.7,.06,0xd9414f,.55,2.6,0,g);g.position.set(x,surf(x,z),z);scene.add(g);flagMesh=g;toast('🚩 Soldados, reúnam-se!','r2',true);SFX.whoosh()}
+function rallyTick(dt){const R=state.rally;if(!R)return;R.t-=dt;if(flagMesh)flagMesh.children[1].rotation.y=Math.sin(simTime*4)*.3;if(R.t<=0){state.rally=null;removeFlag()}}
