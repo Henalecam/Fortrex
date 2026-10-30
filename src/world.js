@@ -142,7 +142,7 @@ function freezeAround(cx,cy,cz,r){let n=0;const R=Math.ceil(r);for(let dy=-R;dy<
 // ───────── special blocks: crystal regenerates, gold pays out
 let specAcc=0;
 function tickSpecials(dt){specAcc+=dt;if(specAcc<1)return;specAcc=0;let gold=0;
-  for(const i of specials){const m=vox[i];if(m===15&&hp[i]<MAT[15].hp){hp[i]=Math.min(MAT[15].hp,hp[i]+MAT[15].hp*.08);paint(i);if(Math.random()<.3)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,0x8fe3ff,1,.15)}if(m===19&&blue[i])gold++}
+  for(const i of specials){const m=vox[i];if(m===15&&hp[i]<MAT[15].hp){hp[i]=Math.min(MAT[15].hp,hp[i]+MAT[15].hp*.08);paint(i);if(Math.random()<.3)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,0x8fe3ff,1,.15)}if(m===19&&blue[i]&&gold<25)gold++}
   if(gold){state.goldAcc+=gold*.2;if(state.goldAcc>=1){const n=Math.floor(state.goldAcc);state.goldAcc-=n;state.material+=n;if(Math.random()<.35){const g=[...specials].find(i=>vox[i]===19);if(g!==undefined)label({x:ix(g)+.5,y:iy(g),z:iz(g)+.5},`+${n}`,'#c99a1a')}}}}
 
 // ───────── structural settle: anything not connected to bedrock falls
@@ -197,7 +197,8 @@ function buildCity(put,cx,cz,o){const wr=o.wr,wa=cx-wr,wb=cx+wr,WH=o.wh,ts=o.ts,
     for(let k=0;k<3;k++)for(let x=sx-1+k;x<=sx+3-k;x++)for(let z=sz-1+k;z<=sz+3-k;z++){if(k<2&&Math.abs(x-sx-1)<=0&&Math.abs(z-sz-1)<=0)continue;put(x,GY+kh+5+k,z,roof)}
     put(sx+1,GY+kh+5,sz+1,tower);put(sx+1,GY+kh+8,sz+1,o.banner);put(sx+1,GY+kh+9,sz+1,o.banner)}
   return tw}
-function defaultBlue(arr){arr.fill(0);const put=(x,y,z,m)=>{if(inb(x,y,z))arr[idx(x,y,z)]=m};
+function defaultBlue(arr){const T=typeof CASTLES!=='undefined'&&CASTLES[state.castle];if(T&&state.castle!=='classico'){arr.fill(0);const put=(x,y,z,m)=>{if(inb(x,y,z))arr[idx(x,y,z)]=m};T.b(put,arr);finishBlue(arr,put);return}classicBlue(arr)}
+function classicBlue(arr){arr.fill(0);const put=(x,y,z,m)=>{if(inb(x,y,z))arr[idx(x,y,z)]=m};
   buildCity(put,CX,CZ,{wr:WR,wh:state.wallH,ts:TS,th:TOWER_H,kr:KR,kh:KH,stone:3,stone2:4,tower:6,roof:22,floor:3,gate:7,banner:23});
   for(let x=CX-1;x<=CX+1;x++)for(let z=CZ-1;z<=CZ+1;z++){for(let y=0;y<2;y++)arr[idx(x,GY+y,z)]=5;arr[idx(x,GY+2,z)]=0}
   // outer gate (4 wide) in the south wall

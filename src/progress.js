@@ -28,7 +28,6 @@ const UPGRADES_EXTRA=[
   {id:'quartel',ico:'🏯',nm:'Quartel',ds:'+3 vagas de soldado e +1 de curandeiro.',max:5,cost:l=>60+l*60,go(){}},
   {id:'oficina',ico:'🏭',nm:'Oficina',ds:'+2 vagas de reparador e +2 de coletor.',max:5,cost:l=>50+l*50,go(){}},
   {id:'escola',ico:'🎓',nm:'Escola de artilharia',ds:'+2 vagas de artilheiro.',max:5,cost:l=>60+l*60,go(){}},
-  {id:'masonry',ico:'🧱',nm:'Alvenaria',get ds(){const t=state.blockTier||0;const nx=['madeira e pedra viram pedra e metal','pedra vira metal','metal vira obsidiana','obsidiana vira aço rúnico'][Math.min(3,t)];return t>=4?'A cidadela inteira é de aço rúnico.':`Troca os blocos da planta por melhores: ${nx}. Trocados de graça após a horda.`},max:4,cost:l=>[140,280,560,900][l]||999,need:l=>[4,8,13,19][l]||99,go(){upgradeMasonry()}},
   {id:'oil',ico:'🫕',nm:'Óleo fervente',ds:'As muralhas despejam óleo em quem escala: dano, queimadura e o escalador cai para fora. Mais níveis, mais frequente.',max:3,cost:l=>90+l*90,go(){}},
   {id:'cathedral',ico:'⛪',nm:'Catedral',ds:'Maravilha. Uma relíquia aleatória agora e a moral nunca cai abaixo de 55.',max:1,cost:()=>1100,need:()=>12,go(){const ks=Object.keys(RELICS);grantRelic(pick(ks));state.moraleFloor=Math.max(state.moraleFloor||0,55)}},
   {id:'observatory',ico:'🔭',nm:'Observatório',ds:'Maravilha. Todas as armas ganham +18% de alcance e enxergam através da bruma.',max:1,cost:()=>900,need:()=>10,go(){state.rangeMul=(state.rangeMul||1)*1.18}},
@@ -180,7 +179,7 @@ const TIPS=[{id:'start',c:()=>simTime>3,t:'👥 Seus minions trabalham sozinhos:
   {id:'save',c:()=>state.wave>=3&&state.savedWave===state.wave&&state.phase==='rest',t:'💾 O jogo salva sozinho a cada horda. Para continuar depois, use ▶ Continuar na tela inicial.'},
   {id:'rush',c:()=>rushBonus()>=8,t:'⚡ Ímpeto: chamar a próxima horda logo depois da anterior rende material extra — o botão mostra quanto.'},
   {id:'bomb',c:()=>state.wave>=4&&state.phase==='wave'&&enemies.length>25,t:'💣 Muitos inimigos? Use a Bomba (25 material) e clique onde ela deve cair.'},
-  {id:'mason',c:()=>state.wave>=4&&state.phase==='rest'&&!state.ups.masonry,t:'🧱 Alvenaria (Upgrades) troca os blocos da cidadela por materiais melhores, de graça, depois de cada horda.'},
+  {id:'mason',c:()=>false,t:'🧱 Alvenaria (Upgrades) troca os blocos da cidadela por materiais melhores, de graça, depois de cada horda.'},
   {id:'affix',c:()=>enemies.some(e=>e.aff&&!e.dead),t:'💍 Anéis coloridos nos pés marcam inimigos de elite: amarelo veloz, azul blindado, vermelho vampiro, laranja explode ao morrer, verde regenera.'},
   {id:'sappers',c:()=>(state.fieldTraps||[]).length>=4,t:'💣 Os sapadores espalham minas, espinhos e barris pelo mapa onde a horda passa. Compre Sapadores para mais armadilhas.'},
   {id:'rally',c:()=>!!state.vein||enemies.some(e=>e.alpha&&!e.dead),t:'🚩 Reunir: toque no mapa e os soldados vão até lá por 30 s — ótimo para defender o veio de ouro ou caçar o lobo alfa.'},
@@ -483,3 +482,68 @@ window.__bossX=(t,m)=>{const e=makeEnemy(t||'boss',1,CX+30,CZ+6);if(m){e.maxhp*=
 window.__bossSt=()=>{const e=enemies.find(o=>!o.dead&&o.boss2);return e?{ph:e.ph,mv:e.mv&&e.mv.k,hp:+(e.hp/e.maxhp).toFixed(2)}:null};
 window.__hitBoss=f=>{const e=enemies.find(o=>!o.dead&&o.boss2);if(e)dmgEnemy(e,e.maxhp*f,true);return e?e.hp/e.maxhp:0};
 window.__bpos=()=>{const e=enemies.find(o=>!o.dead&&o.boss2);return e?{x:e.pos.x,z:e.pos.z}:{x:CX,z:CZ}};
+
+// v1.3 templates de castelo: trocar o estilo faz os reparadores demolirem e construírem bloco por bloco
+function finishBlue(arr,put){const G=y=>GY+y;
+  // corredor sul: porta em toda muralha no eixo do portão até o baú
+  for(let z=CZ+2;z<=Math.min(D-2,CZ+WR+7);z++)for(let x=CX-2;x<=CX+1;x++){for(let y=0;y<4;y++){const i=idx(x,G(y),z);if(arr[i]&&arr[i]!==5)arr[i]=z>WB-WT?7:(z>CZ+4?7:0)}}
+  for(let x=CX-2;x<=CX+2;x++)for(let z=CZ-2;z<=CZ+2;z++)for(let y=0;y<4;y++)arr[idx(x,G(y),z)]=0;
+  for(let x=CX-1;x<=CX+1;x++)for(let z=CZ-1;z<=CZ+1;z++){for(let y=0;y<2;y++)arr[idx(x,G(y),z)]=5;arr[idx(x,G(2),z)]=0}
+  for(const [ox,oz] of OUTPOSTS)for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++){for(let y=0;y<4;y++)put(ox+dx,G(y),oz+dz,3);put(ox+dx,G(4),oz+dz,2);if((Math.abs(dx)===2||Math.abs(dz)===2)&&((dx+dz)&1))put(ox+dx,G(5),oz+dz,2)}
+  const anc=[...TOWER_ANCHORS,...KEEP_ANCHORS,...(typeof MID_ANCHORS==='function'?MID_ANCHORS():[])];for(const a of anc){const x=ix(a),y=iy(a),z=iz(a);for(let yy=GY;yy<=y;yy++)if(!arr[idx(x,yy,z)])arr[idx(x,yy,z)]=6;for(let yy=y+1;yy<=Math.min(H-1,y+4);yy++)arr[idx(x,yy,z)]=0}}
+function _cb(put){const G=y=>GY+y;const o={
+  fill(x0,x1,y0,y1,z0,z1,m){for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++)for(let y=y0;y<=y1;y++)put(x,G(y),z,typeof m==='function'?m(x,y,z):m)},
+  sqWall(r,t,h,m,top){for(let x=CX-r;x<=CX+r;x++)for(let z=CZ-r;z<=CZ+r;z++){const d=Math.max(Math.abs(x-CX),Math.abs(z-CZ));if(d>r||d<=r-t)continue;for(let y=0;y<h;y++)put(x,G(y),z,typeof m==='function'?m(y):m);if((x+z)&1)put(x,G(h),z,top||m)}},
+  tower(x,z,s,h,m,roof,ban){o.fill(x,x+s-1,0,h-1,z,z+s-1,m);for(let k=0;roof&&k<Math.ceil(s/2)+1;k++)o.fill(x-1+k,x+s-k,h+k,h+k,z-1+k,z+s-k,roof);if(ban){const c=Math.floor(s/2);put(x+c,G(h+Math.ceil(s/2)+1),z+c,23);put(x+c,G(h+Math.ceil(s/2)+2),z+c,23)}},
+  crown(x,z,s,h,m){for(let a=x;a<x+s;a++)for(let b=z;b<z+s;b++)if((a===x||a===x+s-1||b===z||b===z+s-1)&&((a+b)&1))put(a,G(h),b,m)},
+  round(cx,cz,r,y0,y1,m,shell){for(let x=cx-r;x<=cx+r;x++)for(let z=cz-r;z<=cz+r;z++){const d=Math.hypot(x-cx,z-cz);if(d>r+.4)continue;if(shell&&d<r+.4-shell)continue;for(let y=y0;y<=y1;y++)put(x,G(y),z,m)}},
+  cone(cx,cz,r,y0,m){for(let k=0;k<=r;k++)o.round(cx,cz,r-k,y0+k,y0+k,m)},
+  keep(kr,kh,m,floor){for(let x=CX-kr;x<=CX+kr;x++)for(let z=CZ-kr;z<=CZ+kr;z++){const sh=x<=CX-kr+1||x>=CX+kr-1||z<=CZ-kr+1||z>=CZ+kr-1;for(let y=0;y<kh;y++){const win=sh&&(y%4===3)&&((x+z)%3===0);if(sh&&!win)put(x,G(y),z,m);else if(!sh&&y>0&&y%6===0&&(Math.abs(x-CX)>1||Math.abs(z-CZ)>1))put(x,G(y),z,floor||3)}put(x,G(kh-1),z,m);if((x===CX-kr||x===CX+kr||z===CZ-kr||z===CZ+kr)&&((x+z)&1))put(x,G(kh),z,m)}}};return o}
+const CASTLES={
+  classico:{ico:'🏰',n:'Clássico',d:'A cidadela de sempre: muralha, quatro torres e torre de menagem com pináculos.',b(){}},
+  colossal:{ico:'🏯',n:'Cidadela Colossal',d:'Duas muralhas concêntricas, oito torres com telhados e uma torre de menagem com grande pináculo central.',b(put){const c=_cb(put);
+    c.sqWall(WR,WT,10,y=>y<6?3:24,24);c.sqWall(11,2,13,y=>y<8?3:24,4);
+    for(const [x,z] of TOWERS)c.tower(x,z,TS,TOWER_H,6);
+    for(const [x,z] of [[CX-12,CZ-12],[CX+9,CZ-12],[CX-12,CZ+9],[CX+9,CZ+9]])c.tower(x,z,4,17,24,22,true);
+    for(const [x,z] of [[CX-2,CZ-WR],[WA,CZ-2],[WB-3,CZ-2]])c.fill(x,x+3,0,TOWER_H-1,z,z+3,6);
+    c.keep(KR,KH,3,3);for(const [dx,dz] of [[-KR,-KR],[KR-2,-KR],[-KR,KR-2],[KR-2,KR-2]])c.tower(CX+dx,CZ+dz,3,KH+6,24,22,true);
+    c.fill(CX-1,CX+1,KH,KH+8,CZ-1,CZ+1,24);c.cone(CX,CZ,2,KH+9,22);put(CX,GY+KH+12,CZ,23);put(CX,GY+KH+13,CZ,23)}},
+  zigurate:{ico:'🛕',n:'Zigurate Solar',d:'Pirâmide escalonada de obsidiana e ouro, coroada por um obelisco de cristal; obeliscos nos cantos.',b(put){const c=_cb(put);
+    c.sqWall(WR,WT,6,14,27);for(const [x,z] of TOWERS){c.tower(x,z,TS,TOWER_H,14);c.crown(x,z,TS,TOWER_H,27)}
+    for(const [x,z] of [[CX-2,CZ-WR],[WA,CZ-2],[WB-3,CZ-2]])c.fill(x,x+3,0,TOWER_H-1,z,z+3,14);
+    const L=[[12,0,2],[10,0,5],[8,0,8],[6,0,11],[5,0,14]];for(const [r,y0,y1] of L)for(let x=CX-r;x<=CX+r;x++)for(let z=CZ-r;z<=CZ+r;z++){const d=Math.max(Math.abs(x-CX),Math.abs(z-CZ));if(d<r-1)continue;for(let y=y0;y<=y1;y++)put(x,GY+y,z,d===r&&y===y1?27:(y===y1-1&&d===r?24:14))}
+    c.fill(CX-4,CX+4,14,14,CZ-4,CZ+4,14);c.fill(CX-1,CX+1,15,17,CZ-1,CZ+1,15);c.fill(CX,CX,18,24,CZ,CZ,27);put(CX,GY+25,CZ,15);
+    for(const [x,z] of [[CX-15,CZ-15],[CX+15,CZ-15],[CX-15,CZ+15],[CX+15,CZ+15]]){c.fill(x,x,0,13,z,z,14);put(x,GY+14,z,27);put(x,GY+15,z,15)}}},
+  agulhas:{ico:'⛪',n:'Agulhas Góticas',d:'Muralha de pedra negra, um anel de doze agulhas ligadas por arcos e uma catedral com campanário gigante.',b(put){const c=_cb(put);
+    c.sqWall(WR,WT,8,24,24);for(const [x,z] of TOWERS){c.tower(x,z,TS,TOWER_H,24);const ox=x<CX?x-2:x+TS,oz=z<CZ?z-2:z+TS;c.tower(ox,oz,2,20,24,22,false)}
+    for(const [x,z] of [[CX-2,CZ-WR],[WA,CZ-2],[WB-3,CZ-2]])c.fill(x,x+3,0,TOWER_H-1,z,z+3,24);
+    const P=[];for(let k=0;k<12;k++){const a=k/12*Math.PI*2+.13;const x=Math.round(CX+Math.cos(a)*12),z=Math.round(CZ+Math.sin(a)*12);if(z>CZ+8&&Math.abs(x-CX)<4)continue;P.push([x,z]);c.tower(x,z,2,k%2?18:23,24,22,k%3===0)}
+    for(let k=0;k<P.length;k++){const [x1,z1]=P[k],[x2,z2]=P[(k+1)%P.length];const n=Math.max(Math.abs(x2-x1),Math.abs(z2-z1));for(let t=0;t<=n;t++){const x=Math.round(x1+(x2-x1)*t/n),z=Math.round(z1+(z2-z1)*t/n);put(x,GY+11,z,3);put(x,GY+12,z,24)}}
+    c.keep(KR,KH,24,3);c.fill(CX-1,CX+1,KH,KH+8,CZ-KR,CZ-KR+2,24);c.fill(CX-2,CX+2,KH+9,KH+9,CZ-KR-1,CZ-KR+3,22);c.fill(CX-1,CX+1,KH+10,KH+10,CZ-KR,CZ-KR+2,22);put(CX,GY+KH+11,CZ-KR+1,23);put(CX,GY+KH+12,CZ-KR+1,23)}},
+  estrela:{ico:'⭐',n:'Forte Estrela',d:'Muralha em estrela de oito pontas com quinas de metal e uma torre redonda gigante com cúpula.',b(put){const c=_cb(put);
+    for(let x=CX-WR-5;x<=CX+WR+5;x++)for(let z=CZ-WR-5;z<=CZ+WR+5;z++){const a=Math.atan2(z-CZ,x-CX),d=Math.hypot(x-CX,z-CZ);const r=WR-1+4.2*Math.pow(Math.max(0,Math.cos(4*a)),3);if(Math.abs(d-r)>1.5)continue;for(let y=0;y<9;y++)put(x,GY+y,z,y<5?3:4);if((x+z)&1)put(x,GY+9,z,4)}
+    for(const [x,z] of TOWERS)c.tower(x,z,TS,TOWER_H,6);for(const [x,z] of [[CX-2,CZ-WR],[WA,CZ-2],[WB-3,CZ-2]])c.fill(x,x+3,0,TOWER_H-1,z,z+3,6);
+    c.round(CX,CZ,7,0,KH-1,3,2);c.round(CX,CZ,7,KH-1,KH-1,3);for(let x=CX-7;x<=CX+7;x++)for(let z=CZ-7;z<=CZ+7;z++){const d=Math.hypot(x-CX,z-CZ);if(d>6.6&&d<7.4&&((x+z)&1))put(x,GY+KH,z,4)}
+    c.round(CX,CZ,2,KH,KH+7,24);c.cone(CX,CZ,3,KH+8,22);put(CX,GY+KH+12,CZ,23);put(CX,GY+KH+13,CZ,23)}},
+};
+function setCastle(id){if(!CASTLES[id]||state.castle===id||(!state.castle&&id==='classico'))return false;const old=blue.slice();state.castle=id;buildBlueprint();reformFrom(old);toast(`${CASTLES[id].ico} Novo estilo: ${CASTLES[id].n}. Os reparadores vão desmontar e montar bloco por bloco.`,'r4');if(typeof renderBuild==='function')renderBuild();return true}
+function reformFrom(old){state.demol=state.demol||new Set();state.swapQ=state.swapQ||new Set();let nd=0,ns=0,nb=0;
+  for(let i=0;i<N;i++){const o=old[i],b=blue[i],v=vox[i];if(!o&&!b)continue;if(!v||v===5||FLUID(v)){if(b&&!v)nb++;continue}
+    if(o&&!b){state.demol.add(i);nd++}else if(b&&v!==b){state.swapQ.add(i);ns++}}
+  state.healQ=[];state.reformN=nd+ns+nb;state.reforming=true;return [nd,ns,nb]}
+function reformActive(){return !!(state.reforming||(state.demol&&state.demol.size)||(state.swapQ&&state.swapQ.size))}
+function reformMul(){return reformActive()?6:1}
+// melhor bloco disponível: com Upgrade automático ligado, os reparadores trocam bloco por bloco
+const TIER_WAVES=[4,8,13,19];
+function autoTierTick(){if(!state.autoUp||reformActive())return;const mw=Math.max(state.maxWave||1,state.wave);const av=TIER_WAVES.filter(w=>mw>=w).length;if(av<=(state.blockTier||0))return;
+  const old=blue.slice();state.blockTier=(state.blockTier||0)+1;buildBlueprint();const r=reformFrom(old);toast(`🧱 Bloco melhor disponível: ${MAT[tierMat(3)].n}. Os reparadores trocam ${r[1]} blocos, um por um.`,'r4')}
+let _refT=0;function reformTick(dt){_refT-=dt;if(_refT>0)return;_refT=1;autoTierTick();let miss=0;if(state.reforming){for(const i of blueList){const b=blue[i];if(b&&b!==5&&vox[i]!==b&&!FLUID(vox[i]))miss++}}
+  const n=(state.demol?state.demol.size:0)+(state.swapQ?state.swapQ.size:0)+miss;if(state.reforming&&!n){state.reforming=false;toast('🏰 Obra concluída: a cidadela está no novo estilo.','r4')}
+  crewTick(n);const el=$('refSt');if(!el)return;if(!n){if(!el.hidden)el.hidden=true;return}el.hidden=false;el.textContent=`🔨 ${n}`;el.title=`Obra na cidadela: ${n} blocos para desmontar, trocar ou construir`}
+// equipe temporária de pedreiros enquanto há obra grande (some quando acaba)
+function crewTick(n){const crew=minions.filter(m=>m.crew);const want=n>40&&state.reforming?Math.min(18,6+Math.floor(n/300)):0;
+  if(crew.length<want){for(let k=crew.length;k<want;k++){const m=makeMinion('rep',1,GATE.x+rnd(-1.5,1.5),GATE.z+2+rnd(0,2));m.crew=true;m.name='Pedreiro';m.work*=1.3}}
+  else if(crew.length>want){for(const m of crew.slice(want)){releaseTask(m);scene.remove(m.group);const k=minions.indexOf(m);if(k>=0)minions.splice(k,1)}}}
+window.__castle=id=>{const ok=setCastle(id);return [ok,state.demol?state.demol.size:0,state.swapQ?state.swapQ.size:0,blueList.length]};
+window.__miss=()=>{const o={};let n=0;for(const i of blueList){const b=blue[i];if(b&&b!==5&&vox[i]!==b){n++;const k=`v${vox[i]}b${b}s${supported(i)?1:0}y${iy(i)-GY}`;o[k]=(o[k]||0)+1}}return [n,Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,12)]};
+window.__ref=()=>[state.demol?state.demol.size:0,state.swapQ?state.swapQ.size:0,blueList.filter(i=>vox[i]!==blue[i]&&blue[i]!==5).length,minions.filter(m=>m.crew).length,state.blockTier||0];

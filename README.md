@@ -13,7 +13,8 @@ Abra `dist/index.html` num navegador (precisa de internet para carregar three.js
 - **Hordas infinitas** com dificuldade crescente (Tranquilo / Normal / Brutal), eventos (bruma, eclipse, lua de sangue, revoada, terremoto, piratas, nevasca…) e chefes a cada 5 hordas — a partir da 15 podem vir *Furiosos* ou com *Escudo*.
 - **Inimigos variados:** escaladores, aranhas, aríetes, sabotadores que desarmam armadilhas, porta-estandartes que inspiram a horda, elites com afixos (veloz, blindado, vampiro, explosivo, regenerante).
 - **Armas:** canhão, balista, lança-chamas, morteiro, tesla, torre de vento, canhão de gelo, catapulta, raio-sol — limitadas por plataformas.
-- **Cidadela que cresce sozinha:** expansões por horda, **Alvenaria** que troca blocos por melhores (madeira → aço rúnico), reparo grátis entre hordas, **Égide** (escudo de 7 s), **Óleo fervente**, **Sapadores** que espalham armadilhas, **Canil** com cães de guarda.
+- **Estilos de castelo** (Construir → Castelo): Clássico, Cidadela Colossal, Zigurate Solar, Agulhas Góticas, Forte Estrela — ao trocar, reparadores e pedreiros desmontam e constroem bloco por bloco.
+- **Cidadela que cresce sozinha:** expansões por horda, blocos trocados pelo melhor disponível com Upgrade automático (madeira → aço rúnico), reparo grátis entre hordas, **Égide** (escudo de 7 s), **Óleo fervente**, **Sapadores** que espalham armadilhas, **Canil** com cães de guarda.
 - **Distritos** (escolha a cada fase: Ferraria, Torre arcana, Celeiro, Mercado, Caserna, Santuário) e **Maravilhas** para o fim de jogo.
 - **Heróis** (Paladina, Arqueira, Mago, Engenheira, Berserker, Sacerdotisa) com habilidades e **talentos** nos níveis 3/6/9.
 - **Reino:** fortalezas rivais, alianças (ajude uma cidade cercada e ela vira aliada), covis, ruínas, caravanas, **expedições** de coletores e um **viajante** com tratos arriscados.

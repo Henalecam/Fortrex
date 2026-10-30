@@ -205,7 +205,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
     <span class="st" id="chestSt" hidden title="Blocos do baú de pé. Se chegar a 0, a fortaleza cai. Pedaços perdidos durante a horda só voltam no descanso.">📦 18/18</span>
     <span class="st" id="clock">☀️ Dia 1</span>
   </div>
-  <span class="chip" id="event"></span><span class="chip" id="climSt" hidden style="font-size:12px"></span><span class="chip" id="conSt" hidden style="font-size:12px;opacity:.9"></span><span class="chip" id="buffSt" hidden></span>
+  <span class="chip" id="event"></span><span class="chip" id="refSt" hidden style="font-size:12px"></span><span class="chip" id="climSt" hidden style="font-size:12px"></span><span class="chip" id="conSt" hidden style="font-size:12px;opacity:.9"></span><span class="chip" id="buffSt" hidden></span>
   <span class="grow"></span>
   <button class="chip link" id="rivalChip" title="Abrir o mapa do reino (M). Em guerra: mostra a fortaleza inimiga">🗺️ Reino</button>
   <button class="btn" id="autoMenu" title="Automação">⚙️<span class="lb">Automação</span><span class="cost" id="autoN">0/4</span></button>
@@ -213,7 +213,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 <div id="autoPop" class="menu">
   <div class="mh">Automação<span>Ligue o que quiser e só mexa quando tiver vontade.</span></div>
   <button class="opt" id="abBtn"><i>🏗️</i><div><b>Construção</b><span>Decidem onde construir, instalar armas e armadilhas; contratam quem falta</span></div><u></u></button>
-  <button class="opt" id="auBtn"><i>✨</i><div><b>Upgrade</b><span>Troca o pior pelo melhor e compra melhorias com o material que sobrar</span></div><u></u></button>
+  <button class="opt" id="auBtn"><i>✨</i><div><b>Upgrade</b><span>Troca o pior pelo melhor, compra melhorias e os reparadores trocam cada bloco da cidadela pelo melhor disponível</span></div><u></u></button>
   <button class="opt" id="agBtn"><i>🚪</i><div><b>Portão</b><span>Fecha sozinho quando aríetes chegam e abre no descanso</span></div><u></u></button>
   <button class="opt" id="asBtn"><i>💰</i><div><b>Venda</b><span>Vende equipamento sem uso e armas que não cabem</span></div><u></u></button>
   <button class="opt" id="arBtn"><i>🎁</i><div><b>Recompensa</b><span>Escolhe a recompensa mais rara a cada 5 hordas</span></div><u></u></button>
@@ -233,7 +233,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 <div id="buildPanel" class="side left">
   <div class="hd"><span>Construir</span><button class="btn x" id="buildClose" aria-label="Fechar">✕</button></div>
   <div class="sub">Clique numa face para colocar; os reparadores constroem. Clique direito remove. Tecla R alterna Remover.</div>
-  <div class="tabs"><button class="tab on" data-tab="blocks">Blocos</button><button class="tab" data-tab="turrets">Armas</button></div>
+  <div class="tabs"><button class="tab on" data-tab="blocks">Blocos</button><button class="tab" data-tab="turrets">Armas</button><button class="tab" data-tab="castle">Castelo</button></div>
   <div class="body" id="buildBody"></div>
 </div>
 <div id="arsenal" class="side right">

@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=1.2;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=1.3;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -54,7 +54,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.95,'🔥 Contratos em sequência rendem +15% cada (até +60%) e o contrato ativo aparece no topo com o progresso. Novas conquistas: Mercenário e Palavra de honra.'],
   [1.0,'♾️ Fortrex agora é infinito de verdade: perder uma horda não encerra a partida — a cidadela recua uma horda (−15% material) e você navega livremente entre as hordas já alcançadas com ‹ › no topo. Os biomas viraram climas que chegam e vão embora durante o jogo (Estação fértil, Onda de calor, Inverno rigoroso, Despertar vulcânico, Bruma do pântano); só a dificuldade é escolhida no início.'],
   [1.1,'🧩 Inimigos refeitos em voxels pequenos: corpos arredondados com padrões (listras, carapaças, manchas), cabeça e acessórios em cubinhos, olhos maiores. Eles estão ~30% maiores, se despedaçam cubinho por cubinho ao levar dano (mostrando o interior) e explodem em dezenas de voxels ao morrer.'],
-  [1.2,'👹 Chefes de verdade: chifres, placas de armadura, espinhos nas costas e olhos em brasa. Cada chefe tem golpes telegrafados — pisão em área (círculo vermelho), investida em linha que atravessa muralhas, rajada de projéteis e invocação — e muda de fase a 66% e 33% de vida: fica mais rápido, mais forte, brilha em fúria e chama reforços. A barra mostra a fase.']];
+  [1.2,'👹 Chefes de verdade: chifres, placas de armadura, espinhos nas costas e olhos em brasa. Cada chefe tem golpes telegrafados — pisão em área (círculo vermelho), investida em linha que atravessa muralhas, rajada de projéteis e invocação — e muda de fase a 66% e 33% de vida: fica mais rápido, mais forte, brilha em fúria e chama reforços. A barra mostra a fase.'],
+  [1.3,'🏰 Estilos de castelo (Construir → Castelo): Cidadela Colossal, Zigurate Solar, Agulhas Góticas e Forte Estrela. Ao trocar, os reparadores e uma equipe de pedreiros desmontam e constroem bloco por bloco. 🧱 Alvenaria saiu da loja: com Upgrade automático ligado, cada bloco é trocado pelo melhor disponível conforme você avança. 🌱 O terreno volta a se regenerar (inclusive depois de carregar um save).']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','retreating','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -71,8 +72,8 @@ function canSave(){return state.running&&state.phase==='rest'&&!state.choosing&&
 function saveGame(manual){if(!canSave()){if(manual)toast('Só dá para salvar entre hordas, sem batalha ou missão em andamento','r0');return false}
   try{const st={};for(const k in state){if(SAVE_SKIP.has(k))continue;const x=plain(state[k]);if(x!==undefined)st[k]=x}
     const d={v:1,ver:GAME_VERSION,at:Date.now(),wave:state.wave,diff:OPTS.diff||'normal',biome:state.biomeKey,simTime,state:st,
-      vox:rleEnc(battle()?voxNoRival():vox),looted:rleEnc(looted),rown:rleEnc(battle()?new Uint8Array(N):rown),
-      minions:minions.filter(m=>!m.allyHelp).map(m=>({role:m.role,r:m.rarity,name:m.name,lvl:m.lvl,xp:m.xp,trait:m.trait,kills:m.kills,hero:m.hero||null,x:m.pos.x,z:m.pos.z,eq:plain(m.eq)})),
+      nat:natBlue?rleEnc(natBlue):null,vox:rleEnc(battle()?voxNoRival():vox),looted:rleEnc(looted),rown:rleEnc(battle()?new Uint8Array(N):rown),
+      minions:minions.filter(m=>!m.allyHelp&&!m.crew).map(m=>({role:m.role,r:m.rarity,name:m.name,lvl:m.lvl,xp:m.xp,trait:m.trait,kills:m.kills,hero:m.hero||null,x:m.pos.x,z:m.pos.z,eq:plain(m.eq)})),
       turrets:turrets.filter(t=>t.alive&&t.team!=='r').map(t=>({type:t.type,r:t.r,anchor:t.anchor})),
       realm:{t:REALM.t,spawnT:REALM.spawnT,poiT:REALM.poiT,nextId:REALM.nextId,facs:REALM.facs.map(f=>({...f})),cities:REALM.cities.map(c=>({...c,fac:c.fac.id})),pois:plain(REALM.pois),log:REALM.log.slice(-30)}};
     localStorage.setItem(SAVE_KEY,JSON.stringify(d));state.savedWave=state.wave;refreshSaveUi();if(manual)toast(`💾 Jogo salvo na horda ${state.wave}`,'r2');return true}
@@ -90,7 +91,7 @@ function loadGame(){const d=readSave();if(!d)return false;
   fluids.clear();fluidSrc.clear();burning.clear();specials.clear();damaged.clear();pendingBooms.length=0;resetFluidSlots();resetVoxSlots();
   for(let i=0;i<N;i++){const m=vox[i];if(!m)continue;if(!MAT[m]){vox[i]=0;continue}if(FLUID(m)){hp[i]=4;fluids.add(i);fluidSrc.add(i)}else hp[i]=maxHpOf(m);if(m===15||m===19)specials.add(i)}
   if(state.vein&&Array.isArray(state.vein.cells))for(const i of state.vein.cells)if(vox[i]===19)hp[i]=MAT[19].hp*4;else if(state.vein&&!Array.isArray(state.vein.cells))state.vein=null;
-  colS.fill(-1);colE.fill(-1);colT.fill(-1);for(let i=0;i<N;i++)if(vox[i])paint(i);initTufts();snapshotNature();voxDirty=true;fluidDirty=true;
+  colS.fill(-1);colE.fill(-1);colT.fill(-1);for(let i=0;i<N;i++)if(vox[i])paint(i);initTufts();snapshotNature();restoreNature(d);voxDirty=true;fluidDirty=true;
   // army
   for(const T of d.turrets||[])if(TURRETS[T.type]&&vox[T.anchor])makeTurret(T.type,T.anchor,T.r||0);
   for(const s of d.minions||[]){let m;if(s.hero){const H=HEROES.find(h=>h.id===s.hero);if(!H)continue;spawnHero(H);m=state.heroes[H.id].m}else{if(!ROLES[s.role])continue;m=makeMinion(s.role,s.r||0,s.x,s.z);m.name=s.name||m.name;m.trait=s.trait||m.trait}
@@ -102,3 +103,8 @@ function loadGame(){const d=readSave();if(!d)return false;
   state.ups=state.ups||{};state.inv=state.inv||{blocks:{},turrets:[],armory:[]};
   renderGoals();refreshSaveUi();updateHud();cam.target.set(CX,GY+1.5,CZ);toast(`💾 Partida retomada na horda ${state.wave}`,'r4');if(state.expedition){state.expedition.back=state.wave}showNews(+d.ver||0.41);setTimeout(()=>{for(const k in state.heroes||{})offerTalent(state.heroes[k].m)},2500);return true}
 function refreshSaveUi(){const d=readSave();const b=$('continue');if(b){b.hidden=!d;if(d)b.textContent=`▶ Continuar · horda ${d.wave}`}const s=$('saveInfo');if(s)s.textContent=d?`Último save: horda ${d.wave} · ${new Date(d.at).toLocaleString('pt-BR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'})}`:'Nenhum save ainda'}
+
+// v1.3: a referência do terreno natural vai no save, para crateras e árvores voltarem a crescer depois de carregar
+function restoreNature(d){natLost=[];if(d.nat){const nb=new Uint8Array(N);try{rleDec(d.nat,nb)}catch(e){return}natBlue=nb;for(let i=0;i<N;i++)if(nb[i]&&!vox[i]&&!blue[i]&&!rown[i])natLost.push(i,simTime-60);return}
+  // saves antigos: sem referência — recompõe ao menos o chão (crateras viram terra/grama de novo)
+  for(let x=1;x<W-1;x++)for(let z=1;z<D-1;z++)for(let y=1;y<=GY-1;y++){const i=idx(x,y,z);if(vox[i]||blue[i]||rown[i])continue;const below=y===1||vox[idx(x,y-1,z)]||natBlue[idx(x,y-1,z)];if(!below)continue;const m=y===GY-1?13:12;natBlue[i]=m;natLost.push(i,simTime-60)}}

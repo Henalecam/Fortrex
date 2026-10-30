@@ -98,10 +98,10 @@ let lifeAcc=0;function lifeTick(dt0){lifeAcc+=dt0;if(lifeAcc<.1)return;const dt=
   const ang=(p-.25)*Math.PI*2;sun.position.set(cam.target.x+Math.cos(ang)*60,15+Math.max(.2,Math.sin(ang))*60,cam.target.z-25);sun.target.position.set(cam.target.x,0,cam.target.z);
   if(natBlue){regrowT+=dt;const rate=isNight()?.12:.35;if(regrowT>rate){regrowT=0;const tries=isNight()?60:25;let n=0;
     // only environment cells regrow; base/player cells are the player's own management (repairers + blueprint)
-    const keep=[];const lim=(isNight()?10:5)+Math.floor(natLost.length/600);
+    const keep=[],later=[];const lim=(isNight()?10:5)+Math.floor(natLost.length/600);
     const L=natLost.length;let scanned=0;for(let k=0;k<L;k+=2){const i=natLost[k],t0=natLost[k+1];if(scanned>=600||n>=lim||simTime-t0<40){keep.push(i,t0);continue}scanned++;const m=natBlue[i];if(!m||blue[i]||state.custom.has(i)){continue}if(vox[i]&&SOLIDM(vox[i]))continue;
-      if(Math.random()<.5||vox[i]||!supported(i)||cellBusy(i)){keep.push(i,t0);continue}setVox(i,m);n++;if(Math.random()<.2)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,m===11?0x6fbf6a:0x9fe39a,1,.15)}
-    natLost=keep;
+      if(Math.random()<.5){keep.push(i,t0);continue}if(vox[i]||!supported(i)||cellBusy(i)){later.push(i,t0);continue}setVox(i,m);n++;if(Math.random()<.2)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,m===11?0x6fbf6a:0x9fe39a,1,.15)}
+    natLost=later.length?keep.concat(later):keep;
     for(let t=0;t<0;t++){const i=0;const m=natBlue[i];if(!m||vox[i])continue;if(!supported(i)||cellBusy(i))continue;if(iy(i)<GY-1&&!SOLIDM(vox[i-W*D]))continue;setVox(i,m);n++;if(Math.random()<.25)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,0x9fe39a,1,.15)}
     for(let t=0;t<12;t++){const x=rint(0,W-1),z=rint(0,D-1);const s=surf(x,z);if(s>0&&s<=GY&&vox[idx(x,s-1,z)]===12&&!blue[idx(x,s-1,z)]){setVox(idx(x,s-1,z),13)}}}}
   const el=$('clock');if(el){const hrs=Math.floor(p*24),mins=Math.floor((p*24-hrs)*60/10)*10;el.textContent=`${isNight()?'🌙':'☀️'} Dia ${Math.floor((simTime/DAY_LEN)+.3)+1} · ${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}`}}

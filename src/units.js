@@ -239,6 +239,8 @@ function supported(i){const x=ix(i),y=iy(i),z=iz(i);if(y===0||SOLIDM(vox[idx(x,y
 function cellBusy(i){const x=ix(i),y=iy(i),z=iz(i);for(const m of minions)if(Math.floor(m.pos.x)===x&&Math.floor(m.pos.z)===z&&Math.abs(m.group.position.y-y)<1.8)return true;
   for(const e of enemies)if(!e.dead&&!e.fly&&Math.abs(e.pos.x-x-.5)<e.radius+.5&&Math.abs(e.pos.z-z-.5)<e.radius+.5&&Math.abs(e.gy-y)<1.8)return true;for(const L of loot)if(!L.carried&&Math.floor(L.x)===x&&Math.floor(L.z)===z&&Math.abs(L.y-y-.5)<1)return false;return false}
 function findRepairTask(m){let best=null,bs=1e9;const mx=m.pos.x,mz=m.pos.z;
+  if(state.demol&&state.demol.size){for(const i of state.demol){if(!vox[i]||vox[i]===5||blue[i]){state.demol.delete(i);continue}if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;const s=-60-(iy(i)-GY)*5+Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:'demol',i}}}}
+  if(state.swapQ&&state.swapQ.size){for(const i of state.swapQ){const b=blue[i];if(!b||!vox[i]||vox[i]===b||vox[i]===5){state.swapQ.delete(i);continue}if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;const s=-40+(iy(i)-GY)*3+Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:'swap',i}}}}
   for(const i of blueList){const b=blue[i];if(!b||vox[i]===b)continue;if(b===5&&!vox[i]&&state.phase==='wave'&&!state.rebuildChest)continue;if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;
     const cost=0;
     let ti=i,kind='build';if(!supported(i)){if(iy(i)>GY+1)continue;const x=ix(i),z=iz(i);let y=1;while(y<iy(i)&&vox[idx(x,y,z)]&&!FLUID(vox[idx(x,y,z)]))y++;if(y>=iy(i))continue;ti=idx(x,y,z);kind='fill';if((m.skip.get(ti)||0)>simTime)continue}
@@ -264,16 +266,18 @@ function updRep(m,dt){
   if(!m.task){if(m.timer>0){idleWander(m,dt,CX+3,CZ+4);return}m.task=findRepairTask(m);if(!m.task){m.timer=.6;return}m.bestD=1e9;m.stuckT=0;m.state='go'}
   const T=m.task;let tx,tz,y=GY;
   if(T.k==='turret'){if(!T.t.alive||T.t.hp>=T.t.maxhp){T.t.fixer=null;m.task=null;return}tx=T.t.pos.x;tz=T.t.pos.z}
-  else{const i=T.i;if(T.k==='build'&&(vox[i]===blue[i]||!blue[i])){releaseTask(m);return}if(T.k==='fill'&&SOLIDM(vox[i])){releaseTask(m);return}if(T.k==='fix'&&(!vox[i]||hp[i]>=maxHpOf(vox[i]))){releaseTask(m);return}tx=ix(i)+.5;tz=iz(i)+.5;y=iy(i)}
+  else{const i=T.i;if(T.k==='build'&&(vox[i]===blue[i]||!blue[i])){releaseTask(m);return}if(T.k==='fill'&&SOLIDM(vox[i])){releaseTask(m);return}if(T.k==='fix'&&(!vox[i]||hp[i]>=maxHpOf(vox[i]))){releaseTask(m);return}if(T.k==='demol'&&(!vox[i]||!state.demol||!state.demol.has(i))){releaseTask(m);return}if(T.k==='swap'&&(!state.swapQ||!state.swapQ.has(i)||!blue[i]||vox[i]===blue[i])){releaseTask(m);return}tx=ix(i)+.5;tz=iz(i)+.5;y=iy(i)}
   const d=Math.hypot(tx-m.pos.x,tz-m.pos.z);
-  if(m.state==='go'){if(walkTo(m,tx,tz,dt,2.4)||d<(T.k==='turret'?2.6:3.4)){m.state='work';m.timer=(T.k==='fix'?.35:.5)/(m.work*state.repMul);m.group.rotation.y=Math.atan2(tx-m.pos.x,tz-m.pos.z)}
+  if(m.state==='go'){if(walkTo(m,tx,tz,dt,2.4)||d<(T.k==='turret'?2.6:3.4)){m.state='work';m.timer=(T.k==='fix'?.35:.5)/(m.work*state.repMul*reformMul());m.group.rotation.y=Math.atan2(tx-m.pos.x,tz-m.pos.z)}
     else progress(m,d,dt,()=>{if(T.i!==undefined)m.skip.set(T.i,simTime+12);if(T.t)T.t.fixer=null;releaseTask(m)});return}
   m.group.position.y=standY(m.pos.x,m.pos.z)+Math.abs(Math.sin(m.timer*25))*.08;
   if(m.timer>0)return;
+  if(T.k==='demol'||T.k==='swap'){const i=T.i,v=vox[i];if(v){const c=MAT[v]?MAT[v].c:0x888888;if(T.k==='demol'){setVox(i,0);state.demol.delete(i);settleDirty=true;spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,c,4,.22);SFX.crunch&&SFX.crunch(false)}else{const b=blue[i];setVox(i,b);hp[i]=maxHpOf(b);damaged.delete(i);state.swapQ.delete(i);spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,c,3,.2);sparkle(ix(i)+.5,iy(i)+.9,iz(i)+.5,MAT[b].c,2);SFX.build()}gainXP(m,1)}releaseTask(m);m.state='idle';
+    const nx=findRepairTask(m);if(nx&&nx.i!==undefined&&Math.hypot(ix(nx.i)+.5-m.pos.x,iz(nx.i)+.5-m.pos.z)<3.2){m.task=nx;m.state='work';m.timer=.5/(m.work*state.repMul*reformMul())}else if(nx){m.task=nx;m.state='go';m.bestD=1e9}return}
   if(T.k==='fill'){const i=T.i;if(!cellBusy(i)){setVox(i,iy(i)===GY-1?13:12);settleDirty=true;SFX.build();spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[12].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';return}
   if(T.k==='build'){const i=T.i,b=blue[i];const cost=0;if(!cellBusy(i)&&state.material>=cost&&supported(i)){state.material-=cost;state.prepaid.delete(i);setVox(i,b);settleDirty=true;SFX.build();gainXP(m,1);spawnDebris(ix(i)+.5,y+.5,iz(i)+.5,MAT[b].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';
     // keep building nearby blocks without going idle
-    const nx=findRepairTask(m);if(nx&&(nx.i===undefined||Math.hypot(ix(nx.i)+.5-m.pos.x,iz(nx.i)+.5-m.pos.z)<3.2)){m.task=nx;m.state='work';m.timer=.5/(m.work*state.repMul)}else if(nx){m.task=nx;m.state='go';m.bestD=1e9}return}
+    const nx=findRepairTask(m);if(nx&&(nx.i===undefined||Math.hypot(ix(nx.i)+.5-m.pos.x,iz(nx.i)+.5-m.pos.z)<3.2)){m.task=nx;m.state='work';m.timer=.5/(m.work*state.repMul*reformMul())}else if(nx){m.task=nx;m.state='go';m.bestD=1e9}return}
   if(T.k==='fix'){const i=T.i;if(vox[i]){hp[i]=Math.min(maxHpOf(vox[i]),hp[i]+maxHpOf(vox[i])*.5);if(hp[i]>=maxHpOf(vox[i]))damaged.delete(i);paint(i);SFX.pop()}releaseTask(m);m.state='idle';return}
   if(T.k==='turret'){const t=T.t;t.hp=Math.min(t.maxhp,t.hp+t.maxhp*.2);sparkle(t.pos.x,t.pos.y+.5,t.pos.z,0xffcf3d,3);SFX.pop();if(t.hp>=t.maxhp){t.fixer=null;m.task=null;m.state='idle'}else m.timer=.4/(m.work*state.repMul);return}}
 function updCol(m,dt){const cap=4+m.rarity+m.st.cap+state.lootMag+(m.trait==='Mochilão'?2:0);
