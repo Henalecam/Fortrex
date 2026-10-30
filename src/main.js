@@ -1,5 +1,5 @@
 // ───────── main: waves, events, game flow, input, loop
-function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i=0;i<Math.floor((w-from+2)*k);i++)list.push(t)};extra('wolf',2,.5);extra('imp',4,.6);if((state.fieldTraps||[]).length>=6)extra('goblin',9,.25);extra('spider',4,.45);extra('slime',5,.35);extra('brute',7,.3);extra('beetle',9,.3);const n=-Math.floor(list.length*.5)+6+Math.floor(w*2.6+(w>10?(w-10)*1.6:0)+(w>15?(w-15)*1.6:0)+(w>18?(w-18)*2:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
+function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i=0;i<Math.floor((w-from+2)*k);i++)list.push(t)};extra('wolf',2,.5);extra('imp',4,.6);if((state.fieldTraps||[]).length>=6)extra('goblin',9,.25);extra('spider',4,.45);extra('slime',5,.35);extra('brute',7,.3);extra('beetle',9,.3);extra('escudeiro',6,.25);extra('cavador',8,.2);extra('bombardeiro',9,.18);extra('cavaleiro',10,.22);extra('cristal',12,.12);if(w>=7&&Math.random()<.45)list.push('mimico');if(w>=15&&Math.random()<.4)list.push('mimico');const n=-Math.floor(list.length*.5)+6+Math.floor(w*2.6+(w>10?(w-10)*1.6:0)+(w>15?(w-15)*1.6:0)+(w>18?(w-18)*2:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
   if(w>=3)for(let i=0;i<Math.floor((w-1)/2);i++)list.push('climber');if(w>=4)for(let i=0;i<Math.floor(w/3);i++)list.push('sapper');
   if(w>=6)for(let i=0;i<Math.floor((w-3)/3);i++)list.push('flyer');if(w>=6)for(let i=0;i<Math.floor((w-3)/4);i++)list.push('shaman');
   if(w>12)for(let i=0;i<(w-12)*2;i++)list.push(pick(['crawler','climber','ram','sapper','flyer']));
@@ -319,10 +319,12 @@ let _navT=0;function navTick(dt){_navT-=dt;if(_navT>0)return;_navT=.3;navUi()}
 window.__lose=()=>{for(const i of _chestVox)if(vox[i]===5)removeVox(i,'enemy');checkChest();return [state.wave,state.maxWave,state.phase]};
 window.__nav=d=>{waveNav(d);return [state.wave,state.maxWave]};
 
-window.__lineup=()=>{const ts=['crawler','wolf','spider','slime','imp','brute','beetle','goblin','climber','sapper','ram','shaman','pirate','flyer'];const out=[];ts.forEach((t,k)=>{const e=makeEnemy(t,k%4===3?2:k%3===2?1:0,CX-14+(k%7)*4,CZ+30+Math.floor(k/7)*5);e.stun=999;e.lineup=true;out.push(t)});return out};
+window.__lineup=()=>{const ts=['escudeiro','cavador','bombardeiro','mimico','cristal','cavaleiro','shard','crawler','wolf','spider','slime','imp','brute','beetle'];const out=[];ts.forEach((t,k)=>{const e=makeEnemy(t,k%4===3?2:k%3===2?1:0,CX-14+(k%7)*4,CZ+30+Math.floor(k/7)*5);e.stun=999;e.lineup=true;out.push(t)});return out};
 window.__lineupB=()=>{const ts=['boss','golem','necro','titan'];ts.forEach((t,k)=>{const e=makeEnemy(t,1,CX-15+k*10,CZ+34);e.stun=999});return ts};
 window.__hitAll=f=>{for(const e of enemies)if(!e.dead)dmgEnemy(e,e.maxhp*f,true);return enemies.filter(e=>!e.dead).length};
 window.__einfo=t=>{const e=enemies.find(o=>!o.dead&&o.type===t);if(!e)return null;const im=e.vmeshes[0];const c=new THREE.Color();im.getColorAt(0,c);return {em:im.material.emissive.getHexString(),ei:im.material.emissiveIntensity,c0:c.getHexString(),hit:e.hit,afire:e.afire,n:im.count}};
 window.__st=()=>state;
 window.__natCnt=()=>{let n=0;for(let x=CX+24;x<=CX+36;x++)for(let z=CZ+24;z<=CZ+36;z++)for(let y=GY-4;y<GY+3;y++)if(vox[idx(x,y,z)])n++;return [n,natLost.length/2]};
 window.__boom=()=>{explode(CX+30,GY,CZ+30,4,400,{src:'player'});return 1};
+window.__spawnNew=()=>{const ts=['escudeiro','cavador','bombardeiro','mimico','cristal','cavaleiro'];ts.forEach((t,k)=>{const a=k/6*Math.PI*2;makeEnemy(t,0,CX+Math.cos(a)*50,CZ+Math.sin(a)*50)});return ts.length};
+window.__newSt=()=>enemies.filter(e=>!e.dead&&['escudeiro','cavador','bombardeiro','mimico','cristal','cavaleiro','shard'].includes(e.type)).map(e=>e.type[0]+e.type[1]+':'+Math.round(Math.hypot(e.pos.x-CX,e.pos.z-CZ))+(e.under?'u':'')+(e.surfaced?'S':'')+(e.dormant>0?'z':'')+(e.chg?'C':'')+(e.mounted===false?'d':'')).join(' ');
