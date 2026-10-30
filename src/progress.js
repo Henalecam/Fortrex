@@ -133,6 +133,8 @@ function moraleTick(dt){let m=state.morale??60;if(state.phase==='wave'){state.wa
   state.morale=clamp(m,Math.max(state.buildings&&state.buildings.granary?45:0,state.moraleFloor||0),100);const el=$('morale');if(el){const v=Math.round(state.morale);el.textContent=`${v>=70?'😄':v>=40?'🙂':v>=20?'😟':'😩'} ${v}`;el.title=`Moral ${v}%: minions ${v>=50?'+':''}${Math.round((v/100*.4-.2)*100)}% de rendimento. Sobe vencendo hordas, chefes e descansando à noite; cai com feridos e hordas longas.`;el.style.color=v<25?'var(--bad)':''}}
 // ───────── achievements (kept in the browser across runs) and end-of-run stats
 const ACH=[
+  {id:'contr',ico:'📜',n:'Mercenário',d:'Cumpra 10 contratos de horda',c:()=>(state.contractsDone||0)>=10},
+  {id:'cstreak',ico:'🔥',n:'Palavra de honra',d:'Cumpra 5 contratos seguidos',c:()=>(state.conStreak||0)>=5},
   {id:'dogs',ico:'🐕',n:'Matilha',d:'Tenha 4 cães de guarda',c:()=>(state.ups.kennel||0)>=4},
   {id:'expd',ico:'🧭',n:'Explorador',d:'Complete 3 expedições',c:()=>(state.expDone||0)>=3},
   {id:'deal',ico:'🧙',n:'Negociante',d:'Aceite um trato do viajante',c:()=>!!state.dealTaken},
@@ -418,7 +420,11 @@ const CONTRACTS=[
  {id:'elite',ico:'💍',d:c=>`Abata ${c.goal} elites`,goal:w=>Math.max(2,Math.floor(w/4)),ok:c=>(c.el||0)>=c.goal,m:1.3,min:10},
 ];
 function offerContract(){state.contract=null;const w=state.wave;if(w<3||w%5===0||state.ev==='siege')return;const pool=CONTRACTS.filter(C=>!C.min||w>=C.min);const C=pick(pool);state.contract={id:C.id,goal:C.goal(w),t0:simTime};toast(`📜 Contrato da horda: ${C.ico} ${C.d(state.contract)} → +${contractPay(C)} material`,'r1')}
-function contractPay(C){return Math.round((18+state.wave*3)*C.m)}
-function resolveContract(){const c=state.contract;state.contract=null;if(!c)return'';const C=CONTRACTS.find(x=>x.id===c.id);if(!C)return'';const ok=C.ok(c);state.contractsDone=(state.contractsDone||0)+(ok?1:0);if(ok){const p=contractPay(C);state.material+=p;addFame(5);return`<div>📜 Contrato cumprido: ${C.ico} ${C.d(c)} · <b>+${p}</b> material</div>`}return`<div style="opacity:.7">📜 Contrato perdido: ${C.ico} ${C.d(c)}</div>`}
+function contractPay(C){return Math.round((18+state.wave*3)*C.m*(1+Math.min(4,state.conStreak||0)*.15))}
+function resolveContract(){const c=state.contract;state.contract=null;if(!c)return'';const C=CONTRACTS.find(x=>x.id===c.id);if(!C)return'';const ok=C.ok(c);state.contractsDone=(state.contractsDone||0)+(ok?1:0);if(ok){const p=contractPay(C);state.conStreak=(state.conStreak||0)+1;state.material+=p;addFame(5);return`<div>📜 Contrato cumprido: ${C.ico} ${C.d(c)} · <b>+${p}</b> material${state.conStreak>=2?` · 🔥 sequência ${state.conStreak} (+${Math.min(4,state.conStreak)*15}% no próximo)`:''}</div>`}const lost=state.conStreak||0;state.conStreak=0;return`<div style="opacity:.7">📜 Contrato perdido: ${C.ico} ${C.d(c)}${lost>=2?` · sequência de ${lost} quebrada`:''}</div>`}
 window.__contract=()=>state.contract?{...state.contract}:null;
 window.__cdone=()=>state.contractsDone||0;
+
+// v0.95 chip do contrato no HUD
+const CPROG={rapido:c=>{const r=Math.ceil(c.goal-(simTime-c.t0));return r>=0?`${r} s`:'tempo esgotado'},intocado:c=>c.hit?'baú atingido':'baú ok',semferidos:c=>`${state.wwound}/${c.goal} feridos`,tropa:c=>`${c.sol||0}/${c.goal}`,elite:c=>`${c.el||0}/${c.goal}`};
+let _conT=0,_conH='';function contractTick(dt){_conT-=dt;if(_conT>0)return;_conT=.25;const el=$('conSt');const c=state.contract;if(!c||state.phase!=='wave'){if(!el.hidden)el.hidden=true;return}const C=CONTRACTS.find(x=>x.id===c.id);if(!C)return;const ok=C.ok(c),fail=(c.id==='intocado'&&c.hit)||(c.id==='semferidos'&&state.wwound>c.goal)||(c.id==='rapido'&&simTime-c.t0>c.goal);const h=`📜 ${C.ico} ${CPROG[c.id](c)}${fail?' ✗':ok&&(c.id==='tropa'||c.id==='elite')?' ✓':''}${(state.conStreak||0)>=2?` 🔥${state.conStreak}`:''}`;if(h!==_conH){_conH=h;el.textContent=h;el.title=C.d(c);el.style.color=fail?'#e0564f':ok?'var(--r1)':''}if(el.hidden)el.hidden=false}
