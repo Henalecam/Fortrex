@@ -9,9 +9,10 @@ function planRivals(){rivals.length=0;return;const lvl=state.rivalLvl||1;const s
 function buildRivals(put){for(const R of rivals){const tag=R.k+1;const mark=(x,y,z,m)=>{if(!inb(x,y,z))return;put(x,y,z,m);const i=idx(x,y,z);rown[i]=tag;R.rblue.set(i,m)};
     // clear the ground the city stands on
     for(let x=R.cx-R.wr-2;x<=R.cx+R.wr+2;x++)for(let z=R.cz-R.wr-2;z<=R.cz+R.wr+2;z++){for(let y=GY;y<H;y++){if(inb(x,y,z)){const i=idx(x,y,z);vox[i]=0}}if(inb(x,GY-1,z))put(x,GY-1,z,13)}
-    const tw=buildCity(mark,R.cx,R.cz,{wr:R.wr,wh:6,ts:4,th:10,kr:4,kh:12,stone:24,stone2:24,tower:24,roof:25,floor:24,gate:24,banner:26});
+    let hsh=0;for(const ch of String(R.name||'x'))hsh=(hsh*31+ch.charCodeAt(0))>>>0;const V=hsh%4;const ST=[[24,24,24],[3,4,3],[4,14,4],[14,24,14]][V];const th=[10,12,9,11][V],kh=[12,14,11,13][V],wh=[6,7,5,8][V];R.style=V;
+    const tw=buildCity(mark,R.cx,R.cz,{wr:R.wr,wh,ts:4,th,kr:4,kh,stone:ST[0],stone2:ST[1],tower:ST[2],roof:25,floor:ST[0],gate:ST[0],banner:26});R._th=th;R._kh=kh;
     R.core=[];for(let x=R.cx-1;x<=R.cx;x++)for(let z=R.cz-1;z<=R.cz;z++)for(let y=0;y<2;y++){mark(x,GY+y,z,21);R.core.push(idx(x,GY+y,z))}
-    R.coreMax=R.core.length;R.towerTops=tw.map(([x,z])=>idx(x+1,GY+9,z+1));R.keepTops=[[-2,-2],[2,-2],[-2,2],[2,2]].map(([dx,dz])=>idx(R.cx+dx,GY+11,R.cz+dz));
+    R.coreMax=R.core.length;R.towerTops=tw.map(([x,z])=>idx(x+1,GY+(R._th||10)-1,z+1));R.keepTops=[[-2,-2],[2,-2],[-2,2],[2,2]].map(([dx,dz])=>idx(R.cx+dx,GY+(R._kh||12)-1,R.cz+dz));
     for(let x=R.cx-1;x<=R.cx+1;x++)for(let z=R.cz+R.wr-WT+1;z<=R.cz+R.wr;z++)for(let y=0;y<4;y++){const i=idx(x,GY+y,z);vox[i]=0;rown[i]=0;R.rblue.delete(i)}}}
 function spawnRivalForces(){for(const R of rivals){const types=['cannon','ballista','mortar','tesla','flamer','frost'];const n=Math.min(8,3+R.lvl);
     [...R.towerTops,...R.keepTops].slice(0,n).forEach((a,k)=>{if(vox[a]){const t=makeTurret(types[(k+R.lvl)%types.length],a,Math.min(4,R.lvl-1+(k===0?1:0)));t.team='r';t.R=R;t.group.traverse(o=>{if(o.isMesh&&o.material.color)o.material=o.material.clone(),o.material.color.offsetHSL(0,0,-.15)})}});

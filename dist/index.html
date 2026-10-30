@@ -1006,7 +1006,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   body=box(.9*sc,.7*sc,1.1*sc,col,0,.5*sc,0,g);head=box(.7*sc,.6*sc,.6*sc,col,0,.6*sc,.75*sc,g);eyes(head,.08*sc,.32*sc,.17*sc);
   for(const sx of [-1,1])for(const sz of [-1,1]){const lg=box(.22*sc,.4*sc,.22*sc,type==='colossus'?0xcfd6e3:0x2b2d4a,sx*.35*sc,.2*sc,sz*.35*sc,g);legs.push({mesh:lg,hp:150,alive:true,ox:sx*.35*sc,oz:sz*.35*sc})}}
   if(!BIG(type)&&!CREATURES[type])decorate(type,sc,col,g,body,head);
-  if((type==='ram'&&!NEWLOOK.ram||type==='rammer'))box(.35*US,.35*US,.9*US,0xcfd6e3,0,.75*sc,1.2*sc/1.35,g);
+  if((type==='ram'&&!NEWLOOK.ram||type==='rammer'&&!NEWLOOK.rammer))box(.35*US,.35*US,.9*US,0xcfd6e3,0,.75*sc,1.2*sc/1.35,g);
   if(type==='boss'&&!NEWLOOK.boss){box(.4*US,1.2*US,.4*US,0xcfd6e3,-.6*US,1.9*US,.6*US,g);box(.4*US,1.2*US,.4*US,0xcfd6e3,.6*US,1.9*US,.6*US,g)}
   if(type==='colossus'&&!NEWLOOK.colossus){body.position.y=.9*sc;head.position.y=1.05*sc;for(const L of legs){L.mesh.scale.y=2.6;L.mesh.position.y=.5*sc}box(.5*US,1.6*US,.5*US,0xcfd6e3,-.9*US,2.4*sc,.9*US,g);box(.5*US,1.6*US,.5*US,0xcfd6e3,.9*US,2.4*sc,.9*US,g);box(1.4*sc,.3*US,.3*US,0xec5f6b,0,1.3*sc,.9*sc,g)}
   if(type==='queen'&&!NEWLOOK.queen){for(let k=-2;k<=2;k++){const c=box(.22*US,.5*US*(k%2?1:1.5),.22*US,0xffcf3d,k*.28*sc,1.05*sc,.75*sc,g);c.material.emissive.setHex(0xffcf3d);c.material.emissiveIntensity=.6}box(1.1*sc,.9*sc,.12*sc,0x5b2e8a,0,.6*sc,-.6*sc,g)}
@@ -1018,9 +1018,9 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(type==='golem'&&!NEWLOOK.golem){for(const s of[-1,1]){box(.55*sc,.5*sc,.55*sc,0x6f8f55,s*.6*sc,.95*sc,.1*sc,g);box(.4*sc,.8*sc,.4*sc,0x75706a,s*.7*sc,.45*sc,.35*sc,g)}box(.3*sc,.15*sc,.1*sc,0xffb13d,0,.7*sc,1.06*sc,g).material.emissive.setHex(0xffb13d)}
   if(type==='wyrm'&&!NEWLOOK.wyrm){const w1=box(1.5*sc,.06*sc,.6*sc,0xb83a2e,-.95*sc,.65*sc,0,g),w2=box(1.5*sc,.06*sc,.6*sc,0xb83a2e,.95*sc,.65*sc,0,g);g.userData.wings=[w1,w2];box(.3*sc,.25*sc,.9*sc,0xe0662c,0,.45*sc,-.95*sc,g);box(.2*sc,.18*sc,.5*sc,0xffb13d,0,.4*sc,-1.55*sc,g);for(const s of[-1,1])box(.08*sc,.25*sc,.08*sc,0xfff2c0,s*.22*sc,1.0*sc,.8*sc,g)}
   if(type==='necro'&&!NEWLOOK.necro){box(1.0*sc,.6*sc,1.0*sc,0x2e1d45,0,.15*sc,0,g);box(.12*US,1.8*US,.12*US,0x3b2a20,.75*sc,.9*sc,.3*sc,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.3*US,0),lmat(0x7dff9a,.9));o.position.set(.75*sc,1.45*sc,.3*sc);g.add(o);head.material.color.setHex(0xe8e2d0)}
-  if(type==='general'){box(.12*US,1.5*US,.12*US,0xffcf3d,.85*US,1.3*US,.4*US,g);box(1.2*US,.9*US,.12*US,0x2b2d4a,0,1.0*US,-.75*US,g);for(const s of[-1,1])box(.5*US,.35*US,.6*US,0x8a8fa6,s*.75*US,1.45*US,0,g);const cr=box(.6*US,.25*US,.6*US,0xffcf3d,0,1.95*US,.75*US,g);cr.material.emissive.setHex(0xffcf3d);cr.material.emissiveIntensity=.5}
-  if(type==='knight'){box(.08*US,.9*US,.08*US,0xdfe6f0,.45*US,.9*US,.2*US,g);box(.5*US,.5*US,.1*US,0x5e5670,-.45*US,.6*US,.2*US,g);box(.75*US,.15*US,.65*US,0x5e5670,0,1.0*US,.75*US,g)}
-  if(type==='archer'){box(.1*US,.9*US,.1*US,0x8a6a45,.4*US,.8*US,.3*US,g)}
+  if(type==='general'&&!NEWLOOK.general){box(.12*US,1.5*US,.12*US,0xffcf3d,.85*US,1.3*US,.4*US,g);box(1.2*US,.9*US,.12*US,0x2b2d4a,0,1.0*US,-.75*US,g);for(const s of[-1,1])box(.5*US,.35*US,.6*US,0x8a8fa6,s*.75*US,1.45*US,0,g);const cr=box(.6*US,.25*US,.6*US,0xffcf3d,0,1.95*US,.75*US,g);cr.material.emissive.setHex(0xffcf3d);cr.material.emissiveIntensity=.5}
+  if(type==='knight'&&!NEWLOOK.knight){box(.08*US,.9*US,.08*US,0xdfe6f0,.45*US,.9*US,.2*US,g);box(.5*US,.5*US,.1*US,0x5e5670,-.45*US,.6*US,.2*US,g);box(.75*US,.15*US,.65*US,0x5e5670,0,1.0*US,.75*US,g)}
+  if(type==='archer'&&!NEWLOOK.archer){box(.1*US,.9*US,.1*US,0x8a6a45,.4*US,.8*US,.3*US,g)}
   if(type==='shaman'&&!NEWLOOK.shaman){box(.1*US,1.4*US,.1*US,0x6b5235,.45*US,.9*US,.2*US,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.2*US,0),lmat(0x7dff9a,.8));o.position.set(.45*US,1.7*US,.2*US);g.add(o)}
   if(BIG(type)&&type!=='ship'&&type!=='general'&&!state.__rivalMake&&!NEWLOOK[type])bossLook(type,sc,col,g,body,head);
   if(rarity>=2){head.material.emissive.setHex(RARITY[rarity].c);head.material.emissiveIntensity=.5;head.userData.em=RARITY[rarity].c}
@@ -1426,9 +1426,10 @@ function planRivals(){rivals.length=0;return;const lvl=state.rivalLvl||1;const s
 function buildRivals(put){for(const R of rivals){const tag=R.k+1;const mark=(x,y,z,m)=>{if(!inb(x,y,z))return;put(x,y,z,m);const i=idx(x,y,z);rown[i]=tag;R.rblue.set(i,m)};
     // clear the ground the city stands on
     for(let x=R.cx-R.wr-2;x<=R.cx+R.wr+2;x++)for(let z=R.cz-R.wr-2;z<=R.cz+R.wr+2;z++){for(let y=GY;y<H;y++){if(inb(x,y,z)){const i=idx(x,y,z);vox[i]=0}}if(inb(x,GY-1,z))put(x,GY-1,z,13)}
-    const tw=buildCity(mark,R.cx,R.cz,{wr:R.wr,wh:6,ts:4,th:10,kr:4,kh:12,stone:24,stone2:24,tower:24,roof:25,floor:24,gate:24,banner:26});
+    let hsh=0;for(const ch of String(R.name||'x'))hsh=(hsh*31+ch.charCodeAt(0))>>>0;const V=hsh%4;const ST=[[24,24,24],[3,4,3],[4,14,4],[14,24,14]][V];const th=[10,12,9,11][V],kh=[12,14,11,13][V],wh=[6,7,5,8][V];R.style=V;
+    const tw=buildCity(mark,R.cx,R.cz,{wr:R.wr,wh,ts:4,th,kr:4,kh,stone:ST[0],stone2:ST[1],tower:ST[2],roof:25,floor:ST[0],gate:ST[0],banner:26});R._th=th;R._kh=kh;
     R.core=[];for(let x=R.cx-1;x<=R.cx;x++)for(let z=R.cz-1;z<=R.cz;z++)for(let y=0;y<2;y++){mark(x,GY+y,z,21);R.core.push(idx(x,GY+y,z))}
-    R.coreMax=R.core.length;R.towerTops=tw.map(([x,z])=>idx(x+1,GY+9,z+1));R.keepTops=[[-2,-2],[2,-2],[-2,2],[2,2]].map(([dx,dz])=>idx(R.cx+dx,GY+11,R.cz+dz));
+    R.coreMax=R.core.length;R.towerTops=tw.map(([x,z])=>idx(x+1,GY+(R._th||10)-1,z+1));R.keepTops=[[-2,-2],[2,-2],[-2,2],[2,2]].map(([dx,dz])=>idx(R.cx+dx,GY+(R._kh||12)-1,R.cz+dz));
     for(let x=R.cx-1;x<=R.cx+1;x++)for(let z=R.cz+R.wr-WT+1;z<=R.cz+R.wr;z++)for(let y=0;y<4;y++){const i=idx(x,GY+y,z);vox[i]=0;rown[i]=0;R.rblue.delete(i)}}}
 function spawnRivalForces(){for(const R of rivals){const types=['cannon','ballista','mortar','tesla','flamer','frost'];const n=Math.min(8,3+R.lvl);
     [...R.towerTops,...R.keepTops].slice(0,n).forEach((a,k)=>{if(vox[a]){const t=makeTurret(types[(k+R.lvl)%types.length],a,Math.min(4,R.lvl-1+(k===0?1:0)));t.team='r';t.R=R;t.group.traverse(o=>{if(o.isMesh&&o.material.color)o.material=o.material.clone(),o.material.color.offsetHSL(0,0,-.15)})}});
@@ -2882,9 +2883,36 @@ const _anim1=enemyAnim;enemyAnim=function(e,dt){_anim1(e,dt);if(!e.boss2)return;
   if(ud.wings&&e.type==='wyrm'){ud.wings[0].rotation.z=Math.sin(t*4)*.5;ud.wings[1].rotation.z=-Math.sin(t*4)*.5}
   if(ud.lava&&ud.arms)for(const a of ud.arms)a.children.forEach(c=>{if(c.material&&c.material.emissive)c.material.emissiveIntensity=.6+.4*Math.sin(t*3)})};
 
+// v3.0 PERSONAGENS R5 — tropas rivais com cor da facção
+Object.assign(NEWLOOK,{knight:1,archer:1,rammer:1,general:1});
+const facCol=c=>{const B=typeof battle==='function'&&battle();return B&&B.color?new THREE.Color(B.color).getHex():c};
+Object.assign(CREATURES,{
+  knight(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const fc=facCol(col),st=0x8a93a8,dk=0x3b3f55;
+    const body=B(.58,.7,.42,st,0,.85,0);B(.5,.6,.05,fc,0,.82,.23);B(.12,.12,.06,0xffcf3d,0,.95,.26);B(.6,.08,.44,0x5a4632,0,.55,0);
+    const head=B(.46,.46,.44,st,0,1.42,0);B(.36,.05,.04,0x1d1f33,0,1.44,.23);for(const s of[-1,1])B(.05,.16,.04,0x1d1f33,s*.06,1.36,.23);B(.08,.3,.34,fc,0,1.78,-.05);
+    const sh=K(.08,.6,.45,fc,-.38,.85,.1);box(.04*sc,.2*sc,.2*sc,0xffcf3d,-.05*sc,0,0,sh);const sw=K(.06,.7,.06,0xdfe6f0,.4,.95,.2);g.userData.sabre=sw;
+    return{body,head,legs:LG([[-.14,.22,0,.18,.44],[.14,.22,0,.18,.44]],dk)}},
+  archer(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const fc=facCol(col);
+    const body=B(.5,.66,.4,0x5a6b4a,0,.8,0);B(.52,.3,.42,fc,0,1.0,0);const head=B(.44,.42,.42,0xe8c8a8,0,1.36,.02);eyes(head,.02*sc,.22*sc,.1*sc);B(.52,.36,.48,fc,0,1.5,-.05);B(.2,.25,.12,fc,0,1.32,-.28);
+    const bow=K(.06,.9,.06,0x8a6a45,.38,.95,.25);box(.02*sc,.86*sc,.02*sc,0xf1e6c8,0,0,-.08*sc,bow);g.userData.bow=bow;B(.18,.5,.18,0x6b4a2a,-.12,1.0,-.28).rotation.z=.3;
+    return{body,head,legs:LG([[-.13,.2,0,.15,.4],[.13,.2,0,.15,.4]],0x3b2d2a)}},
+  rammer(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const fc=facCol(col);
+    const body=B(.36,.36,2.0,0x6b4a2a,0,.85,0);B(.42,.42,.3,0x5a5a6a,0,.85,1.08);for(const z of[-.6,0,.6])B(.4,.06,.06,0x3b3f55,0,.85,z);
+    const head=B(.3,.3,.3,0x5a5a6a,0,.85,1.3);const men=[];for(const [s,z] of [[-1,-.5],[1,.5]]){const m=K(.4,.55,.34,fc,s*.38,.88,z);box(.3*sc,.3*sc,.3*sc,0x8a93a8,0,.45*sc,0,m);men.push(m)}g.userData.men=men;
+    return{body,head,legs:LG([[-.48,.18,-.5,.15,.36],[-.28,.18,-.5,.15,.36],[.28,.18,.5,.15,.36],[.48,.18,.5,.15,.36]],0x3b2d2a)}},
+  general(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const fc=facCol(col),st=0x5e5670;
+    const body=B(.9,.95,.6,st,0,1.05,0);B(.8,.8,.06,fc,0,1.0,.31);B(1.1,.3,.7,st,0,1.55,0);for(const s of[-1,1])B(.3,.22,.5,0xffcf3d,s*.6,1.62,0);
+    const head=B(.5,.5,.48,0x8a93a8,0,1.95,.03);B(.38,.06,.04,0x1d1f33,0,1.97,.27);G(.5,.2,.5,0xffcf3d,0,2.3,.03,null,.55);for(let k=-1;k<=1;k++)G(.1,.2,.1,0xffcf3d,k*.18,2.48,.03,null,.6);
+    const cape=K(1.0,1.3,.06,fc,0,1.0,-.36);g.userData.cape=cape;const sw=K(.1,1.3,.1,0xdfe6f0,.62,1.2,.3);box(.32*sc,.08*sc,.08*sc,0xffcf3d,0,-.5*sc,0,sw);g.userData.sabre=sw;
+    const pole=B(.06,1.6,.06,0x6b4a2a,-.35,2.0,-.35);const flag=K(.04,.4,.6,fc,-.35,2.6,-.06);g.userData.flag=flag;
+    return{body,head,legs:LG([[-.2,.3,0,.26,.6],[.2,.3,0,.26,.6]],0x2b2d4a)}}});
+const _anim2=enemyAnim;enemyAnim=function(e,dt){_anim2(e,dt);const ud=e.group.userData;const t=simTime+e.bob*.1;
+  if(ud.bow)ud.bow.rotation.z=Math.sin(t*2)*.15;if(ud.men)ud.men.forEach((m,k)=>m.position.y=(.88+Math.abs(Math.sin(e.bob*1.4+k))*.06)*e.sc);
+  if(ud.cape)ud.cape.rotation.x=.1+Math.abs(Math.sin(e.bob*1.4))*.25};
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=2.9;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=3.0;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2955,7 +2983,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [2.6,'🧑‍🔧 Minions refeitos do zero (1/5 da reforma de personagens): cabeção chibi com olhos que piscam, sobrancelhas e boca que mudam (trabalhando, carregando, ferido, lutando), bochechas, cabelos e barbas variados, pele e roupas diferentes para cada um, braços e pernas articulados. Cada papel tem identidade: capacete e martelo do reparador, mochilão do coletor, boina e luneta do artilheiro, elmo com pluma, escudo e espada do soldado, capuz e maleta do curandeiro. Heróis maiores, com capa e chapéu próprios (a sacerdotisa tem auréola).'],
   [2.7,'👾 Inimigos iniciais refeitos do zero (2/5 da reforma): Rasteiro com mandíbula dentuça, Lobo com olhos amarelos que abana o rabo e uiva, Aranha com marca vermelha e seis olhos, Gosma que pulsa, Diabrete que saltita batendo asas, Bruto que bate no peito, Besouro-rinoceronte, Escalador lagarto de braços longos, Sapador com barril de pólvora nas costas, Aríete couraçado com chifres, Voador de bico, Xamã de máscara de caveira e cajado brilhante, Sabotador com óculos e chave inglesa. Todos variam de tom e as pernas agora andam.'],
   [2.8,'🛡️ Inimigos novos refeitos (3/5 da reforma): Escudeiro de elmo com pluma e escudo-torre que se ergue ao proteger, Cavador-toupeira com capacete de mineiro e lanterna cavando com as garras, Bombardeiro de óculos de aviador balançando a bomba, Mímico com dentes, língua e olhos dourados, Golem de Cristal com cristais que pulsam, Cavaleiro da Bruma com montaria de olhos roxos, cavaleiro de elmo e lança que abaixa na investida, Pirata de tapa-olho com sabre e papagaio no ombro, e o Navio com bandeira tremulando e canhões. 🔧 Corrigido: inimigo preso em buraco longe da base podia travar a horda para sempre — agora quem fica parado 20 s volta para a trilha.'],
-  [2.9,'👑 Chefes refeitos com silhuetas únicas (4/5 da reforma): Devorador de bocarra que mastiga e quatro olhos magenta, Golem de musgo com runas e olho em fenda, Serpe de Fogo com chifres, barriga dourada e boca em brasa, Colosso de pernas enormes com coroa de chifres e viseira vermelha, Necromante flutuante com crânio, grimório girando e cajado verde, Rainha com coroa dourada, olhos compostos e quatro asas translúcidas, Titã de rocha com rachaduras de lava pulsando e o Rei da Bruma com coroa de cristais e tentáculos. Todos respiram e os olhos ardem mais forte a cada fase.']];
+  [2.9,'👑 Chefes refeitos com silhuetas únicas (4/5 da reforma): Devorador de bocarra que mastiga e quatro olhos magenta, Golem de musgo com runas e olho em fenda, Serpe de Fogo com chifres, barriga dourada e boca em brasa, Colosso de pernas enormes com coroa de chifres e viseira vermelha, Necromante flutuante com crânio, grimório girando e cajado verde, Rainha com coroa dourada, olhos compostos e quatro asas translúcidas, Titã de rocha com rachaduras de lava pulsando e o Rei da Bruma com coroa de cristais e tentáculos. Todos respiram e os olhos ardem mais forte a cada fase.'],
+  [3.0,'🏰 Fim da reforma de personagens (5/5): tropas rivais refeitas com a cor da facção — Cavaleiro de elmo com viseira, pluma e tabardo, Arqueiro encapuzado com arco e aljava, Aríete carregado por dois soldados, General de coroa dourada, capa enorme, espadão e estandarte nas costas. Cada castelo rival ganha um estilo próprio (pedra negra, pedra clara, metal ou obsidiana, com alturas de muralha, torres e torre de menagem diferentes).']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','retreating','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -3363,6 +3392,7 @@ window.__tlog=()=>TLOG;
 window.__groundTest=()=>{const c=()=>{let n=0;for(let x=CX-20;x<=CX+20;x++)for(let z=CZ+18;z<=CZ+26;z++)for(let y=1;y<GY;y++)if(vox[idx(x,y,z)])n++;return n};const a=c();for(let k=0;k<6;k++)explode(CX-15+k*6,GY,CZ+22,4,500,{src:'enemy'});const b=c();explode(CX,GY,CZ+22,4,500,{src:'env'});return [a,b,c()]};
 window.__minLineup=()=>{const out=[];['rep','col','gun','sol','med','rep','col','sol'].forEach((r,k)=>{const m=makeMinion(r,k%3,CX+36+k*2,CZ+4);m.state='idle';m.lineup=true;out.push(m)});for(const H of HEROES){spawnHero(H);const m=state.heroes[H.id].m;const k=HEROES.indexOf(H);m.pos.set(CX+37+k*2.4,standY(CX+37+k*2.4,CZ+8),CZ+8)}for(const m of minions.filter(m=>m.lineup||m.hero)){m.group.rotation.y=0;m.task=null;m.frozen=true}return out.length};
 window.__alive=()=>enemies.filter(e=>!e.dead&&!e.rival).map(e=>e.type+'@'+Math.round(Math.hypot(e.pos.x-CX,e.pos.z-CZ))+(e.under?'u':'')+(e.stun>0?'s':'')+'y'+Math.round(e.group.position.y-GY)).join(' ');
+window.__battlePos=()=>{const B=battle();if(!B)return null;for(let k=0;k<3;k++){const e=spawnRivalUnit(B,'guard');}const g=makeEnemy('rammer',0,B.cx+3,B.cz+B.wr+6);g.rival=B;g.rmode='guard';g.home={x:g.pos.x,z:g.pos.z};B.guards.push(g);return {x:B.cx,z:B.cz,style:B.style,name:B.name}};
 
 })();
 </script>

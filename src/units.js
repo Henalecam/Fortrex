@@ -65,7 +65,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   body=box(.9*sc,.7*sc,1.1*sc,col,0,.5*sc,0,g);head=box(.7*sc,.6*sc,.6*sc,col,0,.6*sc,.75*sc,g);eyes(head,.08*sc,.32*sc,.17*sc);
   for(const sx of [-1,1])for(const sz of [-1,1]){const lg=box(.22*sc,.4*sc,.22*sc,type==='colossus'?0xcfd6e3:0x2b2d4a,sx*.35*sc,.2*sc,sz*.35*sc,g);legs.push({mesh:lg,hp:150,alive:true,ox:sx*.35*sc,oz:sz*.35*sc})}}
   if(!BIG(type)&&!CREATURES[type])decorate(type,sc,col,g,body,head);
-  if((type==='ram'&&!NEWLOOK.ram||type==='rammer'))box(.35*US,.35*US,.9*US,0xcfd6e3,0,.75*sc,1.2*sc/1.35,g);
+  if((type==='ram'&&!NEWLOOK.ram||type==='rammer'&&!NEWLOOK.rammer))box(.35*US,.35*US,.9*US,0xcfd6e3,0,.75*sc,1.2*sc/1.35,g);
   if(type==='boss'&&!NEWLOOK.boss){box(.4*US,1.2*US,.4*US,0xcfd6e3,-.6*US,1.9*US,.6*US,g);box(.4*US,1.2*US,.4*US,0xcfd6e3,.6*US,1.9*US,.6*US,g)}
   if(type==='colossus'&&!NEWLOOK.colossus){body.position.y=.9*sc;head.position.y=1.05*sc;for(const L of legs){L.mesh.scale.y=2.6;L.mesh.position.y=.5*sc}box(.5*US,1.6*US,.5*US,0xcfd6e3,-.9*US,2.4*sc,.9*US,g);box(.5*US,1.6*US,.5*US,0xcfd6e3,.9*US,2.4*sc,.9*US,g);box(1.4*sc,.3*US,.3*US,0xec5f6b,0,1.3*sc,.9*sc,g)}
   if(type==='queen'&&!NEWLOOK.queen){for(let k=-2;k<=2;k++){const c=box(.22*US,.5*US*(k%2?1:1.5),.22*US,0xffcf3d,k*.28*sc,1.05*sc,.75*sc,g);c.material.emissive.setHex(0xffcf3d);c.material.emissiveIntensity=.6}box(1.1*sc,.9*sc,.12*sc,0x5b2e8a,0,.6*sc,-.6*sc,g)}
@@ -77,9 +77,9 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(type==='golem'&&!NEWLOOK.golem){for(const s of[-1,1]){box(.55*sc,.5*sc,.55*sc,0x6f8f55,s*.6*sc,.95*sc,.1*sc,g);box(.4*sc,.8*sc,.4*sc,0x75706a,s*.7*sc,.45*sc,.35*sc,g)}box(.3*sc,.15*sc,.1*sc,0xffb13d,0,.7*sc,1.06*sc,g).material.emissive.setHex(0xffb13d)}
   if(type==='wyrm'&&!NEWLOOK.wyrm){const w1=box(1.5*sc,.06*sc,.6*sc,0xb83a2e,-.95*sc,.65*sc,0,g),w2=box(1.5*sc,.06*sc,.6*sc,0xb83a2e,.95*sc,.65*sc,0,g);g.userData.wings=[w1,w2];box(.3*sc,.25*sc,.9*sc,0xe0662c,0,.45*sc,-.95*sc,g);box(.2*sc,.18*sc,.5*sc,0xffb13d,0,.4*sc,-1.55*sc,g);for(const s of[-1,1])box(.08*sc,.25*sc,.08*sc,0xfff2c0,s*.22*sc,1.0*sc,.8*sc,g)}
   if(type==='necro'&&!NEWLOOK.necro){box(1.0*sc,.6*sc,1.0*sc,0x2e1d45,0,.15*sc,0,g);box(.12*US,1.8*US,.12*US,0x3b2a20,.75*sc,.9*sc,.3*sc,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.3*US,0),lmat(0x7dff9a,.9));o.position.set(.75*sc,1.45*sc,.3*sc);g.add(o);head.material.color.setHex(0xe8e2d0)}
-  if(type==='general'){box(.12*US,1.5*US,.12*US,0xffcf3d,.85*US,1.3*US,.4*US,g);box(1.2*US,.9*US,.12*US,0x2b2d4a,0,1.0*US,-.75*US,g);for(const s of[-1,1])box(.5*US,.35*US,.6*US,0x8a8fa6,s*.75*US,1.45*US,0,g);const cr=box(.6*US,.25*US,.6*US,0xffcf3d,0,1.95*US,.75*US,g);cr.material.emissive.setHex(0xffcf3d);cr.material.emissiveIntensity=.5}
-  if(type==='knight'){box(.08*US,.9*US,.08*US,0xdfe6f0,.45*US,.9*US,.2*US,g);box(.5*US,.5*US,.1*US,0x5e5670,-.45*US,.6*US,.2*US,g);box(.75*US,.15*US,.65*US,0x5e5670,0,1.0*US,.75*US,g)}
-  if(type==='archer'){box(.1*US,.9*US,.1*US,0x8a6a45,.4*US,.8*US,.3*US,g)}
+  if(type==='general'&&!NEWLOOK.general){box(.12*US,1.5*US,.12*US,0xffcf3d,.85*US,1.3*US,.4*US,g);box(1.2*US,.9*US,.12*US,0x2b2d4a,0,1.0*US,-.75*US,g);for(const s of[-1,1])box(.5*US,.35*US,.6*US,0x8a8fa6,s*.75*US,1.45*US,0,g);const cr=box(.6*US,.25*US,.6*US,0xffcf3d,0,1.95*US,.75*US,g);cr.material.emissive.setHex(0xffcf3d);cr.material.emissiveIntensity=.5}
+  if(type==='knight'&&!NEWLOOK.knight){box(.08*US,.9*US,.08*US,0xdfe6f0,.45*US,.9*US,.2*US,g);box(.5*US,.5*US,.1*US,0x5e5670,-.45*US,.6*US,.2*US,g);box(.75*US,.15*US,.65*US,0x5e5670,0,1.0*US,.75*US,g)}
+  if(type==='archer'&&!NEWLOOK.archer){box(.1*US,.9*US,.1*US,0x8a6a45,.4*US,.8*US,.3*US,g)}
   if(type==='shaman'&&!NEWLOOK.shaman){box(.1*US,1.4*US,.1*US,0x6b5235,.45*US,.9*US,.2*US,g);const o=new THREE.Mesh(new THREE.OctahedronGeometry(.2*US,0),lmat(0x7dff9a,.8));o.position.set(.45*US,1.7*US,.2*US);g.add(o)}
   if(BIG(type)&&type!=='ship'&&type!=='general'&&!state.__rivalMake&&!NEWLOOK[type])bossLook(type,sc,col,g,body,head);
   if(rarity>=2){head.material.emissive.setHex(RARITY[rarity].c);head.material.emissiveIntensity=.5;head.userData.em=RARITY[rarity].c}

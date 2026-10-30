@@ -902,3 +902,30 @@ const _anim1=enemyAnim;enemyAnim=function(e,dt){_anim1(e,dt);if(!e.boss2)return;
   if(ud.wings4)ud.wings4.forEach((w,k)=>w.rotation.z=(k<2?1:-1)*Math.sin(t*18+k)*.25);
   if(ud.wings&&e.type==='wyrm'){ud.wings[0].rotation.z=Math.sin(t*4)*.5;ud.wings[1].rotation.z=-Math.sin(t*4)*.5}
   if(ud.lava&&ud.arms)for(const a of ud.arms)a.children.forEach(c=>{if(c.material&&c.material.emissive)c.material.emissiveIntensity=.6+.4*Math.sin(t*3)})};
+
+// v3.0 PERSONAGENS R5 — tropas rivais com cor da facção
+Object.assign(NEWLOOK,{knight:1,archer:1,rammer:1,general:1});
+const facCol=c=>{const B=typeof battle==='function'&&battle();return B&&B.color?new THREE.Color(B.color).getHex():c};
+Object.assign(CREATURES,{
+  knight(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const fc=facCol(col),st=0x8a93a8,dk=0x3b3f55;
+    const body=B(.58,.7,.42,st,0,.85,0);B(.5,.6,.05,fc,0,.82,.23);B(.12,.12,.06,0xffcf3d,0,.95,.26);B(.6,.08,.44,0x5a4632,0,.55,0);
+    const head=B(.46,.46,.44,st,0,1.42,0);B(.36,.05,.04,0x1d1f33,0,1.44,.23);for(const s of[-1,1])B(.05,.16,.04,0x1d1f33,s*.06,1.36,.23);B(.08,.3,.34,fc,0,1.78,-.05);
+    const sh=K(.08,.6,.45,fc,-.38,.85,.1);box(.04*sc,.2*sc,.2*sc,0xffcf3d,-.05*sc,0,0,sh);const sw=K(.06,.7,.06,0xdfe6f0,.4,.95,.2);g.userData.sabre=sw;
+    return{body,head,legs:LG([[-.14,.22,0,.18,.44],[.14,.22,0,.18,.44]],dk)}},
+  archer(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const fc=facCol(col);
+    const body=B(.5,.66,.4,0x5a6b4a,0,.8,0);B(.52,.3,.42,fc,0,1.0,0);const head=B(.44,.42,.42,0xe8c8a8,0,1.36,.02);eyes(head,.02*sc,.22*sc,.1*sc);B(.52,.36,.48,fc,0,1.5,-.05);B(.2,.25,.12,fc,0,1.32,-.28);
+    const bow=K(.06,.9,.06,0x8a6a45,.38,.95,.25);box(.02*sc,.86*sc,.02*sc,0xf1e6c8,0,0,-.08*sc,bow);g.userData.bow=bow;B(.18,.5,.18,0x6b4a2a,-.12,1.0,-.28).rotation.z=.3;
+    return{body,head,legs:LG([[-.13,.2,0,.15,.4],[.13,.2,0,.15,.4]],0x3b2d2a)}},
+  rammer(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const fc=facCol(col);
+    const body=B(.36,.36,2.0,0x6b4a2a,0,.85,0);B(.42,.42,.3,0x5a5a6a,0,.85,1.08);for(const z of[-.6,0,.6])B(.4,.06,.06,0x3b3f55,0,.85,z);
+    const head=B(.3,.3,.3,0x5a5a6a,0,.85,1.3);const men=[];for(const [s,z] of [[-1,-.5],[1,.5]]){const m=K(.4,.55,.34,fc,s*.38,.88,z);box(.3*sc,.3*sc,.3*sc,0x8a93a8,0,.45*sc,0,m);men.push(m)}g.userData.men=men;
+    return{body,head,legs:LG([[-.48,.18,-.5,.15,.36],[-.28,.18,-.5,.15,.36],[.28,.18,.5,.15,.36],[.48,.18,.5,.15,.36]],0x3b2d2a)}},
+  general(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const fc=facCol(col),st=0x5e5670;
+    const body=B(.9,.95,.6,st,0,1.05,0);B(.8,.8,.06,fc,0,1.0,.31);B(1.1,.3,.7,st,0,1.55,0);for(const s of[-1,1])B(.3,.22,.5,0xffcf3d,s*.6,1.62,0);
+    const head=B(.5,.5,.48,0x8a93a8,0,1.95,.03);B(.38,.06,.04,0x1d1f33,0,1.97,.27);G(.5,.2,.5,0xffcf3d,0,2.3,.03,null,.55);for(let k=-1;k<=1;k++)G(.1,.2,.1,0xffcf3d,k*.18,2.48,.03,null,.6);
+    const cape=K(1.0,1.3,.06,fc,0,1.0,-.36);g.userData.cape=cape;const sw=K(.1,1.3,.1,0xdfe6f0,.62,1.2,.3);box(.32*sc,.08*sc,.08*sc,0xffcf3d,0,-.5*sc,0,sw);g.userData.sabre=sw;
+    const pole=B(.06,1.6,.06,0x6b4a2a,-.35,2.0,-.35);const flag=K(.04,.4,.6,fc,-.35,2.6,-.06);g.userData.flag=flag;
+    return{body,head,legs:LG([[-.2,.3,0,.26,.6],[.2,.3,0,.26,.6]],0x2b2d4a)}}});
+const _anim2=enemyAnim;enemyAnim=function(e,dt){_anim2(e,dt);const ud=e.group.userData;const t=simTime+e.bob*.1;
+  if(ud.bow)ud.bow.rotation.z=Math.sin(t*2)*.15;if(ud.men)ud.men.forEach((m,k)=>m.position.y=(.88+Math.abs(Math.sin(e.bob*1.4+k))*.06)*e.sc);
+  if(ud.cape)ud.cape.rotation.x=.1+Math.abs(Math.sin(e.bob*1.4))*.25};
