@@ -46,7 +46,7 @@ function renderBuild(){const B=state.build,body=$('buildBody');for(const t of do
 for(const t of document.querySelectorAll('#buildPanel .tab'))t.onclick=()=>{state.build.tab=t.dataset.tab;state.build.tool=t.dataset.tab==='blocks'?'place':(state.inv.turrets.length?'turret':'remove');if(state.build.tool==='turret')state.build.tsel=clamp(state.build.tsel,0,state.inv.turrets.length-1);renderBuild()};
 const raycaster=new THREE.Raycaster(),ndc=new THREE.Vector2();
 function rayFrom(cx,cy){ndc.set(cx/innerWidth*2-1,-(cy/innerHeight)*2+1);raycaster.setFromCamera(ndc,camera);return raycaster.ray}
-function pickObj(cx,cy,list){rayFrom(cx,cy);const hits=raycaster.intersectObjects(list,true);if(!hits.length)return null;let o=hits[0].object;while(o&&!o.userData.loot&&!o.userData.minion&&!o.userData.enemy&&!o.userData.turret)o=o.parent;return o?o.userData:null}
+function pickObj(cx,cy,list){rayFrom(cx,cy);const hits=raycaster.intersectObjects(list,true);if(!hits.length)return null;let o=hits[0].object;while(o&&!o.userData.loot&&!o.userData.minion&&!o.userData.enemy&&!o.userData.turret&&!o.userData.lantern)o=o.parent;return o?o.userData:null}
 function buildTarget(cx,cy){const B=state.build,ray=rayFrom(cx,cy);
   if(B.tool==='remove'){const tu=pickObj(cx,cy,turrets.filter(t=>t.alive).map(t=>t.group));if(tu&&tu.turret)return{kind:'rmturret',t:tu.turret,ok:true};
     const h=voxRay(ray.origin,ray.direction,true);if(!h)return null;const m=vox[h.i];const ok=m!==1&&m!==5&&(blue[h.i]||FLUID(m)||state.material>=1);return{kind:'remove',i:h.i,ok}}

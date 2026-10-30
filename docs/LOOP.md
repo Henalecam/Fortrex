@@ -66,6 +66,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.31: 🛢️ Poço de piche (bloco especial, horda 6): inimigos em cima ficam 60% mais lentos; seu fogo pode acendê-lo (sem fogo amigo) e ele queima ~15 s; Construção auto também o espalha no caminho dos inimigos. Mapa do Reino no celular: mapa e painel cabem na tela, registro com texto menor e cortado com "…".
 
+- v0.32: 🎉 Festival a cada 7 hordas: +10 de moral e 16 lanternas coloridas flutuando sobre a cidadela por ~15 s; clique para ganhar material (4 + horda) e +2 de moral cada; as que não forem clicadas rendem 25% sozinhas.
+
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
