@@ -11,6 +11,7 @@ Abra `dist/index.html` num navegador (precisa de internet para carregar three.js
 
 ## O que tem
 - **Construção livre:** arraste para fileiras, − / = para altura, Pequenas obras prontas (torre, muro, bunker, ponte, escadaria, arco, campo minado, barricada). Tudo o que você constrói é reconstruído pelos reparadores; o terreno natural se regenera por completo e você constrói por cima dele.
+- **Raids** (☠️ no descanso a partir da horda 6, a cada 4 hordas): três ondas de elites insanas, mini-chefes e o Arauto do Abismo; recompensas grandes.
 - **Hordas infinitas** com dificuldade crescente (Tranquilo / Normal / Brutal), eventos (bruma, eclipse, lua de sangue, revoada, terremoto, piratas, nevasca…) e chefes a cada 5 hordas — a partir da 15 podem vir *Furiosos* ou com *Escudo*.
 - **Inimigos variados** (corpos em voxels pequenos, despedaçáveis): escaladores, aranhas, aríetes, sabotadores, porta-estandartes, escudeiros, cavadores que passam por baixo das muralhas, bombardeiros voadores, mímicos, golens de cristal, cavaleiros com investida, elites com afixos (veloz, blindado, vampiro, explosivo, regenerante). Chefes com golpes telegrafados e fases.
 - **Armas:** canhão, balista, lança-chamas, morteiro, tesla, torre de vento, canhão de gelo, catapulta, raio-sol — limitadas por plataformas.

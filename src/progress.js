@@ -457,10 +457,13 @@ const _lineMat=()=>new THREE.MeshBasicMaterial({color:0xff3355,transparent:true,
 function markLine(x,z,ang,len,w,t){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,len),_lineMat());m.rotation.x=-Math.PI/2;m.rotation.z=-ang;m.position.set(x+Math.sin(ang)*len/2,Math.min(topY(x,z),GY+12)+.08,z+Math.cos(ang)*len/2);scene.add(m);marks.push({m,t,T:t,line:true})}
 function bossMovePick(e){const dC=Math.hypot(CHEST.x-e.pos.x,CHEST.z-e.pos.z);const o=[];
   const near=minions.some(m=>!m.wounded&&hd(m.pos,e.pos)<8)||turrets.some(t=>t.alive&&t.team!=='r'&&hd(t.pos,e.pos)<9)||dC<WR+6;
-  if(!e.fly&&near)o.push('slam','slam');if(!e.fly&&dC>8&&dC<44)o.push('charge');o.push('volley');if(e.ph>=2)o.push('summon');if(e.ph>=3&&!e.fly)o.push('slam','charge');return pick(o)}
+  if(!e.fly&&near)o.push('slam','slam');if(!e.fly&&dC>8&&dC<44)o.push('charge');o.push('volley');if(e.ph>=2)o.push('summon');if(e.type==='arauto'){o.push('meteor','void');if(e.ph>=2)o.push('blink')}if(e.ph>=3&&!e.fly)o.push('slam','charge');return pick(o)}
 function bossAI(e,dt){const f=e.hp/e.maxhp;if(e.ph<2&&f<.66)bossPhase(e,2);else if(e.ph<3&&f<.33)bossPhase(e,3);
   if(!e.mv){e.mvT-=dt;if(e.mvT>0||state.phase!=='wave')return false;const k=bossMovePick(e);e.mvT=Math.max(2.6,7.2-e.ph*1.3-Math.min(1.5,state.wave*.03));
     if(k==='volley'){const n=2+e.ph;const tg=turrets.filter(t=>t.alive&&t.team!=='r'&&hd(t.pos,e.pos)<50);for(let i=0;i<n;i++){const t=tg.length?pick(tg).pos:{x:CHEST.x+rnd(-9,9),z:CHEST.z+rnd(-9,9)};setTimeout(()=>{if(!e.dead)throwRock(e,t.x+rnd(-1.5,1.5),t.z+rnd(-1.5,1.5),2,(24+state.wave*2.5)*(1+.15*e.ph),e.type==='titan'||e.type==='wyrm'?0xff7a2a:0x6b5a7a,e.type==='titan'||e.type==='wyrm')},i*260)}label({x:e.pos.x,y:e.group.position.y+e.sc*2,z:e.pos.z},'rajada!','#ffb13d');return false}
+    if(k==='meteor'){const n=5+e.ph*2;for(let i=0;i<n;i++)setTimeout(()=>{if(!e.dead)throwRock(e,CHEST.x+rnd(-WR+2,WR-2),CHEST.z+rnd(-WR+2,WR-2),2.6,(40+state.wave*3)*(1+.15*e.ph),0xc86cff,true)},i*180);label({x:e.pos.x,y:e.group.position.y+e.sc*2,z:e.pos.z},'☄️ chuva do abismo!','#c86cff');return false}
+    if(k==='void'){ringFx(e.pos.x,e.gy+1,e.pos.z,14,0xa040ff);for(const m of minions){if(m.wounded)continue;const dx=e.pos.x-m.pos.x,dz=e.pos.z-m.pos.z,d=Math.hypot(dx,dz);if(d<16&&d>1){const k2=Math.min(3,d-1);m.pos.x+=dx/d*k2;m.pos.z+=dz/d*k2;hurtMinion(m,(14+state.wave*1.2)*(1+.15*e.ph),e)}}label({x:e.pos.x,y:e.group.position.y+e.sc*2,z:e.pos.z},'🌀 vazio!','#a040ff');shake=Math.max(shake,.5);return false}
+    if(k==='blink'){for(let i=0;i<16;i++)spawnDebris(e.pos.x,e.gy+2,e.pos.z,0x2a1438,1,.5);const a=rnd(0,Math.PI*2),r=rnd(WR+4,WR+10);e.pos.x=clamp(CX+Math.cos(a)*r,4,W-5);e.pos.z=clamp(CZ+Math.sin(a)*r,4,D-5);e.gy=surfE(e.pos.x,e.pos.z);e.group.position.y=e.gy;e.path=null;bossSummon(e,2);label({x:e.pos.x,y:e.gy+e.sc*2,z:e.pos.z},'⚡ teleporte!','#c86cff');return false}
     if(k==='summon'){bossSummon(e,2+e.ph);label({x:e.pos.x,y:e.group.position.y+e.sc*2,z:e.pos.z},'invocação!','#b56cf2');return false}
     if(k==='slam'){const R=5.5+e.ph*.8;e.mv={k,t:1.25-e.ph*.12,R,y0:e.group.position.y};markGround(e.pos.x,e.pos.z,R,0xff3355,e.mv.t);SFX.whoosh&&SFX.whoosh();return true}
     if(k==='charge'){const ang=Math.atan2(CHEST.x-e.pos.x,CHEST.z-e.pos.z);const len=Math.min(Math.hypot(CHEST.x-e.pos.x,CHEST.z-e.pos.z)-2,15+e.ph*2);e.mv={k,t:1.05-e.ph*.1,ang,len,dash:0,hit:new Set()};markLine(e.pos.x,e.pos.z,ang,len,e.radius*2+.6,e.mv.t);e.group.rotation.y=ang;return true}
@@ -636,3 +639,36 @@ const NEW_BRAINS={
     e.chT=(e.chT??rnd(3,6))-dt;const dC=Math.hypot(CHEST.x-e.pos.x,CHEST.z-e.pos.z);if(e.chT<=0&&dC<WR+14&&dC>6){const ang=Math.atan2(CHEST.x-e.pos.x,CHEST.z-e.pos.z);e.group.rotation.y=ang;markLine(e.pos.x,e.pos.z,ang,9,1.6,.7);e.chg={t:.7,ang,dash:0,h:new Set()};return true}return false}};
 const NEW_DEATH={cristal(e){for(let k=0;k<3;k++){const s=makeEnemy('shard',e.rarity,e.pos.x+rnd(-1,1),e.pos.z+rnd(-1,1));s.viaWall=true}},
   mimico(e){spawnLoot(e.pos.x,e.gy+1.5,e.pos.z,'treasure',Math.min(4,2+Math.floor(state.wave/12)),{});spawnLoot(e.pos.x+.5,e.gy+1.5,e.pos.z,'material',0,{amount:10+state.wave});label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'💰 tesouro!','#ffcf3d')}};
+
+// v1.6 RAIDS: opcional no descanso, três estágios de inimigos insanos e o Arauto do Abismo
+ETYPES.arauto={hp:5200,speed:1.2,dmg:95,rate:1.2,color:0x2a1438,radius:2.1,n:'Arauto do Abismo'};SCX.arauto=2.6;
+CREATURES.arauto=function(sc,col,g){const body=box(1.2*sc,1.1*sc,.8*sc,col,0,1.25*sc,0,g);const head=box(.6*sc,.55*sc,.55*sc,0x3d1f52,0,2.05*sc,.05*sc,g);
+  box(1.6*sc,.35*sc,.9*sc,0x4b2a66,0,1.75*sc,0,g);for(const s of[-1,1]){box(.35*sc,1.0*sc,.35*sc,col,s*.85*sc,1.2*sc,.05*sc,g);box(.42*sc,.3*sc,.42*sc,0x7a3aa8,s*.85*sc,.62*sc,.05*sc,g);const w=box(1.1*sc,.08*sc,.7*sc,0x1a0a26,s*1.3*sc,1.9*sc,-.4*sc,g);w.rotation.z=s*.35}
+  const orb=box(.3*sc,.3*sc,.3*sc,0xc86cff,0,1.35*sc,.42*sc,g);orb.material.emissive.setHex(0xa040ff);orb.material.emissiveIntensity=1;
+  const cr=box(.5*sc,.18*sc,.5*sc,0xc86cff,0,2.42*sc,.05*sc,g);cr.material.emissive.setHex(0xa040ff);cr.material.emissiveIntensity=.8;
+  return{body,head,legs:_L(g,sc,0x1a0a26,[[-.32,.36,0,.36,.72],[.32,.36,0,.36,.72]])}};
+BOSS_ADD.arauto='cavaleiro';
+const RAID_EVERY=4;
+function raidReady(){const mw=Math.max(state.maxWave||1,state.wave);return mw>=6&&state.phase==='rest'&&!state.choosing&&!state.raid&&mw>=(state.nextRaid||6)}
+function raidLvl(){return Math.max(state.maxWave||1,state.wave)+3}
+function raidSpec(st){const L=raidLvl();const q=[];const elite=['escudeiro','cavaleiro','brute','beetle','wolf','imp','spider','bombardeiro','cristal','cavador'];
+  if(st===1){for(let i=0;i<14+L;i++)q.push(pick(elite))}
+  else if(st===2){const mb=['golem','necro','wyrm','boss'];q.push(pick(mb),pick(mb));for(let i=0;i<10+L;i++)q.push(pick(elite))}
+  else{q.push('arauto');for(let i=0;i<8+Math.floor(L/2);i++)q.push(pick(elite))}return q}
+function startRaid(){if(!raidReady())return;const L=raidLvl();state.raid={st:1,w0:state.wave,L};state.wave=L;state.ev=null;state.phase='rest';startWave();state.ev='raid';state.queue=raidSpec(1);state.contract=null;
+  $('event').style.display='inline-flex';$('event').textContent='☠️ Raid 1/3';$('event').style.color='var(--r4)';toast(`☠️ RAID nível ${L}: três ondas de inimigos insanos. No fim, o Arauto do Abismo.`,'r4',true);SFX.boom&&SFX.boom(true);shake=Math.max(shake,.6)}
+function raidStageEnd(){const R=state.raid;if(R.st<3){R.st++;state.queue=raidSpec(R.st);$('event').textContent=`☠️ Raid ${R.st}/3`;toast(R.st===2?'☠️ Raid 2/3: mini-chefes chegando!':'☠️ Raid 3/3: o ARAUTO DO ABISMO desperta!','r4',true);shake=Math.max(shake,.5);return}
+  const L=R.L;state.wave=R.w0;state.raid=null;state.ev=null;state.phase='rest';state.restStart=simTime;state.restT=20;$('event').style.display='none';state.raidsDone=(state.raidsDone||0)+1;state.nextRaid=Math.max(state.maxWave||1,state.wave)+RAID_EVERY;
+  const mat=120+L*12;state.material+=mat;addFame(30+L*2);for(let k=0;k<3;k++)spawnLoot(CHEST.x+rnd(-3,3),GY+3,CHEST.z+3+rnd(0,2),'treasure',Math.min(4,3+(k===0&&L>=15?1:0)),{});
+  $('report').style.display='block';$('report').innerHTML=`<b>☠️ Raid nível ${L} vencida!</b> +${mat} material, 3 tesouros raros e renome. Próxima raid na horda ${state.nextRaid}.`;toast('☠️ RAID VENCIDA! Tesouros raros no pátio.','r4',true);SFX.fanfare&&SFX.fanfare(true);startSelfRepair();updateHud()}
+function raidFail(){const R=state.raid;state.raid=null;for(const e of enemies)if(!e.dead&&!e.rival){e.dead=true;scene.remove(e.group)}state.queue=[];state.ev=null;state.wave=R.w0;$('event').style.display='none';state.boss=null;hideBoss();
+  for(const i of _chestVox){setVox(i,5);hp[i]=maxHpOf(5)}const pen=Math.floor(state.material*.1);state.material-=pen;state.phase='rest';state.restStart=simTime;state.restT=25;state.nextRaid=Math.max(state.maxWave||1,state.wave)+2;startSelfRepair();
+  $('report').style.display='block';$('report').innerHTML=`<b>☠️ A raid rompeu o baú.</b> Você continua na horda ${state.wave}${pen?` · −${pen} material`:''}. Nova tentativa na horda ${state.nextRaid}.`;toast('☠️ Raid perdida — a cidadela resiste.','r3',true);updateHud()}
+let _raidT=0;function raidTick(dt){_raidT-=dt;if(_raidT<=0){_raidT=.4;const b=$('raidBtn');if(b){const ok=raidReady();if(b.hidden===ok)b.hidden=!ok}}
+  if(!state.raid)return;for(const e of enemies){if(e.dead||e.rm||e.rival)continue;e.rm=1;if(e.type==='arauto'){e.ph=1;showBoss(e);continue}
+    if(BIG(e.type)){e.maxhp*=.55;e.hp=e.maxhp;e.group.scale.multiplyScalar(.85);continue}
+    e.maxhp*=1.6;e.hp=e.maxhp;e.speed*=1.12;e.armor=Math.min(.7,(e.armor||0)+.12);if(!e.aff){e.aff=pick(['fast','armor','vamp','boom','regen']);if(e.aff==='fast')e.speed*=1.3;if(e.aff==='armor')e.armor=Math.min(.75,e.armor+.25)}
+    for(const im of e.vmeshes||[]){im.material.emissive.setHex(0x7a20c8);im.material.emissiveIntensity=.22;im.userData.em=0x7a20c8}}}
+$('raidBtn').onclick=()=>startRaid();
+window.__raid=()=>{state.maxWave=Math.max(state.maxWave||1,8);state.nextRaid=0;startRaid();return state.raid?{...state.raid,q:state.queue.length}:null};
+window.__raidSt=()=>state.raid?{st:state.raid.st,q:state.queue.length,en:enemies.filter(e=>!e.dead).length,wave:state.wave}:{done:state.raidsDone||0,wave:state.wave,next:state.nextRaid};

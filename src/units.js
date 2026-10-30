@@ -57,7 +57,7 @@ const ETYPES={
   necro:{hp:950,speed:1.4,dmg:35,rate:1.4,color:0x4b2e6b,radius:1.2,n:'Necromante da Bruma'},
 };
 const CLIMBS=t=>t==='climber'||t==='spider';
-const BIG=t=>t==='boss'||t==='colossus'||t==='queen'||t==='titan'||t==='general'||t==='golem'||t==='wyrm'||t==='necro'||t==='mistking';
+const BIG=t=>t==='arauto'||t==='boss'||t==='colossus'||t==='queen'||t==='titan'||t==='general'||t==='golem'||t==='wyrm'||t==='necro'||t==='mistking';
 const enemies=[];const fuses=[];
 function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group();const col=new THREE.Color(T.color).lerp(new THREE.Color(RARITY[rarity].c),rarity?.35:0).getHex();
   const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='general'?2.1:type==='ship'?2.6:type==='pirate'?1.05:type==='mistking'?3.4:type==='golem'?3.7:type==='wyrm'?2.9:type==='necro'?2.7:type==='ram'?1.35:type==='flyer'?.8:type==='brute'?1.5:type==='imp'?.7:type==='slime'?1.15:type==='beetle'?1.2:(SCX[type]||1))*(BIG(type)?1.12:1.32*rnd(.92,1.1));
