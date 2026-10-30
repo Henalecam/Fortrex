@@ -7,7 +7,7 @@ Abra `dist/index.html` num navegador (precisa de internet para carregar three.js
 
 **Teclas:** `B` construir · `I` arsenal · `U` upgrades · `M` mapa do reino · `Espaço` horda · `F` velocidade · `WASD` câmera · `H` centralizar · heróis `Q E T G Y O`.
 
-O jogo **salva sozinho** a cada horda (no navegador). Na tela inicial, **▶ Continuar** retoma a partida; saves antigos continuam valendo depois de atualizações e uma tela de **Novidades** mostra o que mudou.
+**Sem fim:** perder uma horda não encerra a partida — a cidadela recua uma horda e você navega entre as hordas já alcançadas (‹ › no topo). O jogo **salva sozinho** a cada horda (no navegador). Na tela inicial, **▶ Continuar** retoma a partida; saves antigos continuam valendo depois de atualizações e uma tela de **Novidades** mostra o que mudou.
 
 ## O que tem
 - **Hordas infinitas** com dificuldade crescente (Tranquilo / Normal / Brutal), eventos (bruma, eclipse, lua de sangue, revoada, terremoto, piratas, nevasca…) e chefes a cada 5 hordas — a partir da 15 podem vir *Furiosos* ou com *Escudo*.
@@ -17,7 +17,7 @@ O jogo **salva sozinho** a cada horda (no navegador). Na tela inicial, **▶ Con
 - **Distritos** (escolha a cada fase: Ferraria, Torre arcana, Celeiro, Mercado, Caserna, Santuário) e **Maravilhas** para o fim de jogo.
 - **Heróis** (Paladina, Arqueira, Mago, Engenheira, Berserker, Sacerdotisa) com habilidades e **talentos** nos níveis 3/6/9.
 - **Reino:** fortalezas rivais, alianças (ajude uma cidade cercada e ela vira aliada), covis, ruínas, caravanas, **expedições** de coletores e um **viajante** com tratos arriscados.
-- **5 biomas** com regras próprias: Verdes (colheita), Rubro (calor), Gelada (gelo que racha), Vulcânico (erupções), Bruma (horda invisível à noite).
+- **Climas que vêm e vão** durante a partida (3–5 hordas cada): Estação fértil (colheita), Onda de calor, Inverno rigoroso (lagos congelam e racham), Despertar vulcânico (erupções), Bruma do pântano (horda invisível à noite).
 - Conquistas, relíquias, veio de ouro disputado, caçada noturna ao lobo alfa, tesouros enterrados.
 
 ## Desenvolvimento

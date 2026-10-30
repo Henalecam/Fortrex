@@ -307,7 +307,7 @@ let chestAcc=0,chestLast=-1;function chestTick(dt){chestAcc+=dt;if(chestAcc<.3)r
 
 // volcanic wastes: during waves the earth erupts — marked spots get hit by lava bombs (hurt everyone, set fires, scar the ground)
 let eruptT=14;const pendingLava=[];const LAVA_COL_GEO=new THREE.CylinderGeometry(.35,.9,12,10,1,true);
-function volcanoTick(dt){if(!BIOME.volcanic||state.phase!=='wave'||state.wave<4){if(state.phase!=="wave"){eruptT=14;for(const L of pendingLava)if(L.col)scene.remove(L.col);pendingLava.length=0}return}eruptT-=dt;
+function volcanoTick(dt){if(state.climate!=='vulcao'||state.phase!=='wave'||state.wave<4){if(state.phase!=="wave"){eruptT=14;for(const L of pendingLava)if(L.col)scene.remove(L.col);pendingLava.length=0}return}eruptT-=dt;
   if(eruptT<=0){eruptT=rnd(32,48);const n=3+Math.floor(state.wave/6);for(let k=0;k<n;k++){const a=rnd(0,Math.PI*2),r=Math.random()<.2?rnd(7,WR-2):rnd(WR+4,60);const x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;markGround(x,z,2.4,0xff5a1a,1.6+k*.25);const col=new THREE.Mesh(LAVA_COL_GEO,new THREE.MeshBasicMaterial({color:0xff7a2a,transparent:true,opacity:.55,depthWrite:false}));col.position.set(x,surf(x,z)+6,z);scene.add(col);pendingLava.push({x,z,t:1.6+k*.25,col})}
     toast('🌋 Erupção! Bombas de lava vão cair nas marcas laranja.','r3');shake=Math.max(shake,.35);SFX.boom&&SFX.boom(true)}
   for(let i=pendingLava.length-1;i>=0;i--){const L=pendingLava[i];L.t-=dt;if(L.col){L.col.material.opacity=.35+.3*Math.sin(simTime*14);L.col.scale.x=L.col.scale.z=1+Math.max(0,1.6-L.t)*.4}if(L.t>0)continue;pendingLava.splice(i,1);if(L.col){scene.remove(L.col);L.col.material.dispose()}explode(Math.floor(L.x),Math.floor(surf(L.x,L.z)),Math.floor(L.z),2.4,60+state.wave*4,{fire:true,src:'env'});for(let k=0;k<6;k++)spawnFlame(L.x+rnd(-1.5,1.5),surf(L.x,L.z)+rnd(.2,1.2),L.z+rnd(-1.5,1.5),1)}}
@@ -316,7 +316,7 @@ function volcanoTick(dt){if(!BIOME.volcanic||state.phase!=='wave'||state.wave<4)
 //  Rubro (deserto): midday heat wears down soldiers fighting outside the walls
 //  Gelada (neve): frozen lakes crack under heavy enemies, dropping them into icy water
 //  Bruma (pântano): at night the horde stays hidden in the fog until it is close
-let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAcc;bioAcc=0;const k=state.biomeKey;{const c=$('clock');const B=BIOMES[k];if(c&&B&&c.dataset.bio!==k){c.dataset.bio=k;c.title=`${B.ico} ${B.n}: ${B.rule}`}}
+let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAcc;bioAcc=0;const k=state.climate;climUi();
   if(k==='deserto'&&state.phase==='wave'){const p=dayPhase();if(p>.4&&p<.6){if(state.heatDay!==Math.floor(simTime/DAY_LEN)){state.heatDay=Math.floor(simTime/DAY_LEN);toast('☀️ Calor do meio-dia: soldados fora das muralhas se cansam.','r3')}
     for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&!inside(m.pos.x,m.pos.z)&&!m.hero)m.hp=Math.max(1,m.hp-m.maxhp*.007*t)}}
   if(k==='neve'&&state.phase==='wave'){for(const e of enemies){if(e.dead||e.fly)continue;if(!(BIG(e.type)||e.type==='brute'||e.type==='ram'||e.type==='rammer'||e.type==='beetle'))continue;const x=Math.floor(e.pos.x),z=Math.floor(e.pos.z);const i=idx(x,GY-1,z);if(!inb(x,GY-1,z)||vox[i]!==18||blue[i])continue;
@@ -384,7 +384,7 @@ function raiseLighthouse(){const bx=CX,bz=CZ-12;const put=(x,y,z,m)=>{if(!inb(x,
   if(state.phase!=='wave')startSelfRepair();toast('🗼 O farol foi erguido: armas próximas enxergam mais longe e a bruma recua.','r4')}
 function lightTick(dt){if(!state.ups.farol){if(lightBeam){scene.remove(lightBeam);lightBeam=null}return}
   if(!lightBeam){lightBeam=new THREE.Mesh(new THREE.ConeGeometry(4,26,16,1,true),new THREE.MeshBasicMaterial({color:0xfff1b0,transparent:true,opacity:.18,depthWrite:false,side:THREE.DoubleSide}));lightBeam.geometry.translate(0,-13,0);lightBeam.geometry.rotateZ(Math.PI/2);lightBeam.position.set(CX+.5,GY+13.5,CZ-11.5);scene.add(lightBeam)}
-  lightBeam.rotation.y+=dt*.8;lightBeam.visible=isNight()||state.ev==='mist'||state.ev==='rain'||state.biomeKey==='pantano';lightBeam.material.opacity=.14+.06*Math.sin(simTime*3)}
+  lightBeam.rotation.y+=dt*.8;lightBeam.visible=isNight()||state.ev==='mist'||state.ev==='rain'||state.climate==='pantano';lightBeam.material.opacity=.14+.06*Math.sin(simTime*3)}
 
 // crossbowmen on the battlements: volleys of bolts at enemies close to the main wall
 const BOLT_MAT=new THREE.LineBasicMaterial({color:0xfff6e0,transparent:true,opacity:.9});const bolts=[];let boltAcc=0;
@@ -428,3 +428,12 @@ window.__cdone=()=>state.contractsDone||0;
 // v0.95 chip do contrato no HUD
 const CPROG={rapido:c=>{const r=Math.ceil(c.goal-(simTime-c.t0));return r>=0?`${r} s`:'tempo esgotado'},intocado:c=>c.hit?'baú atingido':'baú ok',semferidos:c=>`${state.wwound}/${c.goal} feridos`,tropa:c=>`${c.sol||0}/${c.goal}`,elite:c=>`${c.el||0}/${c.goal}`};
 let _conT=0,_conH='';function contractTick(dt){_conT-=dt;if(_conT>0)return;_conT=.25;const el=$('conSt');const c=state.contract;if(!c||state.phase!=='wave'){if(!el.hidden)el.hidden=true;return}const C=CONTRACTS.find(x=>x.id===c.id);if(!C)return;const ok=C.ok(c),fail=(c.id==='intocado'&&c.hit)||(c.id==='semferidos'&&state.wwound>c.goal)||(c.id==='rapido'&&simTime-c.t0>c.goal);const h=`📜 ${C.ico} ${CPROG[c.id](c)}${fail?' ✗':ok&&(c.id==='tropa'||c.id==='elite')?' ✓':''}${(state.conStreak||0)>=2?` 🔥${state.conStreak}`:''}`;if(h!==_conH){_conH=h;el.textContent=h;el.title=C.d(c);el.style.color=fail?'#e0564f':ok?'var(--r1)':''}if(el.hidden)el.hidden=false}
+
+// v1.0 climas: os antigos biomas viram eventos que chegam e vão embora durante a partida
+const CLIM_NAMES={campo:'Estação fértil',deserto:'Onda de calor',neve:'Inverno rigoroso',vulcao:'Despertar vulcânico',pantano:'Bruma do pântano'};
+function climateWave(){if(state.climate){state.climateLeft=(state.climateLeft||1)-1;if(state.climateLeft<=0){const B=BIOMES[state.climate];if(state.climate==='neve')thawIce();toast(`${B.ico} ${CLIM_NAMES[state.climate]} terminou.`,'r1');state.lastClimate=state.climate;state.climate=null}return}
+  if(state.wave<4||Math.random()>.35)return;const ks=Object.keys(BIOMES).filter(k=>k!==state.lastClimate);const k=pick(ks);state.climate=k;state.climateLeft=rint(3,5);const B=BIOMES[k];if(k==='neve')freezeWater();toast(`${B.ico} Clima: ${CLIM_NAMES[k]} por ${state.climateLeft} hordas — ${B.rule}`,'r3',true)}
+function freezeWater(){let n=0;for(let x=1;x<W-1;x++)for(let z=1;z<D-1;z++){const i=idx(x,GY-1,z);if(FLUID(vox[i])&&!blue[i]){setVox(i,18);n++}}state.frozeN=n}
+function thawIce(){for(let x=1;x<W-1;x++)for(let z=1;z<D-1;z++){const i=idx(x,GY-1,z);if(vox[i]===18&&!blue[i]){setVox(i,0);setFluid(i,9,4,true)}}}
+let _climH='';function climUi(){const el=$('climSt');if(!el)return;const k=state.climate;if(!k){if(!el.hidden)el.hidden=true;return}const B=BIOMES[k];const h=`${B.ico} ${CLIM_NAMES[k]} · ${state.climateLeft}`;if(h!==_climH){_climH=h;el.textContent=h;el.title=`${CLIM_NAMES[k]}: ${B.rule} (mais ${state.climateLeft} horda${state.climateLeft>1?'s':''})`}if(el.hidden)el.hidden=false}
+window.__clim=k=>{if(k){state.climate=k;state.climateLeft=3;if(k==='neve')freezeWater()}return [state.climate,state.climateLeft,state.frozeN]};
