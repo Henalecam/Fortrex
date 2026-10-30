@@ -360,7 +360,7 @@ function strangerVisit(){const w=state.wave;if(w<6||state.choosing||Math.random(
 
 // active effects chip: blessings, pacts, expeditions, captured banners
 let buffAcc=0;function buffTick(dt){buffAcc+=dt;if(buffAcc<.5)return;buffAcc=0;{const gb=$('bGate');if(gb){const c=!!state.gateClosed;if(gb.classList.contains('on')!==c){gb.classList.toggle('on',c);gb.firstChild.textContent=c?'🔒':'🚪'}}}const el=$('buffSt');if(!el)return;const p=[];
-  if((state.blessUntil||0)>=state.wave)p.push(`✨ +25% · ${state.blessUntil-state.wave+1} h`);if(state.nextWaveMul)p.push('🩸 próxima horda +50%');if(state.expedition)p.push(`🧭 volta h${state.expedition.back}`);if(state.trophies)p.push(`🏳️×${state.trophies}`);
+  if((state.blessUntil||0)>=state.wave)p.push(`✨ +25% · ${state.blessUntil-state.wave+1} h`);if(state.nextWaveMul)p.push('🩸 próxima horda +50%');if(state.expedition)p.push(`🧭 volta h${state.expedition.back}`);if(state.trophies)p.push(`🏳️×${state.trophies}`);if(state.challenge&&state.challenge.mods)p.unshift(`🏆 ${state.challenge.mods.map(k=>CH_MODS[k]?CH_MODS[k].ico:'').join('')}`);
   const t=p.join('  ');if(el.textContent!==t)el.textContent=t;const h=!p.length;if(el.hidden!==h)el.hidden=h}
 
 // portcullis: close the gate to make the doors 2.5× tougher — but minions can't walk through it either

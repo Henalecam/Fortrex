@@ -2214,7 +2214,7 @@ function strangerVisit(){const w=state.wave;if(w<6||state.choosing||Math.random(
 
 // active effects chip: blessings, pacts, expeditions, captured banners
 let buffAcc=0;function buffTick(dt){buffAcc+=dt;if(buffAcc<.5)return;buffAcc=0;{const gb=$('bGate');if(gb){const c=!!state.gateClosed;if(gb.classList.contains('on')!==c){gb.classList.toggle('on',c);gb.firstChild.textContent=c?'🔒':'🚪'}}}const el=$('buffSt');if(!el)return;const p=[];
-  if((state.blessUntil||0)>=state.wave)p.push(`✨ +25% · ${state.blessUntil-state.wave+1} h`);if(state.nextWaveMul)p.push('🩸 próxima horda +50%');if(state.expedition)p.push(`🧭 volta h${state.expedition.back}`);if(state.trophies)p.push(`🏳️×${state.trophies}`);
+  if((state.blessUntil||0)>=state.wave)p.push(`✨ +25% · ${state.blessUntil-state.wave+1} h`);if(state.nextWaveMul)p.push('🩸 próxima horda +50%');if(state.expedition)p.push(`🧭 volta h${state.expedition.back}`);if(state.trophies)p.push(`🏳️×${state.trophies}`);if(state.challenge&&state.challenge.mods)p.unshift(`🏆 ${state.challenge.mods.map(k=>CH_MODS[k]?CH_MODS[k].ico:'').join('')}`);
   const t=p.join('  ');if(el.textContent!==t)el.textContent=t;const h=!p.length;if(el.hidden!==h)el.hidden=h}
 
 // portcullis: close the gate to make the doors 2.5× tougher — but minions can't walk through it either
@@ -2228,7 +2228,7 @@ let gateAcc=0;function gateTick(dt){gateAcc+=dt;if(gateAcc<1)return;gateAcc=0;
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.85;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.86;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2269,7 +2269,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.82,'🚪 Botão Portão: feche para a porta aguentar 2,5× mais — mas ninguém sai nem entra enquanto estiver fechado.'],
   [0.83,'🚪 Portão automático (menu Automação): fecha quando aríetes e brutos chegam perto e abre no descanso; aviso quando coletores ficam presos do lado de fora. 💾 Corrigido: o save automático travava enquanto saqueadores de cidades rivais andavam pelo mapa.'],
   [0.84,'💾 O save automático agora também acontece durante batalhas contra fortalezas e missões do reino (ao continuar, a fortaleza de cerco e a missão em andamento ficam de fora).'],
-  [0.85,'🏆 Desafio da semana na tela inicial: dois modificadores e um bioma iguais para a semana inteira, com recorde de horda guardado.']];
+  [0.85,'🏆 Desafio da semana na tela inicial: dois modificadores e um bioma iguais para a semana inteira, com recorde de horda guardado.'],
+  [0.86,'🏆 Durante o desafio, um selo no topo mostra os modificadores; a tela de derrota mostra o recorde da semana.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2368,7 +2369,7 @@ function endWave(){const ev=state.ev;state.wave++;chalRecord(state.wave);state.r
   if(ev==='elite')spawnLoot(CHEST.x-2,GY+3,CHEST.z+3,'recruit',Math.max(1,rollRarity(.1)),{role:pick(['sol','gun','med'])});
   $('report').style.display='block';$('report').innerHTML=`Horda ${state.wave-1} vencida · melhor combo <b>×${state.comboBest}</b> · <b>${state.wk}</b> estilhaçados · <b>${state.wwound}</b> ferido${state.wwound===1?'':'s'} · <b>${loot.filter(L=>!L.carried).length}</b> itens no chão`;
   if((state.wave-1)%5===0)offerRewards();updateHud()}
-function gameOver(){state.running=false;saveRecord();if(window.__chestLog)window.__chestLog.push('GAMEOVER '+new Error().stack.split('\n').slice(1,6).join(' < '));$('over').style.display='flex';$('overStat').textContent=`A Fortaleza caiu na horda ${state.wave} · ${state.kills} Devoradores estilhaçados`;refreshSaveUi();renderChal();{const b=$('continue'),d=readSave();if(b&&d)b.textContent=`↺ Voltar ao último save · horda ${d.wave}`}
+function gameOver(){state.running=false;saveRecord();if(window.__chestLog)window.__chestLog.push('GAMEOVER '+new Error().stack.split('\n').slice(1,6).join(' < '));$('over').style.display='flex';$('overStat').textContent=`A Fortaleza caiu na horda ${state.wave} · ${state.kills} Devoradores estilhaçados`+(state.challenge?` · 🏆 recorde da semana: horda ${chalRecords()[state.challenge.week]||state.wave}`:'');refreshSaveUi();renderChal();{const b=$('continue'),d=readSave();if(b&&d)b.textContent=`↺ Voltar ao último save · horda ${d.wave}`}
   $('overTitle').textContent='A bruma venceu';$('overText').textContent='O baú foi devorado. Uma Fortaleza nunca morre de verdade: acorde de novo, com o que aprendeu.';$('start').textContent='Acordar de novo';showRecord();$('overAch').innerHTML=runStats()+achSummary()}
 
 // ───────── bombardment + meteors
@@ -2613,6 +2614,7 @@ window.__exp=()=>({x:state.expedition,away:minions.filter(m=>m.away).length});
 window.__stranger=()=>{state.wave=Math.max(6,state.wave);state.lastStranger=-1;const h=window.__headless;window.__headless=false;const r=Math.random;Math.random=()=>0;try{strangerVisit()}finally{Math.random=r;window.__headless=h}return state.choosing};
 window.__hero=id=>{const H=HEROES.find(h=>h.id===id);spawnHero(H);return !!state.heroes[id]};window.__useHero=id=>{heroAbility(id);return state.heroes[id].cd};
 window.__gate=()=>{toggleGate();return state.gateClosed};
+window.__mod=k=>{state.challenge={week:0,mods:[k]};return hasMod(k)};
 
 })();
 </script>

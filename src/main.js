@@ -48,7 +48,7 @@ function endWave(){const ev=state.ev;state.wave++;chalRecord(state.wave);state.r
   if(ev==='elite')spawnLoot(CHEST.x-2,GY+3,CHEST.z+3,'recruit',Math.max(1,rollRarity(.1)),{role:pick(['sol','gun','med'])});
   $('report').style.display='block';$('report').innerHTML=`Horda ${state.wave-1} vencida · melhor combo <b>×${state.comboBest}</b> · <b>${state.wk}</b> estilhaçados · <b>${state.wwound}</b> ferido${state.wwound===1?'':'s'} · <b>${loot.filter(L=>!L.carried).length}</b> itens no chão`;
   if((state.wave-1)%5===0)offerRewards();updateHud()}
-function gameOver(){state.running=false;saveRecord();if(window.__chestLog)window.__chestLog.push('GAMEOVER '+new Error().stack.split('\n').slice(1,6).join(' < '));$('over').style.display='flex';$('overStat').textContent=`A Fortaleza caiu na horda ${state.wave} · ${state.kills} Devoradores estilhaçados`;refreshSaveUi();renderChal();{const b=$('continue'),d=readSave();if(b&&d)b.textContent=`↺ Voltar ao último save · horda ${d.wave}`}
+function gameOver(){state.running=false;saveRecord();if(window.__chestLog)window.__chestLog.push('GAMEOVER '+new Error().stack.split('\n').slice(1,6).join(' < '));$('over').style.display='flex';$('overStat').textContent=`A Fortaleza caiu na horda ${state.wave} · ${state.kills} Devoradores estilhaçados`+(state.challenge?` · 🏆 recorde da semana: horda ${chalRecords()[state.challenge.week]||state.wave}`:'');refreshSaveUi();renderChal();{const b=$('continue'),d=readSave();if(b&&d)b.textContent=`↺ Voltar ao último save · horda ${d.wave}`}
   $('overTitle').textContent='A bruma venceu';$('overText').textContent='O baú foi devorado. Uma Fortaleza nunca morre de verdade: acorde de novo, com o que aprendeu.';$('start').textContent='Acordar de novo';showRecord();$('overAch').innerHTML=runStats()+achSummary()}
 
 // ───────── bombardment + meteors
@@ -293,3 +293,4 @@ window.__exp=()=>({x:state.expedition,away:minions.filter(m=>m.away).length});
 window.__stranger=()=>{state.wave=Math.max(6,state.wave);state.lastStranger=-1;const h=window.__headless;window.__headless=false;const r=Math.random;Math.random=()=>0;try{strangerVisit()}finally{Math.random=r;window.__headless=h}return state.choosing};
 window.__hero=id=>{const H=HEROES.find(h=>h.id===id);spawnHero(H);return !!state.heroes[id]};window.__useHero=id=>{heroAbility(id);return state.heroes[id].cd};
 window.__gate=()=>{toggleGate();return state.gateClosed};
+window.__mod=k=>{state.challenge={week:0,mods:[k]};return hasMod(k)};
