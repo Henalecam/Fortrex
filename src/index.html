@@ -184,6 +184,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #heroBar{position:fixed;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:6;pointer-events:auto}#heroBar .btn{background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:7px 9px;font-size:18px;box-shadow:0 4px 14px rgba(43,45,74,.15)}#heroBar .btn .lb{display:none}#heroBar .btn .cost{font-size:10px;margin-left:2px}
 #chestSt.hurt{color:var(--bad);font-weight:800;animation:chestBlink 1s infinite}@keyframes chestBlink{50%{opacity:.45}}
 @media (max-width:600px){.stats:has(#chestSt:not([hidden])) #clock{display:none}}
+#bossbar .tr{position:relative}#bossShield{position:absolute;left:0;top:0;height:100%;width:0;background:repeating-linear-gradient(45deg,rgba(79,156,242,.85) 0 6px,rgba(143,214,255,.85) 6px 12px);border-radius:999px;transition:width .15s}
 </style>
 
 <canvas id="c"></canvas>
@@ -218,7 +219,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 </div>
 <div id="toasts"></div>
 <div id="labels"></div>
-<div id="bossbar"><div class="nm" id="bossName"></div><div class="tr"><div class="fl" id="bossFill"></div></div></div>
+<div id="bossbar"><div class="nm" id="bossName"></div><div class="tr"><div class="fl" id="bossFill"></div><div id="bossShield"></div></div></div>
 <div id="report"></div>
 <div id="tip"></div>
 <div id="combo" hidden></div>

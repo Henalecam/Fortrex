@@ -103,6 +103,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.58: 📦 Contador do baú no topo (escondido com o baú inteiro; aparece piscando em vermelho durante a horda quando falta pedaço, com aviso a cada 12 s no máximo). No celular ele toma o lugar do relógio.
 - v0.59: 🌀 Torre de vento (arma nova, horda 8+, entra no sorteio de loot): a cada 2,6 s uma rajada em cone (alcance 16) empurra os Devoradores 4–7 blocos para trás, atordoa 0,5 s, derruba escaladores e dá dano leve; não afeta chefes grandes. Modelo com hélice de 4 pás.
 - v0.60: 😡🔷 Afixos de chefe (horda 15+, 60% dos chefes): Furioso (abaixo de 50% de vida: +50% velocidade e dano, aura vermelha) ou Escudo (bolha azul de 30% da vida que absorve 85% de cada golpe e regenera após 4 s sem levar dano). Torre de vento não empurra o mesmo inimigo de novo por 4 s (evita travar a horda). Bot: horda 21 em 25 min, baú intacto.
+- v0.61: 🔷 Barra do chefe mostra o escudo (listras azuis por cima). 🏳️ Troféus: cada porta-estandarte abatido dá +2% de dano permanente (até 15). Nova fixture tests/save_v060_w19.json (horda 19, 3 distritos, 2 heróis com 3 talentos) — rodar tcompat.js com as DUAS fixtures a cada versão.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
