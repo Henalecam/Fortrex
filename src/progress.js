@@ -846,3 +846,59 @@ let _stuckT=0;function stuckTick(dt){_stuckT-=dt;if(_stuckT>0||state.phase!=='wa
   for(const e of enemies){if(e.dead||e.rival||e.ship||e.type==='ship'||e.lineup||(e.dormant>0))continue;const p=e.sp0;if(!p){e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};continue}
     if(Math.hypot(e.pos.x-p.x,e.pos.z-p.z)>1.5){e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};continue}
     if(simTime-p.t>(state.queue.length?40:20)){const a=Math.atan2(e.pos.z-CZ,e.pos.x-CX),r=Math.min(46,Math.hypot(e.pos.x-CX,e.pos.z-CZ)-4);e.pos.x=CX+Math.cos(a)*r;e.pos.z=CZ+Math.sin(a)*r;e.gy=surfE(e.pos.x,e.pos.z);e.group.position.y=e.fly?e.alt:e.gy;e.path=null;e.under=false;e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};state.unstuck=(state.unstuck||0)+1;for(let k=0;k<6;k++)spawnDebris(e.pos.x,e.gy+.5,e.pos.z,0x8a7a6a,1,.25)}}}
+
+// v2.9 PERSONAGENS R4 — chefes refeitos do zero (silhuetas únicas)
+Object.assign(NEWLOOK,{boss:1,golem:1,wyrm:1,colossus:1,necro:1,queen:1,titan:1,mistking:1,arauto:1});
+const _eyes=(G,c,pts,g)=>pts.map(([w,h,x,y,z])=>G(w,h,.05,c,x,y,z,null,1.1));
+Object.assign(CREATURES,{
+  boss(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const dk=shadeHex(col,-.35),mo=0x2a0f1e;
+    const body=B(1.2,1.0,1.3,col,0,.85,-.1);for(let k=0;k<5;k++)B(.2,.35+k%2*.15,.2,0xf1e6c8,0,1.45+k%2*.05,-.6+k*.3).rotation.x=-.3;
+    const head=B(1.1,.8,.8,shadeHex(col,.08),0,1.2,.7);const jaw=K(1.0,.28,.75,dk,0,.72,.78);for(let k=-3;k<=3;k++){B(.09,.18,.08,0xfff6e0,k*.14,.95,1.1);box(.09*sc,.16*sc,.08*sc,0xfff6e0,k*.14*sc,.2*sc,.33*sc,jaw)}B(.9,.12,.05,mo,0,.92,1.11);
+    g.userData.eyes=_eyes(G,0xff3a9a,[[.16,.12,-.3,1.42,1.1],[.16,.12,.3,1.42,1.1],[.1,.08,-.15,1.55,1.1],[.1,.08,.15,1.55,1.1]]);g.userData.jaw=jaw;const tail=K(.3,.3,1.0,dk,0,.8,-1.1);tail.rotation.x=-.4;g.userData.tail=tail;
+    return{body,head,legs:LG([[-.45,.22,-.4,.32,.44],[.45,.22,-.4,.32,.44],[-.45,.22,.35,.32,.44],[.45,.22,.35,.32,.44]],dk)}},
+  golem(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const moss=0x6f8f55,dk=shadeHex(col,-.3);
+    const body=B(1.25,1.1,.85,col,0,1.25,0);B(1.4,.35,.95,dk,0,1.75,0);B(.55,.3,.6,moss,-.55,1.98,0);B(.5,.25,.55,moss,.6,1.95,.05);
+    const head=B(.5,.42,.5,dk,0,2.12,.15);g.userData.eyes=_eyes(G,0xffb13d,[[.38,.08,0,2.15,.42]]);for(const [x,y] of [[-.3,1.3],[.3,1.15],[0,.95]])G(.12,.12,.03,0xffb13d,x,y,.44,null,.6);
+    const a1=K(.45,1.15,.45,dk,-.9,1.15,.1),a2=K(.45,1.15,.45,dk,.9,1.15,.1);box(.6*sc,.45*sc,.6*sc,col,0,-.6*sc,0,a1);box(.6*sc,.45*sc,.6*sc,col,0,-.6*sc,0,a2);g.userData.arms=[a1,a2];
+    return{body,head,legs:LG([[-.32,.36,0,.4,.72],[.32,.36,0,.4,.72]],dk)}},
+  wyrm(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const dk=shadeHex(col,-.3),belly=0xffb13d;
+    const body=B(.75,.6,1.4,col,0,.6,0);B(.5,.2,1.2,belly,0,.32,0);for(let k=0;k<5;k++)B(.1,.22,.12,dk,0,.98,-.6+k*.3);const neck=B(.4,.4,.6,col,0,.85,.85);neck.rotation.x=-.4;
+    const head=B(.55,.4,.7,col,0,1.1,1.25);for(const s of[-1,1])B(.08,.35,.08,0xfff2c0,s*.18,1.42,1.1).rotation.x=-.6;g.userData.eyes=_eyes(G,0xffe25a,[[.1,.07,-.18,1.2,1.6],[.1,.07,.18,1.2,1.6]]);G(.3,.08,.05,0xff7a2a,0,.98,1.6,null,1.2);
+    const w1=K(1.6,.06,.8,shadeHex(col,-.15),-1.05,.85,0),w2=K(1.6,.06,.8,shadeHex(col,-.15),1.05,.85,0);g.userData.wings=[w1,w2];const tail=K(.25,.25,1.2,dk,0,.55,-1.25);g.userData.tail=tail;
+    return{body,head,legs:[]}},
+  colossus(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const dk=shadeHex(col,-.3),st=0x8a93a8;
+    const body=B(1.3,1.0,1.1,col,0,1.95,0);B(1.45,.3,1.2,st,0,2.5,0);for(const s of[-1,1])B(.12,.9,.12,0x5a5a6a,s*.5,1.3,.5);
+    const head=B(.65,.6,.6,st,0,2.85,.25);g.userData.eyes=_eyes(G,0xff3b3b,[[.45,.08,0,2.88,.56]]);for(let k=-2;k<=2;k++)B(.1,.3+Math.abs(k)%2*.2,.1,0xf1e6c8,k*.14,3.25,.2);
+    for(const s of[-1,1])B(.4,.9,.4,dk,s*.95,1.9,.05);
+    const legs=LG([[-.45,.75,-.35,.32,1.5],[.45,.75,-.35,.32,1.5],[-.45,.75,.35,.32,1.5],[.45,.75,.35,.32,1.5]],0xcfd6e3);for(const L of legs)L.hp=150;return{body,head,legs}},
+  necro(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const robe=0x2e1d45,bone=0xe8e2d0;
+    const body=B(.95,1.3,.75,robe,0,.75,0);B(1.0,.2,.8,shadeHex(robe,.2),0,.15,0);for(let k=0;k<4;k++)B(.6-k*.1,.05,.04,bone,0,1.1-k*.13,.39);
+    const head=B(.55,.55,.5,bone,0,1.65,.05);B(.75,.6,.65,robe,0,1.75,-.08);g.userData.eyes=_eyes(G,0x7dff9a,[[.12,.12,-.13,1.67,.31],[.12,.12,.13,1.67,.31]]);B(.3,.08,.04,0x1d1f33,0,1.48,.31);
+    const st=K(.1,2.0,.1,0x3b2a20,.68,1.1,.25);const orb=G(.3,.3,.3,0x7dff9a,.68,2.2,.25,null,1);const tome=K(.4,.08,.5,0x5a2a2a,-.7,1.3,.3);g.userData.orb=orb;g.userData.float=1;g.userData.tome=tome;
+    return{body,head,legs:[]}},
+  queen(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const dk=shadeHex(col,-.3);
+    const body=B(.75,.85,.6,col,0,1.1,0);const abd=B(.95,.75,1.2,dk,0,.85,-.9);for(let k=0;k<3;k++)B(.98,.08,.1,0xd9b8ff,0,.85,-.5-k*.35);
+    const head=B(.55,.5,.5,shadeHex(col,.15),0,1.75,.15);g.userData.eyes=_eyes(G,0xffcf3d,[[.18,.2,-.17,1.8,.42],[.18,.2,.17,1.8,.42]]);for(let k=-2;k<=2;k++)G(.1,.24+(k%2?0:.12),.1,0xffcf3d,k*.12,2.1,.12,null,.6);
+    const ws=[];for(const s of[-1,1])for(const z of[.1,-.3]){const w=K(1.1,.04,.5,0xe8d8ff,s*.8,1.45,z);w.material.transparent=true;w.material.opacity=.6;ws.push(w)}g.userData.wings4=ws;
+    B(.06,1.0,.06,0xffcf3d,.55,1.1,.3);G(.2,.2,.2,0xb56cf2,.55,1.65,.3,null,.8);
+    return{body,head,legs:LG([[-.25,.32,.1,.16,.64],[.25,.32,.1,.16,.64],[-.35,.25,-.5,.14,.5],[.35,.25,-.5,.14,.5]],dk)}},
+  titan(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const rock=0x2e2740,lava=0xff5a1a;
+    const body=B(1.3,1.15,.95,rock,0,1.3,0);for(const [x,y,w,h] of [[-.3,1.4,.08,.6],[.25,1.2,.08,.5],[0,1.6,.5,.06],[-.1,1.0,.4,.06]])G(w,h,.03,lava,x,y,.49,null,.9);
+    const head=B(.6,.5,.55,rock,0,2.1,.1);g.userData.eyes=_eyes(G,0xffd23a,[[.14,.1,-.15,2.15,.39],[.14,.1,.15,2.15,.39]]);G(.36,.08,.03,lava,0,1.98,.39,null,1.2);for(const s of[-1,1])B(.12,.45,.12,rock,s*.28,2.45,0).rotation.z=-s*.4;
+    const a1=K(.45,1.1,.45,rock,-.95,1.25,.1),a2=K(.45,1.1,.45,rock,.95,1.25,.1);for(const a of[a1,a2]){const c=box(.06*sc,.6*sc,.03*sc,lava,0,0,.24*sc,a);c.material.emissive.setHex(lava);c.material.emissiveIntensity=.9}g.userData.arms=[a1,a2];g.userData.lava=1;
+    return{body,head,legs:LG([[-.35,.38,0,.42,.76],[.35,.38,0,.42,.76]],rock)}},
+  mistking(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const cloak=0x1a1430;
+    const body=B(1.0,1.4,.75,cloak,0,.85,0);B(1.3,.25,.9,0x2a1f45,0,1.5,0);B(.15,1.1,.04,0xb56cf2,0,.85,.39);
+    const head=B(.55,.55,.5,0x2a1f45,0,1.85,.05);g.userData.eyes=_eyes(G,0xff4af0,[[.12,.07,-.13,1.88,.31],[.12,.07,.13,1.88,.31]]);for(let k=-2;k<=2;k++)G(.1,.28+(k%2?0:.18),.1,0xb56cf2,k*.13,2.25,.05,null,.9);
+    const tend=[];for(const s of[-1,1])for(let k=0;k<2;k++){const t=K(.14,.8,.14,0x2a1f45,s*(.35+k*.25),.25,-.25+k*.3);tend.push(t)}g.userData.tend=tend;
+    K(.1,2.2,.1,0x3b2a50,.75,1.1,.3);G(.32,.32,.32,0xb56cf2,.75,2.3,.3,null,1);g.userData.float=1;
+    return{body,head,legs:[]}}});
+const _anim1=enemyAnim;enemyAnim=function(e,dt){_anim1(e,dt);if(!e.boss2)return;const ud=e.group.userData;const t=simTime+e.bob*.1;const ph=e.ph||1;
+  if(e.vmeshes&&e.vmeshes[0]&&!ud.squish){const s=1+Math.sin(t*(1.6+ph*.6))*(.015+ph*.008);e.vmeshes[0].scale.set(s,1/s,s)}
+  if(ud.eyes)for(const m of ud.eyes)m.material.emissiveIntensity=(.9+(ph-1)*.6)*(.85+.15*Math.sin(t*(4+ph*2)));
+  if(ud.float&&!e.fly){const o=Math.sin(t*1.5)*.25*e.sc*.15+.15*e.sc*.15;e.group.position.y+=o-(e.flO||0);e.flO=o}
+  if(ud.tome)ud.tome.rotation.y+=dt*.8;
+  if(ud.tend)ud.tend.forEach((m,k)=>m.rotation.x=Math.sin(t*2+k)*.35);
+  if(ud.wings4)ud.wings4.forEach((w,k)=>w.rotation.z=(k<2?1:-1)*Math.sin(t*18+k)*.25);
+  if(ud.wings&&e.type==='wyrm'){ud.wings[0].rotation.z=Math.sin(t*4)*.5;ud.wings[1].rotation.z=-Math.sin(t*4)*.5}
+  if(ud.lava&&ud.arms)for(const a of ud.arms)a.children.forEach(c=>{if(c.material&&c.material.emissive)c.material.emissiveIntensity=.6+.4*Math.sin(t*3)})};
