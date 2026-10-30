@@ -78,7 +78,7 @@ const HEROES=[
 const HERO_SLOTS=[1,3,5];
 const HERO_LORE={paladin:'Jurou proteger Fortrex quando a bruma engoliu sua ordem. O martelo ainda brilha com a luz do último templo.',archer:'Caçadora das torres do norte; dizem que nunca errou uma flecha desde que perdeu o irmão para os Lobos da Bruma.',mage:'Exilado da Academia por congelar um rio inteiro. Agora congela o que vier pela frente.',engineer:'Reconstruiu sozinha a ponte de Ponte de Ossos. Para ela, toda ruína é só uma planta esperando.',berserker:'Ninguém sabe de onde veio. Quando ele grita, até os soldados mais cansados lembram por que lutam.'};
 function relicCount(){return Object.values(state.relics||{}).reduce((a,b)=>a+b,0)}
-function spawnHero(H){const m=makeMinion('sol',4,GATE.x+rnd(-1,1),GATE.z+2);m.hero=H.id;m.name=H.name;m.group.scale.setScalar(1.35);m.maxhp*=2.5;m.hp=m.maxhp;
+function spawnHero(H){const m=makeMinion('sol',4,GATE.x+rnd(-1,1),GATE.z+2);m.hero=H.id;m.name=H.name;m.group.scale.setScalar(1.35);recompute(m);m.hp=m.maxhp;
   const halo=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,16),new THREE.MeshBasicMaterial({color:H.col}));halo.rotation.x=Math.PI/2;halo.position.y=2.35;m.group.add(halo);
   state.heroes=state.heroes||{};state.heroes[H.id]={m,cd:0};const b=$('bHero_'+H.id);if(b)b.hidden=false;toast(`${H.ico} ${H.name} se junta a você! ${H.ab} (tecla ${H.key}): ${H.d}.`,'r4')}
 function checkHeroes(){if(state.heroOffer||state.choosing)return;const n=relicCount(),k=Object.keys(state.heroes||{}).length;if(k>=HERO_SLOTS.length||n<HERO_SLOTS[k])return;const left=HEROES.filter(H=>!(state.heroes&&state.heroes[H.id]));if(!left.length)return;
@@ -87,7 +87,7 @@ function checkHeroes(){if(state.heroOffer||state.choosing)return;const n=relicCo
   for(const H of opts){const el=document.createElement('button');el.className='rcard r4';el.innerHTML=`<div class="ico">${H.ico}</div><div class="nm">${esc(H.name)}</div><div class="ds"><b>${H.ab}</b> (tecla ${H.key}): ${esc(H.d)}.</div><div class="rr">Herói lendário</div>`;el.onclick=()=>{spawnHero(H);$('reward').style.display='none';state.choosing=false;state.heroOffer=false;updateHud()};box.appendChild(el)}
   $('reward').style.display='flex';SFX.open()}
 function heroAbility(id){const H=HEROES.find(h=>h.id===id);const S=state.heroes&&state.heroes[id];if(!H||!S||!minions.includes(S.m)){toast('Este herói ainda não chegou','r0');return}const m=S.m;
-  if(m.wounded>0){toast(`${H.name.split(',')[0]} está ferido(a)`,'r0');return}if(S.cd>0){toast(`${H.ab} em ${Math.ceil(S.cd)} s`,'r0');return}const L=m.lvl||1,mul=1+(L-1)*.07;S.cd=H.cd*(state.buildings&&state.buildings.shrine?.7:1)*Math.max(.55,1-(L-1)*.02);const w=state.wave*mul;
+  if(m.wounded>0){toast(`${H.name.split(',')[0]} está ferido(a)`,'r0');return}if(S.cd>0){toast(`${H.ab} em ${Math.ceil(S.cd)} s`,'r0');return}const L=m.lvl||1,mul=(1+(L-1)*.07)*(heroHas(id,'pow')?1.4:1);S.cd=H.cd*(heroHas(id,'cd')?.75:1)*(state.buildings&&state.buildings.shrine?.7:1)*Math.max(.55,1-(L-1)*.02);const w=state.wave*mul;
   if(id==='paladin'){const r=7+L*.08,dmg=120+w*8;for(const e of enemies){if(e.dead||e.fly)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r){dmgEnemy(e,dmg*(1-d/r*.5),true,true);e.stun=Math.max(e.stun||0,2)}}
     for(const o of minions){if(Math.hypot(o.pos.x-m.pos.x,o.pos.z-m.pos.z)<r){if(o.wounded>0)o.wounded=Math.min(o.wounded,1);else o.hp=o.maxhp}}ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,r,0xffcf3d)}
   if(id==='archer'){let best=null,bn=0;for(const e of enemies){if(e.dead||Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z)>45)continue;let n=0;for(const o of enemies)if(!o.dead&&Math.abs(o.pos.x-e.pos.x)<6&&Math.abs(o.pos.z-e.pos.z)<6)n++;if(n>bn){bn=n;best=e}}
@@ -98,7 +98,7 @@ function heroAbility(id){const H=HEROES.find(h=>h.id===id);const S=state.heroes&
   if(id==='mage'){const r=10+L*.1;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.pos.x-m.pos.x,e.pos.z-m.pos.z);if(d<r){dmgEnemy(e,(60+w*5)*(e.type==='titan'?2.5:1),true);e.slowT=Math.max(e.slowT,6);e.stun=Math.max(e.stun||0,1)}}freezeAround(m.pos.x,GY,m.pos.z,4);ringFx(m.pos.x,m.group.position.y+.5,m.pos.z,r,0x8fe3ff);SFX.freeze()}
   shake=Math.max(shake,.7);slowmo=Math.max(slowmo,.4);SFX.open();label({x:m.pos.x,y:m.group.position.y+3,z:m.pos.z},`${H.ico} ${H.ab}!`,'#e0a000')}
 function ringFx(x,y,z,r,c){for(let k=0;k<40;k++){const a=k/40*Math.PI*2;spawnDebris(x+Math.cos(a)*r*.8,y,z+Math.sin(a)*r*.8,c,1,.3)}}
-function heroTick(dt){for(const o of minions)if(o.rage>0){o.rage-=dt;if(Math.random()<dt*6)spawnFlame(o.pos.x,o.group.position.y+1,o.pos.z,.4)}state.volleys=state.volleys||[];for(let i=state.volleys.length-1;i>=0;i--){const V=state.volleys[i];V.t-=dt;if(V.t>0)continue;state.volleys.splice(i,1);
+function heroTick(dt){for(const k in state.heroes||{}){const m=state.heroes[k].m;if(m&&m.wounded<=0&&heroHas(k,'regen')&&m.hp<m.maxhp)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.02*dt)}for(const o of minions)if(o.rage>0){o.rage-=dt;if(Math.random()<dt*6)spawnFlame(o.pos.x,o.group.position.y+1,o.pos.z,.4)}state.volleys=state.volleys||[];for(let i=state.volleys.length-1;i>=0;i--){const V=state.volleys[i];V.t-=dt;if(V.t>0)continue;state.volleys.splice(i,1);
     for(let k=0;k<26;k++)spawnDebris(V.x+rnd(-5,5),GY+rnd(3,9),V.z+rnd(-5,5),0x8a6a45,1,.18);for(const e of enemies)if(!e.dead&&Math.abs(e.pos.x-V.x)<6&&Math.abs(e.pos.z-V.z)<6)dmgEnemy(e,V.dmg,true);SFX.twang()}
   checkHeroes();for(const H of HEROES){const S=state.heroes&&state.heroes[H.id];const b=$('bHero_'+H.id);if(!b)continue;if(!S){b.hidden=true;continue}if(S.cd>0)S.cd-=dt;if(!minions.includes(S.m)){b.hidden=true;continue}b.hidden=false;
     b.querySelector('.cost').textContent=innerWidth<600?(S.m.wounded>0?'✚':S.cd>0?Math.ceil(S.cd)+'s':''):(S.m.wounded>0?'ferido':S.cd>0?Math.ceil(S.cd)+'s':'pronto')+` · nv ${S.m.lvl||1}`;b.title=`${H.name} (nv ${S.m.lvl||1}): ${H.ab} (${H.key}) — ${H.d}. Sobe de nível lutando.`;b.classList.toggle('on',S.cd<=0&&!(S.m.wounded>0))}}
@@ -218,7 +218,7 @@ const BUILDINGS={
   arcane:{ico:'🔮',n:'Torre arcana',d:'A cada 12 s de horda, um raio arcano atinge o inimigo mais forte ao alcance.',mat:15,go(){}},
   granary:{ico:'🌾',n:'Celeiro',d:'A moral nunca cai abaixo de 45 e os feridos voltam 30% mais rápido.',mat:2,go(){state.healMul*=1.3;state.morale=Math.max(state.morale??60,60)}},
   market:{ico:'⚖️',n:'Mercado',d:'O mercador cobra 25% menos e vende uma oferta a mais.',mat:23,go(){}},
-  barracks:{ico:'🛡️',n:'Caserna',d:'Soldados ganham +25% de vida e a bandeira 🚩 dura o dobro.',mat:24,go(){for(const m of minions)if(m.role==='sol'){m.maxhp*=1.25;m.hp*=1.25}}},
+  barracks:{ico:'🛡️',n:'Caserna',d:'Soldados ganham +25% de vida e a bandeira 🚩 dura o dobro.',mat:24,go(){for(const m of minions)if(m.role==='sol'){recompute(m)}}},
   shrine:{ico:'⛩️',n:'Santuário',d:'Heróis recarregam as habilidades 30% mais rápido.',mat:14,go(){}}};
 const BUILD_WAVES=[4,10,16,22];const BUILD_SPOTS=[[-10,-10],[10,-10],[-10,10],[10,10]];
 function offerBuilding(){state.buildings=state.buildings||{};const k=Object.keys(state.buildings).length;if(k>=BUILD_SPOTS.length||state.choosing)return;
@@ -240,3 +240,18 @@ let distAcc=0,arcT=8;function districtTick(dt){const Bd=state.buildings;if(!Bd||
 function huntTick(dt){if(state.phase!=='rest'||state.wave<5||!isNight()||state.choosing)return;const night=Math.floor((simTime/DAY_LEN)+.3+.2);if(state.huntNight===night)return;state.huntNight=night;if(Math.random()<.35)return;
   const a=rnd(0,Math.PI*2),r=WR+26,x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;const e=makeEnemy('wolf',Math.min(4,2+Math.floor(state.wave/10)),x,z);e.alpha=true;e.group.scale.setScalar(1.7);e.maxhp*=7;e.hp=e.maxhp;e.radius*=1.5;e.speed*=1.15;e.T={...e.T,dmg:e.T.dmg*2.2};
   toast('🐺 Um lobo alfa ronda a cidadela esta noite. Derrube-o (🚩 Reunir) por um tesouro raro.','r3')}
+
+// ───────── hero talents: at levels 3, 6 and 9 a hero picks one of two talents (kept in the save as state.heroTal)
+const TALENTS={cd:{ico:'⚡',n:'Prontidão',d:'Habilidade recarrega 25% mais rápido.'},pow:{ico:'💥',n:'Fúria do campeão',d:'Habilidade 40% mais forte.'},hp:{ico:'❤️',n:'Coração de ferro',d:'+50% de vida.'},regen:{ico:'🌿',n:'Vigor',d:'Regenera 2% da vida por segundo.'}};
+const TALENT_LV=[3,6,9];
+function heroHas(id,t){const T=state.heroTal&&state.heroTal[id];return !!(T&&T.includes(t))}
+function offerTalent(m){const id=m.hero;if(!id||!minions.includes(m))return;state.heroTal=state.heroTal||{};const have=state.heroTal[id]||[];const due=TALENT_LV.filter(l=>m.lvl>=l).length;if(have.length>=due)return;
+  if(state.choosing){setTimeout(()=>offerTalent(m),3000);return}const left=Object.keys(TALENTS).filter(t=>!have.includes(t));if(!left.length)return;const opts=shuffle(left.slice()).slice(0,2);const H=HEROES.find(h=>h.id===id);
+  const take=t=>{state.heroTal[id]=[...have,t];recompute(m);toast(`${H.ico} ${H.name.split(',')[0]}: ${TALENTS[t].ico} ${TALENTS[t].n}`,'r4');setTimeout(()=>offerTalent(m),700)};
+  if(state.autoReward||window.__headless){take(opts[0]);return}state.choosing=true;const box=$('rewardCards');box.innerHTML='';$('rewardTitle').textContent=`${H.ico} ${H.name.split(',')[0]} chegou ao nível ${m.lvl}: escolha um talento`;$('reward').querySelector('.sub').textContent='O talento é permanente e fica salvo com o herói.';
+  for(const t of opts){const T=TALENTS[t];const el=document.createElement('button');el.className='rcard r4';el.innerHTML=`<div class="ico">${T.ico}</div><div class="nm">${T.n}</div><div class="ds">${T.d}</div><div class="rr">Talento</div>`;el.onclick=()=>{take(t);$('reward').style.display='none';state.choosing=false;updateHud()};box.appendChild(el)}
+  $('reward').style.display='flex';SFX.open()}
+// on phones the hero buttons float in their own column above the dock, so the dock keeps two rows
+function placeHeroBar(){const narrow=innerWidth<600;let bar=$('heroBar');if(!bar){bar=document.createElement('div');bar.id='heroBar';document.body.appendChild(bar)}const dock=document.querySelector('.dock');const anchor=$('bomb');
+  for(const H of HEROES){const b=$('bHero_'+H.id);if(!b)continue;if(narrow&&b.parentNode!==bar)bar.appendChild(b);else if(!narrow&&b.parentNode!==dock)dock.insertBefore(b,anchor)}}
+addEventListener('resize',placeHeroBar);setTimeout(placeHeroBar,0);

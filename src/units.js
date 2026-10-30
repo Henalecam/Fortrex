@@ -220,7 +220,7 @@ function recompute(m){const st={atk:1,def:0,spd:1,hp:1,gun:1,work:1,cap:0,rate:1
   st.def=Math.min(.8,st.def);const R=m.rarity,T=m.trait;const LV=1+(m.lvl-1)*.07;st.atk*=LV;st.gun*=1+(m.lvl-1)*.05;
   m.speed=1.5*(m.role==='col'?4.2:m.role==='sol'?3.8:3.4)*(1+R*.12)*(T==='Rápido'?1.3:1)*st.spd*(m.role==='col'?1+state.lootMag*.15:1);
   m.work=(1+R*.25)*(T==='Rápido'?1.25:1)*st.work*LV;
-  const hb=(m.role==='sol'?85:45)*(T==='Teimoso'?1.8:1)*(1+R*.2)*st.hp*LV;const ratio=m.maxhp?m.hp/m.maxhp:1;m.maxhp=hb;m.hp=Math.max(1,hb*ratio);m.st=st;
+  const hb=(m.role==='sol'?85:45)*(T==='Teimoso'?1.8:1)*(1+R*.2)*st.hp*LV*(m.hero?2.5*(heroHas(m.hero,'hp')?1.5:1):1)*(m.role==='sol'&&state.buildings&&state.buildings.barracks?1.25:1);const ratio=m.maxhp?m.hp/m.maxhp:1;m.maxhp=hb;m.hp=Math.max(1,hb*ratio);m.st=st;
   clearGroup(m.wpn);clearGroup(m.acc);const a=m.eq.arma,ar=m.eq.armadura,ac=m.eq.acessorio;
   if(a){const c=RARITY[a.r].c;const len=a.k==='lanca'?1.2:a.k==='martelo'?.75:.7;const b=box(.1,len,.1,c,-.42,.55+len/2-.2,.15,m.wpn);b.material.emissive.setHex(c);b.material.emissiveIntensity=a.r>=2?.45:.15;if(a.k==='martelo'||a.k==='machado')box(.32,.2,.14,0x9aa0b2,-.42,.55+len-.25,.15,m.wpn)}
   m.body.material.color.setHex(ar?({couro:0xb98d5a,malha:0xb8bfcc,placas:0x8ea9c6,escudo:0xd4c9a8})[ar.k]:0xf6f1ff);if(ar&&ar.k==='escudo')box(.1,.5,.42,RARITY[ar.r].c,.38,.5,.05,m.wpn);
@@ -324,7 +324,7 @@ function stomp(e){const r=new THREE.Mesh(new THREE.RingGeometry(.8,1.3,40),ringM
 function updateRings(dt){for(let i=rings.length-1;i>=0;i--){const r=rings[i];r.t+=dt;const s=1+r.t*9;r.m.scale.set(s,s,s);r.m.material.opacity=.7*(1-r.t/.6);if(r.t>.6){scene.remove(r.m);rings.splice(i,1)}}}
 
 const xpNeed=l=>Math.round(18*Math.pow(l,1.45));
-function gainXP(m,n){if(!m||!minions.includes(m))return;m.xp+=n;while(m.xp>=xpNeed(m.lvl)&&m.lvl<30){m.xp-=xpNeed(m.lvl);m.lvl++;recompute(m);m.hp=m.maxhp;
+function gainXP(m,n){if(!m||!minions.includes(m))return;m.xp+=n;while(m.xp>=xpNeed(m.lvl)&&m.lvl<30){m.xp-=xpNeed(m.lvl);m.lvl++;recompute(m);m.hp=m.maxhp;if(m.hero&&TALENT_LV.includes(m.lvl))setTimeout(()=>offerTalent(m),400);
   sparkle(m.pos.x,m.group.position.y+1.6,m.pos.z,0xffcf3d,10);label({x:m.pos.x,y:m.group.position.y,z:m.pos.z},`NÍVEL ${m.lvl}!`,'#e0a000');SFX.loot(Math.min(4,Math.floor(m.lvl/5)));if(m.lvl%5===0)toast(`${m.name} chegou ao nível ${m.lvl}!`,'r3')}}
 
 // ───────── body destruction: enemies are built from chunks that break off as they take damage

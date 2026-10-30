@@ -271,3 +271,4 @@ window.__vein=()=>{state.wave=Math.max(6,state.wave);while(state.wave%4!==2)stat
 window.__bld=id=>{raiseBuilding(id);return JSON.stringify(state.buildings)};
 window.__offer=()=>offerBuilding();
 window.__hunt=()=>{simTime=(Math.ceil(simTime/DAY_LEN)+.6)*DAY_LEN;state.wave=Math.max(5,state.wave);for(let k=0;k<20&&!enemies.some(e=>e.alpha&&!e.dead);k++){state.huntNight=-1;huntTick(0)}return enemies.filter(e=>e.alpha&&!e.dead).length};
+window.__dbgTal=()=>({tal:state.heroTal,hp:Object.keys(state.heroes||{}).map(k=>{const m=state.heroes[k].m;return k+':'+m.lvl+':'+Math.round(m.maxhp)})});
