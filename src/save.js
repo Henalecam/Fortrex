@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.83;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.84;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -39,7 +39,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.80,'⭐ Quarta vaga de herói com 8 relíquias. README do projeto com a lista completa de recursos.'],
   [0.81,'🌧️ Novo evento Chuva forte (fora do deserto): o fogo quase não pega, armas enxergam 10% menos e a horda anda 10% mais devagar na lama.'],
   [0.82,'🚪 Botão Portão: feche para a porta aguentar 2,5× mais — mas ninguém sai nem entra enquanto estiver fechado.'],
-  [0.83,'🚪 Portão automático (menu Automação): fecha quando aríetes e brutos chegam perto e abre no descanso; aviso quando coletores ficam presos do lado de fora. 💾 Corrigido: o save automático travava enquanto saqueadores de cidades rivais andavam pelo mapa.']];
+  [0.83,'🚪 Portão automático (menu Automação): fecha quando aríetes e brutos chegam perto e abre no descanso; aviso quando coletores ficam presos do lado de fora. 💾 Corrigido: o save automático travava enquanto saqueadores de cidades rivais andavam pelo mapa.'],
+  [0.84,'💾 O save automático agora também acontece durante batalhas contra fortalezas e missões do reino (ao continuar, a fortaleza de cerco e a missão em andamento ficam de fora).']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -50,11 +51,13 @@ function plain(v,depth=0){if(v===null||typeof v!=='object')return typeof v==='fu
   if(v.isObject3D||v.group||v.mesh||v.isVector3)return undefined;if(Array.isArray(v))return v.map(x=>plain(x,depth+1)).filter(x=>x!==undefined);
   const o={};for(const k in v){const x=plain(v[k],depth+1);if(x!==undefined)o[k]=x}return o}
 function revive(v){if(v===null||typeof v!=='object')return v;if(Array.isArray(v))return v.map(revive);if(v.$m)return new Map(v.$m.map(([k,x])=>[k,revive(x)]));if(v.$s)return new Set(v.$s);const o={};for(const k in v)o[k]=revive(v[k]);return o}
-function canSave(){return state.running&&state.phase==='rest'&&!state.choosing&&!battle()&&!state.quest&&!state.caravan&&!enemies.some(e=>!e.dead&&!e.alpha&&!e.rival)}
+// a save taken mid-battle or mid-mission leaves those out: the rival siege fortress is stripped (it can come back later) and the mission is dropped
+function voxNoRival(){const v=vox.slice();for(let i=0;i<N;i++)if(rown[i])v[i]=0;return v}
+function canSave(){return state.running&&state.phase==='rest'&&!state.choosing&&!enemies.some(e=>!e.dead&&!e.alpha&&!e.rival)}
 function saveGame(manual){if(!canSave()){if(manual)toast('Só dá para salvar entre hordas, sem batalha ou missão em andamento','r0');return false}
   try{const st={};for(const k in state){if(SAVE_SKIP.has(k))continue;const x=plain(state[k]);if(x!==undefined)st[k]=x}
     const d={v:1,ver:GAME_VERSION,at:Date.now(),wave:state.wave,diff:OPTS.diff||'normal',biome:state.biomeKey,simTime,state:st,
-      vox:rleEnc(vox),looted:rleEnc(looted),rown:rleEnc(rown),
+      vox:rleEnc(battle()?voxNoRival():vox),looted:rleEnc(looted),rown:rleEnc(battle()?new Uint8Array(N):rown),
       minions:minions.filter(m=>!m.allyHelp).map(m=>({role:m.role,r:m.rarity,name:m.name,lvl:m.lvl,xp:m.xp,trait:m.trait,kills:m.kills,hero:m.hero||null,x:m.pos.x,z:m.pos.z,eq:plain(m.eq)})),
       turrets:turrets.filter(t=>t.alive&&t.team!=='r').map(t=>({type:t.type,r:t.r,anchor:t.anchor})),
       realm:{t:REALM.t,spawnT:REALM.spawnT,poiT:REALM.poiT,nextId:REALM.nextId,facs:REALM.facs.map(f=>({...f})),cities:REALM.cities.map(c=>({...c,fac:c.fac.id})),pois:plain(REALM.pois),log:REALM.log.slice(-30)}};
