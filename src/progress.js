@@ -33,6 +33,7 @@ const UPGRADES_EXTRA=[
   {id:'cathedral',ico:'⛪',nm:'Catedral',ds:'Maravilha. Uma relíquia aleatória agora e a moral nunca cai abaixo de 55.',max:1,cost:()=>1100,need:()=>12,go(){const ks=Object.keys(RELICS);grantRelic(pick(ks));state.moraleFloor=Math.max(state.moraleFloor||0,55)}},
   {id:'observatory',ico:'🔭',nm:'Observatório',ds:'Maravilha. Todas as armas ganham +18% de alcance e enxergam através da bruma.',max:1,cost:()=>900,need:()=>10,go(){state.rangeMul=(state.rangeMul||1)*1.18}},
   {id:'greatwall',ico:'🏯',nm:'Grande Muralha',ds:'Maravilha. A muralha principal sobe 2 fileiras e os blocos da planta aguentam +25%.',max:1,cost:()=>1400,need:()=>14,go(){state.wallH+=2;state.blueHp=(state.blueHp||1)*1.25;buildBlueprint();if(state.phase!=='wave')startSelfRepair()}},
+  {id:'dragon',ico:'🐲',nm:'Ninho do dragão',ds:'Maravilha. Um dragão aliado sobrevoa a cidadela e cospe fogo nos maiores grupos de inimigos.',max:1,cost:()=>1600,need:()=>16,go(){toast('🐲 Um dragão aliado chocou no ninho e já sobrevoa a cidadela!','r4')}},
   {id:'statue',ico:'🗿',nm:'Estátua do Guardião',ds:'Maravilha. +25% de dano em tudo e heróis ganham 1 nível.',max:1,cost:()=>2000,need:()=>18,go(){state.dmgMul*=1.25;state.bladeMul*=1.25;for(const k in state.heroes||{}){const m=state.heroes[k].m;if(m){m.lvl=(m.lvl||1)+1;recompute(m)}}}},
   {id:'crossbow',ico:'🎯',nm:'Besteiros nas ameias',ds:'Besteiros fixos no topo da muralha disparam setas em quem chega perto (2 setas por nível a cada 1,5 s).',max:5,cost:l=>90+l*80,go(){}},
   {id:'farol',ico:'🗼',nm:'Farol',ds:'Ergue um farol no pátio: armas a até 24 blocos dele ganham +15% de alcance, a bruma quase não atrapalha e, no Pântano, a horda não se esconde mais à noite.',max:1,cost:()=>260,go(){raiseLighthouse()}},
@@ -391,3 +392,13 @@ function crossbowTick(dt){for(let i=bolts.length-1;i>=0;i--){const b=bolts[i];b.
   for(let k=0;k<lv*2;k++){const e=near[(Math.random()*near.length)|0];const dx=e.pos.x-CX,dz=e.pos.z-CZ;const m=Math.max(Math.abs(dx),Math.abs(dz))||1;const sx=CX+dx/m*WR,sz=CZ+dz/m*WR,sy=GY+(state.wallH||7)+.5;
     dmgEnemy(e,(8+state.wave*1.6)*state.dmgMul,false);const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(sx,sy,sz),new THREE.Vector3(e.pos.x,e.group.position.y+.8,e.pos.z)]);const l=new THREE.Line(g,BOLT_MAT.clone());scene.add(l);bolts.push({l,t:.18})}
   if(SFX.pop)SFX.pop()}
+
+// allied dragon (Wonder): circles the citadel, every 4 s dives a cone of fire on the densest enemy cluster
+let dragon=null;
+function makeDragon(){const g=new THREE.Group();const c=0x3fae6a;box(1.2,.9,3,c,0,0,0,g);const h=box(.9,.8,1.1,c,0,.3,1.9,g);box(.5,.3,.6,0xf6d76b,0,.05,2.5,g);for(const s of[-1,1]){box(.12,.5,.12,0xf6f1ff,s*.3,.85,1.9,g)}box(.4,.4,2,shadeHex(c,-.15),0,.1,-2.3,g);
+  const wings=[];for(const s of[-1,1]){const w=new THREE.Group();w.position.set(s*.6,.3,0);const m=box(3,.12,1.8,0x2f8a55,s*1.5,0,0,w);g.add(w);wings.push(w)}g.scale.setScalar(1.3);scene.add(g);return{g,wings,a:0,cd:3}}
+function dragonTick(dt){if(!state.ups.dragon){if(dragon){scene.remove(dragon.g);dragon=null}return}if(!dragon)dragon=makeDragon();const D=dragon;D.a+=dt*.35;const R=30,x=CX+Math.cos(D.a)*R,z=CZ+Math.sin(D.a)*R;D.g.position.set(x,GY+18+Math.sin(simTime*1.3)*1.5,z);D.g.rotation.y=-D.a;
+  for(const [k,w] of D.wings.entries())w.rotation.z=(k?-1:1)*Math.sin(simTime*6)*.5;if(state.phase!=='wave')return;D.cd-=dt;if(D.cd>0)return;D.cd=4;
+  let best=null,bs=0;for(const e of enemies){if(e.dead)continue;let n=0;for(const o of enemies)if(!o.dead&&Math.abs(o.pos.x-e.pos.x)<5&&Math.abs(o.pos.z-e.pos.z)<5)n++;if(n>bs&&Math.hypot(e.pos.x-x,e.pos.z-z)<45){bs=n;best=e}}if(!best)return;
+  const tx=best.pos.x,tz=best.pos.z;for(let k=0;k<26;k++){const f=k/26;spawnFlame(x+(tx-x)*f+rnd(-1,1)*f*2,D.g.position.y+(best.gy+.5-D.g.position.y)*f,z+(tz-z)*f+rnd(-1,1)*f*2,1.2)}
+  for(const e of enemies)if(!e.dead&&Math.hypot(e.pos.x-tx,e.pos.z-tz)<5){dmgEnemy(e,(40+state.wave*7)*state.dmgMul,true);if(e.type!=='imp'&&e.type!=='titan')e.afire=Math.max(e.afire||0,3)}if(SFX.boom)SFX.boom(false)}
