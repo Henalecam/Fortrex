@@ -122,6 +122,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.77: 🪽 Evento Revoada (horda 9+, peso 9): 40% da horda vira voadores + horda/2 voadores extras. Selo de efeitos ativos (#buffSt) no topo: ✨ bênção com hordas restantes, 🩸 próxima horda +50%, 🧭 volta da expedição, 🏳️ estandartes capturados.
 - v0.78: 🏆 6 conquistas novas (Matilha, Explorador, Negociante, Caçador de estandartes, Diplomata, Construtor de maravilhas; contadores state.expDone e state.dealTaken). Revoada medida com bot nas hordas 9 e 10: 0 golpes no baú, ~65 s por horda — sem ajuste.
 - v0.79: 🕯️ Heroína nova Selene, a Sacerdotisa (tecla O, recarga 55 s, entra no sorteio das vagas de herói): Luz Restauradora — num raio 14+ levanta feridos com 50% de vida, cura 60% dos demais e restaura até 60+4×nível blocos danificados da planta.
+- v0.80 (marco): README reescrito com a lista atual de recursos, teclas e save. 4ª vaga de herói com 8 relíquias (HERO_SLOTS [1,3,5,8]); coluna de heróis no celular comporta 4 sem sobrepor o dock.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

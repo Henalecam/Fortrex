@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.79;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.80;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -35,7 +35,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.76,'🧙 Viajante encapuzado: às vezes, depois de uma horda (6+), ele propõe um trato arriscado — pacto de sangue, bênção inquieta, relíquia roubada, mercenários ou dados.'],
   [0.77,'🪽 Novo evento Revoada (horda 9+): boa parte da horda vem voando. Efeitos ativos (bênção, pacto, expedição, estandartes) aparecem num selo no topo.'],
   [0.78,'🏆 6 conquistas novas: Matilha, Explorador, Negociante, Caçador de estandartes, Diplomata e Construtor de maravilhas.'],
-  [0.79,'🕯️ Nova heroína: Selene, a Sacerdotisa (tecla O) — Luz Restauradora cura e levanta os feridos ao redor e restaura os blocos da muralha.']];
+  [0.79,'🕯️ Nova heroína: Selene, a Sacerdotisa (tecla O) — Luz Restauradora cura e levanta os feridos ao redor e restaura os blocos da muralha.'],
+  [0.80,'⭐ Quarta vaga de herói com 8 relíquias. README do projeto com a lista completa de recursos.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
