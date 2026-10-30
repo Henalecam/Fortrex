@@ -270,7 +270,7 @@ window.__traps=()=>({dis:state.trapsDisarmed||0,oil:state.oilHits||0,hits:Math.r
 window.__sap=n=>{state.ups.sappers=n;startWave();if(state.wave<2)scatterTraps()};window.__killAll=()=>{for(const e of enemies)e.dead=true};
 window.__minCard=()=>{const m=minions.find(m=>!m.hero)||minions[0];openCard({m})};
 window.__tier=n=>{for(let k=0;k<n;k++){state.ups.masonry=(state.ups.masonry||0)+1;upgradeMasonry()}};
-window.__cam=(d,x,z)=>{const i=(state.fieldTraps||[])[0];if(x!==undefined){cam.target.x=x;cam.target.z=z}else if(i!==undefined){cam.target.x=ix(i);cam.target.z=iz(i)}cam.dist=d||40};
+window.__cam=(d,x,z,yaw)=>{if(yaw!==undefined)cam.yaw=yaw;const i=(state.fieldTraps||[])[0];if(x!==undefined){cam.target.x=x;cam.target.z=z}else if(i!==undefined){cam.target.x=ix(i);cam.target.z=iz(i)}cam.dist=d||40};
 window.__oil=n=>{state.ups.oil=n};
 window.__save=()=>saveGame(true);window.__load=()=>loadGame();window.__saveSize=()=>(localStorage.getItem('fortrex_save_v1')||'').length;window.__sig=()=>({w:state.wave,mat:state.material,mins:minions.length,tur:turrets.length,vox:vox.reduce((a,b)=>a+(b?1:0),0),ups:JSON.stringify(state.ups),cities:REALM.cities.length,tier:state.blockTier,heroes:Object.keys(state.heroes||{}).join()});
 window.__why=()=>({run:state.running,ph:state.phase,ch:state.choosing,b:!!battle(),q:!!state.quest,c:!!state.caravan,e:enemies.filter(e=>!e.dead).length,hq:(state.healQ||[]).length,sw:state.savedWave,w:state.wave});
@@ -296,3 +296,4 @@ window.__gate=()=>{toggleGate();return state.gateClosed};
 window.__mod=k=>{state.challenge={week:0,mods:[k]};return hasMod(k)};
 window.__farol=()=>{state.ups.farol=1;raiseLighthouse();simTime=(Math.ceil(simTime/DAY_LEN)+.6)*DAY_LEN;return 1};
 window.__xbow=n=>{state.ups.crossbow=n;startWave();return n};
+window.__pathN=()=>{const p=findPath(CX-6.5,CZ-13.5,CX+6.5,CZ-13.5);const q=findPath(CX+.5,CZ-14.5,CX+4.5,CZ-8.5);const r=findPath(CX+.5,CZ-14.5,CX+.5,CZ-30);return (p?p.length:"none")+"/"+(q?q.length:"none")+"/"+(r?r.length:"none")+" w"+walkCell(CX,CZ-15)+","+walkCell(CX,CZ-14);return (p?p.length:'none')+'/'+(q?q.length:'none')};

@@ -2248,7 +2248,7 @@ function crossbowTick(dt){for(let i=bolts.length-1;i>=0;i--){const b=bolts[i];b.
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.88;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.89;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2292,7 +2292,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.85,'🏆 Desafio da semana na tela inicial: dois modificadores e um bioma iguais para a semana inteira, com recorde de horda guardado.'],
   [0.86,'🏆 Durante o desafio, um selo no topo mostra os modificadores; a tela de derrota mostra o recorde da semana.'],
   [0.87,'🗼 Farol (Upgrades → Cidadela, horda 7+): +15% de alcance para as armas próximas, bruma quase não atrapalha e a horda do Pântano não se esconde mais à noite.'],
-  [0.88,'🎯 Besteiros nas ameias (Upgrades → Armas, horda 4+): setas automáticas do alto da muralha em quem chega perto.']];
+  [0.88,'🎯 Besteiros nas ameias (Upgrades → Armas, horda 4+): setas automáticas do alto da muralha em quem chega perto.'],
+  [0.89,'🔧 Ajustes internos e verificações (farol não bloqueia o pátio).']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2613,7 +2614,7 @@ window.__traps=()=>({dis:state.trapsDisarmed||0,oil:state.oilHits||0,hits:Math.r
 window.__sap=n=>{state.ups.sappers=n;startWave();if(state.wave<2)scatterTraps()};window.__killAll=()=>{for(const e of enemies)e.dead=true};
 window.__minCard=()=>{const m=minions.find(m=>!m.hero)||minions[0];openCard({m})};
 window.__tier=n=>{for(let k=0;k<n;k++){state.ups.masonry=(state.ups.masonry||0)+1;upgradeMasonry()}};
-window.__cam=(d,x,z)=>{const i=(state.fieldTraps||[])[0];if(x!==undefined){cam.target.x=x;cam.target.z=z}else if(i!==undefined){cam.target.x=ix(i);cam.target.z=iz(i)}cam.dist=d||40};
+window.__cam=(d,x,z,yaw)=>{if(yaw!==undefined)cam.yaw=yaw;const i=(state.fieldTraps||[])[0];if(x!==undefined){cam.target.x=x;cam.target.z=z}else if(i!==undefined){cam.target.x=ix(i);cam.target.z=iz(i)}cam.dist=d||40};
 window.__oil=n=>{state.ups.oil=n};
 window.__save=()=>saveGame(true);window.__load=()=>loadGame();window.__saveSize=()=>(localStorage.getItem('fortrex_save_v1')||'').length;window.__sig=()=>({w:state.wave,mat:state.material,mins:minions.length,tur:turrets.length,vox:vox.reduce((a,b)=>a+(b?1:0),0),ups:JSON.stringify(state.ups),cities:REALM.cities.length,tier:state.blockTier,heroes:Object.keys(state.heroes||{}).join()});
 window.__why=()=>({run:state.running,ph:state.phase,ch:state.choosing,b:!!battle(),q:!!state.quest,c:!!state.caravan,e:enemies.filter(e=>!e.dead).length,hq:(state.healQ||[]).length,sw:state.savedWave,w:state.wave});
@@ -2639,6 +2640,7 @@ window.__gate=()=>{toggleGate();return state.gateClosed};
 window.__mod=k=>{state.challenge={week:0,mods:[k]};return hasMod(k)};
 window.__farol=()=>{state.ups.farol=1;raiseLighthouse();simTime=(Math.ceil(simTime/DAY_LEN)+.6)*DAY_LEN;return 1};
 window.__xbow=n=>{state.ups.crossbow=n;startWave();return n};
+window.__pathN=()=>{const p=findPath(CX-6.5,CZ-13.5,CX+6.5,CZ-13.5);const q=findPath(CX+.5,CZ-14.5,CX+4.5,CZ-8.5);const r=findPath(CX+.5,CZ-14.5,CX+.5,CZ-30);return (p?p.length:"none")+"/"+(q?q.length:"none")+"/"+(r?r.length:"none")+" w"+walkCell(CX,CZ-15)+","+walkCell(CX,CZ-14);return (p?p.length:'none')+'/'+(q?q.length:'none')};
 
 })();
 </script>
