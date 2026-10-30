@@ -286,3 +286,4 @@ window.__bossAff=k=>{state.wave=Math.max(15,state.wave);startWave();const e=make
 window.__dogs=n=>{state.ups.kennel=n;state.wave=Math.max(5,state.wave);startWave();return n};window.__bites=()=>state.dogBites||0;
 window.__exp=()=>({x:state.expedition,away:minions.filter(m=>m.away).length});
 window.__stranger=()=>{state.wave=Math.max(6,state.wave);state.lastStranger=-1;const h=window.__headless;window.__headless=false;const r=Math.random;Math.random=()=>0;try{strangerVisit()}finally{Math.random=r;window.__headless=h}return state.choosing};
+window.__hero=id=>{const H=HEROES.find(h=>h.id===id);spawnHero(H);return !!state.heroes[id]};window.__useHero=id=>{heroAbility(id);return state.heroes[id].cd};
