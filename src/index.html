@@ -182,6 +182,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #shopTabs{overflow-x:auto;scrollbar-width:none}#shopTabs .tab{flex:none;white-space:nowrap;padding:6px 10px}
 #news{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(43,45,74,.35);z-index:60;padding:16px}#news[hidden]{display:none!important}#news .nc{background:#fff;border-radius:20px;max-width:440px;width:100%;max-height:80vh;overflow:auto;padding:18px 20px;box-shadow:0 12px 40px rgba(43,45,74,.25)}#news h2{margin:0 0 4px;font-family:var(--display)}#news ul{padding-left:18px;margin:10px 0 14px;font-size:13.5px;line-height:1.45}#news li{margin:4px 0}#news .v{font-size:11px;color:#8a8ca8;font-weight:600}
 #heroBar{position:fixed;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:6;pointer-events:auto}#heroBar .btn{background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:7px 9px;font-size:18px;box-shadow:0 4px 14px rgba(43,45,74,.15)}#heroBar .btn .lb{display:none}#heroBar .btn .cost{font-size:10px;margin-left:2px}
+#chestSt.hurt{color:var(--bad);font-weight:800;animation:chestBlink 1s infinite}@keyframes chestBlink{50%{opacity:.45}}
+@media (max-width:600px){.stats:has(#chestSt:not([hidden])) #clock{display:none}}
 </style>
 
 <canvas id="c"></canvas>
@@ -195,6 +197,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
     <span class="st" title="Minions (feridos)"><i>👥</i><b id="mcount">0</b><em id="wounded" class="bad"></em></span>
     <span class="st" title="Inimigos vivos e na fila"><i>👾</i><b id="alive">0</b></span>
     <span class="st" id="morale" title="Moral">🙂 60</span>
+    <span class="st" id="chestSt" hidden title="Blocos do baú de pé. Se chegar a 0, a fortaleza cai. Pedaços perdidos durante a horda só voltam no descanso.">📦 18/18</span>
     <span class="st" id="clock">☀️ Dia 1</span>
   </div>
   <span class="chip" id="event"></span>

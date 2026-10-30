@@ -189,6 +189,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #shopTabs{overflow-x:auto;scrollbar-width:none}#shopTabs .tab{flex:none;white-space:nowrap;padding:6px 10px}
 #news{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(43,45,74,.35);z-index:60;padding:16px}#news[hidden]{display:none!important}#news .nc{background:#fff;border-radius:20px;max-width:440px;width:100%;max-height:80vh;overflow:auto;padding:18px 20px;box-shadow:0 12px 40px rgba(43,45,74,.25)}#news h2{margin:0 0 4px;font-family:var(--display)}#news ul{padding-left:18px;margin:10px 0 14px;font-size:13.5px;line-height:1.45}#news li{margin:4px 0}#news .v{font-size:11px;color:#8a8ca8;font-weight:600}
 #heroBar{position:fixed;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:6;pointer-events:auto}#heroBar .btn{background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:7px 9px;font-size:18px;box-shadow:0 4px 14px rgba(43,45,74,.15)}#heroBar .btn .lb{display:none}#heroBar .btn .cost{font-size:10px;margin-left:2px}
+#chestSt.hurt{color:var(--bad);font-weight:800;animation:chestBlink 1s infinite}@keyframes chestBlink{50%{opacity:.45}}
+@media (max-width:600px){.stats:has(#chestSt:not([hidden])) #clock{display:none}}
 </style>
 
 <canvas id="c"></canvas>
@@ -202,6 +204,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
     <span class="st" title="Minions (feridos)"><i>👥</i><b id="mcount">0</b><em id="wounded" class="bad"></em></span>
     <span class="st" title="Inimigos vivos e na fila"><i>👾</i><b id="alive">0</b></span>
     <span class="st" id="morale" title="Moral">🙂 60</span>
+    <span class="st" id="chestSt" hidden title="Blocos do baú de pé. Se chegar a 0, a fortaleza cai. Pedaços perdidos durante a horda só voltam no descanso.">📦 18/18</span>
     <span class="st" id="clock">☀️ Dia 1</span>
   </div>
   <span class="chip" id="event"></span>
@@ -2080,9 +2083,14 @@ function wardTick(dt){const b=$('bWard');if(b){const on=state.wave>=8;if(b.hidde
 // momentum: calling the next wave within 12 s of the last one pays material (more the sooner, scaled by wave) — a reward for confident play
 function rushBonus(){if(state.phase!=='rest'||state.wave<3||state.restStart==null)return 0;const el=simTime-state.restStart;if(el>=12)return 0;return Math.round((12-el)*(1+state.wave*.12))}
 
+// chest status: hidden while intact; appears (blinking red) the moment the chest loses a block, with a warning
+let chestAcc=0,chestLast=-1;function chestTick(dt){chestAcc+=dt;if(chestAcc<.3)return;chestAcc=0;const n=chestAlive(),tot=_chestVox.length||18;const el=$('chestSt');if(!el)return;
+  if(n<tot){el.hidden=false;el.textContent=`📦 ${n}/${tot}`;el.classList.toggle('hurt',state.phase==='wave')}else el.hidden=true;
+  if(chestLast>=0&&n<chestLast&&state.phase==='wave'&&simTime-(state.chestWarnT||-99)>12){state.chestWarnT=simTime;toast(`💔 O baú está sendo destruído: ${n}/${tot} pedaços! Pedaços perdidos só voltam no descanso.`,'r3')}chestLast=n}
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.57;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.58;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2095,7 +2103,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.54,'🚩 Porta-estandarte inimigo (horda 12+): acelera e protege a horda ao redor; derrube-o para causar pânico. Mapa do reino mais legível no celular.'],
   [0.55,'🛡️ Égide do Guardião (horda 8+): botão no dock que deixa a cidadela quase invulnerável por 7 s, recarga de 100 s.'],
   [0.56,'⚡ Ímpeto: chamar a próxima horda nos primeiros 12 s de descanso rende material (o botão mostra quanto). Normal ficou um pouco mais difícil e o baú sofre o dobro de dano quando alcançado.'],
-  [0.57,'💔 Pedaços do baú destruídos durante a horda só são reconstruídos no descanso (antes os reparadores refaziam na hora). A Engenheira ainda pode reerguê-los com Reconstrução.']];
+  [0.57,'💔 Pedaços do baú destruídos durante a horda só são reconstruídos no descanso (antes os reparadores refaziam na hora). A Engenheira ainda pode reerguê-los com Reconstrução.'],
+  [0.58,'📦 Contador do baú no topo da tela aparece piscando quando ele perde pedaços, com aviso.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2285,7 +2294,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':'r1');state.combo=0}
@@ -2422,6 +2431,7 @@ window.__siege=()=>{const c=REALM.cities.find(x=>!x.fac.isMe&&!x.ally);if(!c)ret
 window.__helpers=()=>minions.filter(m=>m.allyHelp).length;
 window.__bearer=()=>{const e=makeEnemy('knight',1,CX+30,CZ);makeBearer(e);for(let k=0;k<5;k++)makeEnemy('crawler',0,CX+30+rnd(-2,2),CZ+rnd(-2,2));return e.maxhp};
 window.__ward=()=>{state.wave=Math.max(8,state.wave);startWave();return wardUp()};
+window.__chestHit=n=>{let k=0;for(const i of _chestVox)if(vox[i]===5&&k<n){removeVox(i,'enemy');k++}return chestAlive()};
 
 })();
 </script>

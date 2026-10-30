@@ -100,6 +100,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.55: 🛡️ Égide do Guardião (horda 8+): botão no dock — 7 s em que os blocos da planta (inclusive o baú) levam só 8% do dano, cúpula azul visível; recarga 100 s. Bot agora foca o porta-estandarte e usa a Égide quando o baú apanha. Perfil em horda alta: sistemas novos não aparecem entre os gargalos (debris, fluidos e inimigos dominam).
 - v0.56: ⚡ Ímpeto: chamar a horda nos primeiros 12 s de descanso rende (12−s)×(1+0,12×horda) material, mostrado no botão. Equilíbrio: comparei teste passivo (sem gastar material) em v0.45/v0.50/v0.55 — todos sobreviviam até a horda 20–23, Normal estava fácil. Normal agora hp 1,35 / quantidade 1,2 / dano 1,2 e o baú leva 2× dano de inimigos. Égide cabe no dock do celular (2 linhas, 2 heróis na coluna).
 - v0.57: 💔 Blocos do baú destruídos durante a horda não são mais reconstruídos pelos reparadores até o descanso (antes o baú era quase imortal; a Engenheira ainda pode reerguê-los). Dano de inimigos no baú ×1,5 (era ×2). Resultados: passivo sem gastar morre na horda 18 (antes sobrevivia 23+); bot ativo Normal horda 21 em 25 min sem perder o baú; bot Brutal horda 15 em 20 min.
+- v0.58: 📦 Contador do baú no topo (escondido com o baú inteiro; aparece piscando em vermelho durante a horda quando falta pedaço, com aviso a cada 12 s no máximo). No celular ele toma o lugar do relógio.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

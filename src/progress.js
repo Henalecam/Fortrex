@@ -274,3 +274,8 @@ function wardTick(dt){const b=$('bWard');if(b){const on=state.wave>=8;if(b.hidde
 
 // momentum: calling the next wave within 12 s of the last one pays material (more the sooner, scaled by wave) — a reward for confident play
 function rushBonus(){if(state.phase!=='rest'||state.wave<3||state.restStart==null)return 0;const el=simTime-state.restStart;if(el>=12)return 0;return Math.round((12-el)*(1+state.wave*.12))}
+
+// chest status: hidden while intact; appears (blinking red) the moment the chest loses a block, with a warning
+let chestAcc=0,chestLast=-1;function chestTick(dt){chestAcc+=dt;if(chestAcc<.3)return;chestAcc=0;const n=chestAlive(),tot=_chestVox.length||18;const el=$('chestSt');if(!el)return;
+  if(n<tot){el.hidden=false;el.textContent=`📦 ${n}/${tot}`;el.classList.toggle('hurt',state.phase==='wave')}else el.hidden=true;
+  if(chestLast>=0&&n<chestLast&&state.phase==='wave'&&simTime-(state.chestWarnT||-99)>12){state.chestWarnT=simTime;toast(`💔 O baú está sendo destruído: ${n}/${tot} pedaços! Pedaços perdidos só voltam no descanso.`,'r3')}chestLast=n}
