@@ -347,3 +347,8 @@ function strangerVisit(){const w=state.wave;if(w<6||state.choosing||Math.random(
   for(const k of ks){const D=DEALS[k];const el=document.createElement('button');el.className='rcard r3';el.innerHTML=`<div class="ico">${D.ico}</div><div class="nm">${D.n}</div><div class="ds">${D.d(w)}</div><div class="rr">Trato</div>`;el.onclick=()=>{D.go(w);toast(`${D.ico} ${D.n} aceito.`,'r3');close()};box.appendChild(el)}
   const no=document.createElement('button');no.className='rcard r0';no.innerHTML='<div class="ico">🚶</div><div class="nm">Recusar</div><div class="ds">O viajante dá de ombros e vai embora.</div>';no.onclick=close;box.appendChild(no);
   $('reward').style.display='flex';SFX.open()}
+
+// active effects chip: blessings, pacts, expeditions, captured banners
+let buffAcc=0;function buffTick(dt){buffAcc+=dt;if(buffAcc<.5)return;buffAcc=0;const el=$('buffSt');if(!el)return;const p=[];
+  if((state.blessUntil||0)>=state.wave)p.push(`✨ +25% · ${state.blessUntil-state.wave+1} h`);if(state.nextWaveMul)p.push('🩸 próxima horda +50%');if(state.expedition)p.push(`🧭 volta h${state.expedition.back}`);if(state.trophies)p.push(`🏳️×${state.trophies}`);
+  const t=p.join('  ');if(el.textContent!==t)el.textContent=t;const h=!p.length;if(el.hidden!==h)el.hidden=h}

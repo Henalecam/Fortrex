@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.76;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.77;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -32,7 +32,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.73,'⚖️ Equilíbrio por bioma: aríetes fazem menos dano ao baú (são feitos para portões), erupções só a partir da horda 4 e o calor do deserto cansa menos.'],
   [0.74,'🧭 Expedições (painel do Reino): mande 3 coletores por 2 hordas e eles voltam com material e chance de tesouro. A dica do Óleo aparece assim que escaladores atingem o baú.'],
   [0.75,'📱 Mapa do reino no celular mostra só as 3 notícias mais recentes (menos coisa cobrindo as cidades). Coletores em expedição não podem ser clicados.'],
-  [0.76,'🧙 Viajante encapuzado: às vezes, depois de uma horda (6+), ele propõe um trato arriscado — pacto de sangue, bênção inquieta, relíquia roubada, mercenários ou dados.']];
+  [0.76,'🧙 Viajante encapuzado: às vezes, depois de uma horda (6+), ele propõe um trato arriscado — pacto de sangue, bênção inquieta, relíquia roubada, mercenários ou dados.'],
+  [0.77,'🪽 Novo evento Revoada (horda 9+): boa parte da horda vem voando. Efeitos ativos (bênção, pacto, expedição, estandartes) aparecem num selo no topo.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}

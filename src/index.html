@@ -185,6 +185,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #chestSt.hurt{color:var(--bad);font-weight:800;animation:chestBlink 1s infinite}@keyframes chestBlink{50%{opacity:.45}}
 @media (max-width:600px){.stats:has(#chestSt:not([hidden])) #clock{display:none}}
 #bossbar .tr{position:relative}#bossShield{position:absolute;left:0;top:0;height:100%;width:0;background:repeating-linear-gradient(45deg,rgba(79,156,242,.85) 0 6px,rgba(143,214,255,.85) 6px 12px);border-radius:999px;transition:width .15s}
+#buffSt{order:5;background:#fff7e0;color:#8a5a00;font-weight:700}
 </style>
 
 <canvas id="c"></canvas>
@@ -201,7 +202,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
     <span class="st" id="chestSt" hidden title="Blocos do baú de pé. Se chegar a 0, a fortaleza cai. Pedaços perdidos durante a horda só voltam no descanso.">📦 18/18</span>
     <span class="st" id="clock">☀️ Dia 1</span>
   </div>
-  <span class="chip" id="event"></span>
+  <span class="chip" id="event"></span><span class="chip" id="buffSt" hidden></span>
   <span class="grow"></span>
   <button class="chip link" id="rivalChip" title="Abrir o mapa do reino (M). Em guerra: mostra a fortaleza inimiga">🗺️ Reino</button>
   <button class="btn" id="autoMenu" title="Automação">⚙️<span class="lb">Automação</span><span class="cost" id="autoN">0/4</span></button>

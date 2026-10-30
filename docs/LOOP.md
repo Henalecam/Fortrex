@@ -119,6 +119,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.74: 🧭 Expedições no painel do Reino (horda 3+, só no descanso, precisa de 4 coletores livres): 3 coletores somem por 2 hordas (m.away, não atualizam) e voltam ao portão com 30+9×horda material e 45–75% de chance de tesouro; save carregado com expedição faz ela voltar na próxima horda. Dica do Óleo agora dispara quando um escalador/aranha atinge o baú (state.climbHitChest).
 - v0.75: Expedição conferida com log: sai na horda 4 (3 ausentes), volta na 6 (0 ausentes) e o material salta de 87 para 182. Coletores ausentes fora do pickObj (não clicáveis). Mapa do reino no celular (< 560 px) mostra só 3 linhas de notícias.
 - v0.76: 🧙 Viajante encapuzado: após hordas 6+ (22%, não no modo de recompensa automática) oferece 2 de 5 tratos + Recusar — Pacto de sangue (+150+12×h material, próxima horda +50% inimigos via state.nextWaveMul), Bênção inquieta (armas +25% por 3 hordas via state.blessUntil, moral −25), Relíquia roubada (350), Mercenários (4 soldados raros), Dados (100 → 50% de 260). Teste longo: horda 24 em 30 min, sem erros.
+- v0.77: 🪽 Evento Revoada (horda 9+, peso 9): 40% da horda vira voadores + horda/2 voadores extras. Selo de efeitos ativos (#buffSt) no topo: ✨ bênção com hordas restantes, 🩸 próxima horda +50%, 🧭 volta da expedição, 🏳️ estandartes capturados.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
