@@ -1,7 +1,7 @@
 // ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
 const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,wind:8,frost:10,catapult:12,sunray:15},role:{rep:1,col:1,gun:1,sol:1,med:3},
   block:{16:1,17:1,10:1,31:6,18:4,15:5,9:7,8:7,14:9,19:10,20:14},
-  up:{kennel:5,oil:6,sappers:5,forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
+  up:{farol:7,kennel:5,oil:6,sappers:5,forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
 function unlockWave(kind,k){return(UNLOCK[kind]&&UNLOCK[kind][k])||1}
 function isUnlocked(kind,k){return state.wave>=unlockWave(kind,k)}
 function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)if(UNLOCK.turret[k]===w)got.push(TURRETS[k].ico+' '+TURRETS[k].n);for(const k in UNLOCK.role)if(UNLOCK.role[k]===w)got.push(ROLES[k].ico+' '+ROLES[k].n);
@@ -34,6 +34,7 @@ const UPGRADES_EXTRA=[
   {id:'observatory',ico:'🔭',nm:'Observatório',ds:'Maravilha. Todas as armas ganham +18% de alcance e enxergam através da bruma.',max:1,cost:()=>900,need:()=>10,go(){state.rangeMul=(state.rangeMul||1)*1.18}},
   {id:'greatwall',ico:'🏯',nm:'Grande Muralha',ds:'Maravilha. A muralha principal sobe 2 fileiras e os blocos da planta aguentam +25%.',max:1,cost:()=>1400,need:()=>14,go(){state.wallH+=2;state.blueHp=(state.blueHp||1)*1.25;buildBlueprint();if(state.phase!=='wave')startSelfRepair()}},
   {id:'statue',ico:'🗿',nm:'Estátua do Guardião',ds:'Maravilha. +25% de dano em tudo e heróis ganham 1 nível.',max:1,cost:()=>2000,need:()=>18,go(){state.dmgMul*=1.25;state.bladeMul*=1.25;for(const k in state.heroes||{}){const m=state.heroes[k].m;if(m){m.lvl=(m.lvl||1)+1;recompute(m)}}}},
+  {id:'farol',ico:'🗼',nm:'Farol',ds:'Ergue um farol no pátio: armas a até 24 blocos dele ganham +15% de alcance, a bruma quase não atrapalha e, no Pântano, a horda não se esconde mais à noite.',max:1,cost:()=>260,go(){raiseLighthouse()}},
   {id:'kennel',ico:'🐕',nm:'Canil',ds:'+1 cão de guarda por nível: corre atrás dos Devoradores perto do portão e morde. Ferido, volta ao canil e se recupera.',max:4,cost:l=>70+l*70,go(){}},
   {id:'sappers',ico:'💣',nm:'Sapadores',ds:'Espalham mais minas, espinhos, gelo, piche e barris pelo mapa a cada horda, nos caminhos dos Devoradores.',max:5,cost:l=>60+l*55,go(){}}];
 function upReady(U){const lv=state.ups[U.id]||0;return isUnlocked('up',U.id)&&(!U.need||state.wave>=U.need(lv))}
@@ -316,7 +317,7 @@ let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAc
     for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&!inside(m.pos.x,m.pos.z)&&!m.hero)m.hp=Math.max(1,m.hp-m.maxhp*.007*t)}}
   if(k==='neve'&&state.phase==='wave'){for(const e of enemies){if(e.dead||e.fly)continue;if(!(BIG(e.type)||e.type==='brute'||e.type==='ram'||e.type==='rammer'||e.type==='beetle'))continue;const x=Math.floor(e.pos.x),z=Math.floor(e.pos.z);const i=idx(x,GY-1,z);if(!inb(x,GY-1,z)||vox[i]!==18||blue[i])continue;
     if(Math.random()<t*(BIG(e.type)?2:.8)){for(const [dx,dz] of [[0,0],[1,0],[-1,0],[0,1],[0,-1]]){const j=idx(x+dx,GY-1,z+dz);if(inb(x+dx,GY-1,z+dz)&&vox[j]===18&&!blue[j]){setVox(j,0);setFluid(j,9,4,true);spawnDebris(x+dx+.5,GY,z+dz+.5,0xd8f3ff,3,.25)}}if(Math.random()<.3)label({x:e.pos.x,y:e.gy+1.8,z:e.pos.z},'o gelo racha!','#8fe3ff');e.slowT=Math.max(e.slowT||0,2)}}}
-  if(k==='pantano'){const hide=state.phase==='wave'&&isNight();for(const e of enemies){if(e.dead)continue;const far=hide&&!BIG(e.type)&&Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+14&&state.focus!==e;if(e.group.visible===far)e.group.visible=!far}}}
+  if(k==='pantano'){const hide=state.phase==='wave'&&isNight()&&!state.ups.farol;for(const e of enemies){if(e.dead)continue;const far=hide&&!BIG(e.type)&&Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+14&&state.focus!==e;if(e.group.visible===far)e.group.visible=!far}}}
 
 // guard dogs (Canil upgrade): fast biters that patrol in front of the gate; they live outside the minion system and are rebuilt from state.ups.kennel
 const dogs=[];
@@ -371,3 +372,12 @@ function toggleGate(){state.gateClosed=!state.gateClosed;for(const i of blueList
 let gateAcc=0;function gateTick(dt){gateAcc+=dt;if(gateAcc<1)return;gateAcc=0;
   if(state.autoGate){if(state.phase==='wave'){let n=0;for(const e of enemies)if(!e.dead&&(e.type==='ram'||e.type==='rammer'||e.type==='brute')&&Math.hypot(e.pos.x-GATE.x,e.pos.z-GATE.z)<22)n++;if(n>=2&&!state.gateClosed)toggleGate()}else if(state.gateClosed)toggleGate()}
   if(state.gateClosed){const out=minions.filter(m=>!m.away&&m.role==='col'&&!inside(m.pos.x,m.pos.z)).length;if(out&&simTime-(state.gateWarnT||-99)>30){state.gateWarnT=simTime;toast(`🔒 ${out} coletor(es) presos do lado de fora do portão fechado.`,'r2',true)}}}
+
+// lighthouse: a tall blueprint tower north of the keep with a rotating beam of light
+let lightBeam=null;
+function raiseLighthouse(){const bx=CX,bz=CZ-12;const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);if(blue[i]===5||vox[i]===5)return;if(vox[i]&&!blue[i])clearFor(i);placeBlue(i,m)};
+  for(let y=0;y<13;y++)for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)if(Math.abs(dx)===1||Math.abs(dz)===1||y===12)put(bx+dx,GY+y,bz+dz,y%4===3?22:3);put(bx,GY+13,bz,15);
+  if(state.phase!=='wave')startSelfRepair();toast('🗼 O farol foi erguido: armas próximas enxergam mais longe e a bruma recua.','r4')}
+function lightTick(dt){if(!state.ups.farol){if(lightBeam){scene.remove(lightBeam);lightBeam=null}return}
+  if(!lightBeam){lightBeam=new THREE.Mesh(new THREE.ConeGeometry(4,26,16,1,true),new THREE.MeshBasicMaterial({color:0xfff1b0,transparent:true,opacity:.18,depthWrite:false,side:THREE.DoubleSide}));lightBeam.geometry.translate(0,-13,0);lightBeam.geometry.rotateZ(Math.PI/2);lightBeam.position.set(CX+.5,GY+13.5,CZ-11.5);scene.add(lightBeam)}
+  lightBeam.rotation.y+=dt*.8;lightBeam.visible=isNight()||state.ev==='mist'||state.ev==='rain'||state.biomeKey==='pantano';lightBeam.material.opacity=.14+.06*Math.sin(simTime*3)}
