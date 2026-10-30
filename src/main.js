@@ -256,5 +256,7 @@ window.__caravan=()=>{const P={id:999,kind:'caravan',lvl:2,x:150,y:480,ttl:100,n
 window.__rally=(x,z)=>setRally(x,z);
 window.__aff=()=>{const c={};for(const e of enemies)if(!e.dead&&e.aff)c[e.aff]=(c[e.aff]||0)+1;return c};
 window.__traps=()=>({hits:Math.round(state.trapHits||0),pl:state.trapPlaced||0,gone:state.trapGone||0,q:(state.healQ||[]).length,ph:state.phase,n:(state.fieldTraps||[]).filter(i=>vox[i]).length,tier:state.blockTier,mats:(()=>{const c={};for(const i of blueList)if(vox[i])c[vox[i]]=(c[vox[i]]||0)+1;return c})()});window.__mason=()=>{state.wave=Math.max(state.wave,20);for(let k=0;k<4;k++){state.ups.masonry=(state.ups.masonry||0)+1;upgradeMasonry()}};
-window.__sap=n=>{state.ups.sappers=n;startWave()};window.__killAll=()=>{for(const e of enemies)e.dead=true};
+window.__sap=n=>{state.ups.sappers=n;startWave();if(state.wave<2)scatterTraps()};window.__killAll=()=>{for(const e of enemies)e.dead=true};
 window.__minCard=()=>{const m=minions.find(m=>!m.hero)||minions[0];openCard({m})};
+window.__tier=n=>{for(let k=0;k<n;k++){state.ups.masonry=(state.ups.masonry||0)+1;upgradeMasonry()}};
+window.__cam=(d)=>{const i=(state.fieldTraps||[])[0];if(i!==undefined){cam.target.x=ix(i);cam.target.z=iz(i)}cam.dist=d||40};

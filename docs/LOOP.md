@@ -82,6 +82,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.37: 🚩 Bandeira de reunião (dock "Reunir"): clique no mapa e os soldados se juntam ali por 30 s, caçando inimigos num raio de 14; clique de novo para cancelar.
 - v0.38: 🧱 Alvenaria (4 níveis, hordas 4/8/13/19): a planta troca madeira→pedra→metal→obsidiana→aço rúnico e a troca acontece de graça no reparo pós-horda; torres ganham +45% de vida por nível. 💣 Sapadores: a cada horda minas, espinhos, gelo, piche e barris são espalhados pelo mapa em linhas nos caminhos mais usados pela horda (não viram material). 💍 Inimigos de elite com afixos (horda 8+): veloz, blindado, vampiro, explosivo, regenerante — anel colorido nos pés. Brutal entra em rampa (normal→brutal até a horda 9). Corrigido: ficha do minion abria vazia; dica não cobre a ficha no celular.
 - v0.39: armadilhas dos Sapadores agora disparam por proximidade (minas e barris explodem quando a horda passa ao lado, espinhos ferem, gelo e piche desaceleram) — antes só ~20% eram usadas, agora ~65%. Bot normal: horda 21 em 25 min, sem erros.
+- v0.40: armadilhas dos Sapadores ganham um anel colorido no chão (amarelo = mina/barril, vermelho = espinhos, azul = gelo, escuro = piche) para serem lidas no mapa. Alvenaria 3–4 mais cara (560/900). Teste passivo: com Alvenaria 4 desde o início a base aguenta mais (escaladores e aranhas continuam sendo a ameaça), mas os níveis só abrem nas hordas 13/19.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

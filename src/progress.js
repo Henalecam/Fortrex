@@ -28,7 +28,7 @@ const UPGRADES_EXTRA=[
   {id:'quartel',ico:'🏯',nm:'Quartel',ds:'+3 vagas de soldado e +1 de curandeiro.',max:5,cost:l=>60+l*60,go(){}},
   {id:'oficina',ico:'🏭',nm:'Oficina',ds:'+2 vagas de reparador e +2 de coletor.',max:5,cost:l=>50+l*50,go(){}},
   {id:'escola',ico:'🎓',nm:'Escola de artilharia',ds:'+2 vagas de artilheiro.',max:5,cost:l=>60+l*60,go(){}},
-  {id:'masonry',ico:'🧱',nm:'Alvenaria',get ds(){const t=state.blockTier||0;const nx=['madeira e pedra viram pedra e metal','pedra vira metal','metal vira obsidiana','obsidiana vira aço rúnico'][Math.min(3,t)];return t>=4?'A cidadela inteira é de aço rúnico.':`Troca os blocos da planta por melhores: ${nx}. Trocados de graça após a horda.`},max:4,cost:l=>[140,280,480,760][l]||999,need:l=>[4,8,13,19][l]||99,go(){upgradeMasonry()}},
+  {id:'masonry',ico:'🧱',nm:'Alvenaria',get ds(){const t=state.blockTier||0;const nx=['madeira e pedra viram pedra e metal','pedra vira metal','metal vira obsidiana','obsidiana vira aço rúnico'][Math.min(3,t)];return t>=4?'A cidadela inteira é de aço rúnico.':`Troca os blocos da planta por melhores: ${nx}. Trocados de graça após a horda.`},max:4,cost:l=>[140,280,560,900][l]||999,need:l=>[4,8,13,19][l]||99,go(){upgradeMasonry()}},
   {id:'sappers',ico:'💣',nm:'Sapadores',ds:'Espalham mais minas, espinhos, gelo, piche e barris pelo mapa a cada horda, nos caminhos dos Devoradores.',max:5,cost:l=>60+l*55,go(){}}];
 function upReady(U){const lv=state.ups[U.id]||0;return isUnlocked('up',U.id)&&(!U.need||state.wave>=U.need(lv))}
 function upLockWave(U){const lv=state.ups[U.id]||0;return Math.max(unlockWave('up',U.id),U.need?U.need(lv):1)}
@@ -172,9 +172,14 @@ function setRally(x,z){removeFlag();state.rally={x,z,t:30};const g=new THREE.Gro
 function rallyTick(dt){const R=state.rally;if(!R)return;R.t-=dt;if(flagMesh)flagMesh.children[1].rotation.y=Math.sin(simTime*4)*.3;if(R.t<=0){state.rally=null;removeFlag()}}
 
 // field traps trigger by proximity: walking past is enough (enemies path around solid blocks, so waiting to be hit rarely happened)
-let trapAcc=0;function trapTick(dt){trapAcc+=dt;if(trapAcc<.2||state.phase!=='wave')return;const t=trapAcc;trapAcc=0;const L=state.fieldTraps;if(!L||!L.length)return;const at=new Map();for(const i of L)if(vox[i])at.set(ix(i)+iz(i)*W,i);if(!at.size)return;
+let trapAcc=0,trapRT=0;function trapTick(dt){trapRT-=dt;if(trapRT<=0){trapRT=.5;refreshTrapRings()}trapAcc+=dt;if(trapAcc<.2||state.phase!=='wave')return;const t=trapAcc;trapAcc=0;const L=state.fieldTraps;if(!L||!L.length)return;const at=new Map();for(const i of L)if(vox[i])at.set(ix(i)+iz(i)*W,i);if(!at.size)return;
   for(const e of enemies){if(e.dead||e.fly)continue;const fx=Math.floor(e.pos.x),fz=Math.floor(e.pos.z);for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const i=at.get(fx+dx+(fz+dz)*W);if(i===undefined)continue;const m=vox[i];if(m!==state.fieldTrapM.get(i))continue;
     if(m===17||m===10){at.delete(fx+dx+(fz+dz)*W);removeVox(i,'trap');state.trapHits=(state.trapHits||0)+1}
     else if(m===16){dmgEnemy(e,(6+state.wave*1.4)*t*5,true);hp[i]-=6*t*5;if(hp[i]<=0)removeVox(i,'trap');state.trapHits=(state.trapHits||0)+t}
     else if(m===18){e.slowT=Math.max(e.slowT||0,1.6);hp[i]-=5*t*5;if(hp[i]<=0)removeVox(i,'trap')}
     else if(m===31){e.slowT=Math.max(e.slowT||0,1.2)}}}}
+
+// field-trap markers: a flat hazard ring around each sapper trap so it reads as a device, not a stray block
+const TRAP_RING=(()=>{const g=new THREE.RingGeometry(1.0,1.4,4,1);g.rotateX(-Math.PI/2);g.rotateY(Math.PI/4);const m=new THREE.InstancedMesh(g,new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.95,depthWrite:false}),180);m.count=0;m.frustumCulled=false;m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(180*3),3);scene.add(m);return m})();
+let trapRingN=-1;const _trc=new THREE.Color(),_trm=new THREE.Matrix4();
+function refreshTrapRings(){const L=(state.fieldTraps||[]).filter(i=>vox[i]&&vox[i]===state.fieldTrapM.get(i));let k=0;for(const i of L){if(k>=180)break;_trm.makeTranslation(ix(i)+.5,GY+.04,iz(i)+.5);TRAP_RING.setMatrixAt(k,_trm);_trc.setHex(vox[i]===17||vox[i]===10?0xffcf3d:vox[i]===16?0xd9414f:vox[i]===18?0x8fe3ff:0x2a2422);TRAP_RING.setColorAt(k,_trc);k++}TRAP_RING.count=k;TRAP_RING.instanceMatrix.needsUpdate=true;TRAP_RING.instanceColor.needsUpdate=true;trapRingN=k}
