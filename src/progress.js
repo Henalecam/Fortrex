@@ -1,7 +1,7 @@
 // ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
 const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,wind:8,frost:10,catapult:12,sunray:15},role:{rep:1,col:1,gun:1,sol:1,med:3},
   block:{16:1,17:1,10:1,31:6,18:4,15:5,9:7,8:7,14:9,19:10,20:14},
-  up:{oil:6,sappers:5,forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
+  up:{kennel:5,oil:6,sappers:5,forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
 function unlockWave(kind,k){return(UNLOCK[kind]&&UNLOCK[kind][k])||1}
 function isUnlocked(kind,k){return state.wave>=unlockWave(kind,k)}
 function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)if(UNLOCK.turret[k]===w)got.push(TURRETS[k].ico+' '+TURRETS[k].n);for(const k in UNLOCK.role)if(UNLOCK.role[k]===w)got.push(ROLES[k].ico+' '+ROLES[k].n);
@@ -34,6 +34,7 @@ const UPGRADES_EXTRA=[
   {id:'observatory',ico:'🔭',nm:'Observatório',ds:'Maravilha. Todas as armas ganham +18% de alcance e enxergam através da bruma.',max:1,cost:()=>900,need:()=>10,go(){state.rangeMul=(state.rangeMul||1)*1.18}},
   {id:'greatwall',ico:'🏯',nm:'Grande Muralha',ds:'Maravilha. A muralha principal sobe 2 fileiras e os blocos da planta aguentam +25%.',max:1,cost:()=>1400,need:()=>14,go(){state.wallH+=2;state.blueHp=(state.blueHp||1)*1.25;buildBlueprint();if(state.phase!=='wave')startSelfRepair()}},
   {id:'statue',ico:'🗿',nm:'Estátua do Guardião',ds:'Maravilha. +25% de dano em tudo e heróis ganham 1 nível.',max:1,cost:()=>2000,need:()=>18,go(){state.dmgMul*=1.25;state.bladeMul*=1.25;for(const k in state.heroes||{}){const m=state.heroes[k].m;if(m){m.lvl=(m.lvl||1)+1;recompute(m)}}}},
+  {id:'kennel',ico:'🐕',nm:'Canil',ds:'+1 cão de guarda por nível: corre atrás dos Devoradores perto do portão e morde. Ferido, volta ao canil e se recupera.',max:4,cost:l=>70+l*70,go(){}},
   {id:'sappers',ico:'💣',nm:'Sapadores',ds:'Espalham mais minas, espinhos, gelo, piche e barris pelo mapa a cada horda, nos caminhos dos Devoradores.',max:5,cost:l=>60+l*55,go(){}}];
 function upReady(U){const lv=state.ups[U.id]||0;return isUnlocked('up',U.id)&&(!U.need||state.wave>=U.need(lv))}
 function upLockWave(U){const lv=state.ups[U.id]||0;return Math.max(unlockWave('up',U.id),U.need?U.need(lv):1)}
@@ -306,3 +307,17 @@ let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAc
   if(k==='neve'&&state.phase==='wave'){for(const e of enemies){if(e.dead||e.fly)continue;if(!(BIG(e.type)||e.type==='brute'||e.type==='ram'||e.type==='rammer'||e.type==='beetle'))continue;const x=Math.floor(e.pos.x),z=Math.floor(e.pos.z);const i=idx(x,GY-1,z);if(!inb(x,GY-1,z)||vox[i]!==18||blue[i])continue;
     if(Math.random()<t*(BIG(e.type)?2:.8)){for(const [dx,dz] of [[0,0],[1,0],[-1,0],[0,1],[0,-1]]){const j=idx(x+dx,GY-1,z+dz);if(inb(x+dx,GY-1,z+dz)&&vox[j]===18&&!blue[j]){setVox(j,0);setFluid(j,9,4,true);spawnDebris(x+dx+.5,GY,z+dz+.5,0xd8f3ff,3,.25)}}if(Math.random()<.3)label({x:e.pos.x,y:e.gy+1.8,z:e.pos.z},'o gelo racha!','#8fe3ff');e.slowT=Math.max(e.slowT||0,2)}}}
   if(k==='pantano'){const hide=state.phase==='wave'&&isNight();for(const e of enemies){if(e.dead)continue;const far=hide&&!BIG(e.type)&&Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+14&&state.focus!==e;if(e.group.visible===far)e.group.visible=!far}}}
+
+// guard dogs (Canil upgrade): fast biters that patrol in front of the gate; they live outside the minion system and are rebuilt from state.ups.kennel
+const dogs=[];
+function makeDog(k){const g=new THREE.Group();const col=[0x8a5a35,0x3b2d2a,0xd9b48a,0x6b6e8f][k%4];box(.45,.4,.9,col,0,.45,0,g);box(.38,.36,.42,col,0,.62,.55,g);box(.2,.16,.22,0x2b2d4a,0,.55,.78,g);for(const s of[-1,1])box(.1,.16,.08,shadeHex(col,-.25),s*.12,.86,.5,g);box(.42,.08,.1,0xd9414f,0,.5,.36,g);box(.08,.08,.35,col,0,.62,-.55,g).rotation.x=-.6;
+  const legs=[];for(const sx of[-1,1])for(const sz of[-1,1])legs.push(box(.12,.3,.12,shadeHex(col,-.2),sx*.16,.15,sz*.3,g));g.scale.setScalar(US*.85);const x=GATE.x+(k-1.5)*1.6,z=GATE.z+4;g.position.set(x,standY(x,z),z);scene.add(g);
+  return{g,pos:g.position,legs,k,hp:0,maxhp:0,hurtT:0,biteT:0,tgt:null,bob:rnd(0,6)}}
+function dogTick(dt){const want=state.ups.kennel||0;while(dogs.length<want)dogs.push(makeDog(dogs.length));while(dogs.length>want){const d=dogs.pop();scene.remove(d.g)}if(!dogs.length)return;
+  const W8=state.wave;for(const d of dogs){const mh=60+W8*12;if(!d.maxhp)d.hp=mh;d.maxhp=mh;const home={x:GATE.x+(d.k-1.5)*1.6,z:GATE.z+4};
+    if(d.hurtT>0){d.hurtT-=dt;if(d.hurtT<=0)d.hp=d.maxhp;d.tgt=null}
+    else if(!d.tgt||d.tgt.dead||Math.hypot(d.tgt.pos.x-GATE.x,d.tgt.pos.z-GATE.z)>30){d.tgt=null;let bd=22;for(const e of enemies){if(e.dead||e.fly||BIG(e.type))continue;const dd=Math.hypot(e.pos.x-d.pos.x,e.pos.z-d.pos.z);if(dd<bd&&Math.hypot(e.pos.x-GATE.x,e.pos.z-GATE.z)<26){bd=dd;d.tgt=e}}}
+    const T=d.tgt?{x:d.tgt.pos.x,z:d.tgt.pos.z}:home;const dx=T.x-d.pos.x,dz=T.z-d.pos.z,dist=Math.hypot(dx,dz);
+    if(d.tgt&&dist<1.3+d.tgt.radius){d.biteT-=dt;if(d.biteT<=0){d.biteT=.7;dmgEnemy(d.tgt,(10+W8*1.8)*state.bladeMul,true);d.hp-=(d.tgt.T.dmg||5)*.5;state.dogBites=(state.dogBites||0)+1;if(Math.random()<.15)label({x:d.pos.x,y:d.pos.y+1.2,z:d.pos.z},'au!','#8a5a35');if(d.hp<=0){d.hurtT=20;toast('🐕 Um cão de guarda se feriu e voltou ao canil','r1')}}}
+    else if(dist>.4){const sp=(d.hurtT>0?3:d.tgt?7.5:4)*dt;const st=Math.min(sp,dist);d.pos.x+=dx/dist*st;d.pos.z+=dz/dist*st;d.g.rotation.y=Math.atan2(dx,dz);d.bob+=dt*14}
+    d.pos.y=standY(d.pos.x,d.pos.z)+(d.tgt?Math.abs(Math.sin(d.bob))*.12:0);d.legs.forEach((L,i)=>L.rotation.x=Math.sin(d.bob+(i%2?Math.PI:0))*.5)}}

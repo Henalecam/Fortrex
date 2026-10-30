@@ -113,6 +113,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.68: 🚀 Chão plano como superfície única: células da camada GY-1 com os 4 vizinhos sólidos não viram instância de cubo — viram texel (4×4 px, borda 6% mais escura imitando a grade) de uma DataTexture 768² num plano em GY-0,03; buracos/água/bordas continuam cubos (texel transparente, alphaTest). Upload da textura no máx. a cada 200 ms. Instâncias em horda 19: 55k → 39,7k.
 - v0.69: Chão novo conferido com terremoto + bombas: crateras, paredes de terra e água aparecem certas; sombras no plano ok. 💎 Tesouro enterrado: explosão do jogador (r≥3) fora das muralhas que abre ≥3 células do chão tem 22% de chance de desenterrar um baú (1 por horda).
 - v0.70: 📚 Dicas reordenadas do básico ao avançado (start, wave, auto, shop, build, save, rush, bomb, mason, affix, sappers, rally, oil, goblin, bearer, ward, hero, realm, war) + 3 dicas novas (Ímpeto, save automático, Reunir). Tela de derrota mostra "↺ Voltar ao último save · horda N".
+- v0.71: 🐕 Canil (upgrade Exército, horda 5, 4 níveis, 70+70n): cães de guarda (fora da lista de minions, recriados de state.ups.kennel — nada novo no save) patrulham à frente do portão, perseguem inimigos terrestres não-chefes a até 26 do portão e mordem (10+1,8×horda × treino de combate a cada 0,7 s); levam dano ao morder e, feridos, voltam ao canil por 20 s.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
