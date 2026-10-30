@@ -146,7 +146,7 @@ const UPGRADES=[
 ];
 const UP_CAT={explosive:'arm',greek:'arm',powder:'arm',gears:'arm',plating:'arm',crit:'arm',platform:'arm',escola:'arm',forge:'arm',bomb:'arm',oil:'arm',sappers:'arm',
   blades:'exe',tools:'exe',infirm:'exe',magnet:'exe',luck:'exe',general:'exe',quartel:'exe',oficina:'exe',bulwark:'exe',portal:'exe',
-  wall:'cid',door:'cid',kennel:'exe',farol:'cid',masonry:'cid',cathedral:'mar',observatory:'mar',greatwall:'mar',statue:'mar'};
+  wall:'cid',door:'cid',kennel:'exe',farol:'cid',crossbow:'arm',masonry:'cid',cathedral:'mar',observatory:'mar',greatwall:'mar',statue:'mar'};
 const SHOP_TABS=[['now','✨ Pronto'],['arm','🎯 Armas'],['exe','👥 Exército'],['cid','🏰 Cidadela'],['mar','🏛️ Maravilhas']];let shopTab='now';
 function renderShop(){const tb=$('shopTabs');if(tb){tb.innerHTML=SHOP_TABS.map(([k,n])=>`<button class="tab ${shopTab===k?'on':''}" data-st="${k}">${n}</button>`).join('');for(const b of tb.querySelectorAll('[data-st]'))b.onclick=()=>{shopTab=b.dataset.st;renderShop()}}
   const box=$('shopList');box.innerHTML='';let shown=0;for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const lock=!upReady(U);

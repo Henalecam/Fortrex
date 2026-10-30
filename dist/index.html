@@ -1813,7 +1813,7 @@ const UPGRADES=[
 ];
 const UP_CAT={explosive:'arm',greek:'arm',powder:'arm',gears:'arm',plating:'arm',crit:'arm',platform:'arm',escola:'arm',forge:'arm',bomb:'arm',oil:'arm',sappers:'arm',
   blades:'exe',tools:'exe',infirm:'exe',magnet:'exe',luck:'exe',general:'exe',quartel:'exe',oficina:'exe',bulwark:'exe',portal:'exe',
-  wall:'cid',door:'cid',kennel:'exe',farol:'cid',masonry:'cid',cathedral:'mar',observatory:'mar',greatwall:'mar',statue:'mar'};
+  wall:'cid',door:'cid',kennel:'exe',farol:'cid',crossbow:'arm',masonry:'cid',cathedral:'mar',observatory:'mar',greatwall:'mar',statue:'mar'};
 const SHOP_TABS=[['now','✨ Pronto'],['arm','🎯 Armas'],['exe','👥 Exército'],['cid','🏰 Cidadela'],['mar','🏛️ Maravilhas']];let shopTab='now';
 function renderShop(){const tb=$('shopTabs');if(tb){tb.innerHTML=SHOP_TABS.map(([k,n])=>`<button class="tab ${shopTab===k?'on':''}" data-st="${k}">${n}</button>`).join('');for(const b of tb.querySelectorAll('[data-st]'))b.onclick=()=>{shopTab=b.dataset.st;renderShop()}}
   const box=$('shopList');box.innerHTML='';let shown=0;for(const U of UPGRADES){const lv=state.ups[U.id]||0,cost=U.cost(lv),maxed=lv>=U.max;const lock=!upReady(U);
@@ -1855,7 +1855,7 @@ function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}
 // ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
 const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,wind:8,frost:10,catapult:12,sunray:15},role:{rep:1,col:1,gun:1,sol:1,med:3},
   block:{16:1,17:1,10:1,31:6,18:4,15:5,9:7,8:7,14:9,19:10,20:14},
-  up:{farol:7,kennel:5,oil:6,sappers:5,forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
+  up:{crossbow:4,farol:7,kennel:5,oil:6,sappers:5,forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
 function unlockWave(kind,k){return(UNLOCK[kind]&&UNLOCK[kind][k])||1}
 function isUnlocked(kind,k){return state.wave>=unlockWave(kind,k)}
 function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)if(UNLOCK.turret[k]===w)got.push(TURRETS[k].ico+' '+TURRETS[k].n);for(const k in UNLOCK.role)if(UNLOCK.role[k]===w)got.push(ROLES[k].ico+' '+ROLES[k].n);
@@ -1888,6 +1888,7 @@ const UPGRADES_EXTRA=[
   {id:'observatory',ico:'🔭',nm:'Observatório',ds:'Maravilha. Todas as armas ganham +18% de alcance e enxergam através da bruma.',max:1,cost:()=>900,need:()=>10,go(){state.rangeMul=(state.rangeMul||1)*1.18}},
   {id:'greatwall',ico:'🏯',nm:'Grande Muralha',ds:'Maravilha. A muralha principal sobe 2 fileiras e os blocos da planta aguentam +25%.',max:1,cost:()=>1400,need:()=>14,go(){state.wallH+=2;state.blueHp=(state.blueHp||1)*1.25;buildBlueprint();if(state.phase!=='wave')startSelfRepair()}},
   {id:'statue',ico:'🗿',nm:'Estátua do Guardião',ds:'Maravilha. +25% de dano em tudo e heróis ganham 1 nível.',max:1,cost:()=>2000,need:()=>18,go(){state.dmgMul*=1.25;state.bladeMul*=1.25;for(const k in state.heroes||{}){const m=state.heroes[k].m;if(m){m.lvl=(m.lvl||1)+1;recompute(m)}}}},
+  {id:'crossbow',ico:'🎯',nm:'Besteiros nas ameias',ds:'Besteiros fixos no topo da muralha disparam setas em quem chega perto (2 setas por nível a cada 1,5 s).',max:5,cost:l=>90+l*80,go(){}},
   {id:'farol',ico:'🗼',nm:'Farol',ds:'Ergue um farol no pátio: armas a até 24 blocos dele ganham +15% de alcance, a bruma quase não atrapalha e, no Pântano, a horda não se esconde mais à noite.',max:1,cost:()=>260,go(){raiseLighthouse()}},
   {id:'kennel',ico:'🐕',nm:'Canil',ds:'+1 cão de guarda por nível: corre atrás dos Devoradores perto do portão e morde. Ferido, volta ao canil e se recupera.',max:4,cost:l=>70+l*70,go(){}},
   {id:'sappers',ico:'💣',nm:'Sapadores',ds:'Espalham mais minas, espinhos, gelo, piche e barris pelo mapa a cada horda, nos caminhos dos Devoradores.',max:5,cost:l=>60+l*55,go(){}}];
@@ -2236,9 +2237,18 @@ function lightTick(dt){if(!state.ups.farol){if(lightBeam){scene.remove(lightBeam
   if(!lightBeam){lightBeam=new THREE.Mesh(new THREE.ConeGeometry(4,26,16,1,true),new THREE.MeshBasicMaterial({color:0xfff1b0,transparent:true,opacity:.18,depthWrite:false,side:THREE.DoubleSide}));lightBeam.geometry.translate(0,-13,0);lightBeam.geometry.rotateZ(Math.PI/2);lightBeam.position.set(CX+.5,GY+13.5,CZ-11.5);scene.add(lightBeam)}
   lightBeam.rotation.y+=dt*.8;lightBeam.visible=isNight()||state.ev==='mist'||state.ev==='rain'||state.biomeKey==='pantano';lightBeam.material.opacity=.14+.06*Math.sin(simTime*3)}
 
+// crossbowmen on the battlements: volleys of bolts at enemies close to the main wall
+const BOLT_MAT=new THREE.LineBasicMaterial({color:0xfff6e0,transparent:true,opacity:.9});const bolts=[];let boltAcc=0;
+function crossbowTick(dt){for(let i=bolts.length-1;i>=0;i--){const b=bolts[i];b.t-=dt;b.l.material.opacity=Math.max(0,b.t/.18);if(b.t<=0){scene.remove(b.l);b.l.geometry.dispose();bolts.splice(i,1)}}
+  const lv=state.ups.crossbow||0;if(!lv||state.phase!=='wave')return;boltAcc+=dt;if(boltAcc<1.5)return;boltAcc=0;
+  const near=enemies.filter(e=>!e.dead&&Math.abs(Math.max(Math.abs(e.pos.x-CX),Math.abs(e.pos.z-CZ))-WR)<14);if(!near.length)return;
+  for(let k=0;k<lv*2;k++){const e=near[(Math.random()*near.length)|0];const dx=e.pos.x-CX,dz=e.pos.z-CZ;const m=Math.max(Math.abs(dx),Math.abs(dz))||1;const sx=CX+dx/m*WR,sz=CZ+dz/m*WR,sy=GY+(state.wallH||7)+.5;
+    dmgEnemy(e,(8+state.wave*1.6)*state.dmgMul,false);const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(sx,sy,sz),new THREE.Vector3(e.pos.x,e.group.position.y+.8,e.pos.z)]);const l=new THREE.Line(g,BOLT_MAT.clone());scene.add(l);bolts.push({l,t:.18})}
+  if(SFX.pop)SFX.pop()}
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.87;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.88;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2281,7 +2291,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.84,'💾 O save automático agora também acontece durante batalhas contra fortalezas e missões do reino (ao continuar, a fortaleza de cerco e a missão em andamento ficam de fora).'],
   [0.85,'🏆 Desafio da semana na tela inicial: dois modificadores e um bioma iguais para a semana inteira, com recorde de horda guardado.'],
   [0.86,'🏆 Durante o desafio, um selo no topo mostra os modificadores; a tela de derrota mostra o recorde da semana.'],
-  [0.87,'🗼 Farol (Upgrades → Cidadela, horda 7+): +15% de alcance para as armas próximas, bruma quase não atrapalha e a horda do Pântano não se esconde mais à noite.']];
+  [0.87,'🗼 Farol (Upgrades → Cidadela, horda 7+): +15% de alcance para as armas próximas, bruma quase não atrapalha e a horda do Pântano não se esconde mais à noite.'],
+  [0.88,'🎯 Besteiros nas ameias (Upgrades → Armas, horda 4+): setas automáticas do alto da muralha em quem chega perto.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2478,7 +2489,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)if(!m.away)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on;const rf=$('rainFx'),ro=state.phase==='wave'&&state.ev==='rain'&&!OPTS.lowGfx;if(rf.hidden===ro)rf.hidden=!ro}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);volcanoTick(dt);biomeTick(dt);dogTick(dt);buffTick(dt);gateTick(dt);lightTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on;const rf=$('rainFx'),ro=state.phase==='wave'&&state.ev==='rain'&&!OPTS.lowGfx;if(rf.hidden===ro)rf.hidden=!ro}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);volcanoTick(dt);biomeTick(dt);dogTick(dt);buffTick(dt);gateTick(dt);lightTick(dt);crossbowTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';$('bossShield').style.width=(b.shield>0?b.shield/b.maxhp*100:0)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':'r1');state.combo=0}
@@ -2627,6 +2638,7 @@ window.__hero=id=>{const H=HEROES.find(h=>h.id===id);spawnHero(H);return !!state
 window.__gate=()=>{toggleGate();return state.gateClosed};
 window.__mod=k=>{state.challenge={week:0,mods:[k]};return hasMod(k)};
 window.__farol=()=>{state.ups.farol=1;raiseLighthouse();simTime=(Math.ceil(simTime/DAY_LEN)+.6)*DAY_LEN;return 1};
+window.__xbow=n=>{state.ups.crossbow=n;startWave();return n};
 
 })();
 </script>

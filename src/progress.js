@@ -1,7 +1,7 @@
 // ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
 const UNLOCK={turret:{cannon:1,ballista:1,mortar:3,flamer:5,tesla:7,wind:8,frost:10,catapult:12,sunray:15},role:{rep:1,col:1,gun:1,sol:1,med:3},
   block:{16:1,17:1,10:1,31:6,18:4,15:5,9:7,8:7,14:9,19:10,20:14},
-  up:{farol:7,kennel:5,oil:6,sappers:5,forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
+  up:{crossbow:4,farol:7,kennel:5,oil:6,sappers:5,forge:12,bulwark:14,platform:2,quartel:3,door:3,explosive:4,oficina:4,wall:5,greek:6,escola:6,crit:8,portal:10,general:12,luck:14}};
 function unlockWave(kind,k){return(UNLOCK[kind]&&UNLOCK[kind][k])||1}
 function isUnlocked(kind,k){return state.wave>=unlockWave(kind,k)}
 function checkUnlocks(){const w=state.wave,got=[];for(const k in UNLOCK.turret)if(UNLOCK.turret[k]===w)got.push(TURRETS[k].ico+' '+TURRETS[k].n);for(const k in UNLOCK.role)if(UNLOCK.role[k]===w)got.push(ROLES[k].ico+' '+ROLES[k].n);
@@ -34,6 +34,7 @@ const UPGRADES_EXTRA=[
   {id:'observatory',ico:'🔭',nm:'Observatório',ds:'Maravilha. Todas as armas ganham +18% de alcance e enxergam através da bruma.',max:1,cost:()=>900,need:()=>10,go(){state.rangeMul=(state.rangeMul||1)*1.18}},
   {id:'greatwall',ico:'🏯',nm:'Grande Muralha',ds:'Maravilha. A muralha principal sobe 2 fileiras e os blocos da planta aguentam +25%.',max:1,cost:()=>1400,need:()=>14,go(){state.wallH+=2;state.blueHp=(state.blueHp||1)*1.25;buildBlueprint();if(state.phase!=='wave')startSelfRepair()}},
   {id:'statue',ico:'🗿',nm:'Estátua do Guardião',ds:'Maravilha. +25% de dano em tudo e heróis ganham 1 nível.',max:1,cost:()=>2000,need:()=>18,go(){state.dmgMul*=1.25;state.bladeMul*=1.25;for(const k in state.heroes||{}){const m=state.heroes[k].m;if(m){m.lvl=(m.lvl||1)+1;recompute(m)}}}},
+  {id:'crossbow',ico:'🎯',nm:'Besteiros nas ameias',ds:'Besteiros fixos no topo da muralha disparam setas em quem chega perto (2 setas por nível a cada 1,5 s).',max:5,cost:l=>90+l*80,go(){}},
   {id:'farol',ico:'🗼',nm:'Farol',ds:'Ergue um farol no pátio: armas a até 24 blocos dele ganham +15% de alcance, a bruma quase não atrapalha e, no Pântano, a horda não se esconde mais à noite.',max:1,cost:()=>260,go(){raiseLighthouse()}},
   {id:'kennel',ico:'🐕',nm:'Canil',ds:'+1 cão de guarda por nível: corre atrás dos Devoradores perto do portão e morde. Ferido, volta ao canil e se recupera.',max:4,cost:l=>70+l*70,go(){}},
   {id:'sappers',ico:'💣',nm:'Sapadores',ds:'Espalham mais minas, espinhos, gelo, piche e barris pelo mapa a cada horda, nos caminhos dos Devoradores.',max:5,cost:l=>60+l*55,go(){}}];
@@ -381,3 +382,12 @@ function raiseLighthouse(){const bx=CX,bz=CZ-12;const put=(x,y,z,m)=>{if(!inb(x,
 function lightTick(dt){if(!state.ups.farol){if(lightBeam){scene.remove(lightBeam);lightBeam=null}return}
   if(!lightBeam){lightBeam=new THREE.Mesh(new THREE.ConeGeometry(4,26,16,1,true),new THREE.MeshBasicMaterial({color:0xfff1b0,transparent:true,opacity:.18,depthWrite:false,side:THREE.DoubleSide}));lightBeam.geometry.translate(0,-13,0);lightBeam.geometry.rotateZ(Math.PI/2);lightBeam.position.set(CX+.5,GY+13.5,CZ-11.5);scene.add(lightBeam)}
   lightBeam.rotation.y+=dt*.8;lightBeam.visible=isNight()||state.ev==='mist'||state.ev==='rain'||state.biomeKey==='pantano';lightBeam.material.opacity=.14+.06*Math.sin(simTime*3)}
+
+// crossbowmen on the battlements: volleys of bolts at enemies close to the main wall
+const BOLT_MAT=new THREE.LineBasicMaterial({color:0xfff6e0,transparent:true,opacity:.9});const bolts=[];let boltAcc=0;
+function crossbowTick(dt){for(let i=bolts.length-1;i>=0;i--){const b=bolts[i];b.t-=dt;b.l.material.opacity=Math.max(0,b.t/.18);if(b.t<=0){scene.remove(b.l);b.l.geometry.dispose();bolts.splice(i,1)}}
+  const lv=state.ups.crossbow||0;if(!lv||state.phase!=='wave')return;boltAcc+=dt;if(boltAcc<1.5)return;boltAcc=0;
+  const near=enemies.filter(e=>!e.dead&&Math.abs(Math.max(Math.abs(e.pos.x-CX),Math.abs(e.pos.z-CZ))-WR)<14);if(!near.length)return;
+  for(let k=0;k<lv*2;k++){const e=near[(Math.random()*near.length)|0];const dx=e.pos.x-CX,dz=e.pos.z-CZ;const m=Math.max(Math.abs(dx),Math.abs(dz))||1;const sx=CX+dx/m*WR,sz=CZ+dz/m*WR,sy=GY+(state.wallH||7)+.5;
+    dmgEnemy(e,(8+state.wave*1.6)*state.dmgMul,false);const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(sx,sy,sz),new THREE.Vector3(e.pos.x,e.group.position.y+.8,e.pos.z)]);const l=new THREE.Line(g,BOLT_MAT.clone());scene.add(l);bolts.push({l,t:.18})}
+  if(SFX.pop)SFX.pop()}
