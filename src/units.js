@@ -87,7 +87,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US,state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
     speed:T.speed*1.5*rnd(.9,1.1)*DIFF().sp*(state.ev==='elite'?1.15:1)*Math.min(1.3,1+Math.max(0,state.wave-12)*.015),armor:Math.min(.55,Math.max(0,state.wave-14)*.025+(state.wave>=6?(DIFF().arm||0):0)),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+12:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   if(DIFF().dmg!==1)e.T={...T,dmg:T.dmg*DIFF().dmg};
-  rollAffix(e);
+  rollAffix(e);if(state.vein&&state.phase==='wave'&&!BIG(type)&&!CLIMBS(type)&&type!=='goblin'&&type!=='flyer'&&type!=='ship'&&Math.random()<.15)e.veinRaid=true;
   setupChunks(e,body,head);
   e.gy=CLIMBS(type)?topY(x,z):surfE(x,z);g.position.y=e.fly?e.alt:e.gy;g.userData.enemy=e;
   if(BIG(type)){showBoss(e);const ring=new THREE.Mesh(new THREE.RingGeometry(e.radius*1.15,e.radius*1.45,32),new THREE.MeshBasicMaterial({color:RARITY[Math.max(2,rarity)].c,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.08;g.add(ring);e.aura=ring}enemies.push(e);return e}
@@ -144,6 +144,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(e.aff==='regen'&&e.hp
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
   if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}
   if(e.rival&&rivalBrain(e,dt))return;
+  if(e.veinRaid&&veinBrain(e,dt,sf))return;
   if(e.type==='goblin'&&goblinBrain(e,dt,sf))return;
   if(e.type==='wolf'){e.packT=(e.packT??0)-dt;if(e.packT<=0){e.packT=1;let n=0;for(const o of enemies)if(!o.dead&&o.type==='wolf'&&Math.abs(o.pos.x-e.pos.x)<7&&Math.abs(o.pos.z-e.pos.z)<7)n++;const was=e.pack;e.pack=n>=3;if(e.pack&&!was){e.speed*=1.3;if(Math.random()<.3)label({x:e.pos.x,y:e.gy+1.6,z:e.pos.z},'Auuu!','#7d7f8f')}else if(!e.pack&&was)e.speed/=1.3}
     // wolves hunt minions caught outside the walls

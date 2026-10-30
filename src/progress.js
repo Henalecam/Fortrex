@@ -190,3 +190,20 @@ let oilAcc=0;function oilTick(dt){const lv=state.ups.oil||0;if(!lv||state.phase!
   for(const e of enemies){if(e.dead||e.fly||!CLIMBS(e.type)||e.gy<GY+1.5||(e.oilCd||0)>simTime)continue;const dx=e.pos.x-CX,dz=e.pos.z-CZ,d=Math.max(Math.abs(dx),Math.abs(dz));if(!rings.some(R=>d>R-2.5&&d<R+2.5))continue;if(Math.random()>t*(.35+.2*lv))continue;
     e.oilCd=simTime+5-lv;dmgEnemy(e,(18+state.wave*3)*(1+.4*(lv-1)),true);if(lv>=2)e.afire=Math.max(e.afire||0,2.5);const L=Math.hypot(dx,dz)||1;e.pos.x+=dx/L*2.6;e.pos.z+=dz/L*2.6;e.stun=Math.max(e.stun||0,1.2);
     spawnDebris(e.pos.x,e.gy+1.2,e.pos.z,0x3a2a1a,6,.35);if(Math.random()<.4)label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'óleo!','#ff8a3c');state.oilHits=(state.oilHits||0)+1}}
+
+// ───────── gold veins: from wave 6 a vein can surface outside the walls. It pays while standing; part of the horde comes to loot it.
+let veinMesh=null,veinAcc=0;
+function veinCells(){const V=state.vein;if(!V)return[];return V.cells.filter(i=>vox[i]===19)}
+function spawnVein(){if(state.vein||state.wave<6||state.wave%4!==2)return;for(let t=0;t<60;t++){const a=rnd(0,Math.PI*2),r=rnd(WR+12,WR+30),x=Math.floor(CX+Math.cos(a)*r),z=Math.floor(CZ+Math.sin(a)*r);let ok=true;
+    for(let dx=-1;dx<=1&&ok;dx++)for(let dz=-1;dz<=1;dz++){const X=x+dx,Z=z+dz;if(surf(X,Z)!==GY||!inb(X,GY,Z)){ok=false;break}const i=idx(X,GY,Z);if(vox[i]||blue[i]||rown[i]||FLUID(vox[idx(X,GY-1,Z)])){ok=false;break}}if(!ok)continue;
+    const cells=[];const put=(X,Y,Z)=>{const i=idx(X,Y,Z);setVox(i,19);hp[i]=MAT[19].hp*4;looted[i]=1;if(natBlue)natBlue[i]=0;cells.push(i)};for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)if(Math.abs(dx)+Math.abs(dz)<2||Math.random()<.6)put(x+dx,GY,z+dz);put(x,GY+1,z);
+    state.vein={x:x+.5,z:z+.5,cells,total:cells.length};const dir=Math.abs(x-CX)>Math.abs(z-CZ)?(x>CX?'leste':'oeste'):(z>CZ?'sul':'norte');toast(`⛏️ Um veio de ouro brotou a ${dir}! Rende material enquanto estiver de pé — e a horda vai tentar saqueá-lo. Use 🚩 Reunir para defendê-lo.`,'r4');SFX.open();return}}
+function veinTick(dt){const V=state.vein;if(!V){if(veinMesh){scene.remove(veinMesh);veinMesh=null}return}veinAcc+=dt;if(veinAcc<1)return;const t=veinAcc;veinAcc=0;const n=veinCells().length;
+  if(!veinMesh){veinMesh=new THREE.Mesh(new THREE.RingGeometry(2.6,3.1,32),new THREE.MeshBasicMaterial({color:0xffcf3d,transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false}));veinMesh.rotation.x=-Math.PI/2;veinMesh.position.set(V.x,GY+.06,V.z);scene.add(veinMesh)}
+  if(!n){toast('⛏️ O veio de ouro foi saqueado pela horda.','r3');state.vein=null;return}
+  state.veinGain=(state.veinGain||0)+n*.06*t;if(state.veinGain>=1){const k=Math.floor(state.veinGain);state.veinGain-=k;state.material+=k;if(Math.random()<.4)label({x:V.x,y:GY+2.4,z:V.z},`+${k}`,'#c99a1a')}}
+// raiders: some of the horde breaks off to dig the vein out
+function veinBrain(e,dt,sf){const L=veinCells();if(!L.length){e.veinRaid=false;return false}let best=-1,bd=1e9;for(const i of L){const d=Math.hypot(ix(i)+.5-e.pos.x,iz(i)+.5-e.pos.z);if(d<bd){bd=d;best=i}}
+  const tx=ix(best)+.5,tz=iz(best)+.5,dx=tx-e.pos.x,dz=tz-e.pos.z,d=Math.hypot(dx,dz)||1;e.group.rotation.y=Math.atan2(dx,dz);
+  if(d<1.5+e.radius){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;damageVox(best,e.T.dmg,'enemy',e)}return true}
+  const sp=e.speed*sf;e.pos.x+=dx/d*sp*dt;e.pos.z+=dz/d*sp*dt;e.gy+=(surfE(e.pos.x,e.pos.z)-e.gy)*Math.min(1,dt*9);e.group.position.y=e.gy+Math.abs(Math.sin(e.bob+=dt*12))*.12;return true}
