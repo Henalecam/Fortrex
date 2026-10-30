@@ -18,6 +18,7 @@ const EVENTS={
   blizzard:{n:'Nevasca',d:'Tudo fica lento e a água dos lagos congela em pontes de gelo.',css:'r2',w:6},
   quake:{n:'Terremoto',d:'O chão racha sob os pés: crateras, muralhas abaladas e inimigos derrubados.',css:'r3',w:7},
   eclipse:{n:'Eclipse',d:'A escuridão fortalece os inimigos (+1 raridade). Loot muito melhor.',css:'r3',w:9},
+  bloodmoon:{n:'Lua de sangue',d:'A lua sangra: muitos inimigos de elite com afixos, mas cada abate rende +1 material e os soldados se curam ao matar.',css:'r3',w:10},
   golden:{n:'Horda dourada',d:'Todos os Devoradores são Raros ou acima. Curta e brutal.',css:'r3',w:8},
 };
 function rollEvent(w){if(w<3||w%5===0||Math.random()<.5)return null;const b=state.biomeKey;const pool=[];for(const k of Object.keys(EVENTS)){if(EVENTS[k].w>w)continue;if(k==='sandstorm'&&b!=='deserto')continue;if(k==='blizzard'&&b==='deserto')continue;const n=(k==='blizzard'&&b==='neve')||(k==='sandstorm'&&b==='deserto')||(k==='mist'&&b==='pantano')?4:1;for(let i=0;i<n;i++)pool.push(k)}return pick(pool)}
@@ -139,7 +140,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':state.combo>=15?'r3':'r2');state.combo=0}
@@ -234,10 +235,11 @@ window.__matTrace2=()=>{window.__matTrace()};
 window.__zoo=()=>{const ts=['goblin','crawler','wolf','spider','slime','imp','brute','beetle','climber','ram','shaman','sapper'];ts.forEach((t,k)=>{const e=makeEnemy(t,k%3,CX-14+k*2.8,WB+14);e.speed=0;e.T={...e.T,speed:0}});cam.target.set(CX,GY+1,WB+14);cam.dist=24;cam.pitch=.75};
 
 // ───────── weather events: blizzard, earthquake, eclipse
-let wxT=0;const _snow=new THREE.Color(0xe8f2fa),_dark=new THREE.Color(0x1d1e33);
+let wxT=0;const _snow=new THREE.Color(0xe8f2fa),_dark=new THREE.Color(0x1d1e33),_blood=new THREE.Color(0x6a1622);
 const _sand=new THREE.Color(0xe8c98a);function weatherTick(dt){const ev=state.ev;if(ev==='sandstorm'){scene.background.lerp(_sand,.6);scene.fog.color.copy(scene.background);for(let k=0;k<4;k++)spawnDebris(cam.target.x+rnd(-30,30),GY+rnd(2,10),cam.target.z+rnd(-30,30),0xd9b56a,1,.1);return}if(ev!=='blizzard'&&ev!=='quake'&&ev!=='eclipse')return;wxT-=dt;
   if(ev==='blizzard'){scene.background.lerp(_snow,.55);scene.fog.color.copy(scene.background);for(let k=0;k<3;k++)spawnDebris(cam.target.x+rnd(-30,30),GY+rnd(12,20),cam.target.z+rnd(-30,30),0xffffff,1,.12);
     if(wxT<=0){wxT=.35;for(let k=0;k<6;k++){const x=rint(2,W-3),z=rint(2,D-3);const i=idx(x,GY-1,z);if(vox[i]===9){setVox(i,18);fluids.delete(i);fluidSrc.delete(i)}}}}
+  if(ev==='bloodmoon'){scene.background.lerp(_blood,.55);scene.fog.color.copy(scene.background);sun.intensity*=.75;sun.color.setHex(0xff6a5a);hemi.color.setHex(0xff8a7a);hemi.groundColor.setHex(0x7a2a2a)}else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}
   if(ev==='eclipse'){scene.background.lerp(_dark,.7);scene.fog.color.copy(scene.background);sun.intensity*=.3;hemi.intensity*=.45}
   if(ev==='quake'&&wxT<=0){wxT=rnd(6,9);shake=Math.max(shake,1.3);SFX.boom(true);for(let k=0;k<3;k++){const a=rnd(0,Math.PI*2),r=rnd(12,50);const x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;explode(x,GY,z,2.2,35,{src:'env'})}
     for(const e of enemies)if(!e.dead&&!e.fly&&Math.hypot(e.pos.x-CX,e.pos.z-CZ)<60)e.stun=Math.max(e.stun||0,1.2)}}

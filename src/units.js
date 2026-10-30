@@ -95,7 +95,7 @@ function dmgEnemy(e,d,flash,crit){if(e.dead)return;e.lastHit=simTime;if(e.armor)
 // elite affixes: from wave 8 some common enemies come with a trait shown by a colored ring at their feet
 const AFFIX={fast:{n:'Veloz',c:0xffd23d},armor:{n:'Blindado',c:0x8ea9c6},vamp:{n:'Vampiro',c:0xd9414f},boom:{n:'Explosivo',c:0xff7a2a},regen:{n:'Regenerante',c:0x5cc08c}};
 const AFF_GEO=new THREE.RingGeometry(.62,.82,20);const AFF_MAT={};
-function rollAffix(e){const w=state.wave;if(w<8||BIG(e.type)||e.type==='slime'||Math.random()>Math.min(.24,.04+(w-8)*.012)*(DIFF().cnt>1.3?1.3:1))return;
+function rollAffix(e){const w=state.wave;const bm=state.ev==='bloodmoon';if((w<8&&!bm)||BIG(e.type)||e.type==='slime'||Math.random()>(bm?.45:Math.min(.24,.04+(w-8)*.012)*(DIFF().cnt>1.3?1.3:1)))return;
   const ks=['fast','armor','vamp'];if(w>=11)ks.push('boom');if(w>=14)ks.push('regen');const k=pick(ks);e.aff=k;
   if(k==='fast'){e.speed*=1.4;e.hp*=.85;e.maxhp*=.85}if(k==='armor')e.armor=Math.min(.7,(e.armor||0)+.25);if(k==='regen'){e.hp*=1.1;e.maxhp*=1.1}
   const m=AFF_MAT[k]||(AFF_MAT[k]=new THREE.MeshBasicMaterial({color:AFFIX[k].c,transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false}));
@@ -115,7 +115,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?140:t==='boss'?60:t==='ram'?18:10,big?.8:.4);SFX.shatter(t!=='crawler');
   hitstop=Math.max(hitstop,t==='colossus'?.22:t==='boss'?.14:.05);shake=Math.max(shake,t==='colossus'?1.4:t==='boss'?.9:.22);if(big){hideBoss();slowmo=1.3;toast(`${e.T.n} derrotado!`,'r4')}
   if(t==='colossus'){const fx=e.pos.x+Math.sin(e.group.rotation.y)*3,fz=e.pos.z+Math.cos(e.group.rotation.y)*3;pendingBooms.push({x:fx,y:GY+.5,z:fz,r:3.6,dmg:230,o:{src:'env'},t:.25});toast('O Colosso desabou!','r4')}
-  dropTable(e);state.kills++;state.wk++;addCombo(e)}
+  dropTable(e);state.kills++;state.wk++;addCombo(e);if(state.ev==='bloodmoon'&&!e.rival){state.material+=1;for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&Math.abs(m.pos.x-e.pos.x)<4&&Math.abs(m.pos.z-e.pos.z)<4)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.12)}}
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
   if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22,mistking:60,ship:30,pirate:3})[t]??2)*.4+r*.5))});
