@@ -107,6 +107,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.62: 🌋 Bioma novo Ermo Vulcânico (sorteado em partidas novas; saves mantêm o bioma): chão de cinza, 34 poças de lava; durante a horda, a cada 32–48 s (primeira aos 14 s) uma erupção marca 3+horda/6 pontos com anéis laranja e 1,6 s depois caem bombas de lava (explosão r2,4 com fogo, 20% dentro das muralhas).
 - v0.63: 🗺️ Seletor de bioma na tela inicial (🎲 Aleatório, Verdes, Rubro, Gelada, Vulcânico, Bruma; salvo em OPTS.biome) — antes um novo jogo depois de carregar um save repetia o bioma do save. Erupções mostram coluna de fogo pulsante em cada ponto marcado.
 - v0.64: regras de bioma — Rubro: ao meio-dia (horda) soldados fora das muralhas perdem 1,2% de vida/s; Gelada: chefes, brutos, aríetes e besouros racham o gelo dos lagos (viram água: lentidão e afogamento de aríetes); Bruma: à noite inimigos comuns a mais de WR+14 do centro ficam invisíveis (o foco revela). Bot 8 min em cada bioma: hordas 8–9, sem erros.
+- v0.65: 🌾 Campos Verdes: colheita no fim de cada horda (+5+1,5×horda material). Regra de cada bioma (BIOMES[k].rule) aparece sob o seletor na tela inicial e no tooltip do relógio do HUD.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

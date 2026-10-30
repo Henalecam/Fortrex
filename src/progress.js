@@ -291,7 +291,7 @@ function volcanoTick(dt){if(!BIOME.volcanic||state.phase!=='wave'){if(state.phas
 //  Rubro (deserto): midday heat wears down soldiers fighting outside the walls
 //  Gelada (neve): frozen lakes crack under heavy enemies, dropping them into icy water
 //  Bruma (pântano): at night the horde stays hidden in the fog until it is close
-let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAcc;bioAcc=0;const k=state.biomeKey;
+let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAcc;bioAcc=0;const k=state.biomeKey;{const c=$('clock');const B=BIOMES[k];if(c&&B&&c.dataset.bio!==k){c.dataset.bio=k;c.title=`${B.ico} ${B.n}: ${B.rule}`}}
   if(k==='deserto'&&state.phase==='wave'){const p=dayPhase();if(p>.4&&p<.6){if(state.heatDay!==Math.floor(simTime/DAY_LEN)){state.heatDay=Math.floor(simTime/DAY_LEN);toast('☀️ Calor do meio-dia: soldados fora das muralhas se cansam.','r3')}
     for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&!inside(m.pos.x,m.pos.z)&&!m.hero)m.hp=Math.max(1,m.hp-m.maxhp*.012*t)}}
   if(k==='neve'&&state.phase==='wave'){for(const e of enemies){if(e.dead||e.fly)continue;if(!(BIG(e.type)||e.type==='brute'||e.type==='ram'||e.type==='rammer'||e.type==='beetle'))continue;const x=Math.floor(e.pos.x),z=Math.floor(e.pos.z);const i=idx(x,GY-1,z);if(!inb(x,GY-1,z)||vox[i]!==18||blue[i])continue;

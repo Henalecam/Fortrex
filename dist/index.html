@@ -293,7 +293,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <div id="overAch"></div>
   <div class="ds" style="margin:-4px 0 14px">A bruma ataca em hordas. Pelo reino, outras fortalezas crescem, guerreiam entre si e virão atrás de você. Abra o 🗺️ Reino para declarar guerra.</div>
   <div class="diffs" id="diffs"></div><div id="diffD"></div>
-  <div class="diffs" id="biomes" style="margin-top:8px"></div>
+  <div class="diffs" id="biomes" style="margin-top:8px"></div><div id="bioD" class="ds" style="margin:-2px 0 12px"></div>
   <button class="btn primary" id="continue" hidden>▶ Continuar</button>
   <button class="btn primary" id="start">Acordar a Fortaleza</button>
 </div></div>
@@ -607,11 +607,11 @@ function checkChest(){if(state.running&&chestAlive()===0)gameOver()}
 // zones kept free of terrain decoration: player city, rival cities, outposts
 function cityZones(){const z=[[CX,CZ,WR+5]];for(const [ox,oz] of OUTPOSTS)z.push([ox,oz,5]);for(const R of (typeof rivals!=='undefined'?rivals:[]))z.push([R.cx,R.cz,R.wr+5]);return z}
 const looted=new Uint8Array(N);// a cell pays material only once, so regrown/rebuilt terrain is not a farm
-const BIOMES={campo:{n:'Campos Verdes',ico:'🌿',g:0x8fd08a,gn:'Grama',d:0x9c7a55,l:0x6fbf6a,t:0x7fc98f,lava:14,ponds:17,trees:330,hills:38},
-  deserto:{n:'Deserto Rubro',ico:'🏜️',g:0xe8cf8a,gn:'Areia',d:0xd4b06a,l:0x8fbf5a,t:0xd8bf78,lava:12,ponds:5,trees:80,hills:46},
-  neve:{n:'Tundra Gelada',ico:'❄️',g:0xf1f5fa,gn:'Neve',d:0xb9a48a,l:0x2f6b4f,t:0xe6eef5,lava:6,ponds:17,trees:300,hills:42,frozen:true},
-  vulcao:{n:'Ermo Vulcânico',ico:'🌋',g:0x5a5658,gn:'Cinza',d:0x3e3436,l:0x5a6b3a,t:0x7a6464,lava:34,ponds:3,trees:70,hills:52,volcanic:true},
-  pantano:{n:'Pântano da Bruma',d:'À noite a horda some na névoa até chegar perto.',ico:'🐸',g:0x5f8a4a,gn:'Lodo',d:0x5a4a35,l:0x4f6b3a,t:0x4f7a3f,lava:4,ponds:42,trees:260,hills:20}};
+const BIOMES={campo:{rule:'Terras férteis: depois de cada horda a colheita rende material.',n:'Campos Verdes',ico:'🌿',g:0x8fd08a,gn:'Grama',d:0x9c7a55,l:0x6fbf6a,t:0x7fc98f,lava:14,ponds:17,trees:330,hills:38},
+  deserto:{rule:'Calor do meio-dia: soldados fora das muralhas se cansam durante a horda.',n:'Deserto Rubro',ico:'🏜️',g:0xe8cf8a,gn:'Areia',d:0xd4b06a,l:0x8fbf5a,t:0xd8bf78,lava:12,ponds:5,trees:80,hills:46},
+  neve:{rule:'Lagos congelados racham sob inimigos pesados, que caem na água gelada.',n:'Tundra Gelada',ico:'❄️',g:0xf1f5fa,gn:'Neve',d:0xb9a48a,l:0x2f6b4f,t:0xe6eef5,lava:6,ponds:17,trees:300,hills:42,frozen:true},
+  vulcao:{rule:'Erupções durante a horda: bombas de lava caem nas marcas.',n:'Ermo Vulcânico',ico:'🌋',g:0x5a5658,gn:'Cinza',d:0x3e3436,l:0x5a6b3a,t:0x7a6464,lava:34,ponds:3,trees:70,hills:52,volcanic:true},
+  pantano:{rule:'À noite a horda some na névoa até chegar perto.',n:'Pântano da Bruma',ico:'🐸',g:0x5f8a4a,gn:'Lodo',d:0x5a4a35,l:0x4f6b3a,t:0x4f7a3f,lava:4,ponds:42,trees:260,hills:20}};
 let BIOME=BIOMES.campo;
 function genWorld(){state.biomeKey=BIOMES[state.biome]?state.biome:pick(Object.keys(BIOMES));BIOME=BIOMES[state.biomeKey];state.biomeName=BIOME.n;MAT[13].c=BIOME.g;MAT[13].n=BIOME.gn;MAT[12].c=BIOME.d;MAT[11].c=BIOME.l;tuftMesh.material.color.setHex(BIOME.t);
   vox.fill(0);looted.fill(0);hp.fill(0);rown.fill(0);fluids.clear();fluidSrc.clear();burning.clear();specials.clear();damaged.clear();pendingBooms.length=0;resetFluidSlots();resetVoxSlots();
@@ -2112,7 +2112,7 @@ function volcanoTick(dt){if(!BIOME.volcanic||state.phase!=='wave'){if(state.phas
 //  Rubro (deserto): midday heat wears down soldiers fighting outside the walls
 //  Gelada (neve): frozen lakes crack under heavy enemies, dropping them into icy water
 //  Bruma (pântano): at night the horde stays hidden in the fog until it is close
-let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAcc;bioAcc=0;const k=state.biomeKey;
+let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAcc;bioAcc=0;const k=state.biomeKey;{const c=$('clock');const B=BIOMES[k];if(c&&B&&c.dataset.bio!==k){c.dataset.bio=k;c.title=`${B.ico} ${B.n}: ${B.rule}`}}
   if(k==='deserto'&&state.phase==='wave'){const p=dayPhase();if(p>.4&&p<.6){if(state.heatDay!==Math.floor(simTime/DAY_LEN)){state.heatDay=Math.floor(simTime/DAY_LEN);toast('☀️ Calor do meio-dia: soldados fora das muralhas se cansam.','r3')}
     for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&!inside(m.pos.x,m.pos.z)&&!m.hero)m.hp=Math.max(1,m.hp-m.maxhp*.012*t)}}
   if(k==='neve'&&state.phase==='wave'){for(const e of enemies){if(e.dead||e.fly)continue;if(!(BIG(e.type)||e.type==='brute'||e.type==='ram'||e.type==='rammer'||e.type==='beetle'))continue;const x=Math.floor(e.pos.x),z=Math.floor(e.pos.z);const i=idx(x,GY-1,z);if(!inb(x,GY-1,z)||vox[i]!==18||blue[i])continue;
@@ -2121,7 +2121,7 @@ let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAc
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.64;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.65;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2141,7 +2141,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.61,'🔷 A barra do chefe mostra o escudo em azul listrado. 🏳️ Cada estandarte inimigo capturado dá +2% de dano permanente (até 15).'],
   [0.62,'🌋 Novo bioma: Ermo Vulcânico (em partidas novas) — muita lava e erupções durante as hordas: bombas de lava caem nas marcas laranja.'],
   [0.63,'🗺️ Escolha o bioma na tela inicial (ou 🎲 aleatório). Erupções agora mostram colunas de fogo onde as bombas vão cair.'],
-  [0.64,'🏜️❄️🐸 Cada bioma tem sua regra: Rubro — calor do meio-dia cansa soldados fora das muralhas; Gelada — lagos congelados racham sob inimigos pesados (que caem na água gelada); Bruma — à noite a horda fica escondida na névoa até chegar perto.']];
+  [0.64,'🏜️❄️🐸 Cada bioma tem sua regra: Rubro — calor do meio-dia cansa soldados fora das muralhas; Gelada — lagos congelados racham sob inimigos pesados (que caem na água gelada); Bruma — à noite a horda fica escondida na névoa até chegar perto.'],
+  [0.65,'🌾 Campos Verdes: colheita após cada horda rende material. A regra de cada bioma aparece na tela inicial e ao passar o mouse no relógio.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2227,7 +2228,7 @@ function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.len
   const e=makeEnemy(type,r,x,z);if(type==='knight'&&state.wave>=12&&!state.bearerSpawned&&Math.random()<.5){state.bearerSpawned=true;makeBearer(e)}if(r>=4&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
-function endWave(){const ev=state.ev;state.wave++;state.restStart=simTime;SFX.fanfare((state.wave-1)%5===0);state.morale=Math.min(100,(state.morale??60)+8);checkUnlocks();expansionTick();spawnVein();{const A=REALM.cities.filter(c=>c.ally&&!c.fac.isMe);if(A.length){const g=A.reduce((s,c)=>s+4+c.lvl*2,0);state.material+=g;if(Math.random()<.5)toast(`🤝 Tributo dos aliados: +${g} material`,'r1')}}if(BUILD_WAVES.includes(state.wave)&&!(state.buildings&&Object.keys(state.buildings).length>=BUILD_WAVES.indexOf(state.wave)+1))setTimeout(offerBuilding,1200);if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();if(state.wave%7===0)startFestival();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
+function endWave(){const ev=state.ev;state.wave++;state.restStart=simTime;SFX.fanfare((state.wave-1)%5===0);state.morale=Math.min(100,(state.morale??60)+8);checkUnlocks();expansionTick();spawnVein();if(state.biomeKey==='campo'){const g=Math.round(5+state.wave*1.5);state.material+=g;toast(`🌾 Colheita: +${g} material`,'r1')}{const A=REALM.cities.filter(c=>c.ally&&!c.fac.isMe);if(A.length){const g=A.reduce((s,c)=>s+4+c.lvl*2,0);state.material+=g;if(Math.random()<.5)toast(`🤝 Tributo dos aliados: +${g} material`,'r1')}}if(BUILD_WAVES.includes(state.wave)&&!(state.buildings&&Object.keys(state.buildings).length>=BUILD_WAVES.indexOf(state.wave)+1))setTimeout(offerBuilding,1200);if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();if(state.wave%7===0)startFestival();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
   if(ev==='siege'&&state.siege>1){state.siege--;state.phase='rest';toast(`Cerco: horda ${4-state.siege} de 3. Sem descanso!`,'r2');startWave();return}
   if(ev==='siege'){state.siege=0;spawnLoot(CHEST.x+3,GY+3,CHEST.z+4,'treasure',3,{})}
   state.phase='rest';state.restT=15;$('event').style.display='none';
@@ -2441,7 +2442,7 @@ window.__heroCard=()=>{grantRelic('boss');const S=Object.values(state.heroes||{}
 
 window.__biome=b=>{state.biome=b};
 
-function renderBiomes(){const el=$('biomes');if(!el)return;const cur=OPTS.biome||'rand';el.innerHTML=[['rand','🎲 Aleatório'],...Object.entries(BIOMES).map(([k,B])=>[k,`${B.ico} ${B.n.split(' ').slice(-1)[0]}`])].map(([k,n])=>`<button class="btn ${k===cur?'on':''}" data-bio="${k}" title="${k==='rand'?'Bioma sorteado':BIOMES[k].n}">${n}</button>`).join('');for(const b of el.querySelectorAll('[data-bio]'))b.onclick=()=>{OPTS.biome=b.dataset.bio;saveOpts();renderBiomes()}}
+function renderBiomes(){const el=$('biomes');if(!el)return;const cur=OPTS.biome||'rand';el.innerHTML=[['rand','🎲 Aleatório'],...Object.entries(BIOMES).map(([k,B])=>[k,`${B.ico} ${B.n.split(' ').slice(-1)[0]}`])].map(([k,n])=>`<button class="btn ${k===cur?'on':''}" data-bio="${k}" title="${k==='rand'?'Bioma sorteado':BIOMES[k].n}">${n}</button>`).join('');$('bioD').textContent=cur==='rand'?'Um bioma sorteado, cada um com sua regra.':`${BIOMES[cur].ico} ${BIOMES[cur].rule}`;for(const b of el.querySelectorAll('[data-bio]'))b.onclick=()=>{OPTS.biome=b.dataset.bio;saveOpts();renderBiomes()}}
 function renderDiffs(){const el=$('diffs');if(!el)return;const cur=OPTS.diff||'normal';el.innerHTML=Object.entries(DIFFS).map(([k,D])=>`<button class="btn ${k===cur?'on':''}" data-diff="${k}">${D.ico} ${D.n}</button>`).join('');$('diffD').textContent=DIFF().d;for(const b of el.querySelectorAll('[data-diff]'))b.onclick=()=>{OPTS.diff=b.dataset.diff;saveOpts();renderDiffs()}}
 renderDiffs();renderBiomes();$('overAch').innerHTML=achSummary();window.__diff=k=>{OPTS.diff=k};
 window.__gameOver=()=>gameOver();
