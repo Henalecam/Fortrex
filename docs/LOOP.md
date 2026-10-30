@@ -78,6 +78,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.36: 🐫 Caravana (novo objetivo no Reino): uma carroça de mercadores atravessa o seu mapa até o portão caçada por piratas, lobos e cavaleiros; para quando cercada; mostra a integridade (%) acima dela. Se chegar: 3 tesouros + 12×nível de material no portão; se cair: nada.
 
+- v0.36.1: torres de vigia (expansão da horda 18) reduzem a penalidade de alcance da bruma (72%→92%) e da tempestade de areia (65%→88%). Teste longo 30 min: sem erros, horda 24.
+
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
