@@ -137,3 +137,18 @@ function startFestival(){state.morale=Math.min(100,(state.morale??60)+10);for(le
 function popLantern(L,auto){const k=lanterns.indexOf(L);if(k<0)return;lanterns.splice(k,1);scene.remove(L.g);const v=auto?Math.ceil(L.val*.25):L.val;state.material+=v;if(!auto){state.morale=Math.min(100,(state.morale??60)+2);label({x:L.g.position.x,y:L.g.position.y-1,z:L.g.position.z},`+${v}`,'#c99a1a');SFX.coin()}
   for(let j=0;j<10;j++)spawnDebris(L.g.position.x,L.g.position.y,L.g.position.z,pick(LANT_COL),1,.18)}
 function festivalTick(dt){for(let i=lanterns.length-1;i>=0;i--){const L=lanterns[i];L.t-=dt;L.ph+=dt;L.g.position.y+=dt*.35;L.g.position.x+=Math.sin(L.ph*.7)*dt*.4;L.g.rotation.y+=dt;if(L.t<=0)popLantern(L,true)}}
+// ───────── first-time tips: short, contextual, each shown once (remembered in the browser)
+const TIPS_SEEN=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_tips')||'{}')}catch(e){return{}}})();
+const TIPS=[
+  {id:'start',c:()=>simTime>3,t:'👥 Seus minions trabalham sozinhos: reparam, coletam, lutam e operam armas. Clique em um para ver a ficha.'},
+  {id:'wave',c:()=>state.phase==='wave'&&state.wave===1,t:'🔥 Clique num inimigo para concentrar o fogo de todas as armas nele.'},
+  {id:'auto',c:()=>state.wave>=2&&state.phase==='rest',t:'⚙️ No menu Automação você liga construção, upgrades, venda e recompensas automáticas.'},
+  {id:'shop',c:()=>state.material>=90&&state.wave>=2,t:'⬆️ Gaste material em Upgrades: mais armas, mais vagas de minion, mais dano.'},
+  {id:'build',c:()=>state.wave>=3&&state.phase==='rest',t:'🧱 Em Construir você coloca blocos, armadilhas e instala armas do arsenal. A base cresce sozinha também.'},
+  {id:'realm',c:()=>simTime>240,t:'🗺️ Abra o Reino (M): fortalezas rivais crescem e guerreiam. Lá você vê objetivos e declara guerra.'},
+  {id:'war',c:()=>!!battle(),t:'⚔️ Uma fortaleza inimiga surgiu! Use ⚔️ Atacar para mandar soldados destruir o núcleo vermelho.'},
+  {id:'hero',c:()=>Object.keys(state.heroes||{}).length>0,t:'⭐ Heróis têm habilidades: use o botão no dock ou as teclas Q/E/T/G/Y.'},
+  {id:'bomb',c:()=>state.wave>=4&&state.phase==='wave'&&enemies.length>25,t:'💣 Muitos inimigos? Use a Bomba (25 material) e clique onde ela deve cair.'}];
+let tipT=0,tipShow=0;
+function tipTick(dt){if(window.__headless||state.choosing)return;if(tipShow>0){tipShow-=dt;if(tipShow<=0)$('ftip').style.display='none';return}tipT-=dt;if(tipT>0)return;tipT=1.5;for(const T of TIPS){if(TIPS_SEEN[T.id])continue;let ok=false;try{ok=T.c()}catch(e){}if(!ok)continue;TIPS_SEEN[T.id]=1;try{localStorage.setItem('fortrex_tips',JSON.stringify(TIPS_SEEN))}catch(e){}
+  const el=$('ftip');el.innerHTML=`<span>${T.t}</span><button class="btn sm" id="tipX">Entendi</button>`;el.style.display='flex';$('tipX').onclick=()=>{el.style.display='none';tipShow=0};tipShow=9;break}}

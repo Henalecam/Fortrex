@@ -74,6 +74,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.34.1: navio pirata legível (casco inteiro com proa, popa e faixa clara; não se desmancha em pedaços) e com barra de vida no topo.
 
+- v0.35: dicas para jogador novo (9 dicas contextuais, cada uma aparece uma vez: minions, fogo concentrado, automação, upgrades, construir, reino, guerra, heróis, bomba; caixa escura acima do dock com "Entendi"). Escolhas de recompensa/herói no celular lado a lado e compactas.
+
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
