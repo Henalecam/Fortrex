@@ -847,8 +847,8 @@ const _anim0=enemyAnim;enemyAnim=function(e,dt){_anim0(e,dt);const ud=e.group.us
 let _stuckT=0;function stuckTick(dt){_stuckT-=dt;if(_stuckT>0||state.phase!=='wave')return;_stuckT=2;
   for(const e of enemies){if(e.dead||e.rival||e.ship||e.type==='ship'||e.lineup||(e.dormant>0))continue;const p=e.sp0;if(!p){e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};continue}
     if(Math.hypot(e.pos.x-p.x,e.pos.z-p.z)>1.5){e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};continue}
-    const dC=Math.hypot(e.pos.x-CX,e.pos.z-CZ);if(dC<WR+12||e.state==='attack'||e.state==='dig'||(e.target!==undefined&&e.target>=0)){e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};continue}
-    if(simTime-p.t>(state.queue.length?40:20)){const a=Math.atan2(e.pos.z-CZ,e.pos.x-CX),r=Math.min(46,Math.hypot(e.pos.x-CX,e.pos.z-CZ)-4);e.pos.x=CX+Math.cos(a)*r;e.pos.z=CZ+Math.sin(a)*r;e.gy=surfE(e.pos.x,e.pos.z);e.group.position.y=e.fly?e.alt:e.gy;e.path=null;e.under=false;e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};state.unstuck=(state.unstuck||0)+1;for(let k=0;k<6;k++)spawnDebris(e.pos.x,e.gy+.5,e.pos.z,0x8a7a6a,1,.25)}}}
+    const dC=Math.hypot(e.pos.x-CX,e.pos.z-CZ);if(dC<WR+12||e.state==='attack'||e.state==='dig'||simTime-(e.atkT||-99)<3||(e.target!==undefined&&e.target>=0)){e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};continue}
+    if(simTime-p.t>(state.queue.length?40:20)){const pp=e.path;const a=Math.atan2(e.pos.z-CZ,e.pos.x-CX),r=Math.min(46,Math.hypot(e.pos.x-CX,e.pos.z-CZ)-4);e.pos.x=CX+Math.cos(a)*r;e.pos.z=CZ+Math.sin(a)*r;e.gy=surfE(e.pos.x,e.pos.z);e.group.position.y=e.fly?e.alt:e.gy;e.path=null;e.under=false;e.sp0={x:e.pos.x,z:e.pos.z,t:simTime};state.unstuck=(state.unstuck||0)+1;(window.__stuckLog=window.__stuckLog||[]).push([state.wave,e.type,Math.round(dC),e.state,Math.round(e.gy),Math.round(surfE(p.x,p.z)),e.fly?1:0,pp?pp.length:-1]);for(let k=0;k<6;k++)spawnDebris(e.pos.x,e.gy+.5,e.pos.z,0x8a7a6a,1,.25)}}}
 
 // v2.9 PERSONAGENS R4 — chefes refeitos do zero (silhuetas únicas)
 Object.assign(NEWLOOK,{boss:1,golem:1,wyrm:1,colossus:1,necro:1,queen:1,titan:1,mistking:1,arauto:1});
@@ -969,3 +969,19 @@ function milestone(w){state.marks=state.marks||[];if(state.marks.includes(w))ret
   _fw={t:5,n:0};SFX.fanfare&&SFX.fanfare(true);shake=Math.max(shake,.3);updateHud&&updateHud()}
 function markTick(dt){if(!_fw)return;_fw.t-=dt;_fw.n-=dt;if(_fw.n<=0){_fw.n=rnd(.18,.4);const c=pick([0xffd23d,0xff5a7a,0x5cc0ff,0x7dff9a,0xffffff,0xff9a3c]);const a=rnd(0,6.28),r=rnd(4,14);spawnDebris(CX+Math.cos(a)*r,GY+rnd(16,26),CZ+Math.sin(a)*r,c,22,.35)}if(_fw.t<=0)_fw=null}
 window.__mark=(w)=>{if(state.marks)state.marks=state.marks.filter(x=>x!==w);milestone(w);return [state.marks,state.dmgMul]};
+
+// v3.5 PORTADOR DE BRUMA (h18+): suporte de late game — envolve os aliados próximos numa névoa que reduz o dano recebido
+ETYPES.portador={hp:620,speed:1.2,dmg:18,rate:1.5,color:0x5a5470,radius:.8,n:'Portador de Bruma'};SCX.portador=1.25;NEWLOOK.portador=1;
+CREATURES.portador=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3);
+  const body=B(.8,1.1,.6,col,0,.95,0);B(.95,.25,.7,dk,0,.42,0);B(.7,.5,.12,shadeHex(col,.15),0,1.1,.3);
+  const head=B(.55,.5,.5,dk,0,1.72,0);const face=B(.36,.28,.06,0x1a1626,0,1.68,.25);for(const s of[-1,1]){const ey=B(.07,.05,.03,0xbfe8ff,s*.08,1.7,.29);ey.material.emissive.setHex(0x9fd8ff);ey.material.emissiveIntensity=1}
+  B(.62,.18,.58,dk,0,2.0,-.02);B(.3,.2,.3,dk,0,2.15,-.12);
+  const pole=K(.08,2.2,.08,0x4a3a2a,.55,1.2,.15);const lan=B(.26,.3,.26,0xcfd8ff,.55,2.35,.15);lan.material.emissive.setHex(0x9fb8ff);lan.material.emissiveIntensity=.9;B(.32,.06,.32,0x2b2d4a,.55,2.52,.15);
+  g.userData.lantern=lan;g.userData.pole=pole;
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(6.2/1,18,10),new THREE.MeshBasicMaterial({color:0xb8b0d8,transparent:true,opacity:.13,depthWrite:false}));dome.scale.setScalar(1/Math.max(.5,g.scale.x||1));dome.position.y=.5;g.add(dome);g.userData.dome=dome;
+  return{body,head,legs:LG([[-.2,.15,0,.24,.3],[.2,.15,0,.24,.3]],dk)}};
+NEW_BRAINS.portador=function(e,dt){const ud=e.group.userData;if(ud.dome){const gs=e.group.scale.x||1;ud.dome.scale.setScalar(1/gs);ud.dome.rotation.y+=dt*.3;ud.dome.material.opacity=.16+Math.sin(simTime*2)*.04}if(ud.lantern)ud.lantern.material.emissiveIntensity=.7+Math.sin(simTime*6)*.3;if(ud.pole)ud.pole.rotation.z=Math.sin(simTime*2+e.bob)*.08;
+  e.vT=(e.vT||0)-dt;if(e.vT<=0){e.vT=.4;let n=0;for(const o of enemies){if(o.dead||o===e||o.rival||o.type==='portador'||BIG(o.type))continue;if(Math.abs(o.pos.x-e.pos.x)<6.2&&Math.abs(o.pos.z-e.pos.z)<6.2){o.veil=simTime+.6;n++;if(Math.random()<.15)spawnDebris(o.pos.x,o.gy+1,o.pos.z,0xc8c0e0,1,.2)}}e.veiled=n}
+  // fica atrás da tropa: se estiver à frente demais, espera
+  const dC=Math.hypot(CHEST.x-e.pos.x,CHEST.z-e.pos.z);if(dC<WR+8&&e.veiled>0&&!e.waited){e.waitT=(e.waitT||0)+dt;if(e.waitT<6){e.group.position.y=e.gy+Math.sin(simTime*3)*.05;return true}e.waited=1}return false};
+NEW_DEATH.portador=function(e){for(let k=0;k<14;k++)spawnDebris(e.pos.x+rnd(-2,2),e.gy+rnd(.5,2.5),e.pos.z+rnd(-2,2),0xc8c0e0,1,.3);label({x:e.pos.x,y:e.gy+2.5,z:e.pos.z},'a bruma se dissipa','#c8c0e0')};
