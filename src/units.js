@@ -47,6 +47,7 @@ const ETYPES={
   wolf:{hp:40,speed:4.0,dmg:11,rate:.6,color:0x7d7f8f,radius:.55,n:'Lobo da Bruma'},
   spider:{hp:30,speed:3.1,dmg:8,rate:.5,color:0x3d3a52,radius:.6,n:'Aranha da Bruma'},
   slime:{hp:55,speed:1.8,dmg:10,rate:.8,color:0x6fd38c,radius:.7,n:'Gosma'},
+  goblin:{hp:24,speed:4.4,dmg:4,rate:.6,color:0x7fae3a,radius:.38,n:'Sabotador'},
   imp:{hp:18,speed:4.2,dmg:6,rate:.5,color:0xe0443a,radius:.4,n:'Diabrete'},
   brute:{hp:140,speed:1.7,dmg:30,rate:1.3,color:0x8a5a44,radius:.85,n:'Bruto'},
   beetle:{hp:90,speed:2.0,dmg:14,rate:.9,color:0x2f6b6b,radius:.75,n:'Besouro Blindado'},
@@ -143,6 +144,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(e.aff==='regen'&&e.hp
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
   if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}
   if(e.rival&&rivalBrain(e,dt))return;
+  if(e.type==='goblin'&&goblinBrain(e,dt,sf))return;
   if(e.type==='wolf'){e.packT=(e.packT??0)-dt;if(e.packT<=0){e.packT=1;let n=0;for(const o of enemies)if(!o.dead&&o.type==='wolf'&&Math.abs(o.pos.x-e.pos.x)<7&&Math.abs(o.pos.z-e.pos.z)<7)n++;const was=e.pack;e.pack=n>=3;if(e.pack&&!was){e.speed*=1.3;if(Math.random()<.3)label({x:e.pos.x,y:e.gy+1.6,z:e.pos.z},'Auuu!','#7d7f8f')}else if(!e.pack&&was)e.speed/=1.3}
     // wolves hunt minions caught outside the walls
     if(!e.stun){let v=null,bd=11;for(const m of minions){if(m.wounded>0||inside(m.pos.x,m.pos.z))continue;const d=hd(m.pos,e.pos);if(d<bd){bd=d;v=m}}
@@ -348,6 +350,10 @@ function throwRock(e,tx,tz,r,dmg,color,fire){markGround(tx,tz,r,fire?0xff7a2a:0x
 
 // ───────── creature anatomies beyond the classic quadruped
 const CREATURES={
+  goblin(sc,col,g){const body=box(.5*sc,.55*sc,.4*sc,0x5a4a35,0,.6*sc,0,g);const head=box(.5*sc,.45*sc,.45*sc,col,0,1.1*sc,.03*sc,g);eyes(head,.05*sc,.24*sc,.12*sc);
+    for(const s of[-1,1])box(.32*sc,.1*sc,.08*sc,col,s*.36*sc,1.18*sc,0,g).rotation.z=s*.35;box(.4*sc,.12*sc,.4*sc,0x6b2d6b,0,1.38*sc,0,g);box(.22*sc,.22*sc,.22*sc,0x6b2d6b,0,1.55*sc,-.05*sc,g);
+    const w=box(.08*sc,.5*sc,.08*sc,0xffcf3d,.32*sc,.7*sc,.18*sc,g);w.rotation.x=.6;box(.22*sc,.08*sc,.08*sc,0xbdb6d6,.32*sc,.95*sc,.32*sc,g);
+    const legs=[];for(const s of[-1,1]){const lg=box(.14*sc,.32*sc,.14*sc,0x3b2d2a,s*.13*sc,.16*sc,0,g);legs.push({mesh:lg,alive:true,ox:s*.13*sc,oz:0})}return{body,head,legs}},
   ship(sc,col,g){const body=box(2.6*sc,.9*sc,1.2*sc,0x6b4426,0,.6*sc,0,g);box(2.9*sc,.25*sc,1.3*sc,0x4a2e18,0,1.05*sc,0,g);box(2.62*sc,.12*sc,1.22*sc,0xd9c08a,0,.35*sc,0,g);box(.7*sc,.5*sc,.9*sc,0x6b4426,-1.5*sc,1.0*sc,0,g);box(.5*sc,.35*sc,.6*sc,0x6b4426,1.6*sc,.75*sc,0,g);const head=box(.6*sc,.6*sc,.9*sc,0x5a3a20,1.2*sc,1.35*sc,0,g);box(.12*sc,2.6*sc,.12*sc,0x6b4a2a,0,2.3*sc,0,g);const sail=box(.08*sc,1.5*sc,1.6*sc,0xf2ead8,.1*sc,2.5*sc,0,g);box(.06*sc,.5*sc,.7*sc,0x2b2d4a,0,3.7*sc,0,g);for(const s of[-1,1])box(.35*sc,.2*sc,.2*sc,0x2b2d4a,s*.6*sc,.85*sc,.65*sc,g);return{body,head,legs:[]}},
   pirate(sc,col,g){const body=box(.6*sc,.75*sc,.45*sc,0x8a2f2f,0,.8*sc,0,g);const head=box(.5*sc,.45*sc,.45*sc,col,0,1.4*sc,.02*sc,g);eyes(head,.05*sc,.23*sc,.12*sc);box(.62*sc,.14*sc,.6*sc,0x2b2d4a,0,1.68*sc,0,g);box(.3*sc,.1*sc,.05*sc,0x2b2d4a,.1*sc,1.47*sc,.24*sc,g);box(.06*sc,.6*sc,.06*sc,0xdfe6f0,.4*sc,.95*sc,.25*sc,g);
     const legs=[];for(const s of[-1,1]){const lg=box(.16*sc,.4*sc,.16*sc,0x3b2d2a,s*.15*sc,.2*sc,0,g);legs.push({mesh:lg,alive:true,ox:s*.15*sc,oz:0})}return{body,head,legs}},
@@ -375,3 +381,9 @@ function decorate(type,sc,col,g,body,head){const R=Math.random;if(type!=='flyer'
   if(R()<.3)box(.12*sc,.12*sc,.6*sc,shadeHex(col,-.15),0,.6*sc,-.8*sc,g).rotation.x=-.35;
   if(R()<.2){const e=box(.12*sc,.12*sc,.05*sc,0xffcf3d,0,.48*sc,.31*sc,head);e.material.emissive.setHex(0xffb13d)}
   if(R()<.2)box(.95*sc,.12*sc,1.15*sc,shadeHex(col,.25),0,.88*sc,0,g)}
+
+// saboteurs: goblins that walk past your guns to disarm the sappers' field traps (they know where the triggers are)
+function goblinBrain(e,dt,sf){const L=state.fieldTraps;if(!L||!L.length)return false;if(!e.tgtT||e.tgtT<simTime||!vox[e.tgt]||vox[e.tgt]!==state.fieldTrapM.get(e.tgt)){e.tgt=-1;let bd=46;for(const i of L){if(!vox[i]||vox[i]!==state.fieldTrapM.get(i))continue;const d=Math.hypot(ix(i)+.5-e.pos.x,iz(i)+.5-e.pos.z);if(d<bd){bd=d;e.tgt=i}}e.tgtT=simTime+2}
+  if(e.tgt<0)return false;const tx=ix(e.tgt)+.5,tz=iz(e.tgt)+.5,dx=tx-e.pos.x,dz=tz-e.pos.z,d=Math.hypot(dx,dz)||1;e.group.rotation.y=Math.atan2(dx,dz);
+  if(d<1.4){e.vel.set(0,0,0);e.disarm=(e.disarm||0)+dt;if(e.disarm>=1.1){e.disarm=0;const i=e.tgt,m=vox[i];spawnDebris(tx,GY+.6,tz,MAT[m].c,5,.3);setVox(i,0);state.trapsDisarmed=(state.trapsDisarmed||0)+1;if(Math.random()<.5)label({x:tx,y:GY+1.8,z:tz},'desarmado!','#7fae3a');e.tgt=-1}return true}
+  const sp=e.speed*sf;e.pos.x+=dx/d*sp*dt;e.pos.z+=dz/d*sp*dt;e.gy+=(surfE(e.pos.x,e.pos.z)-e.gy)*Math.min(1,dt*9);e.group.position.y=e.gy+Math.abs(Math.sin(e.bob+=dt*12))*.12;return true}
