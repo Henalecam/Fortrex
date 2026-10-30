@@ -10,7 +10,7 @@ function plain(v,depth=0){if(v===null||typeof v!=='object')return typeof v==='fu
   if(v.isObject3D||v.group||v.mesh||v.isVector3)return undefined;if(Array.isArray(v))return v.map(x=>plain(x,depth+1)).filter(x=>x!==undefined);
   const o={};for(const k in v){const x=plain(v[k],depth+1);if(x!==undefined)o[k]=x}return o}
 function revive(v){if(v===null||typeof v!=='object')return v;if(Array.isArray(v))return v.map(revive);if(v.$m)return new Map(v.$m.map(([k,x])=>[k,revive(x)]));if(v.$s)return new Set(v.$s);const o={};for(const k in v)o[k]=revive(v[k]);return o}
-function canSave(){return state.running&&state.phase==='rest'&&!state.choosing&&!battle()&&!state.quest&&!state.caravan&&!enemies.some(e=>!e.dead)}
+function canSave(){return state.running&&state.phase==='rest'&&!state.choosing&&!battle()&&!state.quest&&!state.caravan&&!enemies.some(e=>!e.dead&&!e.alpha)}
 function saveGame(manual){if(!canSave()){if(manual)toast('Só dá para salvar entre hordas, sem batalha ou missão em andamento','r0');return false}
   try{const st={};for(const k in state){if(SAVE_SKIP.has(k))continue;const x=plain(state[k]);if(x!==undefined)st[k]=x}
     const d={v:1,at:Date.now(),wave:state.wave,diff:OPTS.diff||'normal',biome:state.biomeKey,simTime,state:st,

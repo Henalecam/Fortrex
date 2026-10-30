@@ -231,3 +231,8 @@ let distAcc=0,arcT=8;function districtTick(dt){const Bd=state.buildings;if(!Bd||
   if(Bd.arcane){arcT-=dt;if(arcT<=0){arcT=12;let best=null,bh=0;for(const e of enemies){if(e.dead)continue;const d=Math.hypot(e.pos.x-CX,e.pos.z-CZ);if(d>48)continue;if(e.hp>bh){bh=e.hp;best=e}}
     if(best){const [ox,oz]=BUILD_SPOTS[Bd.arcane.k%4];const sx=CX+ox,sz=CZ+oz;for(let k=0;k<10;k++){const f=k/10;spawnDebris(sx+(best.pos.x-sx)*f,GY+5+(best.gy+1-GY-5)*f,sz+(best.pos.z-sz)*f,0xb56cf2,1,.12)}dmgEnemy(best,90+state.wave*12,true,true);label({x:best.pos.x,y:best.gy+2.2,z:best.pos.z},'✦','#b56cf2');SFX.zap&&SFX.zap()}}}
   if(distAcc<1)return;const t=distAcc;distAcc=0;if(Bd.forge)for(const tu of turrets)if(tu.alive&&tu.team!=='r'&&tu.hp<tu.maxhp)tu.hp=Math.min(tu.maxhp,tu.hp+tu.maxhp*.015*t)}
+
+// night hunt: on rest-phase nights an alpha wolf prowls outside the walls — optional prey for the soldiers, a rare chest if it falls
+function huntTick(dt){if(state.phase!=='rest'||state.wave<5||!isNight()||state.choosing)return;const night=Math.floor((simTime/DAY_LEN)+.3+.2);if(state.huntNight===night)return;state.huntNight=night;if(Math.random()<.35)return;
+  const a=rnd(0,Math.PI*2),r=WR+26,x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;const e=makeEnemy('wolf',Math.min(4,2+Math.floor(state.wave/10)),x,z);e.alpha=true;e.group.scale.setScalar(1.7);e.maxhp*=7;e.hp=e.maxhp;e.radius*=1.5;e.speed*=1.15;e.T={...e.T,dmg:e.T.dmg*2.2};
+  toast('🐺 Um lobo alfa ronda a cidadela esta noite. Derrube-o (🚩 Reunir) por um tesouro raro.','r3')}

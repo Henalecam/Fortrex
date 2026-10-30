@@ -110,6 +110,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   if(e.aff==='boom'){explode(Math.floor(e.pos.x),Math.floor(e.gy+.5),Math.floor(e.pos.z),2.4,26,{src:'enemy'});label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'💥','#ff8a3c')}
   if(t==='slime'&&!e.small){for(let k=0;k<2;k++){const s=makeEnemy('slime',e.rarity,e.pos.x+rnd(-.8,.8),e.pos.z+rnd(-.8,.8));s.small=true;s.group.scale.setScalar(.6);s.maxhp*=.35;s.hp=s.maxhp;s.speed*=1.25;s.radius*=.6}}
   if(state.boss===e)hideBoss();
+  if(e.alpha){spawnLoot(e.pos.x,GY+2,e.pos.z,'treasure',Math.min(4,2+Math.floor(state.wave/12)),{});toast('🐺 O lobo alfa caiu! Deixou um tesouro raro.','r4');addFame&&addFame(20)}
   if(t==='ship'){for(let k=0;k<2;k++)spawnLoot(e.pos.x+rnd(-2,2),GY+2,e.pos.z+rnd(-2,2),'treasure',Math.min(4,2+Math.floor(state.wave/10)),{});pendingBooms.push({x:e.pos.x,y:GY+1,z:e.pos.z,r:4,dmg:60,o:{src:'env',fire:true},t:.1});toast('🏴‍☠️ Navio pirata afundado! Tesouro na praia.','r4')}
   if(t==='imp')pendingBooms.push({x:e.pos.x,y:e.gy+.5,z:e.pos.z,r:1.8,dmg:22,o:{src:'enemy',fire:true},t:.05});goalEvent('kills');if(big)goalEvent('boss');if(big&&t!=='general'){state.morale=Math.min(100,(state.morale??60)+15);grantRelic(t);if(!OPTS.noCine&&!window.__headless)state.cine={x:e.pos.x,z:e.pos.z,t:2.6,d0:(state.cine&&state.cine.d0)||cam.dist}}
   spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?140:t==='boss'?60:t==='ram'?18:10,big?.8:.4);SFX.shatter(t!=='crawler');
