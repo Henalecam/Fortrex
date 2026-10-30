@@ -83,7 +83,7 @@ function relicCount(){return Object.values(state.relics||{}).reduce((a,b)=>a+b,0
 function spawnHero(H){const m=makeMinion('sol',4,GATE.x+rnd(-1,1),GATE.z+2);m.hero=H.id;m.name=H.name;m.group.scale.setScalar(1.35);recompute(m);m.hp=m.maxhp;
   const halo=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,16),new THREE.MeshBasicMaterial({color:H.col}));halo.rotation.x=Math.PI/2;halo.position.y=2.35;m.group.add(halo);
   state.heroes=state.heroes||{};state.heroes[H.id]={m,cd:0};const b=$('bHero_'+H.id);if(b)b.hidden=false;toast(`${H.ico} ${H.name} se junta a você! ${H.ab} (tecla ${H.key}): ${H.d}.`,'r4')}
-function checkHeroes(){if(state.heroOffer||state.choosing)return;const n=relicCount(),k=Object.keys(state.heroes||{}).length;if(k>=HERO_SLOTS.length||n<HERO_SLOTS[k])return;const left=HEROES.filter(H=>!(state.heroes&&state.heroes[H.id]));if(!left.length)return;
+function checkHeroes(){if(state.heroOffer||state.choosing||hasMod('semherois'))return;const n=relicCount(),k=Object.keys(state.heroes||{}).length;if(k>=HERO_SLOTS.length||n<HERO_SLOTS[k])return;const left=HEROES.filter(H=>!(state.heroes&&state.heroes[H.id]));if(!left.length)return;
   const opts=shuffle(left.slice()).slice(0,2);if(opts.length===1||state.autoReward||window.__headless){spawnHero(opts[0]);return}state.heroOffer=true;state.choosing=true;
   const box=$('rewardCards');box.innerHTML='';$('rewardTitle').textContent='Um herói quer se juntar à sua causa!';$('reward').querySelector('.sub').textContent='Escolha um herói. O outro segue seu caminho.';
   for(const H of opts){const el=document.createElement('button');el.className='rcard r4';el.innerHTML=`<div class="ico">${H.ico}</div><div class="nm">${esc(H.name)}</div><div class="ds"><b>${H.ab}</b> (tecla ${H.key}): ${esc(H.d)}.</div><div class="rr">Herói lendário</div>`;el.onclick=()=>{spawnHero(H);$('reward').style.display='none';state.choosing=false;state.heroOffer=false;updateHud()};box.appendChild(el)}
@@ -286,7 +286,7 @@ function hex2int(c){return typeof c==='number'?c:parseInt(String(c).replace('#',
 
 // Guardian's aegis: an active shield over the citadel — 7 s of near-immunity for blueprint blocks, 100 s cooldown, from wave 8
 let wardMesh=null;
-function wardUp(){if(state.wave<8||(state.wardCd||0)>0||state.phase!=='wave')return false;state.wardT=7;state.wardCd=100;
+function wardUp(){if(hasMod('semegide'))return false;if(state.wave<8||(state.wardCd||0)>0||state.phase!=='wave')return false;state.wardT=7;state.wardCd=100;
   if(!wardMesh){wardMesh=new THREE.Mesh(new THREE.SphereGeometry(WR+4,32,16,0,Math.PI*2,0,Math.PI/2),new THREE.MeshBasicMaterial({color:0x8fe3ff,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false}));wardMesh.position.set(CX,GY,CZ);scene.add(wardMesh)}wardMesh.visible=true;
   SFX.open();shake=Math.max(shake,.25);toast('🛡️ Égide do Guardião: a cidadela está protegida por 7 s!','r4');return true}
 function wardTick(dt){const b=$('bWard');if(b){const on=state.wave>=8;if(b.hidden===on)b.hidden=!on;const cd=state.wardCd||0;$('wardCd').textContent=state.wardT>0?Math.ceil(state.wardT)+'s':cd>0?Math.ceil(cd)+'s':'';b.classList.toggle('on',state.wardT>0)}

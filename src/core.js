@@ -60,7 +60,7 @@ const DIFFS={calmo:{n:'Tranquilo',ico:'🌱',hp:.72,cnt:.75,dmg:.7,sp:.95,d:'Par
 let _dfK='',_dfV=null;const DIFF=()=>{const d=DIFFS[OPTS.diff]||DIFFS.normal;if(d!==DIFFS.brutal)return d;const w=Math.min(9,Math.max(1,state.wave|0));if(w>=9)return d;const k=OPTS.diff+w;if(_dfK===k)return _dfV;const n=DIFFS.normal,f=(w-1)/8,L=(a,b)=>a+(b-a)*f;_dfK=k;_dfV={...d,hp:L(n.hp,d.hp),cnt:L(n.cnt,d.cnt),dmg:L(n.dmg,d.dmg),sp:L(n.sp,d.sp),arm:L(0,d.arm)};return _dfV};
 let simTime=0,shake=0,hitstop=0,gameSpeed=1,slowmo=0;const SPEEDS=[1,2,3,5];const MAX_MINIONS=60;
 function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:15,auto:false,
-  fieldTraps:[],fieldTrapM:new Map(),blockTier:0,focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,
+  challenge:null,fieldTraps:[],fieldTrapM:new Map(),blockTier:0,focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,
   ev:null,siege:0,boss:null,wk:0,wwound:0,choosing:false,meteorT:0,
   wallH:7,mode:'reino',morale:60,custom:new Map(),erased:new Set(),prepaid:new Set(),metalDoor:false,
   dmgMul:1,reloadMul:1,explosive:0,greek:0,repMul:1,healMul:1,bladeMul:1,turretHp:1,lootMag:0,luck:0,ups:{},
@@ -94,3 +94,12 @@ const SFX={
   build(){if(!soundOn||throttle('bu',60))return;tone('square',220,330,.06,.05)},
   fanfare(big){if(!soundOn)return;const n=big?[523,659,784,1047,784,1047]:[523,659,784];n.forEach((f,i)=>tone('triangle',f,0,big&&i===n.length-1?.7:.22,.13,i*.11));if(big)nz(.8,'highpass',3500,0,.06,.4)},
 };
+
+// ───────── weekly challenge: the same two modifiers and biome for everyone this week, with a local best-wave record
+const CH_MODS={veloz:{ico:'💨',n:'Horda veloz',d:'Inimigos 20% mais rápidos'},blindados:{ico:'🛡️',n:'Couraças',d:'Todos os inimigos com +15% de armadura'},semherois:{ico:'🚫',n:'Sem heróis',d:'Nenhum herói aparece'},bruma:{ico:'🌫️',n:'Bruma eterna',d:'Toda horda (exceto chefes) é Noite de bruma'},semegide:{ico:'💔',n:'Sem Égide',d:'A Égide do Guardião não funciona'},pobre:{ico:'🪙',n:'Cofre vazio',d:'Começa com 10 material e sem armas extras no arsenal'}};
+function hasMod(k){return !!(state.challenge&&state.challenge.mods&&state.challenge.mods.includes(k))}
+function weekNo(){return Math.floor((Date.now()/864e5+3)/7)}
+function weeklyChallenge(){const w=weekNo();let s=w*2654435761>>>0;const rnd2=()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296};const ks=Object.keys(CH_MODS);const a=ks.splice(Math.floor(rnd2()*ks.length),1)[0],b=ks[Math.floor(rnd2()*ks.length)];
+  const bs=['campo','deserto','neve','vulcao','pantano'];return{week:w,mods:[a,b],biome:bs[Math.floor(rnd2()*bs.length)]}}
+function chalRecords(){try{return JSON.parse(localStorage.getItem('fortrex_chal')||'{}')}catch(e){return{}}}
+function chalRecord(wave){if(!state.challenge)return;const r=chalRecords();const k=state.challenge.week;if(!(r[k]>=wave)){r[k]=wave;try{localStorage.setItem('fortrex_chal',JSON.stringify(r))}catch(e){}}}

@@ -302,6 +302,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <div class="diffs" id="diffs"></div><div id="diffD"></div>
   <div class="diffs" id="biomes" style="margin-top:8px"></div><div id="bioD" class="ds" style="margin:-2px 0 12px"></div>
   <button class="btn primary" id="continue" hidden>▶ Continuar</button>
+  <button class="btn" id="chalBtn" style="display:block;margin:0 auto 8px"></button>
   <button class="btn primary" id="start">Acordar a Fortaleza</button>
 </div></div>
 
@@ -370,7 +371,7 @@ const DIFFS={calmo:{n:'Tranquilo',ico:'🌱',hp:.72,cnt:.75,dmg:.7,sp:.95,d:'Par
 let _dfK='',_dfV=null;const DIFF=()=>{const d=DIFFS[OPTS.diff]||DIFFS.normal;if(d!==DIFFS.brutal)return d;const w=Math.min(9,Math.max(1,state.wave|0));if(w>=9)return d;const k=OPTS.diff+w;if(_dfK===k)return _dfV;const n=DIFFS.normal,f=(w-1)/8,L=(a,b)=>a+(b-a)*f;_dfK=k;_dfV={...d,hp:L(n.hp,d.hp),cnt:L(n.cnt,d.cnt),dmg:L(n.dmg,d.dmg),sp:L(n.sp,d.sp),arm:L(0,d.arm)};return _dfV};
 let simTime=0,shake=0,hitstop=0,gameSpeed=1,slowmo=0;const SPEEDS=[1,2,3,5];const MAX_MINIONS=60;
 function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:15,auto:false,
-  fieldTraps:[],fieldTrapM:new Map(),blockTier:0,focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,
+  challenge:null,fieldTraps:[],fieldTrapM:new Map(),blockTier:0,focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,
   ev:null,siege:0,boss:null,wk:0,wwound:0,choosing:false,meteorT:0,
   wallH:7,mode:'reino',morale:60,custom:new Map(),erased:new Set(),prepaid:new Set(),metalDoor:false,
   dmgMul:1,reloadMul:1,explosive:0,greek:0,repMul:1,healMul:1,bladeMul:1,turretHp:1,lootMag:0,luck:0,ups:{},
@@ -404,6 +405,15 @@ const SFX={
   build(){if(!soundOn||throttle('bu',60))return;tone('square',220,330,.06,.05)},
   fanfare(big){if(!soundOn)return;const n=big?[523,659,784,1047,784,1047]:[523,659,784];n.forEach((f,i)=>tone('triangle',f,0,big&&i===n.length-1?.7:.22,.13,i*.11));if(big)nz(.8,'highpass',3500,0,.06,.4)},
 };
+
+// ───────── weekly challenge: the same two modifiers and biome for everyone this week, with a local best-wave record
+const CH_MODS={veloz:{ico:'💨',n:'Horda veloz',d:'Inimigos 20% mais rápidos'},blindados:{ico:'🛡️',n:'Couraças',d:'Todos os inimigos com +15% de armadura'},semherois:{ico:'🚫',n:'Sem heróis',d:'Nenhum herói aparece'},bruma:{ico:'🌫️',n:'Bruma eterna',d:'Toda horda (exceto chefes) é Noite de bruma'},semegide:{ico:'💔',n:'Sem Égide',d:'A Égide do Guardião não funciona'},pobre:{ico:'🪙',n:'Cofre vazio',d:'Começa com 10 material e sem armas extras no arsenal'}};
+function hasMod(k){return !!(state.challenge&&state.challenge.mods&&state.challenge.mods.includes(k))}
+function weekNo(){return Math.floor((Date.now()/864e5+3)/7)}
+function weeklyChallenge(){const w=weekNo();let s=w*2654435761>>>0;const rnd2=()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296};const ks=Object.keys(CH_MODS);const a=ks.splice(Math.floor(rnd2()*ks.length),1)[0],b=ks[Math.floor(rnd2()*ks.length)];
+  const bs=['campo','deserto','neve','vulcao','pantano'];return{week:w,mods:[a,b],biome:bs[Math.floor(rnd2()*bs.length)]}}
+function chalRecords(){try{return JSON.parse(localStorage.getItem('fortrex_chal')||'{}')}catch(e){return{}}}
+function chalRecord(wave){if(!state.challenge)return;const r=chalRecords();const k=state.challenge.week;if(!(r[k]>=wave)){r[k]=wave;try{localStorage.setItem('fortrex_chal',JSON.stringify(r))}catch(e){}}}
 
 // ───────── world: renderer, voxel grid, terrain, blueprint, fluids, fire, explosions
 const canvas=$('c');
@@ -970,7 +980,7 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   g.position.set(x,0,z);scene.add(g);
   const w=state.wave;const scale=(1+.16*(w-1))*(w>10?1+.09*(w-10):1)*(w>15?1+.06*(w-15):1)*(w>14?Math.pow(1.07,w-14):1)*(w>20?1+.05*(w-20):1)*(w>18?1+.1*(w-18):1)*(1+(state.rank||0)*.08);const hpm=T.hp*scale*(1+rarity*.5)*(state.ev==='elite'?1.3:1)*(BIG(type)?.8:1)*DIFF().hp;
   const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US,state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
-    speed:T.speed*1.5*rnd(.9,1.1)*DIFF().sp*(state.ev==='elite'?1.15:1)*Math.min(1.3,1+Math.max(0,state.wave-12)*.015),armor:Math.min(.55,Math.max(0,state.wave-14)*.025+(state.wave>=6?(DIFF().arm||0):0)),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+12:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
+    speed:T.speed*1.5*rnd(.9,1.1)*DIFF().sp*(hasMod('veloz')?1.2:1)*(state.ev==='elite'?1.15:1)*Math.min(1.3,1+Math.max(0,state.wave-12)*.015),armor:(hasMod('blindados')?.15:0)+Math.min(.55,Math.max(0,state.wave-14)*.025+(state.wave>=6?(DIFF().arm||0):0)),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+12:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   if(DIFF().dmg!==1)e.T={...T,dmg:T.dmg*DIFF().dmg};
   rollAffix(e);if(BIG(type)&&type!=='ship'&&type!=='general'&&state.wave>=15&&Math.random()<.6){e.bossAff=pick(['furioso','escudo']);if(e.bossAff==='escudo'){e.shieldMax=e.maxhp*.3;e.shield=e.shieldMax}}if(state.vein&&state.phase==='wave'&&!BIG(type)&&!CLIMBS(type)&&type!=='goblin'&&type!=='flyer'&&type!=='ship'&&Math.random()<.15)e.veinRaid=true;
   setupChunks(e,body,head);
@@ -1927,7 +1937,7 @@ function relicCount(){return Object.values(state.relics||{}).reduce((a,b)=>a+b,0
 function spawnHero(H){const m=makeMinion('sol',4,GATE.x+rnd(-1,1),GATE.z+2);m.hero=H.id;m.name=H.name;m.group.scale.setScalar(1.35);recompute(m);m.hp=m.maxhp;
   const halo=new THREE.Mesh(new THREE.TorusGeometry(.35,.06,6,16),new THREE.MeshBasicMaterial({color:H.col}));halo.rotation.x=Math.PI/2;halo.position.y=2.35;m.group.add(halo);
   state.heroes=state.heroes||{};state.heroes[H.id]={m,cd:0};const b=$('bHero_'+H.id);if(b)b.hidden=false;toast(`${H.ico} ${H.name} se junta a você! ${H.ab} (tecla ${H.key}): ${H.d}.`,'r4')}
-function checkHeroes(){if(state.heroOffer||state.choosing)return;const n=relicCount(),k=Object.keys(state.heroes||{}).length;if(k>=HERO_SLOTS.length||n<HERO_SLOTS[k])return;const left=HEROES.filter(H=>!(state.heroes&&state.heroes[H.id]));if(!left.length)return;
+function checkHeroes(){if(state.heroOffer||state.choosing||hasMod('semherois'))return;const n=relicCount(),k=Object.keys(state.heroes||{}).length;if(k>=HERO_SLOTS.length||n<HERO_SLOTS[k])return;const left=HEROES.filter(H=>!(state.heroes&&state.heroes[H.id]));if(!left.length)return;
   const opts=shuffle(left.slice()).slice(0,2);if(opts.length===1||state.autoReward||window.__headless){spawnHero(opts[0]);return}state.heroOffer=true;state.choosing=true;
   const box=$('rewardCards');box.innerHTML='';$('rewardTitle').textContent='Um herói quer se juntar à sua causa!';$('reward').querySelector('.sub').textContent='Escolha um herói. O outro segue seu caminho.';
   for(const H of opts){const el=document.createElement('button');el.className='rcard r4';el.innerHTML=`<div class="ico">${H.ico}</div><div class="nm">${esc(H.name)}</div><div class="ds"><b>${H.ab}</b> (tecla ${H.key}): ${esc(H.d)}.</div><div class="rr">Herói lendário</div>`;el.onclick=()=>{spawnHero(H);$('reward').style.display='none';state.choosing=false;state.heroOffer=false;updateHud()};box.appendChild(el)}
@@ -2130,7 +2140,7 @@ function hex2int(c){return typeof c==='number'?c:parseInt(String(c).replace('#',
 
 // Guardian's aegis: an active shield over the citadel — 7 s of near-immunity for blueprint blocks, 100 s cooldown, from wave 8
 let wardMesh=null;
-function wardUp(){if(state.wave<8||(state.wardCd||0)>0||state.phase!=='wave')return false;state.wardT=7;state.wardCd=100;
+function wardUp(){if(hasMod('semegide'))return false;if(state.wave<8||(state.wardCd||0)>0||state.phase!=='wave')return false;state.wardT=7;state.wardCd=100;
   if(!wardMesh){wardMesh=new THREE.Mesh(new THREE.SphereGeometry(WR+4,32,16,0,Math.PI*2,0,Math.PI/2),new THREE.MeshBasicMaterial({color:0x8fe3ff,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false}));wardMesh.position.set(CX,GY,CZ);scene.add(wardMesh)}wardMesh.visible=true;
   SFX.open();shake=Math.max(shake,.25);toast('🛡️ Égide do Guardião: a cidadela está protegida por 7 s!','r4');return true}
 function wardTick(dt){const b=$('bWard');if(b){const on=state.wave>=8;if(b.hidden===on)b.hidden=!on;const cd=state.wardCd||0;$('wardCd').textContent=state.wardT>0?Math.ceil(state.wardT)+'s':cd>0?Math.ceil(cd)+'s':'';b.classList.toggle('on',state.wardT>0)}
@@ -2218,7 +2228,7 @@ let gateAcc=0;function gateTick(dt){gateAcc+=dt;if(gateAcc<1)return;gateAcc=0;
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.84;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.85;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2258,7 +2268,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.81,'🌧️ Novo evento Chuva forte (fora do deserto): o fogo quase não pega, armas enxergam 10% menos e a horda anda 10% mais devagar na lama.'],
   [0.82,'🚪 Botão Portão: feche para a porta aguentar 2,5× mais — mas ninguém sai nem entra enquanto estiver fechado.'],
   [0.83,'🚪 Portão automático (menu Automação): fecha quando aríetes e brutos chegam perto e abre no descanso; aviso quando coletores ficam presos do lado de fora. 💾 Corrigido: o save automático travava enquanto saqueadores de cidades rivais andavam pelo mapa.'],
-  [0.84,'💾 O save automático agora também acontece durante batalhas contra fortalezas e missões do reino (ao continuar, a fortaleza de cerco e a missão em andamento ficam de fora).']];
+  [0.84,'💾 O save automático agora também acontece durante batalhas contra fortalezas e missões do reino (ao continuar, a fortaleza de cerco e a missão em andamento ficam de fora).'],
+  [0.85,'🏆 Desafio da semana na tela inicial: dois modificadores e um bioma iguais para a semana inteira, com recorde de horda guardado.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2333,7 +2344,7 @@ const EVENTS={
   skies:{n:'Revoada',d:'O céu escurece de asas: boa parte da horda vem voando. Balistas e Tesla brilham.',css:'r2',w:9},
   golden:{n:'Horda dourada',d:'Todos os Devoradores são Raros ou acima. Curta e brutal.',css:'r3',w:8},
 };
-function rollEvent(w){if(w<3||w%5===0||Math.random()<.5)return null;const b=state.biomeKey;const pool=[];for(const k of Object.keys(EVENTS)){if(EVENTS[k].w>w)continue;if(k==='sandstorm'&&b!=='deserto')continue;if(k==='rain'&&b==='deserto')continue;if(k==='blizzard'&&b==='deserto')continue;const n=(k==='blizzard'&&b==='neve')||(k==='sandstorm'&&b==='deserto')||(k==='mist'&&b==='pantano')?4:1;for(let i=0;i<n;i++)pool.push(k)}return pick(pool)}
+function rollEvent(w){if(hasMod('bruma')&&w>=2&&w%5!==0)return 'mist';if(w<3||w%5===0||Math.random()<.5)return null;const b=state.biomeKey;const pool=[];for(const k of Object.keys(EVENTS)){if(EVENTS[k].w>w)continue;if(k==='sandstorm'&&b!=='deserto')continue;if(k==='rain'&&b==='deserto')continue;if(k==='blizzard'&&b==='deserto')continue;const n=(k==='blizzard'&&b==='neve')||(k==='sandstorm'&&b==='deserto')||(k==='mist'&&b==='pantano')?4:1;for(let i=0;i<n;i++)pool.push(k)}return pick(pool)}
 function startWave(){if(state.choosing||state.phase==='wave')return;state.bearerSpawned=false;state.phase='wave';state.wk=0;state.wwound=0;state.ev=window.__forceEv||(state.siege>0?'siege':rollEvent(state.wave));window.__forceEv=null;state.queue=waveSpec(state.wave);if(state.ev==='skies'){const q=state.queue;for(let k=0;k<q.length;k++)if(!BIG(q[k])&&Math.random()<.4)q[k]='flyer';for(let k=0;k<Math.floor(state.wave/2);k++)q.push('flyer')}if(state.nextWaveMul){const n=Math.round(state.queue.length*(state.nextWaveMul-1));for(let k=0;k<n;k++)state.queue.push(state.queue[(Math.random()*state.queue.length)|0]);state.nextWaveMul=0}if(state.wave>=2)scatterTraps();state.meteorT=3;if(state.ev==='pirates'){const a=rnd(0,Math.PI*2);const s=makeEnemy('ship',2,clamp(CX+Math.cos(a)*44,6,W-7),clamp(CZ+Math.sin(a)*44,6,D-7));s.maxhp*=1+state.wave*.08;s.hp=s.maxhp;s.armor=0;if(!state.boss)showBoss(s)}if(isNight()){for(let k=0;k<Math.ceil(state.queue.length*.25);k++)state.queue.push(pick(['crawler','climber','flyer']));toast('É noite: a bruma vem mais forte','r2')}
   if(state.ev==='siege'&&state.siege===0)state.siege=3;if(state.ev==='golden')state.queue=state.queue.slice(0,Math.ceil(state.queue.length*.5));
   state.spawnT=0;$('report').style.display='none';
@@ -2348,7 +2359,7 @@ function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.len
   const e=makeEnemy(type,r,x,z);if(type==='knight'&&state.wave>=12&&!state.bearerSpawned&&Math.random()<.5){state.bearerSpawned=true;makeBearer(e)}if(r>=4&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
-function endWave(){const ev=state.ev;state.wave++;state.restStart=simTime;SFX.fanfare((state.wave-1)%5===0);state.morale=Math.min(100,(state.morale??60)+8);checkUnlocks();expansionTick();spawnVein();expeditionReturn();setTimeout(strangerVisit,2500);if(state.biomeKey==='campo'){const g=Math.round(5+state.wave*1.5);state.material+=g;toast(`🌾 Colheita: +${g} material`,'r1')}{const A=REALM.cities.filter(c=>c.ally&&!c.fac.isMe);if(A.length){const g=A.reduce((s,c)=>s+4+c.lvl*2,0);state.material+=g;if(Math.random()<.5)toast(`🤝 Tributo dos aliados: +${g} material`,'r1')}}if(BUILD_WAVES.includes(state.wave)&&!(state.buildings&&Object.keys(state.buildings).length>=BUILD_WAVES.indexOf(state.wave)+1))setTimeout(offerBuilding,1200);if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();if(state.wave%7===0)startFestival();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
+function endWave(){const ev=state.ev;state.wave++;chalRecord(state.wave);state.restStart=simTime;SFX.fanfare((state.wave-1)%5===0);state.morale=Math.min(100,(state.morale??60)+8);checkUnlocks();expansionTick();spawnVein();expeditionReturn();setTimeout(strangerVisit,2500);if(state.biomeKey==='campo'){const g=Math.round(5+state.wave*1.5);state.material+=g;toast(`🌾 Colheita: +${g} material`,'r1')}{const A=REALM.cities.filter(c=>c.ally&&!c.fac.isMe);if(A.length){const g=A.reduce((s,c)=>s+4+c.lvl*2,0);state.material+=g;if(Math.random()<.5)toast(`🤝 Tributo dos aliados: +${g} material`,'r1')}}if(BUILD_WAVES.includes(state.wave)&&!(state.buildings&&Object.keys(state.buildings).length>=BUILD_WAVES.indexOf(state.wave)+1))setTimeout(offerBuilding,1200);if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();if(state.wave%7===0)startFestival();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
   if(ev==='siege'&&state.siege>1){state.siege--;state.phase='rest';toast(`Cerco: horda ${4-state.siege} de 3. Sem descanso!`,'r2');startWave();return}
   if(ev==='siege'){state.siege=0;spawnLoot(CHEST.x+3,GY+3,CHEST.z+4,'treasure',3,{})}
   state.phase='rest';state.restT=15;$('event').style.display='none';
@@ -2357,7 +2368,7 @@ function endWave(){const ev=state.ev;state.wave++;state.restStart=simTime;SFX.fa
   if(ev==='elite')spawnLoot(CHEST.x-2,GY+3,CHEST.z+3,'recruit',Math.max(1,rollRarity(.1)),{role:pick(['sol','gun','med'])});
   $('report').style.display='block';$('report').innerHTML=`Horda ${state.wave-1} vencida · melhor combo <b>×${state.comboBest}</b> · <b>${state.wk}</b> estilhaçados · <b>${state.wwound}</b> ferido${state.wwound===1?'':'s'} · <b>${loot.filter(L=>!L.carried).length}</b> itens no chão`;
   if((state.wave-1)%5===0)offerRewards();updateHud()}
-function gameOver(){state.running=false;saveRecord();if(window.__chestLog)window.__chestLog.push('GAMEOVER '+new Error().stack.split('\n').slice(1,6).join(' < '));$('over').style.display='flex';$('overStat').textContent=`A Fortaleza caiu na horda ${state.wave} · ${state.kills} Devoradores estilhaçados`;refreshSaveUi();{const b=$('continue'),d=readSave();if(b&&d)b.textContent=`↺ Voltar ao último save · horda ${d.wave}`}
+function gameOver(){state.running=false;saveRecord();if(window.__chestLog)window.__chestLog.push('GAMEOVER '+new Error().stack.split('\n').slice(1,6).join(' < '));$('over').style.display='flex';$('overStat').textContent=`A Fortaleza caiu na horda ${state.wave} · ${state.kills} Devoradores estilhaçados`;refreshSaveUi();renderChal();{const b=$('continue'),d=readSave();if(b&&d)b.textContent=`↺ Voltar ao último save · horda ${d.wave}`}
   $('overTitle').textContent='A bruma venceu';$('overText').textContent='O baú foi devorado. Uma Fortaleza nunca morre de verdade: acorde de novo, com o que aprendeu.';$('start').textContent='Acordar de novo';showRecord();$('overAch').innerHTML=runStats()+achSummary()}
 
 // ───────── bombardment + meteors
@@ -2440,6 +2451,9 @@ $('focus').onclick=()=>toast('Clique num Devorador para concentrar o fogo de tod
 $('bWard').onclick=()=>{if(!wardUp())toast(state.phase!=='wave'?'A Égide só funciona durante a horda':'Égide recarregando','r0')};$('bGate').onclick=toggleGate;$('bRally').onclick=()=>{if(state.rally){state.rally=null;removeFlag();toast('Soldados voltam aos postos','r1',true);return}state.rallyMode=!state.rallyMode;$('bRally').classList.toggle('armed',state.rallyMode);if(state.rallyMode)toast('Clique onde os soldados devem se reunir','r2',true)};
 $('bomb').onclick=()=>{if(state.bombCd>0){toast('Bombardeio recarregando','r0');return}if(state.material<25){toast('Precisa de 25 material','r0');return}state.bombMode=!state.bombMode;if(state.bombMode){if(state.build.on)closeSide('buildPanel');toast('Clique onde a bomba deve cair','r2')}updateHud()};
 $('continue').onclick=()=>{$('over').style.display='none';if(!loadGame())newGame();if(!soundOn){soundOn=true;ac();$('snd').textContent='🔊'}};$('optLow').classList.toggle('on',!!OPTS.lowGfx);$('optLow').onclick=()=>{OPTS.lowGfx=!OPTS.lowGfx;saveOpts();$('optLow').classList.toggle('on',OPTS.lowGfx);renderer.setPixelRatio(OPTS.lowGfx?1:Math.min(window.devicePixelRatio,2));toast(OPTS.lowGfx?'⚡ Gráficos leves ligados (sem sombras e sem suavização ao reabrir o jogo)':'Gráficos completos ao reabrir o jogo','r2',true)};$('optSave').onclick=()=>saveGame(true);refreshSaveUi();addEventListener('beforeunload',()=>{if(canSave()&&state.savedWave!==state.wave)saveGame(false)});
+function renderChal(){const b=$('chalBtn');if(!b)return;const C=weeklyChallenge();const rec=chalRecords()[C.week];b.innerHTML=`🏆 Desafio da semana: ${C.mods.map(k=>CH_MODS[k].ico+' '+CH_MODS[k].n).join(' + ')} · ${BIOMES[C.biome].ico}${rec?` · recorde: horda ${rec}`:''}`;b.title=C.mods.map(k=>CH_MODS[k].n+': '+CH_MODS[k].d).join(' · ');
+  b.onclick=()=>{$('over').style.display='none';state.biome=C.biome;newGame();state.challenge={week:C.week,mods:C.mods};if(hasMod('pobre')){state.material=10;state.inv.turrets=[]}toast(`🏆 Desafio da semana: ${C.mods.map(k=>CH_MODS[k].n+' ('+CH_MODS[k].d+')').join(' · ')}`,'r4',true);if(!soundOn){soundOn=true;ac();$('snd').textContent='🔊'}}}
+renderChal();
 $('start').onclick=()=>{state.biome=OPTS.biome&&OPTS.biome!=='rand'?OPTS.biome:null;$('over').style.display='none';newGame();if(!soundOn){soundOn=true;ac();$('snd').textContent='🔊'}};
 
 // ───────── loop
