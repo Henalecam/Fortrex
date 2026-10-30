@@ -70,6 +70,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.33: juice — confete e "✨ LENDÁRIO!" quando um item lendário chega ao baú; fanfarra ao vencer horda (maior a cada 5). Teste longo com tudo: 30 min sem erros, horda 25 (Normal); Brutal: horda 16 em 20 min com a base sob pressão no início.
 
+- v0.34: 🏴‍☠️ Desembarque pirata (evento a partir da horda 8): um navio encalha a ~44 da cidadela, desembarca piratas (chapéu, tapa-olho, sabre) e dispara canhões nas suas armas; afundá-lo solta 2 tesouros e explode em fogo.
+
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.

@@ -42,6 +42,8 @@ const ETYPES={
   colossus:{hp:1500,speed:.9,dmg:60,rate:1.4,color:0x3b2f5c,radius:2.4,n:'Colosso'},
   queen:{hp:950,speed:1.1,dmg:30,rate:1,color:0xa86fd9,radius:1.6,n:'Rainha da Bruma'},
   titan:{hp:2400,speed:.8,dmg:75,rate:1.5,color:0xc2410c,radius:2.2,n:'Titã de lava'},
+  ship:{hp:900,speed:0,dmg:0,rate:9,color:0x7a5230,radius:3,n:'Navio Pirata'},
+  pirate:{hp:48,speed:2.9,dmg:13,rate:.75,color:0xc9a27a,radius:.55,n:'Pirata'},
   wolf:{hp:40,speed:4.0,dmg:11,rate:.6,color:0x7d7f8f,radius:.55,n:'Lobo da Bruma'},
   spider:{hp:30,speed:3.1,dmg:8,rate:.5,color:0x3d3a52,radius:.6,n:'Aranha da Bruma'},
   slime:{hp:55,speed:1.8,dmg:10,rate:.8,color:0x6fd38c,radius:.7,n:'Gosma'},
@@ -57,7 +59,7 @@ const CLIMBS=t=>t==='climber'||t==='spider';
 const BIG=t=>t==='boss'||t==='colossus'||t==='queen'||t==='titan'||t==='general'||t==='golem'||t==='wyrm'||t==='necro'||t==='mistking';
 const enemies=[];const fuses=[];
 function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group();const col=new THREE.Color(T.color).lerp(new THREE.Color(RARITY[rarity].c),rarity?.35:0).getHex();
-  const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='general'?2.1:type==='mistking'?3.4:type==='golem'?3.7:type==='wyrm'?2.9:type==='necro'?2.7:type==='ram'?1.35:type==='flyer'?.8:type==='brute'?1.5:type==='imp'?.7:type==='slime'?1.15:type==='beetle'?1.2:1)*(BIG(type)?1:rnd(.9,1.12));
+  const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='general'?2.1:type==='ship'?2.6:type==='pirate'?1.05:type==='mistking'?3.4:type==='golem'?3.7:type==='wyrm'?2.9:type==='necro'?2.7:type==='ram'?1.35:type==='flyer'?.8:type==='brute'?1.5:type==='imp'?.7:type==='slime'?1.15:type==='beetle'?1.2:1)*(BIG(type)?1:rnd(.9,1.12));
   let body,head,legs=[];if(CREATURES[type]){({body,head,legs}=CREATURES[type](sc,col,g))}else{
   body=box(.9*sc,.7*sc,1.1*sc,col,0,.5*sc,0,g);head=box(.7*sc,.6*sc,.6*sc,col,0,.6*sc,.75*sc,g);eyes(head,.08*sc,.32*sc,.17*sc);
   for(const sx of [-1,1])for(const sz of [-1,1]){const lg=box(.22*sc,.4*sc,.22*sc,type==='colossus'?0xcfd6e3:0x2b2d4a,sx*.35*sc,.2*sc,sz*.35*sc,g);legs.push({mesh:lg,hp:150,alive:true,ox:sx*.35*sc,oz:sz*.35*sc})}}
@@ -96,6 +98,7 @@ function hurtEnemy(e,d,at){if(e.dead)return;
   const crit=Math.random()<.1+state.critBonus;if(crit)d*=2;if(Math.random()<.35)SFX.hurt();dmgEnemy(e,d,true,crit)}
 function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t=e.type,big=BIG(t);
   if(t==='slime'&&!e.small){for(let k=0;k<2;k++){const s=makeEnemy('slime',e.rarity,e.pos.x+rnd(-.8,.8),e.pos.z+rnd(-.8,.8));s.small=true;s.group.scale.setScalar(.6);s.maxhp*=.35;s.hp=s.maxhp;s.speed*=1.25;s.radius*=.6}}
+  if(t==='ship'){for(let k=0;k<2;k++)spawnLoot(e.pos.x+rnd(-2,2),GY+2,e.pos.z+rnd(-2,2),'treasure',Math.min(4,2+Math.floor(state.wave/10)),{});pendingBooms.push({x:e.pos.x,y:GY+1,z:e.pos.z,r:4,dmg:60,o:{src:'env',fire:true},t:.1});toast('🏴‍☠️ Navio pirata afundado! Tesouro na praia.','r4')}
   if(t==='imp')pendingBooms.push({x:e.pos.x,y:e.gy+.5,z:e.pos.z,r:1.8,dmg:22,o:{src:'enemy',fire:true},t:.05});goalEvent('kills');if(big)goalEvent('boss');if(big&&t!=='general'){state.morale=Math.min(100,(state.morale??60)+15);grantRelic(t);if(!OPTS.noCine&&!window.__headless)state.cine={x:e.pos.x,z:e.pos.z,t:2.6,d0:(state.cine&&state.cine.d0)||cam.dist}}
   spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?140:t==='boss'?60:t==='ram'?18:10,big?.8:.4);SFX.shatter(t!=='crawler');
   hitstop=Math.max(hitstop,t==='colossus'?.22:t==='boss'?.14:.05);shake=Math.max(shake,t==='colossus'?1.4:t==='boss'?.9:.22);if(big){hideBoss();slowmo=1.3;toast(`${e.T.n} derrotado!`,'r4')}
@@ -103,7 +106,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   dropTable(e);state.kills++;state.wk++;addCombo(e)}
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
-  if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22,mistking:60})[t]??2)*.4+r*.5))});
+  if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22,mistking:60,ship:30,pirate:3})[t]??2)*.4+r*.5))});
   const luck=state.wave*.004+r*.04+state.luck+(state.ev==='golden'||state.ev==='eclipse'?.1:0);
   const P=({crawler:.11,ram:.24,climber:.14,sapper:.12,flyer:.16,shaman:.45,boss:1,colossus:1,queen:1,titan:1,knight:.3,archer:.25,rammer:.35,general:1,golem:1,wyrm:1,necro:1})[t]??.15;
   const n=t==='titan'?7:t==='queen'||t==='colossus'?5:t==='boss'?3:1;for(let k=0;k<n;k++)if(Math.random()<P*(big?1:.4)){const rr=Math.max(Math.min(r,3),rollRarity(luck+(big?.15:0)));const [kind,data]=lootPick('any',rr);at(kind,rr,data)}
@@ -124,6 +127,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;
   e.iceT-=dt;if(e.iceT<=0&&!e.fly){e.iceT=.3;const y0=Math.floor(e.gy+.05);for(const [dx,dz] of NB4){for(let y=y0;y<y0+2;y++){const x=fx+dx,z=fz+dz;if(inb(x,y,z)&&vox[idx(x,y,z)]===18){e.slowT=Math.max(e.slowT,.8)}}}}
   if(e.slowT>0){e.slowT-=dt;if(Math.random()<dt*4)spawnFlame(e.pos.x+rnd(-.4,.4),e.group.position.y+.8,e.pos.z+rnd(-.4,.4),.4,true)}
   const sf=(!e.fly&&vox[idx(clamp(Math.floor(e.pos.x),0,W-1),clamp(Math.floor(e.gy)-1,0,H-1),clamp(Math.floor(e.pos.z),0,D-1))]===31?.4:1)*(e.slowT>0?.4:1)*(e.inWater?.55:1)*(e.inLava?.7:1)*(state.ev==='blizzard'?.7:state.ev==='sandstorm'?1.12:1)*(state.biomeKey==='pantano'&&!e.fly?.88:1);e.timer-=dt*(e.slowT>0?.5:1);
+  if(e.type==='ship'){e.group.position.y=e.gy+Math.sin(e.bob*.3)*.15;e.group.rotation.z=Math.sin(e.bob*.2)*.05;e.spawnT=(e.spawnT??2)-dt;e.fireT=(e.fireT??3)-dt;if(e.spawnT<=0&&(e.crew||0)<10+Math.floor(state.wave/3)){e.spawnT=5;for(let k=0;k<2;k++){const p=makeEnemy('pirate',Math.min(3,rollRarity(state.wave*.01)),e.pos.x+rnd(-2,2),e.pos.z+rnd(-2,2));p.viaWall=Math.random()<.4}e.crew=(e.crew||0)+2}if(e.fireT<=0){e.fireT=4;let tg=null,bd=60;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd){bd=d;tg=t.pos}}if(!tg)tg={x:CX+rnd(-10,10),z:CZ+rnd(-10,10)};throwRock(e,tg.x,tg.z,2.4,45+state.wave*3,0x2b2d4a,false)}return}
   if(e.stun>0){e.stun-=dt;e.vel.set(0,0,0);e.group.rotation.z=Math.sin(e.stun*9)*.12;if(e.stun<=0)e.group.rotation.z=0;return}
   if(e.type==='boss'){e.spitT=(e.spitT??4)-dt;if(e.spitT<=0){e.spitT=5.5-Math.min(2.5,state.wave*.05);let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd&&d<38){bd=d;tgt=t.pos}}if(!tgt)tgt=CHEST;spitAcid(e,tgt)}}
   if(e.type==='colossus'&&e.legs.some(L=>L.alive)){e.stompT=(e.stompT??6)-dt;if(e.stompT<=0&&hd(e.pos,CHEST)<22){e.stompT=7;stomp(e)}}
@@ -332,6 +336,9 @@ function throwRock(e,tx,tz,r,dmg,color,fire){markGround(tx,tz,r,fire?0xff7a2a:0x
 
 // ───────── creature anatomies beyond the classic quadruped
 const CREATURES={
+  ship(sc,col,g){const body=box(2.6*sc,.9*sc,1.2*sc,col,0,.6*sc,0,g);box(2.9*sc,.25*sc,1.3*sc,0x5a3a20,0,1.05*sc,0,g);const head=box(.6*sc,.6*sc,.9*sc,0x5a3a20,1.2*sc,1.35*sc,0,g);box(.12*sc,2.6*sc,.12*sc,0x6b4a2a,0,2.3*sc,0,g);const sail=box(.08*sc,1.5*sc,1.6*sc,0xf2ead8,.1*sc,2.5*sc,0,g);box(.06*sc,.5*sc,.7*sc,0x2b2d4a,0,3.7*sc,0,g);for(const s of[-1,1])box(.35*sc,.2*sc,.2*sc,0x2b2d4a,s*.6*sc,.85*sc,.65*sc,g);return{body,head,legs:[]}},
+  pirate(sc,col,g){const body=box(.6*sc,.75*sc,.45*sc,0x8a2f2f,0,.8*sc,0,g);const head=box(.5*sc,.45*sc,.45*sc,col,0,1.4*sc,.02*sc,g);eyes(head,.05*sc,.23*sc,.12*sc);box(.62*sc,.14*sc,.6*sc,0x2b2d4a,0,1.68*sc,0,g);box(.3*sc,.1*sc,.05*sc,0x2b2d4a,.1*sc,1.47*sc,.24*sc,g);box(.06*sc,.6*sc,.06*sc,0xdfe6f0,.4*sc,.95*sc,.25*sc,g);
+    const legs=[];for(const s of[-1,1]){const lg=box(.16*sc,.4*sc,.16*sc,0x3b2d2a,s*.15*sc,.2*sc,0,g);legs.push({mesh:lg,alive:true,ox:s*.15*sc,oz:0})}return{body,head,legs}},
   wolf(sc,col,g){const body=box(.6*sc,.55*sc,1.4*sc,col,0,.6*sc,0,g);const head=box(.5*sc,.45*sc,.55*sc,col,0,.8*sc,.9*sc,g);box(.3*sc,.22*sc,.35*sc,shadeHex(col,-.2),0,.68*sc,1.25*sc,head.parent);eyes(head,.1*sc,.28*sc,.13*sc);
     for(const s of[-1,1])box(.12*sc,.25*sc,.1*sc,shadeHex(col,-.3),s*.17*sc,1.1*sc,.82*sc,g);box(.14*sc,.14*sc,.7*sc,col,0,.8*sc,-1.0*sc,g).rotation.x=-.5;
     const legs=[];for(const sx of[-1,1])for(const sz of[-1,1]){const lg=box(.16*sc,.45*sc,.16*sc,shadeHex(col,-.35),sx*.22*sc,.22*sc,sz*.5*sc,g);legs.push({mesh:lg,alive:true,ox:sx*.22*sc,oz:sz*.5*sc})}return{body,head,legs}},
