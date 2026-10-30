@@ -1695,7 +1695,7 @@ function renderBuild(){const B=state.build,body=$('buildBody');for(const t of do
 for(const t of document.querySelectorAll('#buildPanel .tab'))t.onclick=()=>{state.build.tab=t.dataset.tab;state.build.tool=t.dataset.tab==='blocks'?'place':(state.inv.turrets.length?'turret':'remove');if(state.build.tool==='turret')state.build.tsel=clamp(state.build.tsel,0,state.inv.turrets.length-1);renderBuild()};
 const raycaster=new THREE.Raycaster(),ndc=new THREE.Vector2();
 function rayFrom(cx,cy){ndc.set(cx/innerWidth*2-1,-(cy/innerHeight)*2+1);raycaster.setFromCamera(ndc,camera);return raycaster.ray}
-function pickObj(cx,cy,list){rayFrom(cx,cy);const hits=raycaster.intersectObjects(list,true);if(!hits.length)return null;let o=hits[0].object;while(o&&!o.userData.loot&&!o.userData.minion&&!o.userData.enemy&&!o.userData.turret&&!o.userData.lantern)o=o.parent;return o?o.userData:null}
+function pickObj(cx,cy,list){rayFrom(cx,cy);const hits=raycaster.intersectObjects(list,true);if(!hits.length)return null;let o=hits[0].object;while(o&&!o.userData.loot&&!o.userData.minion&&!o.userData.enemy&&!o.userData.turret&&!o.userData.lantern&&!o.userData.dog)o=o.parent;return o?o.userData:null}
 function buildTarget(cx,cy){const B=state.build,ray=rayFrom(cx,cy);
   if(B.tool==='remove'){const tu=pickObj(cx,cy,turrets.filter(t=>t.alive).map(t=>t.group));if(tu&&tu.turret)return{kind:'rmturret',t:tu.turret,ok:true};
     const h=voxRay(ray.origin,ray.direction,true);if(!h)return null;const m=vox[h.i];const ok=m!==1&&m!==5&&(blue[h.i]||FLUID(m)||state.material>=1);return{kind:'remove',i:h.i,ok}}
@@ -1826,11 +1826,12 @@ function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName
 function hideBoss(){state.boss=null;$('bossbar').style.display='none'}
 function showTip(cx,cy,t,s){const el=$('tip');el.innerHTML=esc(t)+(s?`<small>${esc(s)}</small>`:'');el.style.left=cx+'px';el.style.top=cy+'px';el.style.display='block'}
 function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}
-  const u=pickObj(cx,cy,[...loot.filter(L=>!L.carried).map(L=>L.g),...minions.map(m=>m.group),...enemies.filter(e=>!e.dead).map(e=>e.group),...turrets.filter(t=>t.alive).map(t=>t.group)]);
+  const u=pickObj(cx,cy,[...loot.filter(L=>!L.carried).map(L=>L.g),...minions.map(m=>m.group),...enemies.filter(e=>!e.dead).map(e=>e.group),...turrets.filter(t=>t.alive).map(t=>t.group),...dogs.map(d=>d.g)]);
   if(!u){$('tip').style.display='none';canvas.style.cursor='';return}canvas.style.cursor='pointer';
   if(u.loot){const L=u.loot;showTip(cx,cy,`${lootName(L)} · ${RARITY[L.r].n}`,L.kind==='treasure'?'Clique para abrir':L.prio?'Prioridade dos coletores':'Clique: coletores buscam primeiro')}
   else if(u.minion){const m=u.minion;showTip(cx,cy,`${m.name} · ${m.R.n} · nv ${m.lvl}`,m.wounded>0?'Ferido':'Clique para ver e equipar')}
   else if(u.enemy){const e=u.enemy;showTip(cx,cy,`${e.T.n} ${RARITY[e.rarity].n}${e.aff?' · '+AFFIX[e.aff].n:''}`,`${Math.ceil(e.hp)}/${Math.ceil(e.maxhp)} · clique: Fogo Concentrado`)}
+  else if(u.dog){const d=u.dog;showTip(cx,cy,`🐕 Cão de guarda`,d.hurtT>0?`Ferido · volta em ${Math.ceil(d.hurtT)} s`:`${Math.ceil(d.hp)}/${Math.ceil(d.maxhp)} · morde ${Math.round((10+state.wave*1.8)*state.bladeMul)} · ${d.bites||0} mordidas`)}
   else if(u.turret){const t=u.turret;showTip(cx,cy,`${t.T.n} ${RARITY[t.r].n}`,t.gunner?'Operada':'Sem artilheiro')}}
 
 // ───────── progression: unlocks by wave, weapon and role limits raised by upgrades, posts for minions, auto-sell
@@ -2128,7 +2129,7 @@ let chestAcc=0,chestLast=-1;function chestTick(dt){chestAcc+=dt;if(chestAcc<.3)r
 // volcanic wastes: during waves the earth erupts — marked spots get hit by lava bombs (hurt everyone, set fires, scar the ground)
 let eruptT=14;const pendingLava=[];const LAVA_COL_GEO=new THREE.CylinderGeometry(.35,.9,12,10,1,true);
 function volcanoTick(dt){if(!BIOME.volcanic||state.phase!=='wave'){if(state.phase!=="wave"){eruptT=14;for(const L of pendingLava)if(L.col)scene.remove(L.col);pendingLava.length=0}return}eruptT-=dt;
-  if(eruptT<=0){eruptT=rnd(32,48);const n=3+Math.floor(state.wave/6);for(let k=0;k<n;k++){const a=rnd(0,Math.PI*2),r=Math.random()<.2?rnd(4,WR-2):rnd(WR+4,60);const x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;markGround(x,z,2.4,0xff5a1a,1.6+k*.25);const col=new THREE.Mesh(LAVA_COL_GEO,new THREE.MeshBasicMaterial({color:0xff7a2a,transparent:true,opacity:.55,depthWrite:false}));col.position.set(x,surf(x,z)+6,z);scene.add(col);pendingLava.push({x,z,t:1.6+k*.25,col})}
+  if(eruptT<=0){eruptT=rnd(32,48);const n=3+Math.floor(state.wave/6);for(let k=0;k<n;k++){const a=rnd(0,Math.PI*2),r=Math.random()<.2?rnd(7,WR-2):rnd(WR+4,60);const x=CX+Math.cos(a)*r,z=CZ+Math.sin(a)*r;markGround(x,z,2.4,0xff5a1a,1.6+k*.25);const col=new THREE.Mesh(LAVA_COL_GEO,new THREE.MeshBasicMaterial({color:0xff7a2a,transparent:true,opacity:.55,depthWrite:false}));col.position.set(x,surf(x,z)+6,z);scene.add(col);pendingLava.push({x,z,t:1.6+k*.25,col})}
     toast('🌋 Erupção! Bombas de lava vão cair nas marcas laranja.','r3');shake=Math.max(shake,.35);SFX.boom&&SFX.boom(true)}
   for(let i=pendingLava.length-1;i>=0;i--){const L=pendingLava[i];L.t-=dt;if(L.col){L.col.material.opacity=.35+.3*Math.sin(simTime*14);L.col.scale.x=L.col.scale.z=1+Math.max(0,1.6-L.t)*.4}if(L.t>0)continue;pendingLava.splice(i,1);if(L.col){scene.remove(L.col);L.col.material.dispose()}explode(Math.floor(L.x),Math.floor(surf(L.x,L.z)),Math.floor(L.z),2.4,60+state.wave*4,{fire:true,src:'env'});for(let k=0;k<6;k++)spawnFlame(L.x+rnd(-1.5,1.5),surf(L.x,L.z)+rnd(.2,1.2),L.z+rnd(-1.5,1.5),1)}}
 
@@ -2146,20 +2147,20 @@ let bioAcc=0;function biomeTick(dt){bioAcc+=dt;if(bioAcc<.3)return;const t=bioAc
 // guard dogs (Canil upgrade): fast biters that patrol in front of the gate; they live outside the minion system and are rebuilt from state.ups.kennel
 const dogs=[];
 function makeDog(k){const g=new THREE.Group();const col=[0x8a5a35,0x3b2d2a,0xd9b48a,0x6b6e8f][k%4];box(.45,.4,.9,col,0,.45,0,g);box(.38,.36,.42,col,0,.62,.55,g);box(.2,.16,.22,0x2b2d4a,0,.55,.78,g);for(const s of[-1,1])box(.1,.16,.08,shadeHex(col,-.25),s*.12,.86,.5,g);box(.42,.08,.1,0xd9414f,0,.5,.36,g);box(.08,.08,.35,col,0,.62,-.55,g).rotation.x=-.6;
-  const legs=[];for(const sx of[-1,1])for(const sz of[-1,1])legs.push(box(.12,.3,.12,shadeHex(col,-.2),sx*.16,.15,sz*.3,g));g.scale.setScalar(US*.85);const x=GATE.x+(k-1.5)*1.6,z=GATE.z+4;g.position.set(x,standY(x,z),z);scene.add(g);
-  return{g,pos:g.position,legs,k,hp:0,maxhp:0,hurtT:0,biteT:0,tgt:null,bob:rnd(0,6)}}
+  const legs=[];for(const sx of[-1,1])for(const sz of[-1,1])legs.push(box(.12,.3,.12,shadeHex(col,-.2),sx*.16,.15,sz*.3,g));g.scale.setScalar(US*.85);const x=GATE.x+(k-1.5)*1.6,z=GATE.z+4;g.position.set(x,standY(x,z),z);scene.add(g);const band=box(.3,.1,.3,0xffffff,0,.95,.55,g);band.visible=false;
+  const d={g,pos:g.position,legs,k,hp:0,maxhp:0,hurtT:0,biteT:0,tgt:null,bob:rnd(0,6),band,bites:0};g.userData.dog=d;return d}
 function dogTick(dt){const want=state.ups.kennel||0;while(dogs.length<want)dogs.push(makeDog(dogs.length));while(dogs.length>want){const d=dogs.pop();scene.remove(d.g)}if(!dogs.length)return;
   const W8=state.wave;for(const d of dogs){const mh=60+W8*12;if(!d.maxhp)d.hp=mh;d.maxhp=mh;const home={x:GATE.x+(d.k-1.5)*1.6,z:GATE.z+4};
     if(d.hurtT>0){d.hurtT-=dt;if(d.hurtT<=0)d.hp=d.maxhp;d.tgt=null}
     else if(!d.tgt||d.tgt.dead||Math.hypot(d.tgt.pos.x-GATE.x,d.tgt.pos.z-GATE.z)>30){d.tgt=null;let bd=22;for(const e of enemies){if(e.dead||e.fly||BIG(e.type))continue;const dd=Math.hypot(e.pos.x-d.pos.x,e.pos.z-d.pos.z);if(dd<bd&&Math.hypot(e.pos.x-GATE.x,e.pos.z-GATE.z)<26){bd=dd;d.tgt=e}}}
     const T=d.tgt?{x:d.tgt.pos.x,z:d.tgt.pos.z}:home;const dx=T.x-d.pos.x,dz=T.z-d.pos.z,dist=Math.hypot(dx,dz);
-    if(d.tgt&&dist<1.3+d.tgt.radius){d.biteT-=dt;if(d.biteT<=0){d.biteT=.7;dmgEnemy(d.tgt,(10+W8*1.8)*state.bladeMul,true);d.hp-=(d.tgt.T.dmg||5)*.5;state.dogBites=(state.dogBites||0)+1;if(Math.random()<.15)label({x:d.pos.x,y:d.pos.y+1.2,z:d.pos.z},'au!','#8a5a35');if(d.hp<=0){d.hurtT=20;toast('🐕 Um cão de guarda se feriu e voltou ao canil','r1')}}}
+    if(d.tgt&&dist<1.3+d.tgt.radius){d.biteT-=dt;if(d.biteT<=0){d.biteT=.7;dmgEnemy(d.tgt,(10+W8*1.8)*state.bladeMul,true);d.bites++;d.hp-=(d.tgt.T.dmg||5)*.5;state.dogBites=(state.dogBites||0)+1;if(Math.random()<.15)label({x:d.pos.x,y:d.pos.y+1.2,z:d.pos.z},'au!','#8a5a35');if(d.hp<=0){d.hurtT=20;toast('🐕 Um cão de guarda se feriu e voltou ao canil','r1')}}}
     else if(dist>.4){const sp=(d.hurtT>0?3:d.tgt?7.5:4)*dt;const st=Math.min(sp,dist);d.pos.x+=dx/dist*st;d.pos.z+=dz/dist*st;d.g.rotation.y=Math.atan2(dx,dz);d.bob+=dt*14}
-    d.pos.y=standY(d.pos.x,d.pos.z)+(d.tgt?Math.abs(Math.sin(d.bob))*.12:0);d.legs.forEach((L,i)=>L.rotation.x=Math.sin(d.bob+(i%2?Math.PI:0))*.5)}}
+    d.pos.y=standY(d.pos.x,d.pos.z)+(d.tgt?Math.abs(Math.sin(d.bob))*.12:0);d.legs.forEach((L,i)=>L.rotation.x=Math.sin(d.bob+(i%2?Math.PI:0))*.5);d.band.visible=d.hurtT>0;d.g.rotation.z=d.hurtT>0&&Math.hypot(home.x-d.pos.x,home.z-d.pos.z)<.6?1.3:0}}
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.71;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.72;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2186,7 +2187,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.68,'🚀 O chão plano agora é desenhado como uma única superfície em vez de milhares de cubos: ~30% menos blocos para a placa de vídeo desenhar.'],
   [0.69,'💎 Bombas que abrem cratera fora das muralhas podem desenterrar um tesouro (no máximo 1 por horda).'],
   [0.70,'📚 Dicas reorganizadas para quem começa (básico primeiro) e novas dicas de Ímpeto, save e Reunir. Ao perder, dá para voltar ao último save direto da tela final.'],
-  [0.71,'🐕 Canil (Upgrades → Exército, horda 5+): cães de guarda correm atrás dos Devoradores perto do portão e mordem.']];
+  [0.71,'🐕 Canil (Upgrades → Exército, horda 5+): cães de guarda correm atrás dos Devoradores perto do portão e mordem.'],
+  [0.72,'🐕 Cães mostram vida e mordidas ao passar o mouse; feridos deitam com curativo no canil.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}

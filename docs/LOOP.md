@@ -114,6 +114,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.69: Chão novo conferido com terremoto + bombas: crateras, paredes de terra e água aparecem certas; sombras no plano ok. 💎 Tesouro enterrado: explosão do jogador (r≥3) fora das muralhas que abre ≥3 células do chão tem 22% de chance de desenterrar um baú (1 por horda).
 - v0.70: 📚 Dicas reordenadas do básico ao avançado (start, wave, auto, shop, build, save, rush, bomb, mason, affix, sappers, rally, oil, goblin, bearer, ward, hero, realm, war) + 3 dicas novas (Ímpeto, save automático, Reunir). Tela de derrota mostra "↺ Voltar ao último save · horda N".
 - v0.71: 🐕 Canil (upgrade Exército, horda 5, 4 níveis, 70+70n): cães de guarda (fora da lista de minions, recriados de state.ups.kennel — nada novo no save) patrulham à frente do portão, perseguem inimigos terrestres não-chefes a até 26 do portão e mordem (10+1,8×horda × treino de combate a cada 0,7 s); levam dano ao morder e, feridos, voltam ao canil por 20 s.
+- v0.72: 🐕 Cães: tooltip (vida, dano da mordida, nº de mordidas; ferido mostra o tempo de volta) e, feridos, deitam no canil com curativo. Erupções nunca caem a menos de 7 blocos do centro (não acertam o baú). Teste passivo (sem gastar nada) teve muita variância por bioma: hordas 8, 12 e 17.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

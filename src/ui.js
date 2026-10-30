@@ -46,7 +46,7 @@ function renderBuild(){const B=state.build,body=$('buildBody');for(const t of do
 for(const t of document.querySelectorAll('#buildPanel .tab'))t.onclick=()=>{state.build.tab=t.dataset.tab;state.build.tool=t.dataset.tab==='blocks'?'place':(state.inv.turrets.length?'turret':'remove');if(state.build.tool==='turret')state.build.tsel=clamp(state.build.tsel,0,state.inv.turrets.length-1);renderBuild()};
 const raycaster=new THREE.Raycaster(),ndc=new THREE.Vector2();
 function rayFrom(cx,cy){ndc.set(cx/innerWidth*2-1,-(cy/innerHeight)*2+1);raycaster.setFromCamera(ndc,camera);return raycaster.ray}
-function pickObj(cx,cy,list){rayFrom(cx,cy);const hits=raycaster.intersectObjects(list,true);if(!hits.length)return null;let o=hits[0].object;while(o&&!o.userData.loot&&!o.userData.minion&&!o.userData.enemy&&!o.userData.turret&&!o.userData.lantern)o=o.parent;return o?o.userData:null}
+function pickObj(cx,cy,list){rayFrom(cx,cy);const hits=raycaster.intersectObjects(list,true);if(!hits.length)return null;let o=hits[0].object;while(o&&!o.userData.loot&&!o.userData.minion&&!o.userData.enemy&&!o.userData.turret&&!o.userData.lantern&&!o.userData.dog)o=o.parent;return o?o.userData:null}
 function buildTarget(cx,cy){const B=state.build,ray=rayFrom(cx,cy);
   if(B.tool==='remove'){const tu=pickObj(cx,cy,turrets.filter(t=>t.alive).map(t=>t.group));if(tu&&tu.turret)return{kind:'rmturret',t:tu.turret,ok:true};
     const h=voxRay(ray.origin,ray.direction,true);if(!h)return null;const m=vox[h.i];const ok=m!==1&&m!==5&&(blue[h.i]||FLUID(m)||state.material>=1);return{kind:'remove',i:h.i,ok}}
@@ -177,9 +177,10 @@ function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName
 function hideBoss(){state.boss=null;$('bossbar').style.display='none'}
 function showTip(cx,cy,t,s){const el=$('tip');el.innerHTML=esc(t)+(s?`<small>${esc(s)}</small>`:'');el.style.left=cx+'px';el.style.top=cy+'px';el.style.display='block'}
 function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}
-  const u=pickObj(cx,cy,[...loot.filter(L=>!L.carried).map(L=>L.g),...minions.map(m=>m.group),...enemies.filter(e=>!e.dead).map(e=>e.group),...turrets.filter(t=>t.alive).map(t=>t.group)]);
+  const u=pickObj(cx,cy,[...loot.filter(L=>!L.carried).map(L=>L.g),...minions.map(m=>m.group),...enemies.filter(e=>!e.dead).map(e=>e.group),...turrets.filter(t=>t.alive).map(t=>t.group),...dogs.map(d=>d.g)]);
   if(!u){$('tip').style.display='none';canvas.style.cursor='';return}canvas.style.cursor='pointer';
   if(u.loot){const L=u.loot;showTip(cx,cy,`${lootName(L)} · ${RARITY[L.r].n}`,L.kind==='treasure'?'Clique para abrir':L.prio?'Prioridade dos coletores':'Clique: coletores buscam primeiro')}
   else if(u.minion){const m=u.minion;showTip(cx,cy,`${m.name} · ${m.R.n} · nv ${m.lvl}`,m.wounded>0?'Ferido':'Clique para ver e equipar')}
   else if(u.enemy){const e=u.enemy;showTip(cx,cy,`${e.T.n} ${RARITY[e.rarity].n}${e.aff?' · '+AFFIX[e.aff].n:''}`,`${Math.ceil(e.hp)}/${Math.ceil(e.maxhp)} · clique: Fogo Concentrado`)}
+  else if(u.dog){const d=u.dog;showTip(cx,cy,`🐕 Cão de guarda`,d.hurtT>0?`Ferido · volta em ${Math.ceil(d.hurtT)} s`:`${Math.ceil(d.hp)}/${Math.ceil(d.maxhp)} · morde ${Math.round((10+state.wave*1.8)*state.bladeMul)} · ${d.bites||0} mordidas`)}
   else if(u.turret){const t=u.turret;showTip(cx,cy,`${t.T.n} ${RARITY[t.r].n}`,t.gunner?'Operada':'Sem artilheiro')}}
