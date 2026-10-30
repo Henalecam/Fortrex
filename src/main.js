@@ -250,3 +250,4 @@ renderDiffs();$('overAch').innerHTML=achSummary();window.__diff=k=>{OPTS.diff=k}
 window.__gameOver=()=>gameOver();
 window.__king=()=>{const e=makeEnemy('mistking',3,CX+20,CZ+30);return e.blvl};
 window.__fest=()=>startFestival();
+window.__caravan=()=>{const P={id:999,kind:'caravan',lvl:2,x:150,y:480,ttl:100,n:10,E:9,name:'Caravana teste'};REALM.pois.push(P);return acceptPoi(P)};window.__q=()=>({q:!!state.quest,c:state.caravan?Math.round(state.caravan.hp)+'@'+state.caravan.x.toFixed(0)+','+state.caravan.z.toFixed(0):null,mat:Math.round(state.material)});

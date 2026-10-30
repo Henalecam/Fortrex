@@ -76,6 +76,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v0.35: dicas para jogador novo (9 dicas contextuais, cada uma aparece uma vez: minions, fogo concentrado, automação, upgrades, construir, reino, guerra, heróis, bomba; caixa escura acima do dock com "Entendi"). Escolhas de recompensa/herói no celular lado a lado e compactas.
 
+- v0.36: 🐫 Caravana (novo objetivo no Reino): uma carroça de mercadores atravessa o seu mapa até o portão caçada por piratas, lobos e cavaleiros; para quando cercada; mostra a integridade (%) acima dela. Se chegar: 3 tesouros + 12×nível de material no portão; se cair: nada.
+
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo
 Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alcançada, material, plan, loot, renome); 2) pensar 1–2 features novas da lista abaixo; 3) aplicar; 4) refinar com screenshot; 5) publicar + push.
