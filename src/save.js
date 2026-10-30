@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.52;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.53;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -8,7 +8,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.48,'🔕 Menos avisos repetidos; inimigos tardios mais resistentes.'],[0.49,'🏛️ Maravilhas (Observatório, Catedral, Grande Muralha, Estátua) e dock do celular em 2 linhas.'],
   [0.50,'🗂️ Upgrades em abas (✨ Pronto mostra só o que dá para comprar) e esta tela de novidades.'],
   [0.51,'⭐ Talentos de herói nos níveis 3, 6 e 9; heróis não perdem mais a vida extra ao subir de nível; no celular os heróis ficam numa coluna própria.'],
-  [0.52,'🤝 Socorro no reino: ajude uma fortaleza cercada e ela vira aliada (não ataca você e paga tributo a cada horda). Talentos aparecem na ficha do herói.']];
+  [0.52,'🤝 Socorro no reino: ajude uma fortaleza cercada e ela vira aliada (não ataca você e paga tributo a cada horda). Talentos aparecem na ficha do herói.'],
+  [0.53,'🤝 Aliados mandam soldados quando uma fortaleza rival cerca você; aliadas aparecem com 🤝 no mapa do reino.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -24,7 +25,7 @@ function saveGame(manual){if(!canSave()){if(manual)toast('Só dá para salvar en
   try{const st={};for(const k in state){if(SAVE_SKIP.has(k))continue;const x=plain(state[k]);if(x!==undefined)st[k]=x}
     const d={v:1,ver:GAME_VERSION,at:Date.now(),wave:state.wave,diff:OPTS.diff||'normal',biome:state.biomeKey,simTime,state:st,
       vox:rleEnc(vox),looted:rleEnc(looted),rown:rleEnc(rown),
-      minions:minions.map(m=>({role:m.role,r:m.rarity,name:m.name,lvl:m.lvl,xp:m.xp,trait:m.trait,kills:m.kills,hero:m.hero||null,x:m.pos.x,z:m.pos.z,eq:plain(m.eq)})),
+      minions:minions.filter(m=>!m.allyHelp).map(m=>({role:m.role,r:m.rarity,name:m.name,lvl:m.lvl,xp:m.xp,trait:m.trait,kills:m.kills,hero:m.hero||null,x:m.pos.x,z:m.pos.z,eq:plain(m.eq)})),
       turrets:turrets.filter(t=>t.alive&&t.team!=='r').map(t=>({type:t.type,r:t.r,anchor:t.anchor})),
       realm:{t:REALM.t,spawnT:REALM.spawnT,poiT:REALM.poiT,nextId:REALM.nextId,facs:REALM.facs.map(f=>({...f})),cities:REALM.cities.map(c=>({...c,fac:c.fac.id})),pois:plain(REALM.pois),log:REALM.log.slice(-30)}};
     localStorage.setItem(SAVE_KEY,JSON.stringify(d));state.savedWave=state.wave;refreshSaveUi();if(manual)toast(`💾 Jogo salvo na horda ${state.wave}`,'r2');return true}

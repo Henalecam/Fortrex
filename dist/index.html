@@ -1550,7 +1550,7 @@ function drawRealm(){if(!REALM.open||!rctx)return;const dpr=Math.min(2,window.de
     // level badge
     g.fillStyle=col;g.beginPath();g.arc(x+s*1.05,y-s*.35,8,0,Math.PI*2);g.fill();g.strokeStyle='#fff';g.lineWidth=1.5;g.stroke();g.fillStyle='#fff';g.font='700 9px Fredoka,sans-serif';g.textAlign='center';g.fillText(c.lvl,x+s*1.05,y-s*.35+3);
     // label pill
-    const label=(c.home?'👑 ':'')+c.name;g.font=`700 ${c.home?12:11}px Fredoka,sans-serif`;const lw=g.measureText(label).width+12;g.fillStyle='rgba(255,255,255,.85)';const ly=y+s*1.2+4;g.beginPath();g.roundRect?g.roundRect(x-lw/2,ly,lw,28,8):g.rect(x-lw/2,ly,lw,28);g.fill();
+    const label=(c.home?'👑 ':'')+(c.ally?'🤝 ':'')+c.name;g.font=`700 ${c.home?12:11}px Fredoka,sans-serif`;const lw=g.measureText(label).width+12;g.fillStyle='rgba(255,255,255,.85)';const ly=y+s*1.2+4;g.beginPath();g.roundRect?g.roundRect(x-lw/2,ly,lw,28,8):g.rect(x-lw/2,ly,lw,28);g.fill();
     g.fillStyle='#2b2d4a';g.fillText(label,x,ly+12);g.font='600 9.5px Nunito,sans-serif';g.fillStyle='#6b6e8f';g.fillText(`⚔ ${Math.round(c.garrison)} · ${c.fac.isMe?'sua':facOf(c).name.split(' ')[0]}`,x,ly+24)}
   // compass + title
   const [kx,ky]=[V.w-38,38];g.fillStyle='rgba(255,255,255,.7)';g.beginPath();g.arc(kx,ky,22,0,Math.PI*2);g.fill();g.fillStyle='#d9414f';g.beginPath();g.moveTo(kx,ky-18);g.lineTo(kx+5,ky);g.lineTo(kx-5,ky);g.fill();g.fillStyle='#2b2d4a';g.beginPath();g.moveTo(kx,ky+18);g.lineTo(kx+5,ky);g.lineTo(kx-5,ky);g.fill();g.font='700 9px Fredoka,sans-serif';g.textAlign='center';g.fillText('N',kx,ky-21+(-2));
@@ -2053,9 +2053,17 @@ function placeHeroBar(){const narrow=innerWidth<600;let bar=$('heroBar');if(!bar
   for(const H of HEROES){const b=$('bHero_'+H.id);if(!b)continue;if(narrow&&b.parentNode!==bar)bar.appendChild(b);else if(!narrow&&b.parentNode!==dock)dock.insertBefore(b,anchor)}}
 addEventListener('resize',placeHeroBar);setTimeout(placeHeroBar,0);
 
+// allies answer the call: while a rival fortress besieges you, each allied city sends soldiers (they leave when the fight ends)
+let allyAcc=0;function allyTick(dt){allyAcc+=dt;if(allyAcc<1)return;allyAcc=0;const R=battle();const helpers=minions.filter(m=>m.allyHelp);
+  if(!R){if(helpers.length){for(const m of helpers){scene.remove(m.group);minions.splice(minions.indexOf(m),1)}state.allyHelpFor=null}return}
+  if(state.allyHelpFor===R.name)return;const A=REALM.cities.filter(c=>c.ally&&!c.fac.isMe);if(!A.length)return;state.allyHelpFor=R.name;let n=0;
+  for(const c of A)for(let k=0;k<Math.min(3,1+Math.floor(c.lvl/2))&&n<8;k++,n++){const m=makeMinion('sol',Math.min(3,1+Math.floor(c.lvl/3)),GATE.x+rnd(-2,2),GATE.z+3+rnd(0,2));m.allyHelp=true;m.name=`${m.name} de ${c.name}`;for(const p of m.hats)p.material.color.setHex(hex2int(facOf(c).color))}
+  if(n)toast(`🤝 Seus aliados mandaram ${n} soldados contra ${R.name}!`,'r4')}
+function hex2int(c){return typeof c==='number'?c:parseInt(String(c).replace('#',''),16)}
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.52;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.53;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2063,7 +2071,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.48,'🔕 Menos avisos repetidos; inimigos tardios mais resistentes.'],[0.49,'🏛️ Maravilhas (Observatório, Catedral, Grande Muralha, Estátua) e dock do celular em 2 linhas.'],
   [0.50,'🗂️ Upgrades em abas (✨ Pronto mostra só o que dá para comprar) e esta tela de novidades.'],
   [0.51,'⭐ Talentos de herói nos níveis 3, 6 e 9; heróis não perdem mais a vida extra ao subir de nível; no celular os heróis ficam numa coluna própria.'],
-  [0.52,'🤝 Socorro no reino: ajude uma fortaleza cercada e ela vira aliada (não ataca você e paga tributo a cada horda). Talentos aparecem na ficha do herói.']];
+  [0.52,'🤝 Socorro no reino: ajude uma fortaleza cercada e ela vira aliada (não ataca você e paga tributo a cada horda). Talentos aparecem na ficha do herói.'],
+  [0.53,'🤝 Aliados mandam soldados quando uma fortaleza rival cerca você; aliadas aparecem com 🤝 no mapa do reino.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2079,7 +2088,7 @@ function saveGame(manual){if(!canSave()){if(manual)toast('Só dá para salvar en
   try{const st={};for(const k in state){if(SAVE_SKIP.has(k))continue;const x=plain(state[k]);if(x!==undefined)st[k]=x}
     const d={v:1,ver:GAME_VERSION,at:Date.now(),wave:state.wave,diff:OPTS.diff||'normal',biome:state.biomeKey,simTime,state:st,
       vox:rleEnc(vox),looted:rleEnc(looted),rown:rleEnc(rown),
-      minions:minions.map(m=>({role:m.role,r:m.rarity,name:m.name,lvl:m.lvl,xp:m.xp,trait:m.trait,kills:m.kills,hero:m.hero||null,x:m.pos.x,z:m.pos.z,eq:plain(m.eq)})),
+      minions:minions.filter(m=>!m.allyHelp).map(m=>({role:m.role,r:m.rarity,name:m.name,lvl:m.lvl,xp:m.xp,trait:m.trait,kills:m.kills,hero:m.hero||null,x:m.pos.x,z:m.pos.z,eq:plain(m.eq)})),
       turrets:turrets.filter(t=>t.alive&&t.team!=='r').map(t=>({type:t.type,r:t.r,anchor:t.anchor})),
       realm:{t:REALM.t,spawnT:REALM.spawnT,poiT:REALM.poiT,nextId:REALM.nextId,facs:REALM.facs.map(f=>({...f})),cities:REALM.cities.map(c=>({...c,fac:c.fac.id})),pois:plain(REALM.pois),log:REALM.log.slice(-30)}};
     localStorage.setItem(SAVE_KEY,JSON.stringify(d));state.savedWave=state.wave;refreshSaveUi();if(manual)toast(`💾 Jogo salvo na horda ${state.wave}`,'r2');return true}
@@ -2253,7 +2262,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':'r1');state.combo=0}
@@ -2386,6 +2395,8 @@ window.__hunt=()=>{simTime=(Math.ceil(simTime/DAY_LEN)+.6)*DAY_LEN;state.wave=Ma
 window.__dbgTal=()=>({tal:state.heroTal,hp:Object.keys(state.heroes||{}).map(k=>{const m=state.heroes[k].m;return k+':'+m.lvl+':'+Math.round(m.maxhp)})});
 window.__aid=()=>{let P=null;for(let k=0;k<200&&!P;k++){const n=REALM.pois.length;const r=Math.random;Math.random=()=>0.01;try{spawnPoi()}finally{Math.random=r}P=REALM.pois.find(p=>p.kind==='aid')}if(!P)return 'nopoi';const ok=acceptPoi(P);return P.name+' ok='+ok};
 window.__allies=()=>REALM.cities.filter(c=>c.ally).map(c=>c.name);
+window.__siege=()=>{const c=REALM.cities.find(x=>!x.fac.isMe&&!x.ally);if(!c)return 'none';const A=REALM.cities.find(x=>!x.fac.isMe&&x!==c);if(A)A.ally=true;startBattle(c,'defend',30);return c.name+' ally='+(A&&A.name)};
+window.__helpers=()=>minions.filter(m=>m.allyHelp).length;
 
 })();
 </script>

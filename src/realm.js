@@ -174,7 +174,7 @@ function drawRealm(){if(!REALM.open||!rctx)return;const dpr=Math.min(2,window.de
     // level badge
     g.fillStyle=col;g.beginPath();g.arc(x+s*1.05,y-s*.35,8,0,Math.PI*2);g.fill();g.strokeStyle='#fff';g.lineWidth=1.5;g.stroke();g.fillStyle='#fff';g.font='700 9px Fredoka,sans-serif';g.textAlign='center';g.fillText(c.lvl,x+s*1.05,y-s*.35+3);
     // label pill
-    const label=(c.home?'👑 ':'')+c.name;g.font=`700 ${c.home?12:11}px Fredoka,sans-serif`;const lw=g.measureText(label).width+12;g.fillStyle='rgba(255,255,255,.85)';const ly=y+s*1.2+4;g.beginPath();g.roundRect?g.roundRect(x-lw/2,ly,lw,28,8):g.rect(x-lw/2,ly,lw,28);g.fill();
+    const label=(c.home?'👑 ':'')+(c.ally?'🤝 ':'')+c.name;g.font=`700 ${c.home?12:11}px Fredoka,sans-serif`;const lw=g.measureText(label).width+12;g.fillStyle='rgba(255,255,255,.85)';const ly=y+s*1.2+4;g.beginPath();g.roundRect?g.roundRect(x-lw/2,ly,lw,28,8):g.rect(x-lw/2,ly,lw,28);g.fill();
     g.fillStyle='#2b2d4a';g.fillText(label,x,ly+12);g.font='600 9.5px Nunito,sans-serif';g.fillStyle='#6b6e8f';g.fillText(`⚔ ${Math.round(c.garrison)} · ${c.fac.isMe?'sua':facOf(c).name.split(' ')[0]}`,x,ly+24)}
   // compass + title
   const [kx,ky]=[V.w-38,38];g.fillStyle='rgba(255,255,255,.7)';g.beginPath();g.arc(kx,ky,22,0,Math.PI*2);g.fill();g.fillStyle='#d9414f';g.beginPath();g.moveTo(kx,ky-18);g.lineTo(kx+5,ky);g.lineTo(kx-5,ky);g.fill();g.fillStyle='#2b2d4a';g.beginPath();g.moveTo(kx,ky+18);g.lineTo(kx+5,ky);g.lineTo(kx-5,ky);g.fill();g.font='700 9px Fredoka,sans-serif';g.textAlign='center';g.fillText('N',kx,ky-21+(-2));

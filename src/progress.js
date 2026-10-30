@@ -255,3 +255,11 @@ function offerTalent(m){const id=m.hero;if(!id||!minions.includes(m))return;stat
 function placeHeroBar(){const narrow=innerWidth<600;let bar=$('heroBar');if(!bar){bar=document.createElement('div');bar.id='heroBar';document.body.appendChild(bar)}const dock=document.querySelector('.dock');const anchor=$('bomb');
   for(const H of HEROES){const b=$('bHero_'+H.id);if(!b)continue;if(narrow&&b.parentNode!==bar)bar.appendChild(b);else if(!narrow&&b.parentNode!==dock)dock.insertBefore(b,anchor)}}
 addEventListener('resize',placeHeroBar);setTimeout(placeHeroBar,0);
+
+// allies answer the call: while a rival fortress besieges you, each allied city sends soldiers (they leave when the fight ends)
+let allyAcc=0;function allyTick(dt){allyAcc+=dt;if(allyAcc<1)return;allyAcc=0;const R=battle();const helpers=minions.filter(m=>m.allyHelp);
+  if(!R){if(helpers.length){for(const m of helpers){scene.remove(m.group);minions.splice(minions.indexOf(m),1)}state.allyHelpFor=null}return}
+  if(state.allyHelpFor===R.name)return;const A=REALM.cities.filter(c=>c.ally&&!c.fac.isMe);if(!A.length)return;state.allyHelpFor=R.name;let n=0;
+  for(const c of A)for(let k=0;k<Math.min(3,1+Math.floor(c.lvl/2))&&n<8;k++,n++){const m=makeMinion('sol',Math.min(3,1+Math.floor(c.lvl/3)),GATE.x+rnd(-2,2),GATE.z+3+rnd(0,2));m.allyHelp=true;m.name=`${m.name} de ${c.name}`;for(const p of m.hats)p.material.color.setHex(hex2int(facOf(c).color))}
+  if(n)toast(`🤝 Seus aliados mandaram ${n} soldados contra ${R.name}!`,'r4')}
+function hex2int(c){return typeof c==='number'?c:parseInt(String(c).replace('#',''),16)}
