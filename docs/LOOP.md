@@ -81,6 +81,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.36.1: torres de vigia (expansão da horda 18) reduzem a penalidade de alcance da bruma (72%→92%) e da tempestade de areia (65%→88%). Teste longo 30 min: sem erros, horda 24.
 - v0.37: 🚩 Bandeira de reunião (dock "Reunir"): clique no mapa e os soldados se juntam ali por 30 s, caçando inimigos num raio de 14; clique de novo para cancelar.
 - v0.38: 🧱 Alvenaria (4 níveis, hordas 4/8/13/19): a planta troca madeira→pedra→metal→obsidiana→aço rúnico e a troca acontece de graça no reparo pós-horda; torres ganham +45% de vida por nível. 💣 Sapadores: a cada horda minas, espinhos, gelo, piche e barris são espalhados pelo mapa em linhas nos caminhos mais usados pela horda (não viram material). 💍 Inimigos de elite com afixos (horda 8+): veloz, blindado, vampiro, explosivo, regenerante — anel colorido nos pés. Brutal entra em rampa (normal→brutal até a horda 9). Corrigido: ficha do minion abria vazia; dica não cobre a ficha no celular.
+- v0.39: armadilhas dos Sapadores agora disparam por proximidade (minas e barris explodem quando a horda passa ao lado, espinhos ferem, gelo e piche desaceleram) — antes só ~20% eram usadas, agora ~65%. Bot normal: horda 21 em 25 min, sem erros.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

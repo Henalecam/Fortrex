@@ -34,11 +34,11 @@ function upReady(U){const lv=state.ups[U.id]||0;return isUnlocked('up',U.id)&&(!
 function upLockWave(U){const lv=state.ups[U.id]||0;return Math.max(unlockWave('up',U.id),U.need?U.need(lv):1)}
 // ───────── minefields: sappers scatter traps across the map where the horde walks (never paid back as material)
 function trapKinds(){const k=[17,17,16];if(isUnlocked('block',18))k.push(18);if(isUnlocked('block',31))k.push(31);k.push(10);return k}
-function scatterTraps(){const lv=state.ups.sappers||0;state.fieldTraps=(state.fieldTraps||[]).filter(i=>vox[i]&&vox[i]===state.fieldTrapM.get(i));const cap=24+12*lv;let want=Math.min(2+3*lv+Math.floor(state.wave/4),cap-state.fieldTraps.length);let placed=0,guard=0;
+function scatterTraps(){const lv=state.ups.sappers||0;const n0=(state.fieldTraps||[]).length;state.fieldTraps=(state.fieldTraps||[]).filter(i=>vox[i]&&vox[i]===state.fieldTrapM.get(i));state.trapGone=(state.trapGone||0)+n0-state.fieldTraps.length;const cap=24+12*lv;let want=Math.min(2+3*lv+Math.floor(state.wave/4),cap-state.fieldTraps.length);let placed=0,guard=0;
   while(want>0&&guard++<40){let best=null,bs=-1;for(let s=0;s<24;s++){const a=rnd(0,Math.PI*2),r=rnd(WR+14,64),x=Math.floor(CX+Math.cos(a)*r),z=Math.floor(CZ+Math.sin(a)*r);if(x<3||z<3||x>W-4||z>D-4)continue;const h=(heat[x+z*W]||0)+Math.random()*2;if(h>bs){bs=h;best=[x,z,a]}}
     if(!best)continue;const [x0,z0,a]=best;const m=pick(trapKinds());const n=Math.min(want,m===10?1:rint(2,4));const px=-Math.sin(a),pz=Math.cos(a);
     for(let k=0;k<n;k++){const x=Math.round(x0+px*(k-n/2)*1.6),z=Math.round(z0+pz*(k-n/2)*1.6);if(surf(x,z)!==GY||!inb(x,GY,z))continue;const i=idx(x,GY,z);if(vox[i]||blue[i]||rown[i]||FLUID(vox[idx(x,GY-1,z)])||cellBusy(i))continue;
-      setVox(i,m);hp[i]=MAT[m].hp;looted[i]=1;if(natBlue)natBlue[i]=0;state.fieldTraps.push(i);state.fieldTrapM.set(i,m);sparkle(x+.5,GY+1,z+.5,MAT[m].c,2);placed++;want--}}
+      setVox(i,m);hp[i]=MAT[m].hp;looted[i]=1;if(natBlue)natBlue[i]=0;state.fieldTraps.push(i);state.fieldTrapM.set(i,m);state.trapPlaced=(state.trapPlaced||0)+1;sparkle(x+.5,GY+1,z+.5,MAT[m].c,2);placed++;want--}}
   return placed}
 const UPGRADES_LATE=[
   {id:'forge',ico:'🔱',nm:'Forja real',ds:'+5% de dano em todas as armas. Sem limite.',max:99,cost:l=>180+l*140,go(){state.dmgMul*=1.05}},
@@ -170,3 +170,11 @@ let flagMesh=null;
 function removeFlag(){if(flagMesh){scene.remove(flagMesh);flagMesh=null}}
 function setRally(x,z){removeFlag();state.rally={x,z,t:30};const g=new THREE.Group();box(.12,3,.12,0x6b4a2a,0,1.5,0,g);box(1.1,.7,.06,0xd9414f,.55,2.6,0,g);g.position.set(x,surf(x,z),z);scene.add(g);flagMesh=g;toast('🚩 Soldados, reúnam-se!','r2',true);SFX.whoosh()}
 function rallyTick(dt){const R=state.rally;if(!R)return;R.t-=dt;if(flagMesh)flagMesh.children[1].rotation.y=Math.sin(simTime*4)*.3;if(R.t<=0){state.rally=null;removeFlag()}}
+
+// field traps trigger by proximity: walking past is enough (enemies path around solid blocks, so waiting to be hit rarely happened)
+let trapAcc=0;function trapTick(dt){trapAcc+=dt;if(trapAcc<.2||state.phase!=='wave')return;const t=trapAcc;trapAcc=0;const L=state.fieldTraps;if(!L||!L.length)return;const at=new Map();for(const i of L)if(vox[i])at.set(ix(i)+iz(i)*W,i);if(!at.size)return;
+  for(const e of enemies){if(e.dead||e.fly)continue;const fx=Math.floor(e.pos.x),fz=Math.floor(e.pos.z);for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const i=at.get(fx+dx+(fz+dz)*W);if(i===undefined)continue;const m=vox[i];if(m!==state.fieldTrapM.get(i))continue;
+    if(m===17||m===10){at.delete(fx+dx+(fz+dz)*W);removeVox(i,'trap');state.trapHits=(state.trapHits||0)+1}
+    else if(m===16){dmgEnemy(e,(6+state.wave*1.4)*t*5,true);hp[i]-=6*t*5;if(hp[i]<=0)removeVox(i,'trap');state.trapHits=(state.trapHits||0)+t}
+    else if(m===18){e.slowT=Math.max(e.slowT||0,1.6);hp[i]-=5*t*5;if(hp[i]<=0)removeVox(i,'trap')}
+    else if(m===31){e.slowT=Math.max(e.slowT||0,1.2)}}}}
