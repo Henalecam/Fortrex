@@ -169,7 +169,7 @@ const TIPS=[{id:'start',c:()=>simTime>3,t:'👥 Seus minions trabalham sozinhos:
   {id:'affix',c:()=>enemies.some(e=>e.aff&&!e.dead),t:'💍 Anéis coloridos nos pés marcam inimigos de elite: amarelo veloz, azul blindado, vermelho vampiro, laranja explode ao morrer, verde regenera.'},
   {id:'sappers',c:()=>(state.fieldTraps||[]).length>=4,t:'💣 Os sapadores espalham minas, espinhos e barris pelo mapa onde a horda passa. Compre Sapadores para mais armadilhas.'},
   {id:'rally',c:()=>!!state.vein||enemies.some(e=>e.alpha&&!e.dead),t:'🚩 Reunir: toque no mapa e os soldados vão até lá por 30 s — ótimo para defender o veio de ouro ou caçar o lobo alfa.'},
-  {id:'oil',c:()=>state.wave>=6&&state.phase==='rest'&&!state.ups.oil&&enemies.length===0,t:'🫕 Escaladores e aranhas passam por cima das muralhas. Óleo fervente (Upgrades) derruba eles lá de cima.'},
+  {id:'oil',c:()=>state.wave>=6&&!state.ups.oil&&!!state.climbHitChest,t:'🫕 Escaladores e aranhas passam por cima das muralhas. Óleo fervente (Upgrades) derruba eles lá de cima.'},
   {id:'goblin',c:()=>enemies.some(e=>e.type==='goblin'&&!e.dead),t:'🔧 Sabotadores (duendes com chave inglesa) desarmam as armadilhas dos Sapadores. Concentre o fogo neles.'},
   {id:'bearer',c:()=>enemies.some(e=>e.bearer&&!e.dead),t:'🚩 Um porta-estandarte inimigo acelera e protege a horda ao redor. Clique nele para concentrar o fogo: quando cai, todos por perto entram em pânico.'},
   {id:'ward',c:()=>state.wave>=8&&state.phase==='wave'&&chestAlive()<18,t:'🛡️ O baú está sendo atacado! Use a Égide do Guardião (dock) para proteger a cidadela por 7 s.'},
@@ -321,3 +321,14 @@ function dogTick(dt){const want=state.ups.kennel||0;while(dogs.length<want)dogs.
     if(d.tgt&&dist<1.3+d.tgt.radius){d.biteT-=dt;if(d.biteT<=0){d.biteT=.7;dmgEnemy(d.tgt,(10+W8*1.8)*state.bladeMul,true);d.bites++;d.hp-=(d.tgt.T.dmg||5)*.5;state.dogBites=(state.dogBites||0)+1;if(Math.random()<.15)label({x:d.pos.x,y:d.pos.y+1.2,z:d.pos.z},'au!','#8a5a35');if(d.hp<=0){d.hurtT=20;toast('🐕 Um cão de guarda se feriu e voltou ao canil','r1')}}}
     else if(dist>.4){const sp=(d.hurtT>0?3:d.tgt?7.5:4)*dt;const st=Math.min(sp,dist);d.pos.x+=dx/dist*st;d.pos.z+=dz/dist*st;d.g.rotation.y=Math.atan2(dx,dz);d.bob+=dt*14}
     d.pos.y=standY(d.pos.x,d.pos.z)+(d.tgt?Math.abs(Math.sin(d.bob))*.12:0);d.legs.forEach((L,i)=>L.rotation.x=Math.sin(d.bob+(i%2?Math.PI:0))*.5);d.band.visible=d.hurtT>0;d.g.rotation.z=d.hurtT>0&&Math.hypot(home.x-d.pos.x,home.z-d.pos.z)<.6?1.3:0}}
+
+// expeditions (from the Realm panel): 3 collectors leave for 2 waves and come back with material and maybe a treasure
+function expAvail(){return minions.filter(m=>m.role==='col'&&!m.away&&!m.hero&&m.wounded<=0)}
+function expeditionHtml(){const X=state.expedition;if(X)return `<div class="rc"><b>🧭 Expedição em andamento</b><div class="ds">${X.n} coletores voltam na horda ${X.back} com material${X.lvl>=2?' e talvez um tesouro':''}.</div></div>`;
+  const av=expAvail().length;const ok=av>=4&&state.phase==='rest'&&state.wave>=3;return `<div class="rc"><b>🧭 Expedição</b><div class="ds">Mande 3 coletores explorar o reino por 2 hordas: voltam com ~${expReward()} material e chance de tesouro. Você fica sem eles enquanto isso.</div>${ok?'<button class="btn primary" id="expGo">Enviar expedição</button>':`<div class="ds">${state.wave<3?'Disponível a partir da horda 3.':state.phase!=='rest'?'Só no descanso entre hordas.':'Precisa de pelo menos 4 coletores livres.'}</div>`}</div>`}
+function expReward(){return Math.round(30+state.wave*9)}
+function sendExpedition(){if(state.expedition||state.phase!=='rest')return;const L=expAvail().slice(0,3);if(L.length<3)return;for(const m of L){m.away=true;m.group.visible=false;m.task=null;m.bag=[];m.pos.set(CHEST.x,GY,CHEST.z)}
+  state.expedition={n:3,back:state.wave+2,lvl:Math.min(4,1+Math.floor(state.wave/6))};toast('🧭 A expedição partiu: 3 coletores voltam em 2 hordas.','r3')}
+function expeditionReturn(){const X=state.expedition;if(!X||state.wave<X.back)return;state.expedition=null;let n=0;for(const m of minions)if(m.away){m.away=false;m.group.visible=true;m.pos.set(GATE.x+rnd(-2,2),standY(GATE.x,GATE.z+3),GATE.z+3);n++}
+  const g=expReward();spawnLoot(GATE.x,GY+1.5,GATE.z+3,'material',0,{amount:g});if(Math.random()<.35+X.lvl*.1)spawnLoot(GATE.x+1,GY+1.5,GATE.z+3,'treasure',Math.max(1,Math.min(4,rollRarity(.05+state.wave*.006)+1)),{});
+  toast(`🧭 A expedição voltou com ${g} material${n?'':''}! Os coletores estão no portão.`,'r4');SFX.open()}

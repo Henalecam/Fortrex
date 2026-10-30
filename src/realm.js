@@ -193,8 +193,9 @@ function renderRealmInfo(){const el=$('realmInfo');if(!el)return;const c=REALM.s
     if(!f.isMe){const o=battleOdds(c.lvl);h+=`<div class="ds">Batalha definitiva: fortaleza contra fortaleza. Inimigo: ~${Math.round(4+c.lvl*2)} guardas, ${Math.min(8,3+c.lvl)} torres e o General. Você: ataque ${o.F.atk.toFixed(0)} + defesa ${o.F.def.toFixed(0)}.</div>${oddsHtml(o)}`;
       h+=war?`<div class="ds">Já em guerra com ${war.name}. Termine essa batalha primeiro.</div>`:state.battleCd>0?`<div class="ds">Tropas descansando: ${Math.ceil(state.battleCd)} s</div>`:REALM.confirm===c?`<button class="btn primary" id="realmGo">⚔️ Confirmar guerra (${pctS(o.p)})</button><button class="btn" id="realmNo">Cancelar</button>`:`<button class="btn primary" id="realmAsk">⚔️ Declarar guerra…</button>`}
     h+='</div>'}
+  h+=expeditionHtml();
   if(!c&&!Q&&!A)h+='<div class="ds" style="margin-top:8px">Clique numa fortaleza, num exército ou num objetivo (💀 covil, ⚔️ escaramuça, 💎 ruínas). Antes de qualquer batalha você vê a chance de vitória.</div>';
-  el.innerHTML=h;const sel=REALM.sel;const ask=$('realmAsk');if(ask)ask.onclick=()=>{REALM.confirm=sel;renderRealmInfo()};const no=$('realmNo');if(no)no.onclick=()=>{REALM.confirm=null;renderRealmInfo()};
+  el.innerHTML=h;{const eb=$('expGo');if(eb)eb.onclick=()=>{sendExpedition();renderRealmInfo()}}const sel=REALM.sel;const ask=$('realmAsk');if(ask)ask.onclick=()=>{REALM.confirm=sel;renderRealmInfo()};const no=$('realmNo');if(no)no.onclick=()=>{REALM.confirm=null;renderRealmInfo()};
   const go=$('realmGo');if(go)go.onclick=()=>{REALM.confirm=null;if(sel.kind){if(acceptPoi(sel)){REALM.sel=null;closeRealm()}}else if(startBattle(sel,'attack')){REALM.sel=null;closeRealm()}}}
 function realmClick(ev){const r=rcv.getBoundingClientRect();const V=rView();const mx=(ev.clientX-r.left-V.ox)/V.s,my=(ev.clientY-r.top-V.oy)/V.s;REALM.confirm=null;
   {let ba=null,bd=18;for(const A of REALM.armies){const d=Math.hypot(A.x-mx,A.y-my);if(d<bd){bd=d;ba=A}}if(ba){REALM.sel=null;REALM.selA=ba;renderRealmInfo();drawRealm();return}}REALM.selA=null;

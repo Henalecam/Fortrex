@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.73;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.74;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -29,7 +29,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.70,'📚 Dicas reorganizadas para quem começa (básico primeiro) e novas dicas de Ímpeto, save e Reunir. Ao perder, dá para voltar ao último save direto da tela final.'],
   [0.71,'🐕 Canil (Upgrades → Exército, horda 5+): cães de guarda correm atrás dos Devoradores perto do portão e mordem.'],
   [0.72,'🐕 Cães mostram vida e mordidas ao passar o mouse; feridos deitam com curativo no canil.'],
-  [0.73,'⚖️ Equilíbrio por bioma: aríetes fazem menos dano ao baú (são feitos para portões), erupções só a partir da horda 4 e o calor do deserto cansa menos.']];
+  [0.73,'⚖️ Equilíbrio por bioma: aríetes fazem menos dano ao baú (são feitos para portões), erupções só a partir da horda 4 e o calor do deserto cansa menos.'],
+  [0.74,'🧭 Expedições (painel do Reino): mande 3 coletores por 2 hordas e eles voltam com material e chance de tesouro. A dica do Óleo aparece assim que escaladores atingem o baú.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -73,5 +74,5 @@ function loadGame(){const d=readSave();if(!d)return false;
     REALM.armies.length=0;REALM.pois.length=0;for(const p of revive(R.pois||[]))REALM.pois.push(p);REALM.t=R.t||0;REALM.spawnT=R.spawnT||100;REALM.poiT=R.poiT||45;REALM.nextId=R.nextId||REALM.cities.length+REALM.pois.length+5;REALM.log.length=0;for(const l of R.log||[])REALM.log.push(l);REALM.deco=null}
   if(state.merchant)$('bMerch').hidden=false;
   state.ups=state.ups||{};state.inv=state.inv||{blocks:{},turrets:[],armory:[]};
-  renderGoals();refreshSaveUi();updateHud();cam.target.set(CX,GY+1.5,CZ);toast(`💾 Partida retomada na horda ${state.wave}`,'r4');showNews(+d.ver||0.41);setTimeout(()=>{for(const k in state.heroes||{})offerTalent(state.heroes[k].m)},2500);return true}
+  renderGoals();refreshSaveUi();updateHud();cam.target.set(CX,GY+1.5,CZ);toast(`💾 Partida retomada na horda ${state.wave}`,'r4');if(state.expedition){state.expedition.back=state.wave}showNews(+d.ver||0.41);setTimeout(()=>{for(const k in state.heroes||{})offerTalent(state.heroes[k].m)},2500);return true}
 function refreshSaveUi(){const d=readSave();const b=$('continue');if(b){b.hidden=!d;if(d)b.textContent=`▶ Continuar · horda ${d.wave}`}const s=$('saveInfo');if(s)s.textContent=d?`Último save: horda ${d.wave} · ${new Date(d.at).toLocaleString('pt-BR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'})}`:'Nenhum save ainda'}

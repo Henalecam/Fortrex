@@ -480,6 +480,7 @@ function setFluid(i,m,lv,src){if(SOLIDM(vox[i]))return;vox[i]=m;hp[i]=lv;fluids.
 // src: 'enemy' | 'player' | 'env'. Player damage never touches the fortress (blue) — no friendly fire.
 function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m))return false;if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
   if(blue[i]){if(src==='player')return false;if(src==='env')d*=.4;if(state.wardT>0)d*=.08}
+  if(m===5&&who&&CLIMBS(who.type))state.climbHitChest=true;
   if(m===5&&src==='enemy')d*=who&&(who.type==='ram'||who.type==='rammer')?.6:1.5;
   if(m===20)d*=.45;if(m===14)d*=.7;
   if(m===5&&src==='enemy')d*=.45;
@@ -1607,8 +1608,9 @@ function renderRealmInfo(){const el=$('realmInfo');if(!el)return;const c=REALM.s
     if(!f.isMe){const o=battleOdds(c.lvl);h+=`<div class="ds">Batalha definitiva: fortaleza contra fortaleza. Inimigo: ~${Math.round(4+c.lvl*2)} guardas, ${Math.min(8,3+c.lvl)} torres e o General. Você: ataque ${o.F.atk.toFixed(0)} + defesa ${o.F.def.toFixed(0)}.</div>${oddsHtml(o)}`;
       h+=war?`<div class="ds">Já em guerra com ${war.name}. Termine essa batalha primeiro.</div>`:state.battleCd>0?`<div class="ds">Tropas descansando: ${Math.ceil(state.battleCd)} s</div>`:REALM.confirm===c?`<button class="btn primary" id="realmGo">⚔️ Confirmar guerra (${pctS(o.p)})</button><button class="btn" id="realmNo">Cancelar</button>`:`<button class="btn primary" id="realmAsk">⚔️ Declarar guerra…</button>`}
     h+='</div>'}
+  h+=expeditionHtml();
   if(!c&&!Q&&!A)h+='<div class="ds" style="margin-top:8px">Clique numa fortaleza, num exército ou num objetivo (💀 covil, ⚔️ escaramuça, 💎 ruínas). Antes de qualquer batalha você vê a chance de vitória.</div>';
-  el.innerHTML=h;const sel=REALM.sel;const ask=$('realmAsk');if(ask)ask.onclick=()=>{REALM.confirm=sel;renderRealmInfo()};const no=$('realmNo');if(no)no.onclick=()=>{REALM.confirm=null;renderRealmInfo()};
+  el.innerHTML=h;{const eb=$('expGo');if(eb)eb.onclick=()=>{sendExpedition();renderRealmInfo()}}const sel=REALM.sel;const ask=$('realmAsk');if(ask)ask.onclick=()=>{REALM.confirm=sel;renderRealmInfo()};const no=$('realmNo');if(no)no.onclick=()=>{REALM.confirm=null;renderRealmInfo()};
   const go=$('realmGo');if(go)go.onclick=()=>{REALM.confirm=null;if(sel.kind){if(acceptPoi(sel)){REALM.sel=null;closeRealm()}}else if(startBattle(sel,'attack')){REALM.sel=null;closeRealm()}}}
 function realmClick(ev){const r=rcv.getBoundingClientRect();const V=rView();const mx=(ev.clientX-r.left-V.ox)/V.s,my=(ev.clientY-r.top-V.oy)/V.s;REALM.confirm=null;
   {let ba=null,bd=18;for(const A of REALM.armies){const d=Math.hypot(A.x-mx,A.y-my);if(d<bd){bd=d;ba=A}}if(ba){REALM.sel=null;REALM.selA=ba;renderRealmInfo();drawRealm();return}}REALM.selA=null;
@@ -2005,7 +2007,7 @@ const TIPS=[{id:'start',c:()=>simTime>3,t:'👥 Seus minions trabalham sozinhos:
   {id:'affix',c:()=>enemies.some(e=>e.aff&&!e.dead),t:'💍 Anéis coloridos nos pés marcam inimigos de elite: amarelo veloz, azul blindado, vermelho vampiro, laranja explode ao morrer, verde regenera.'},
   {id:'sappers',c:()=>(state.fieldTraps||[]).length>=4,t:'💣 Os sapadores espalham minas, espinhos e barris pelo mapa onde a horda passa. Compre Sapadores para mais armadilhas.'},
   {id:'rally',c:()=>!!state.vein||enemies.some(e=>e.alpha&&!e.dead),t:'🚩 Reunir: toque no mapa e os soldados vão até lá por 30 s — ótimo para defender o veio de ouro ou caçar o lobo alfa.'},
-  {id:'oil',c:()=>state.wave>=6&&state.phase==='rest'&&!state.ups.oil&&enemies.length===0,t:'🫕 Escaladores e aranhas passam por cima das muralhas. Óleo fervente (Upgrades) derruba eles lá de cima.'},
+  {id:'oil',c:()=>state.wave>=6&&!state.ups.oil&&!!state.climbHitChest,t:'🫕 Escaladores e aranhas passam por cima das muralhas. Óleo fervente (Upgrades) derruba eles lá de cima.'},
   {id:'goblin',c:()=>enemies.some(e=>e.type==='goblin'&&!e.dead),t:'🔧 Sabotadores (duendes com chave inglesa) desarmam as armadilhas dos Sapadores. Concentre o fogo neles.'},
   {id:'bearer',c:()=>enemies.some(e=>e.bearer&&!e.dead),t:'🚩 Um porta-estandarte inimigo acelera e protege a horda ao redor. Clique nele para concentrar o fogo: quando cai, todos por perto entram em pânico.'},
   {id:'ward',c:()=>state.wave>=8&&state.phase==='wave'&&chestAlive()<18,t:'🛡️ O baú está sendo atacado! Use a Égide do Guardião (dock) para proteger a cidadela por 7 s.'},
@@ -2158,9 +2160,20 @@ function dogTick(dt){const want=state.ups.kennel||0;while(dogs.length<want)dogs.
     else if(dist>.4){const sp=(d.hurtT>0?3:d.tgt?7.5:4)*dt;const st=Math.min(sp,dist);d.pos.x+=dx/dist*st;d.pos.z+=dz/dist*st;d.g.rotation.y=Math.atan2(dx,dz);d.bob+=dt*14}
     d.pos.y=standY(d.pos.x,d.pos.z)+(d.tgt?Math.abs(Math.sin(d.bob))*.12:0);d.legs.forEach((L,i)=>L.rotation.x=Math.sin(d.bob+(i%2?Math.PI:0))*.5);d.band.visible=d.hurtT>0;d.g.rotation.z=d.hurtT>0&&Math.hypot(home.x-d.pos.x,home.z-d.pos.z)<.6?1.3:0}}
 
+// expeditions (from the Realm panel): 3 collectors leave for 2 waves and come back with material and maybe a treasure
+function expAvail(){return minions.filter(m=>m.role==='col'&&!m.away&&!m.hero&&m.wounded<=0)}
+function expeditionHtml(){const X=state.expedition;if(X)return `<div class="rc"><b>🧭 Expedição em andamento</b><div class="ds">${X.n} coletores voltam na horda ${X.back} com material${X.lvl>=2?' e talvez um tesouro':''}.</div></div>`;
+  const av=expAvail().length;const ok=av>=4&&state.phase==='rest'&&state.wave>=3;return `<div class="rc"><b>🧭 Expedição</b><div class="ds">Mande 3 coletores explorar o reino por 2 hordas: voltam com ~${expReward()} material e chance de tesouro. Você fica sem eles enquanto isso.</div>${ok?'<button class="btn primary" id="expGo">Enviar expedição</button>':`<div class="ds">${state.wave<3?'Disponível a partir da horda 3.':state.phase!=='rest'?'Só no descanso entre hordas.':'Precisa de pelo menos 4 coletores livres.'}</div>`}</div>`}
+function expReward(){return Math.round(30+state.wave*9)}
+function sendExpedition(){if(state.expedition||state.phase!=='rest')return;const L=expAvail().slice(0,3);if(L.length<3)return;for(const m of L){m.away=true;m.group.visible=false;m.task=null;m.bag=[];m.pos.set(CHEST.x,GY,CHEST.z)}
+  state.expedition={n:3,back:state.wave+2,lvl:Math.min(4,1+Math.floor(state.wave/6))};toast('🧭 A expedição partiu: 3 coletores voltam em 2 hordas.','r3')}
+function expeditionReturn(){const X=state.expedition;if(!X||state.wave<X.back)return;state.expedition=null;let n=0;for(const m of minions)if(m.away){m.away=false;m.group.visible=true;m.pos.set(GATE.x+rnd(-2,2),standY(GATE.x,GATE.z+3),GATE.z+3);n++}
+  const g=expReward();spawnLoot(GATE.x,GY+1.5,GATE.z+3,'material',0,{amount:g});if(Math.random()<.35+X.lvl*.1)spawnLoot(GATE.x+1,GY+1.5,GATE.z+3,'treasure',Math.max(1,Math.min(4,rollRarity(.05+state.wave*.006)+1)),{});
+  toast(`🧭 A expedição voltou com ${g} material${n?'':''}! Os coletores estão no portão.`,'r4');SFX.open()}
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.73;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.74;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2189,7 +2202,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.70,'📚 Dicas reorganizadas para quem começa (básico primeiro) e novas dicas de Ímpeto, save e Reunir. Ao perder, dá para voltar ao último save direto da tela final.'],
   [0.71,'🐕 Canil (Upgrades → Exército, horda 5+): cães de guarda correm atrás dos Devoradores perto do portão e mordem.'],
   [0.72,'🐕 Cães mostram vida e mordidas ao passar o mouse; feridos deitam com curativo no canil.'],
-  [0.73,'⚖️ Equilíbrio por bioma: aríetes fazem menos dano ao baú (são feitos para portões), erupções só a partir da horda 4 e o calor do deserto cansa menos.']];
+  [0.73,'⚖️ Equilíbrio por bioma: aríetes fazem menos dano ao baú (são feitos para portões), erupções só a partir da horda 4 e o calor do deserto cansa menos.'],
+  [0.74,'🧭 Expedições (painel do Reino): mande 3 coletores por 2 hordas e eles voltam com material e chance de tesouro. A dica do Óleo aparece assim que escaladores atingem o baú.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2233,7 +2247,7 @@ function loadGame(){const d=readSave();if(!d)return false;
     REALM.armies.length=0;REALM.pois.length=0;for(const p of revive(R.pois||[]))REALM.pois.push(p);REALM.t=R.t||0;REALM.spawnT=R.spawnT||100;REALM.poiT=R.poiT||45;REALM.nextId=R.nextId||REALM.cities.length+REALM.pois.length+5;REALM.log.length=0;for(const l of R.log||[])REALM.log.push(l);REALM.deco=null}
   if(state.merchant)$('bMerch').hidden=false;
   state.ups=state.ups||{};state.inv=state.inv||{blocks:{},turrets:[],armory:[]};
-  renderGoals();refreshSaveUi();updateHud();cam.target.set(CX,GY+1.5,CZ);toast(`💾 Partida retomada na horda ${state.wave}`,'r4');showNews(+d.ver||0.41);setTimeout(()=>{for(const k in state.heroes||{})offerTalent(state.heroes[k].m)},2500);return true}
+  renderGoals();refreshSaveUi();updateHud();cam.target.set(CX,GY+1.5,CZ);toast(`💾 Partida retomada na horda ${state.wave}`,'r4');if(state.expedition){state.expedition.back=state.wave}showNews(+d.ver||0.41);setTimeout(()=>{for(const k in state.heroes||{})offerTalent(state.heroes[k].m)},2500);return true}
 function refreshSaveUi(){const d=readSave();const b=$('continue');if(b){b.hidden=!d;if(d)b.textContent=`▶ Continuar · horda ${d.wave}`}const s=$('saveInfo');if(s)s.textContent=d?`Último save: horda ${d.wave} · ${new Date(d.at).toLocaleString('pt-BR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'})}`:'Nenhum save ainda'}
 
 // ───────── main: waves, events, game flow, input, loop
@@ -2275,7 +2289,7 @@ function spawnFromQueue(dt){state.spawnT-=dt;if(state.spawnT>0||!state.queue.len
   const e=makeEnemy(type,r,x,z);if(type==='knight'&&state.wave>=12&&!state.bearerSpawned&&Math.random()<.5){state.bearerSpawned=true;makeBearer(e)}if(r>=4&&!BIG(type))toast(`${e.T.n} ${RARITY[r].n} apareceu!`,RARITY[r].css)}
 function meteorTick(dt){state.meteorT-=dt;if(state.meteorT>0)return;state.meteorT=rnd(2,3.5);const near=Math.random()<.3;const x=near?rnd(WA-4,WB+4):rnd(2,W-2),z=near?rnd(WA-4,WB+4):rnd(2,D-2);
   const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.8,0),lmat(0x5a3a2a,.6));m.position.set(x+12,GY+40,z-12);scene.add(m);bombs.push({mesh:m,x,z,vy:-30,vx:-9,vz:9,meteor:true})}
-function endWave(){const ev=state.ev;state.wave++;state.restStart=simTime;SFX.fanfare((state.wave-1)%5===0);state.morale=Math.min(100,(state.morale??60)+8);checkUnlocks();expansionTick();spawnVein();if(state.biomeKey==='campo'){const g=Math.round(5+state.wave*1.5);state.material+=g;toast(`🌾 Colheita: +${g} material`,'r1')}{const A=REALM.cities.filter(c=>c.ally&&!c.fac.isMe);if(A.length){const g=A.reduce((s,c)=>s+4+c.lvl*2,0);state.material+=g;if(Math.random()<.5)toast(`🤝 Tributo dos aliados: +${g} material`,'r1')}}if(BUILD_WAVES.includes(state.wave)&&!(state.buildings&&Object.keys(state.buildings).length>=BUILD_WAVES.indexOf(state.wave)+1))setTimeout(offerBuilding,1200);if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();if(state.wave%7===0)startFestival();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
+function endWave(){const ev=state.ev;state.wave++;state.restStart=simTime;SFX.fanfare((state.wave-1)%5===0);state.morale=Math.min(100,(state.morale??60)+8);checkUnlocks();expansionTick();spawnVein();expeditionReturn();if(state.biomeKey==='campo'){const g=Math.round(5+state.wave*1.5);state.material+=g;toast(`🌾 Colheita: +${g} material`,'r1')}{const A=REALM.cities.filter(c=>c.ally&&!c.fac.isMe);if(A.length){const g=A.reduce((s,c)=>s+4+c.lvl*2,0);state.material+=g;if(Math.random()<.5)toast(`🤝 Tributo dos aliados: +${g} material`,'r1')}}if(BUILD_WAVES.includes(state.wave)&&!(state.buildings&&Object.keys(state.buildings).length>=BUILD_WAVES.indexOf(state.wave)+1))setTimeout(offerBuilding,1200);if(state.merchant&&state.wave>state.merchant.until)merchantLeave();if(state.wave%3===1&&state.wave>1&&!state.merchant)merchantArrive();if(state.wave%7===0)startFestival();realmWaveIncome();startSelfRepair();addFame(4+state.wave*2);goalEvent('wave');if(!state.wwound)goalEvent('flawless');
   if(ev==='siege'&&state.siege>1){state.siege--;state.phase='rest';toast(`Cerco: horda ${4-state.siege} de 3. Sem descanso!`,'r2');startWave();return}
   if(ev==='siege'){state.siege=0;spawnLoot(CHEST.x+3,GY+3,CHEST.z+4,'treasure',3,{})}
   state.phase='rest';state.restT=15;$('event').style.display='none';
@@ -2378,7 +2392,7 @@ function simulate(dt){simTime+=dt;
     if(state.phase==='wave'){spawnFromQueue(dt);if(state.ev==='meteor')meteorTick(dt);if(state.ev==='storm')stormTick(dt);if(!state.queue.length&&enemies.every(e=>e.dead||e.rival))endWave()}
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
-    for(const m of minions)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
+    for(const m of minions)if(!m.away)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
     rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);volcanoTick(dt);biomeTick(dt);dogTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';$('bossShield').style.width=(b.shield>0?b.shield/b.maxhp*100:0)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
