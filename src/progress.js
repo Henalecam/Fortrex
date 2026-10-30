@@ -159,7 +159,7 @@ const ACH=[
 const ACHS=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_ach')||'{}')}catch(e){return{}}})();
 function achTick(dt){state.achT=(state.achT||0)-dt;if(state.achT>0)return;state.achT=2;for(const A of ACH){if(ACHS[A.id])continue;let ok=false;try{ok=A.c()}catch(e){}if(ok){ACHS[A.id]=Date.now();(state.achRun=state.achRun||[]).push(A.id);try{localStorage.setItem('fortrex_ach',JSON.stringify(ACHS))}catch(e){}toast(`🏆 Conquista: ${A.ico} ${A.n} — ${A.d}`,'r4',true);SFX.loot(4)}}}
 function achSummary(){const got=ACH.filter(A=>ACHS[A.id]);const run=(state.achRun||[]).map(id=>ACH.find(A=>A.id===id)).filter(Boolean);
-  return `<div class="achs"><div class="ds">🏆 Conquistas ${got.length}/${ACH.length}${run.length?` · nesta partida: ${run.map(A=>A.ico+' '+A.n).join(', ')}`:''}</div><div class="achrow">${ACH.map(A=>`<span class="${ACHS[A.id]?'on':''}" title="${A.n}: ${A.d}">${A.ico}</span>`).join('')}</div></div>`}
+  return `<div class="achs"><div class="ds">🏆 Conquistas ${got.length}/${ACH.length}${run.length?` · nesta partida: ${run.map(A=>A.ico+' '+A.n).join(', ')}`:''}</div>${got.length?'':'<!--'}<div class="achrow">${ACH.map(A=>`<span class="${ACHS[A.id]?'on':''}" title="${A.n}: ${A.d}">${A.ico}</span>`).join('')}</div>${got.length?'':'-->'}</div>`}
 function runStats(){return `<div class="rstats"><span>🌊 Horda <b>${state.wave}</b></span><span>💥 <b>${state.kills}</b> abates</span><span>🔥 combo <b>×${state.comboBest||0}</b></span><span>🦷 <b>${relicCount()}</b> relíquias</span><span>🏯 <b>${state.fortsWon||0}</b> fortalezas</span><span>🗺️ <b>${state.questsDone||0}</b> objetivos</span><span>👑 ${RANKS[rankIdx()].n}</span><span>${DIFF().ico} ${DIFF().n}</span></div>`}
 // ───────── festival: every 7 waves the citadel celebrates; click the floating lanterns for material and morale
 const lanterns=[];const LANT_GEO=new THREE.OctahedronGeometry(1.05,0);const LANT_COL=[0xffcf3d,0xff8a5c,0xb56cf2,0x5cc08c,0x4f9cf2];
@@ -985,3 +985,15 @@ NEW_BRAINS.portador=function(e,dt){const ud=e.group.userData;if(ud.dome){const g
   // fica atrás da tropa: se estiver à frente demais, espera
   const dC=Math.hypot(CHEST.x-e.pos.x,CHEST.z-e.pos.z);if(dC<WR+8&&e.veiled>0&&!e.waited){e.waitT=(e.waitT||0)+dt;if(e.waitT<6){e.group.position.y=e.gy+Math.sin(simTime*3)*.05;return true}e.waited=1}return false};
 NEW_DEATH.portador=function(e){for(let k=0;k<14;k++)spawnDebris(e.pos.x+rnd(-2,2),e.gy+rnd(.5,2.5),e.pos.z+rnd(-2,2),0xc8c0e0,1,.3);label({x:e.pos.x,y:e.gy+2.5,z:e.pos.z},'a bruma se dissipa','#c8c0e0')};
+
+// v3.6 setas de borda: inimigos fora da tela aparecem como setas vermelhas na borda (com contagem)
+const _edge=[];let _edgeT=0;const _ev3=new THREE.Vector3();
+function edgeTick(dt){_edgeT-=dt;if(_edgeT>0)return;_edgeT=.2;const box=$('edge');if(!box)return;
+  if(state.phase!=='wave'||window.__headless&&!window.__edgeShow){if(box.childElementCount&&!box.hidden)box.hidden=true;return}box.hidden=false;
+  const W2=innerWidth/2,H2=innerHeight/2,S={};let on=0;
+  for(const e of enemies){if(e.dead||e.rival||e.lineup||e.dormant>0)continue;_ev3.set(e.pos.x,(e.fly?e.group.position.y:e.gy)+1,e.pos.z).project(camera);let x=_ev3.x,y=_ev3.y;const back=_ev3.z>1;if(back){x=-x;y=-y}
+    if(!back&&Math.abs(x)<.98&&Math.abs(y)<.92){on++;continue}const a=Math.atan2(y*H2,x*W2);const k=Math.round((a+Math.PI)/(Math.PI/6))%12;const B=S[k]||(S[k]={n:0,a:0,big:0});B.n++;B.a=a;if(BIG(e.type)||e.champ)B.big=1}
+  while(_edge.length<12){const d=document.createElement('div');d.className='edgeA';d.innerHTML='<i></i><b></b>';d.style.display='none';box.appendChild(d);_edge.push(d)}
+  _edge.forEach((d,k)=>{const B=S[k];if(!B){d.style.display='none';return}d.style.display='';const c=Math.cos(B.a),s=Math.sin(B.a);const m=72,top=72,bot=112;
+    const tx=c?((c>0?W2-m:-(W2-m))/c):1e9,ty=s?((s>0?H2-top:-(H2-bot))/s):1e9;const t=Math.min(Math.abs(tx),Math.abs(ty));
+    d.style.transform=`translate(${W2+c*t-15}px,${H2-s*t-15}px)`;d.firstChild.style.transform=`rotate(${-B.a}rad)`;d.lastChild.textContent=B.n>1?B.n:'';d.classList.toggle('big',!!B.big)})}
