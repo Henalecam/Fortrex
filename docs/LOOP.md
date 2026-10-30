@@ -120,6 +120,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.75: Expedição conferida com log: sai na horda 4 (3 ausentes), volta na 6 (0 ausentes) e o material salta de 87 para 182. Coletores ausentes fora do pickObj (não clicáveis). Mapa do reino no celular (< 560 px) mostra só 3 linhas de notícias.
 - v0.76: 🧙 Viajante encapuzado: após hordas 6+ (22%, não no modo de recompensa automática) oferece 2 de 5 tratos + Recusar — Pacto de sangue (+150+12×h material, próxima horda +50% inimigos via state.nextWaveMul), Bênção inquieta (armas +25% por 3 hordas via state.blessUntil, moral −25), Relíquia roubada (350), Mercenários (4 soldados raros), Dados (100 → 50% de 260). Teste longo: horda 24 em 30 min, sem erros.
 - v0.77: 🪽 Evento Revoada (horda 9+, peso 9): 40% da horda vira voadores + horda/2 voadores extras. Selo de efeitos ativos (#buffSt) no topo: ✨ bênção com hordas restantes, 🩸 próxima horda +50%, 🧭 volta da expedição, 🏳️ estandartes capturados.
+- v0.78: 🏆 6 conquistas novas (Matilha, Explorador, Negociante, Caçador de estandartes, Diplomata, Construtor de maravilhas; contadores state.expDone e state.dealTaken). Revoada medida com bot nas hordas 9 e 10: 0 golpes no baú, ~65 s por horda — sem ajuste.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

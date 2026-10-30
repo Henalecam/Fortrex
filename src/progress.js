@@ -126,6 +126,12 @@ function moraleTick(dt){let m=state.morale??60;if(state.phase==='wave'){state.wa
   state.morale=clamp(m,Math.max(state.buildings&&state.buildings.granary?45:0,state.moraleFloor||0),100);const el=$('morale');if(el){const v=Math.round(state.morale);el.textContent=`${v>=70?'😄':v>=40?'🙂':v>=20?'😟':'😩'} ${v}`;el.title=`Moral ${v}%: minions ${v>=50?'+':''}${Math.round((v/100*.4-.2)*100)}% de rendimento. Sobe vencendo hordas, chefes e descansando à noite; cai com feridos e hordas longas.`;el.style.color=v<25?'var(--bad)':''}}
 // ───────── achievements (kept in the browser across runs) and end-of-run stats
 const ACH=[
+  {id:'dogs',ico:'🐕',n:'Matilha',d:'Tenha 4 cães de guarda',c:()=>(state.ups.kennel||0)>=4},
+  {id:'expd',ico:'🧭',n:'Explorador',d:'Complete 3 expedições',c:()=>(state.expDone||0)>=3},
+  {id:'deal',ico:'🧙',n:'Negociante',d:'Aceite um trato do viajante',c:()=>!!state.dealTaken},
+  {id:'troph',ico:'🏳️',n:'Caçador de estandartes',d:'Capture 5 estandartes inimigos',c:()=>(state.trophies||0)>=5},
+  {id:'ally',ico:'🤝',n:'Diplomata',d:'Tenha 2 cidades aliadas',c:()=>REALM.cities.filter(c=>c.ally).length>=2},
+  {id:'wonder',ico:'🏛️',n:'Construtor de maravilhas',d:'Construa uma Maravilha',c:()=>['cathedral','observatory','greatwall','statue'].some(k=>state.ups[k])},
   {id:'w10',ico:'🛡️',n:'Sobrevivente',d:'Chegue à horda 10',c:()=>state.wave>=10},
   {id:'w20',ico:'🏰',n:'Muralha Viva',d:'Chegue à horda 20',c:()=>state.wave>=20},
   {id:'w30',ico:'👑',n:'Lenda da Bruma',d:'Chegue à horda 30',c:()=>state.wave>=30},
@@ -330,7 +336,7 @@ function expReward(){return Math.round(30+state.wave*9)}
 function sendExpedition(){if(state.expedition||state.phase!=='rest')return;const L=expAvail().slice(0,3);if(L.length<3)return;for(const m of L){m.away=true;m.group.visible=false;m.task=null;m.bag=[];m.pos.set(CHEST.x,GY,CHEST.z)}
   state.expedition={n:3,back:state.wave+2,lvl:Math.min(4,1+Math.floor(state.wave/6))};toast('🧭 A expedição partiu: 3 coletores voltam em 2 hordas.','r3')}
 function expeditionReturn(){const X=state.expedition;if(!X||state.wave<X.back)return;state.expedition=null;let n=0;for(const m of minions)if(m.away){m.away=false;m.group.visible=true;m.pos.set(GATE.x+rnd(-2,2),standY(GATE.x,GATE.z+3),GATE.z+3);n++}
-  const g=expReward();spawnLoot(GATE.x,GY+1.5,GATE.z+3,'material',0,{amount:g});if(Math.random()<.35+X.lvl*.1)spawnLoot(GATE.x+1,GY+1.5,GATE.z+3,'treasure',Math.max(1,Math.min(4,rollRarity(.05+state.wave*.006)+1)),{});
+  state.expDone=(state.expDone||0)+1;const g=expReward();spawnLoot(GATE.x,GY+1.5,GATE.z+3,'material',0,{amount:g});if(Math.random()<.35+X.lvl*.1)spawnLoot(GATE.x+1,GY+1.5,GATE.z+3,'treasure',Math.max(1,Math.min(4,rollRarity(.05+state.wave*.006)+1)),{});
   toast(`🧭 A expedição voltou com ${g} material${n?'':''}! Os coletores estão no portão.`,'r4');SFX.open()}
 
 // the wandering stranger: sometimes after a wave a hooded traveller offers a risky deal (accept one or walk away)
@@ -344,7 +350,7 @@ function strangerVisit(){const w=state.wave;if(w<6||state.choosing||Math.random(
   const ks=shuffle(Object.keys(DEALS).filter(k=>DEALS[k].ok(w))).slice(0,2);if(!ks.length)return;state.choosing=true;const box=$('rewardCards');box.innerHTML='';
   $('rewardTitle').textContent='🧙 Um viajante encapuzado propõe um trato';$('reward').querySelector('.sub').textContent='Aceite um dos tratos ou siga sem ele.';
   const close=()=>{$('reward').style.display='none';state.choosing=false;updateHud()};
-  for(const k of ks){const D=DEALS[k];const el=document.createElement('button');el.className='rcard r3';el.innerHTML=`<div class="ico">${D.ico}</div><div class="nm">${D.n}</div><div class="ds">${D.d(w)}</div><div class="rr">Trato</div>`;el.onclick=()=>{D.go(w);toast(`${D.ico} ${D.n} aceito.`,'r3');close()};box.appendChild(el)}
+  for(const k of ks){const D=DEALS[k];const el=document.createElement('button');el.className='rcard r3';el.innerHTML=`<div class="ico">${D.ico}</div><div class="nm">${D.n}</div><div class="ds">${D.d(w)}</div><div class="rr">Trato</div>`;el.onclick=()=>{D.go(w);state.dealTaken=true;toast(`${D.ico} ${D.n} aceito.`,'r3');close()};box.appendChild(el)}
   const no=document.createElement('button');no.className='rcard r0';no.innerHTML='<div class="ico">🚶</div><div class="nm">Recusar</div><div class="ds">O viajante dá de ombros e vai embora.</div>';no.onclick=close;box.appendChild(no);
   $('reward').style.display='flex';SFX.open()}
 
