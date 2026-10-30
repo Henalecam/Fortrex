@@ -162,7 +162,7 @@ function renderShop(){const tb=$('shopTabs');if(tb){tb.innerHTML=SHOP_TABS.map((
   el.querySelector('button').onclick=()=>{if(maxed||lock||state.material<cost)return;state.material-=cost;state.ups[U.id]=lv+1;U.go();SFX.loot(1);toast(`${U.nm} nível ${lv+1}`,'r1');renderShop();updateHud()};box.appendChild(el)}if(!shown)box.innerHTML='<div class="ds" style="text-align:center;padding:16px">Nada disponível agora nesta aba. Veja as outras abas para o que vem pela frente.</div>'}
 
 // ── rewards: pick 1 of 3
-function rewardPool(){const w=state.wave,rr=()=>rollRarity(w*.006+state.luck),P=[];
+function rewardPool(){const w=state.wave,rr=()=>lootRarity(.06+w*.006+state.luck),P=[];
   P.push(()=>{const r=Math.max(1,rr());const role=pick(['rep','col','gun','sol','med','sol']);return{r,ico:ROLES[role].ico,nm:`Recruta: ${ROLES[role].n}`,ds:ROLES[role].d+'.',go(){const m=makeMinion(role,r,CHEST.x,CHEST.z+2.5);toast(`${m.name} chegou!`,RARITY[r].css)}}});
   P.push(()=>{const r=Math.max(1,rr());const type=randTurretType();return{r,ico:TURRETS[type].ico,nm:TURRETS[type].n,ds:TURRETS[type].d+' Instale onde quiser.',go(){state.inv.turrets.push({type,r});state.newItems++}}});
   P.push(()=>{const r=Math.max(1,rr());const it=makeEquip(r);return{r,ico:itemIco(it),nm:it.n,ds:itemLines(it).join(' · '),go(){state.inv.armory.push(it);state.newItems++;if(state.autoEquip)autoEquip(it)}}});

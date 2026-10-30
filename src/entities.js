@@ -71,8 +71,8 @@ const LG={material:new THREE.OctahedronGeometry(.32,0),blade:new THREE.BoxGeomet
   chestBody:new THREE.BoxGeometry(.86,.46,.56),chestLid:new THREE.BoxGeometry(.9,.2,.6),ring:new THREE.RingGeometry(.36,.52,22),beam:new THREE.CylinderGeometry(.1,.18,7,6,1,true)};
 const lmat=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:e});
 function lootName(L){const d=L.data;switch(L.kind){case'material':return`${d.amount} material`;case'equip':return d.item.n;case'block':return`${d.n}× ${MAT[d.m].n}`;case'turret':return TURRETS[d.type].n;case'recruit':return`Recruta ${ROLES[d.role].n}`;case'treasure':return'Baú do tesouro'}return'?'}
-let spawnLootHook=null;
-function spawnLoot(x,y,z,kind,r,data={}){if(spawnLootHook)spawnLootHook(x,y,z,kind,r,data);
+let spawnLootHook=null;const ECON={dep:{},matLoot:0,log:[],src:{}};
+function spawnLoot(x,y,z,kind,r,data={}){if(spawnLootHook)spawnLootHook(x,y,z,kind,r,data);if(r>=3&&kind!=='material'){const k=kind+r+'@'+((new Error().stack.split('\n')[2]||'').trim().split(' ')[1]||'?');ECON.src[k]=(ECON.src[k]||0)+1}
   if(kind==='material'){for(const o of loot)if(o.kind==='material'&&!o.claimed&&!o.carried&&Math.abs(o.x-x)<2.2&&Math.abs(o.z-z)<2.2){o.data.amount+=data.amount;const sc=1+Math.min(1.2,o.data.amount*.07);o.main.scale.set(sc,sc,sc);return o}if(loot.length>420)return null}
   const g=new THREE.Group();const rc=RARITY[r].c;let main;
   if(kind==='material'){main=new THREE.Mesh(LG.material,lmat(0xf0bd5a,.15));g.add(main)}
@@ -82,14 +82,14 @@ function spawnLoot(x,y,z,kind,r,data={}){if(spawnLootHook)spawnLootHook(x,y,z,ki
   else if(kind==='recruit'){main=new THREE.Mesh(LG.recruit,lmat(rc,.5));g.add(main)}
   else if(kind==='treasure'){main=new THREE.Group();main.add(new THREE.Mesh(LG.chestBody,lmat(0x8a5a33,.1)));const lid=new THREE.Mesh(LG.chestLid,lmat(rc,.5));lid.position.y=.32;main.add(lid);g.add(main)}
   let ring=null;if(r>=2||kind==='treasure'){ring=new THREE.Mesh(LG.ring,new THREE.MeshBasicMaterial({color:rc,transparent:true,opacity:.75,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=-.38;g.add(ring)}
-  let bm=null;if(r>=3||kind==='treasure'){bm=new THREE.Mesh(LG.beam,new THREE.MeshBasicMaterial({color:rc,transparent:true,opacity:.22,depthWrite:false}));bm.position.y=3.2;g.add(bm)}
+  let bm=null;if(r>=2||kind==='treasure'){const hgt=r>=4?2.4:r>=3?1.6:1;bm=new THREE.Mesh(LG.beam,new THREE.MeshBasicMaterial({color:rc,transparent:true,opacity:r>=4?.42:r>=3?.32:.2,depthWrite:false,blending:THREE.AdditiveBlending}));bm.scale.set(r>=4?2.2:r>=3?1.6:1,hgt,r>=4?2.2:r>=3?1.6:1);bm.position.y=3.2*hgt;bm.userData.o=bm.material.opacity;g.add(bm)}
   g.position.set(x,y,z);g.traverse(o=>{if(o.isMesh)o.castShadow=true});scene.add(g);
   const L={g,main,ring,bm,kind,r,data,x,y,z,vx:rnd(-2,2),vy:rnd(3,6),vz:rnd(-2,2),claimed:null,carried:null,t:rnd(0,6),age:0,prio:false,unreach:0,rest:false};
   g.userData.loot=L;loot.push(L);
-  if(r>=2){if(r>=4&&L.kind!=='treasure'&&L.kind!=='turret')toast(`${lootName(L)} ${RARITY[r].n}!`,RARITY[r].css);SFX.loot(r)}
+  if(r>=2){SFX.loot(r);if(r>=3){shake=Math.max(shake,r>=4?.35:.15);if(r>=4)hitstop=Math.max(hitstop,.06);label({x,y:y+1.6,z},r>=4?'✦ LENDÁRIO ✦':'✦ ÉPICO',r>=4?'#ff9b3d':'#b56cf2')}}
   return L}
 function removeLoot(L){scene.remove(L.g);const i=loot.indexOf(L);if(i>=0)loot.splice(i,1)}
-function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)continue;if(L.home){L.home.t+=dt;const f=Math.min(1,L.home.t/1.3),h=L.home;L.x=h.x+(CHEST.x-h.x)*f;L.z=h.z+(CHEST.z-h.z)*f;L.y=h.y+(GY+2-h.y)*f+Math.sin(f*Math.PI)*8;L.g.position.set(L.x,L.y,L.z);L.main.rotation.y+=dt*8;if(Math.random()<.5)spawnFlame(L.x,L.y,L.z,.35,true);if(f>=1)deposit(L,null);continue}
+function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)continue;if(L.bm&&L.r>=3){L.bm.material.opacity=L.bm.userData.o*(.65+.35*Math.sin(simTime*(L.r>=4?6:3.5)+L.t));L.bm.rotation.y+=dt*1.5;if(L.r>=4&&Math.random()<dt*6&&!L.carried)spawnDebris(L.x+rnd(-.5,.5),L.y+rnd(0,2),L.z+rnd(-.5,.5),RARITY[4].c,1,.12)}if(L.home){L.home.t+=dt;const f=Math.min(1,L.home.t/1.3),h=L.home;L.x=h.x+(CHEST.x-h.x)*f;L.z=h.z+(CHEST.z-h.z)*f;L.y=h.y+(GY+2-h.y)*f+Math.sin(f*Math.PI)*8;L.g.position.set(L.x,L.y,L.z);L.main.rotation.y+=dt*8;if(Math.random()<.5)spawnFlame(L.x,L.y,L.z,.35,true);if(f>=1)deposit(L,null);continue}
     if(L.kind!=='treasure'&&!L.carried&&!L.claimed&&L.age>(state.portal?30-state.portal*8:75)&&L.rest){L.home={t:0,x:L.x,y:L.y,z:L.z};continue}}
   for(const L of loot){if(L.home)continue;L.t+=dt;L.age+=dt;
     if(L.carried){const m=L.carried;const k=L.slot||0;L.g.position.set(m.pos.x,m.group.position.y+1.55+k*.42+Math.sin(L.t*6)*.05,m.pos.z);L.main.rotation.y+=dt*2;continue}
@@ -109,19 +109,19 @@ function lootPick(kind,r,big){const k=Math.random();
   if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:2+r*2}]}}
 function randBlockPack(r){let pool=(r>=3?[16,17,18,31,15,10,14,19,20,9,8]:r>=2?[16,17,18,31,15,10,14,19,9]:r>=1?[16,17,18,31,15,10,14]:[16,17,18,31,10]).filter(m=>isUnlocked('block',m));if(!pool.length)pool=[16,17,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
 function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon','catapult','sunray','wind'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
-function openTreasure(L){removeLoot(L);const r=L.r;const n=2+Math.ceil(r*.7)+rint(0,1);
-  for(let k=0;k<n;k++){const rr=k===0?r:Math.max(0,Math.min(r,rollRarity(r*.06+state.luck)));const [kind,data]=lootPick('any',rr);
+function openTreasure(L){removeLoot(L);const r=L.r;const n=1+Math.ceil(r*.5)+(Math.random()<.3?1:0);
+  for(let k=0;k<n;k++){const rr=k===0?r:Math.max(0,Math.min(r-1,lootRarity(r*.05+state.luck)));const [kind,data]=lootPick('any',rr);
     const it=spawnLoot(L.x,L.y+.6,L.z,kind,rr,data);if(it){const a=k/n*Math.PI*2;it.vx=Math.cos(a)*rnd(3,5);it.vz=Math.sin(a)*rnd(3,5);it.vy=rnd(6,9)}}
-  if(Math.random()<.25+r*.1)spawnLoot(L.x,L.y+.6,L.z,'recruit',Math.max(1,r-1),{role:pick(['rep','col','gun','sol','med'])});
+  if(Math.random()<.1+r*.06)spawnLoot(L.x,L.y+.6,L.z,'recruit',Math.max(1,r-1),{role:pick(['rep','col','gun','sol','med'])});
   for(let k=0;k<4;k++)spawnDebris(L.x,L.y+.5,L.z,pick([0xffcf3d,RARITY[r].c,0xff8a5c,0x5cc08c]),6,.22);
   SFX.open();SFX.loot(r);hitstop=Math.max(hitstop,.07);shake=Math.max(shake,.3);toast(`Baú ${RARITY[r].n} aberto!`,RARITY[r].css)}
 function addBlocks(m,n){state.inv.blocks[m]=(state.inv.blocks[m]||0)+n}
-function deposit(L,m){const d=L.data;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treasure'){L.y=GY+1.5;L.x=CHEST.x;L.z=CHEST.z+2.5;openTreasure(L);return}removeLoot(L);
+function deposit(L,m){const d=L.data;ECON.dep[L.kind+L.r]=(ECON.dep[L.kind+L.r]||0)+1;if(L.kind==='material')ECON.matLoot+=d.amount;if(m)gainXP(m,.6+L.r*.6);if(L.kind==='treasure'){L.y=GY+1.5;L.x=CHEST.x;L.z=CHEST.z+2.5;openTreasure(L);return}removeLoot(L);
   switch(L.kind){
     case'material':{let a=d.amount;if(m&&m.trait==='Sortudo'&&Math.random()<.2){a*=2;label(m.pos,'Sorte! ×2','#5cc08c')}state.material+=a;label(m?m.pos:CHEST,`+${a}`,'#b8862f');SFX.coin();break}
-    case'equip':{state.inv.armory.push(d.item);state.newItems++;if(!(state.autoEquip&&autoEquip(d.item)))toast(`${d.item.n} ${RARITY[L.r].n} no arsenal`,RARITY[L.r].css);break}
-    case'block':{addBlocks(d.m,d.n);state.newItems++;toast(`+${d.n} ${MAT[d.m].n} para construir`,RARITY[L.r].css);break}
-    case'turret':{state.inv.turrets.push({type:d.type,r:L.r});state.newItems++;toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
+    case'equip':{state.inv.armory.push(d.item);state.newItems++;if(L.r>=3)revealCard(itemIco(d.item),d.item.n,L.r,itemLines(d.item).slice(0,2).join(' · '));if(!(state.autoEquip&&autoEquip(d.item))&&L.r>=2&&L.r<3)toast(`${d.item.n} ${RARITY[L.r].n} no arsenal`,RARITY[L.r].css);break}
+    case'block':{addBlocks(d.m,d.n);state.newItems++;if(L.r>=2)toast(`+${d.n} ${MAT[d.m].n} para construir`,RARITY[L.r].css);break}
+    case'turret':{state.inv.turrets.push({type:d.type,r:L.r});state.newItems++;if(L.r>=3)revealCard('🏹',TURRETS[d.type].n,L.r,TURRETS[d.type].d);else toast(`${TURRETS[d.type].n} ${RARITY[L.r].n} pronta para instalar`,RARITY[L.r].css);break}
     case'recruit':{if(!roleFree(d.role)){const alt=Object.keys(ROLES).filter(roleFree);if(alt.length)d.role=pick(alt)}if(minions.length>=MAX_MINIONS+MAX_MINIONS_BONUS||!roleFree(d.role)){const g=2*(L.r+1);state.material+=g;toast(`Cidadela lotada: o recruta virou ${g} material`,'r0');break}const nm=makeMinion(d.role,L.r,CHEST.x,CHEST.z+2.5);toast(`${nm.name}, ${ROLES[d.role].n} ${RARITY[L.r].n}, chegou!`,RARITY[L.r].css);break}}
   if(L.r>=1)SFX.loot(L.r);if(L.r>=4){const p=m?m.pos:CHEST;for(let k=0;k<36;k++)spawnDebris(p.x,(m?m.group.position.y:GY)+1.5,p.z,pick([0xffcf3d,0xff8a5c,0xb56cf2,0x5cc08c,0x4f9cf2,0xec5f6b]),1,.16);label({x:p.x,y:(p.y||GY)+2.5,z:p.z},'✨ LENDÁRIO!','#e0a000')}refreshPanels()}
 
@@ -219,3 +219,7 @@ function impact(p,pos,e,cell){const fire=state.greek>0;if(e)setTimeout(()=>{},0)
     if(p.kind==='ball'){for(const o of enemies){if(o.dead||o===e)continue;if(o.pos.distanceTo(pos)<2.4)hurtEnemy(o,p.dmg*.45,pos)}spawnDebris(pos.x,pos.y,pos.z,0xff8a5c,4,.25)}}
   else if(cell!==undefined){damageVox(cell,p.dmg*.5,'player');spawnDebris(pos.x,pos.y,pos.z,0x8bbf9d,3,.3)}
   if(p.kind==='ball'&&state.explosive>0)explode(pos.x,pos.y,pos.z,1.2+state.explosive*.55,p.dmg*.5,{src:'player',fire})}
+
+// v1.8 revelação de item épico/lendário: carta deslizante, sem bloquear o jogo
+function revealCard(ico,name,r,line){const box=$('reveal');if(!box)return;const c=document.createElement('div');c.className='rv r'+r;c.innerHTML=`<div class="ri">${ico}</div><div class="rt"><div class="rr">${RARITY[r].n}</div><div class="rn">${esc(name)}</div><div class="rl">${esc(line||'')}</div></div>`;box.prepend(c);while(box.children.length>3)box.lastChild.remove();
+  SFX.loot(r);if(r>=4){shake=Math.max(shake,.3)}if(window.__revealHold)return;setTimeout(()=>c.classList.add('out'),r>=4?5200:3800);setTimeout(()=>c.remove(),r>=4?5800:4400)}

@@ -53,7 +53,7 @@ const UPGRADES_LATE=[
   {id:'bulwark',ico:'🛡️',nm:'Baluarte',ds:'Minions +8% de vida e armas +8% de integridade. Sem limite.',max:99,cost:l=>160+l*130,go(){state.turretHp*=1.08;for(const t of turrets){t.maxhp*=1.08;t.hp*=1.08}for(const m of minions){m.maxhp*=1.08}}}];
 UPGRADES.unshift(...UPGRADES_EXTRA);UPGRADES.push(...UPGRADES_LATE);
 // ───────── travelling merchant: shows up every 3 waves with a rotating stock; what you buy is unloaded at the gate
-function merchantArrive(){const w=state.wave,offers=[];let guard=0;while(offers.length<(state.buildings&&state.buildings.market?5:4)&&guard++<30){const r=Math.min(4,rollRarity(.06+w*.008)+(offers.length===0?1:0));const [kind,data]=lootPick('any',r);if(kind==='material')continue;offers.push({kind,data,r,price:Math.round((25+r*r*30)*(1+w*.03)*(state.buildings&&state.buildings.market?.75:1)),sold:false})}
+function merchantArrive(){const w=state.wave,offers=[];let guard=0;while(offers.length<(state.buildings&&state.buildings.market?5:4)&&guard++<30){const r=Math.min(4,lootRarity(.06+w*.008)+(offers.length===0?1:0));const [kind,data]=lootPick('any',r);if(kind==='material')continue;offers.push({kind,data,r,price:Math.round((25+r*r*30)*(1+w*.03)*(state.buildings&&state.buildings.market?.75:1)),sold:false})}
   state.merchant={offers,until:w+2};$('bMerch').hidden=false;toast('🛒 O mercador chegou ao portão! Ofertas por 2 hordas.','r3');renderMerch()}
 function merchantLeave(){if(!state.merchant)return;state.merchant=null;$('bMerch').hidden=true;$('merch').style.display='none'}
 function offerName(o){const d=o.data;return o.kind==='equip'?`${itemIco(d.item)} ${d.item.n}`:o.kind==='block'?`🧱 ${d.n}× ${MAT[d.m].n}`:o.kind==='turret'?`${TURRETS[d.type].ico} ${TURRETS[d.type].n}`:o.kind==='recruit'?`${ROLES[d.role].ico} Recruta ${ROLES[d.role].n}`:o.kind}
@@ -344,7 +344,7 @@ function expReward(){return Math.round(30+state.wave*9)}
 function sendExpedition(){if(state.expedition||state.phase!=='rest')return;const L=expAvail().slice(0,3);if(L.length<3)return;for(const m of L){m.away=true;m.group.visible=false;m.task=null;m.bag=[];m.pos.set(CHEST.x,GY,CHEST.z)}
   state.expedition={n:3,back:state.wave+2,lvl:Math.min(4,1+Math.floor(state.wave/6))};toast('🧭 A expedição partiu: 3 coletores voltam em 2 hordas.','r3')}
 function expeditionReturn(){const X=state.expedition;if(!X||state.wave<X.back)return;state.expedition=null;let n=0;for(const m of minions)if(m.away){m.away=false;m.group.visible=true;m.pos.set(GATE.x+rnd(-2,2),standY(GATE.x,GATE.z+3),GATE.z+3);n++}
-  state.expDone=(state.expDone||0)+1;const g=expReward();spawnLoot(GATE.x,GY+1.5,GATE.z+3,'material',0,{amount:g});if(Math.random()<.35+X.lvl*.1)spawnLoot(GATE.x+1,GY+1.5,GATE.z+3,'treasure',Math.max(1,Math.min(4,rollRarity(.05+state.wave*.006)+1)),{});
+  state.expDone=(state.expDone||0)+1;const g=expReward();spawnLoot(GATE.x,GY+1.5,GATE.z+3,'material',0,{amount:g});if(Math.random()<.35+X.lvl*.1)spawnLoot(GATE.x+1,GY+1.5,GATE.z+3,'treasure',Math.max(1,lootRarity(.05+state.wave*.005+X.lvl*.03)),{});
   toast(`🧭 A expedição voltou com ${g} material${n?'':''}! Os coletores estão no portão.`,'r4');SFX.open()}
 
 // the wandering stranger: sometimes after a wave a hooded traveller offers a risky deal (accept one or walk away)

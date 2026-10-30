@@ -51,6 +51,7 @@ function isFlam(m){return !!m&&MAT[m].flam===1&&!(m===7&&state.metalDoor)}
 const RARITY=[
   {n:'Comum',c:0x9aa0b2,css:'r0'},{n:'Incomum',c:0x5cc08c,css:'r1'},{n:'Raro',c:0x4f9cf2,css:'r2'},
   {n:'Épico',c:0xb56cf2,css:'r3'},{n:'Lendário',c:0xffb13d,css:'r4'}];
+function lootRarity(b=0){b=Math.max(0,Math.min(.45,b));const r=Math.random();if(r>.9975-b*.05)return 4;if(r>.978-b*.16)return 3;if(r>.90-b*.32)return 2;if(r>.66-b*.35)return 1;return 0}
 function rollRarity(b=0){const r=Math.random()+b;if(r>1.02)return 4;if(r>.965)return 3;if(r>.87)return 2;if(r>.66)return 1;return 0}
 const NAMES=['Bolota','Tijolo','Pipoca','Faísca','Migalha','Biscoito','Torresmo','Pudim','Cocada','Paçoca','Chiclete','Pirulito','Rabisco','Trovão','Tampinha','Bigode','Farofa','Quindim','Jujuba','Feijão','Pitoco','Zica','Brigadeiro','Caju','Moranga','Bacuri','Pequi','Graveto','Cascalho','Fuligem','Pamonha','Canjica','Mandioca','Tapioca','Sirigado','Xodó','Fubá','Gengibre','Dendê','Jabuti'];
 

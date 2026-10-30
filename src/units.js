@@ -123,12 +123,12 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   dropTable(e);state.kills++;state.wk++;if(e.lastSol&&!e.rival)vetKill(e.lastSol);if(state.contract&&!e.rival){if(e.aff)state.contract.el=(state.contract.el||0)+1;if(e.lastSol)state.contract.sol=(state.contract.sol||0)+1}addCombo(e);if(state.ev==='bloodmoon'&&!e.rival){state.material+=1;for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&Math.abs(m.pos.x-e.pos.x)<4&&Math.abs(m.pos.z-e.pos.z)<4)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.12)}}
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
-  if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22,mistking:60,ship:30,pirate:3})[t]??2)*.4+r*.5))});
-  const luck=state.wave*.004+r*.04+state.luck+(state.ev==='golden'||state.ev==='eclipse'?.1:0);
-  const P=({crawler:.11,ram:.24,climber:.14,sapper:.12,flyer:.16,shaman:.45,boss:1,colossus:1,queen:1,titan:1,knight:.3,archer:.25,rammer:.35,general:1,golem:1,wyrm:1,necro:1})[t]??.15;
-  const n=t==='titan'?7:t==='queen'||t==='colossus'?5:t==='boss'?3:1;for(let k=0;k<n;k++)if(Math.random()<P*(big?1:.4)){const rr=Math.max(Math.min(r,3),rollRarity(luck+(big?.15:0)));const [kind,data]=lootPick('any',rr);at(kind,rr,data)}
-  if(Math.random()<(big?.7:r>=2?.18:.035))at('recruit',Math.max(1,rollRarity(luck)),{role:pick(['rep','col','gun','sol','med','sol'])});
-  if(big||Math.random()<(r>=2?.35:.03))at('treasure',big?Math.max(t==='titan'?4:t==='colossus'||t==='queen'?3:2,rollRarity(luck+.1)):Math.max(1,rollRarity(luck)),{})}
+  if(big||Math.random()<.5)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22,mistking:60,ship:30,pirate:3,arauto:80})[t]??2)*.32+r*.4))});
+  const luck=state.wave*.005+r*.03+state.luck+(state.ev==='golden'||state.ev==='eclipse'?.08:0);
+  const P=({crawler:.11,ram:.24,climber:.14,sapper:.12,flyer:.16,shaman:.45,boss:1,colossus:1,queen:1,titan:1,knight:.3,archer:.25,rammer:.35,general:1,golem:1,wyrm:1,necro:1,arauto:1})[t]??.15;
+  const n=t==='arauto'?5:t==='titan'?4:t==='queen'||t==='colossus'?3:t==='boss'?2:1;for(let k=0;k<n;k++)if(Math.random()<P*(big?.8:.22)){const rr=Math.max(big&&k===0?Math.min(2+(t==='arauto'?1:0),3):0,lootRarity(luck+(big?.12:0)));const [kind,data]=lootPick('any',rr);at(kind,rr,data)}
+  if(Math.random()<(big?.4:r>=2?.06:.012))at('recruit',Math.max(1,lootRarity(luck)),{role:pick(['rep','col','gun','sol','med','sol'])});
+  if(big||Math.random()<(r>=3?.12:r>=2?.05:.008))at('treasure',big?Math.max(t==='arauto'?4:t==='titan'?3:2,lootRarity(luck+.1)):Math.max(1,lootRarity(luck)),{})}
 const _dir=new THREE.Vector3();
 function enemyWallAt(e,cx,cz){if(!inb(cx,0,cz))return -1;const s=surfE(cx,cz);if(s<=e.gy+1.2)return -1;const y0=Math.max(0,Math.floor(e.gy+.01));for(let y=y0;y<Math.min(H,y0+4);y++){const i=idx(cx,y,cz);if(SOLIDM(vox[i]))return i}return -1}
 function nearMinion(e,reach,dyMax=2.4){for(const m of minions){if(m.wounded)continue;if(hd(m.pos,e.pos)<e.radius+reach&&Math.abs(m.group.position.y-e.group.position.y)<dyMax)return m}return null}

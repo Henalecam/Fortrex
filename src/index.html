@@ -208,6 +208,14 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 @media (max-height:560px){.rail{flex-direction:row!important;bottom:calc(var(--dock) + 16px)}#acts{flex-direction:row-reverse!important}}
 @media (max-width:760px){#autoMenu .lb,#autoMenu .cost{display:none}#autoMenu{order:2!important;padding:4px 8px}#rivalChip{order:3!important}#bossbar{top:calc(122px + env(safe-area-inset-top,0px))!important}#bossName{font-size:11px}}
 @media (max-width:760px){#combo{top:calc(150px + env(safe-area-inset-top,0px));font-size:32px}}
+#reveal{position:fixed;right:max(70px,env(safe-area-inset-right,0px));top:calc(120px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:8px;z-index:40;pointer-events:none;width:min(300px,70vw)}
+#reveal .rv{display:flex;gap:10px;align-items:center;background:#1f2140;color:#fff;border-radius:14px;padding:10px 12px;box-shadow:0 8px 30px rgba(0,0,0,.35);animation:rvIn .45s cubic-bezier(.2,1.4,.4,1);border:2px solid var(--c);--c:#b56cf2}
+#reveal .rv.r4{--c:#ff9b3d;background:linear-gradient(135deg,#2a1d10,#1f2140);box-shadow:0 0 24px rgba(255,155,61,.55),0 8px 30px rgba(0,0,0,.35)}
+#reveal .rv.out{opacity:0;transform:translateX(30px);transition:all .5s}
+#reveal .ri{font-size:28px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 2px var(--c)}
+#reveal .rr{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--c);font-weight:800}#reveal .rn{font-weight:700;font-size:14px}#reveal .rl{font-size:11px;opacity:.75}
+@keyframes rvIn{from{opacity:0;transform:translateX(60px) scale(.9)}to{opacity:1;transform:none}}
+@media (max-width:760px){#reveal{right:56px;top:calc(160px + env(safe-area-inset-top,0px));width:min(260px,64vw)}}
 </style>
 
 <canvas id="c"></canvas>
@@ -248,7 +256,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 <div id="bossbar"><div class="nm" id="bossName"></div><div class="tr"><div class="fl" id="bossFill"></div><div id="bossShield"></div></div></div>
 <div id="report"></div>
 <div id="tip"></div>
-<div id="combo" hidden></div>
+<div id="reveal"></div><div id="combo" hidden></div>
 
 <div id="buildPanel" class="side left">
   <div class="hd"><span>Construir</span><button class="btn x" id="buildClose" aria-label="Fechar">✕</button></div>
