@@ -108,6 +108,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.63: 🗺️ Seletor de bioma na tela inicial (🎲 Aleatório, Verdes, Rubro, Gelada, Vulcânico, Bruma; salvo em OPTS.biome) — antes um novo jogo depois de carregar um save repetia o bioma do save. Erupções mostram coluna de fogo pulsante em cada ponto marcado.
 - v0.64: regras de bioma — Rubro: ao meio-dia (horda) soldados fora das muralhas perdem 1,2% de vida/s; Gelada: chefes, brutos, aríetes e besouros racham o gelo dos lagos (viram água: lentidão e afogamento de aríetes); Bruma: à noite inimigos comuns a mais de WR+14 do centro ficam invisíveis (o foco revela). Bot 8 min em cada bioma: hordas 8–9, sem erros.
 - v0.65: 🌾 Campos Verdes: colheita no fim de cada horda (+5+1,5×horda material). Regra de cada bioma (BIOMES[k].rule) aparece sob o seletor na tela inicial e no tooltip do relógio do HUD.
+- v0.66: ⚡ Opção Gráficos leves (OPTS.lowGfx; padrão ligado em telas < 600 px): pixel ratio 1, sombras básicas 1024². Coluna de heróis no celular subiu (não cobre mais o botão das dicas). Teste longo: bot horda 24 em 30 min, baú intacto, sem erros (swiftshader não serve para medir FPS).
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

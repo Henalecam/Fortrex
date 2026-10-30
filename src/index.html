@@ -181,7 +181,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 @media (max-width:430px){.dock #camHome{display:none}}
 #shopTabs{overflow-x:auto;scrollbar-width:none}#shopTabs .tab{flex:none;white-space:nowrap;padding:6px 10px}
 #news{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(43,45,74,.35);z-index:60;padding:16px}#news[hidden]{display:none!important}#news .nc{background:#fff;border-radius:20px;max-width:440px;width:100%;max-height:80vh;overflow:auto;padding:18px 20px;box-shadow:0 12px 40px rgba(43,45,74,.25)}#news h2{margin:0 0 4px;font-family:var(--display)}#news ul{padding-left:18px;margin:10px 0 14px;font-size:13.5px;line-height:1.45}#news li{margin:4px 0}#news .v{font-size:11px;color:#8a8ca8;font-weight:600}
-#heroBar{position:fixed;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:6;pointer-events:auto}#heroBar .btn{background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:7px 9px;font-size:18px;box-shadow:0 4px 14px rgba(43,45,74,.15)}#heroBar .btn .lb{display:none}#heroBar .btn .cost{font-size:10px;margin-left:2px}
+#heroBar{position:fixed;right:max(10px,env(safe-area-inset-right,0px));bottom:calc(230px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;z-index:6;pointer-events:auto}#heroBar .btn{background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:7px 9px;font-size:18px;box-shadow:0 4px 14px rgba(43,45,74,.15)}#heroBar .btn .lb{display:none}#heroBar .btn .cost{font-size:10px;margin-left:2px}
 #chestSt.hurt{color:var(--bad);font-weight:800;animation:chestBlink 1s infinite}@keyframes chestBlink{50%{opacity:.45}}
 @media (max-width:600px){.stats:has(#chestSt:not([hidden])) #clock{display:none}}
 #bossbar .tr{position:relative}#bossShield{position:absolute;left:0;top:0;height:100%;width:0;background:repeating-linear-gradient(45deg,rgba(79,156,242,.85) 0 6px,rgba(143,214,255,.85) 6px 12px);border-radius:999px;transition:width .15s}
@@ -214,6 +214,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <button class="opt" id="arBtn"><i>🎁</i><div><b>Recompensa</b><span>Escolhe a recompensa mais rara a cada 5 hordas</span></div><u></u></button>
   <div class="mh" style="margin-top:6px">Opções</div>
   <button class="opt on" id="optShake"><i>📳</i><div><b>Tremor de tela</b><span>Câmera treme em explosões e chefes</span></div><u></u></button>
+  <button class="opt" id="optLow"><i>⚡</i><div><b>Gráficos leves</b><span>Sombras simples e resolução menor (recarregue). Melhor no celular.</span></div><u></u></button>
   <button class="opt on" id="optCine"><i>🎬</i><div><b>Câmera de chefe</b><span>Aproxima e gira quando um chefe cai</span></div><u></u></button>
   <button class="opt" id="optSave"><i>💾</i><div><b>Salvar agora</b><span id="saveInfo">Salva sozinho a cada horda</span></div></button>
 </div>

@@ -1,8 +1,9 @@
 // ───────── world: renderer, voxel grid, terrain, blueprint, fluids, fire, explosions
 const canvas=$('c');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+if(OPTS.lowGfx===undefined)OPTS.lowGfx=innerWidth<600;
+renderer.setPixelRatio(OPTS.lowGfx?1:Math.min(window.devicePixelRatio,2));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=OPTS.lowGfx?THREE.BasicShadowMap:THREE.PCFSoftShadowMap;
 renderer.outputEncoding=THREE.sRGBEncoding;
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0xdff1f7);scene.fog=new THREE.Fog(0xdff1f7,95,200);
@@ -10,7 +11,7 @@ const camera=new THREE.PerspectiveCamera(42,1,.1,500);
 const cam={yaw:-Math.PI/4,pitch:1.0,dist:70,target:new THREE.Vector3(CX,GY+1.5,CZ)};
 function placeCamera(){const cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);camera.position.set(cam.target.x+cam.dist*cp*Math.sin(cam.yaw),cam.target.y+cam.dist*sp,cam.target.z+cam.dist*cp*Math.cos(cam.yaw));camera.lookAt(cam.target)}
 const hemi=new THREE.HemisphereLight(0xfff6e8,0x9fc5a8,.85);scene.add(hemi);
-const sun=new THREE.DirectionalLight(0xfff2dc,1.1);sun.position.set(CX+18,70,CZ-16);sun.castShadow=true;sun.shadow.mapSize.set(3072,3072);
+const sun=new THREE.DirectionalLight(0xfff2dc,1.1);sun.position.set(CX+18,70,CZ-16);sun.castShadow=true;sun.shadow.mapSize.set(OPTS.lowGfx?1024:3072,OPTS.lowGfx?1024:3072);
 Object.assign(sun.shadow.camera,{left:-58,right:58,top:58,bottom:-58,near:1,far:200});sun.shadow.bias=-.0008;sun.target.position.set(CX,0,CZ);scene.add(sun,sun.target);
 {const rim=new THREE.Mesh(new THREE.BoxGeometry(W,8,D),new THREE.MeshLambertMaterial({color:0x7aa98a}));rim.position.set(W/2,-4,D/2);scene.add(rim);
  const mist=new THREE.Mesh(new THREE.PlaneGeometry(700,700),new THREE.MeshBasicMaterial({color:0xcfe7ee,transparent:true,opacity:.9}));mist.rotation.x=-Math.PI/2;mist.position.set(W/2,-7.5,D/2);scene.add(mist)}
