@@ -105,6 +105,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.60: 😡🔷 Afixos de chefe (horda 15+, 60% dos chefes): Furioso (abaixo de 50% de vida: +50% velocidade e dano, aura vermelha) ou Escudo (bolha azul de 30% da vida que absorve 85% de cada golpe e regenera após 4 s sem levar dano). Torre de vento não empurra o mesmo inimigo de novo por 4 s (evita travar a horda). Bot: horda 21 em 25 min, baú intacto.
 - v0.61: 🔷 Barra do chefe mostra o escudo (listras azuis por cima). 🏳️ Troféus: cada porta-estandarte abatido dá +2% de dano permanente (até 15). Nova fixture tests/save_v060_w19.json (horda 19, 3 distritos, 2 heróis com 3 talentos) — rodar tcompat.js com as DUAS fixtures a cada versão.
 - v0.62: 🌋 Bioma novo Ermo Vulcânico (sorteado em partidas novas; saves mantêm o bioma): chão de cinza, 34 poças de lava; durante a horda, a cada 32–48 s (primeira aos 14 s) uma erupção marca 3+horda/6 pontos com anéis laranja e 1,6 s depois caem bombas de lava (explosão r2,4 com fogo, 20% dentro das muralhas).
+- v0.63: 🗺️ Seletor de bioma na tela inicial (🎲 Aleatório, Verdes, Rubro, Gelada, Vulcânico, Bruma; salvo em OPTS.biome) — antes um novo jogo depois de carregar um save repetia o bioma do save. Erupções mostram coluna de fogo pulsante em cada ponto marcado.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

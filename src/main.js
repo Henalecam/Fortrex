@@ -129,7 +129,7 @@ $('focus').onclick=()=>toast('Clique num Devorador para concentrar o fogo de tod
 $('bWard').onclick=()=>{if(!wardUp())toast(state.phase!=='wave'?'A Égide só funciona durante a horda':'Égide recarregando','r0')};$('bRally').onclick=()=>{if(state.rally){state.rally=null;removeFlag();toast('Soldados voltam aos postos','r1',true);return}state.rallyMode=!state.rallyMode;$('bRally').classList.toggle('armed',state.rallyMode);if(state.rallyMode)toast('Clique onde os soldados devem se reunir','r2',true)};
 $('bomb').onclick=()=>{if(state.bombCd>0){toast('Bombardeio recarregando','r0');return}if(state.material<25){toast('Precisa de 25 material','r0');return}state.bombMode=!state.bombMode;if(state.bombMode){if(state.build.on)closeSide('buildPanel');toast('Clique onde a bomba deve cair','r2')}updateHud()};
 $('continue').onclick=()=>{$('over').style.display='none';if(!loadGame())newGame();if(!soundOn){soundOn=true;ac();$('snd').textContent='🔊'}};$('optSave').onclick=()=>saveGame(true);refreshSaveUi();addEventListener('beforeunload',()=>{if(canSave()&&state.savedWave!==state.wave)saveGame(false)});
-$('start').onclick=()=>{$('over').style.display='none';newGame();if(!soundOn){soundOn=true;ac();$('snd').textContent='🔊'}};
+$('start').onclick=()=>{state.biome=OPTS.biome&&OPTS.biome!=='rand'?OPTS.biome:null;$('over').style.display='none';newGame();if(!soundOn){soundOn=true;ac();$('snd').textContent='🔊'}};
 
 // ───────── loop
 let last=performance.now(),hudAcc=0;
@@ -251,8 +251,9 @@ window.__heroCard=()=>{grantRelic('boss');const S=Object.values(state.heroes||{}
 
 window.__biome=b=>{state.biome=b};
 
+function renderBiomes(){const el=$('biomes');if(!el)return;const cur=OPTS.biome||'rand';el.innerHTML=[['rand','🎲 Aleatório'],...Object.entries(BIOMES).map(([k,B])=>[k,`${B.ico} ${B.n.split(' ').slice(-1)[0]}`])].map(([k,n])=>`<button class="btn ${k===cur?'on':''}" data-bio="${k}" title="${k==='rand'?'Bioma sorteado':BIOMES[k].n}">${n}</button>`).join('');for(const b of el.querySelectorAll('[data-bio]'))b.onclick=()=>{OPTS.biome=b.dataset.bio;saveOpts();renderBiomes()}}
 function renderDiffs(){const el=$('diffs');if(!el)return;const cur=OPTS.diff||'normal';el.innerHTML=Object.entries(DIFFS).map(([k,D])=>`<button class="btn ${k===cur?'on':''}" data-diff="${k}">${D.ico} ${D.n}</button>`).join('');$('diffD').textContent=DIFF().d;for(const b of el.querySelectorAll('[data-diff]'))b.onclick=()=>{OPTS.diff=b.dataset.diff;saveOpts();renderDiffs()}}
-renderDiffs();$('overAch').innerHTML=achSummary();window.__diff=k=>{OPTS.diff=k};
+renderDiffs();renderBiomes();$('overAch').innerHTML=achSummary();window.__diff=k=>{OPTS.diff=k};
 window.__gameOver=()=>gameOver();
 window.__king=()=>{const e=makeEnemy('mistking',3,CX+20,CZ+30);return e.blvl};
 window.__fest=()=>startFestival();
