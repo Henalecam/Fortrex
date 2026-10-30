@@ -117,7 +117,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?140:t==='boss'?60:t==='ram'?18:10,big?.8:.4);SFX.shatter(t!=='crawler');
   hitstop=Math.max(hitstop,t==='colossus'?.22:t==='boss'?.14:.05);shake=Math.max(shake,t==='colossus'?1.4:t==='boss'?.9:.22);if(big){hideBoss();slowmo=1.3;toast(`${e.T.n} derrotado!`,'r4')}
   if(t==='colossus'){const fx=e.pos.x+Math.sin(e.group.rotation.y)*3,fz=e.pos.z+Math.cos(e.group.rotation.y)*3;pendingBooms.push({x:fx,y:GY+.5,z:fz,r:3.6,dmg:230,o:{src:'env'},t:.25});toast('O Colosso desabou!','r4')}
-  dropTable(e);state.kills++;state.wk++;addCombo(e);if(state.ev==='bloodmoon'&&!e.rival){state.material+=1;for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&Math.abs(m.pos.x-e.pos.x)<4&&Math.abs(m.pos.z-e.pos.z)<4)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.12)}}
+  dropTable(e);state.kills++;state.wk++;if(e.lastSol&&!e.rival)vetKill(e.lastSol);addCombo(e);if(state.ev==='bloodmoon'&&!e.rival){state.material+=1;for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&Math.abs(m.pos.x-e.pos.x)<4&&Math.abs(m.pos.z-e.pos.z)<4)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.12)}}
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
   if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22,mistking:60,ship:30,pirate:3})[t]??2)*.4+r*.5))});
@@ -218,7 +218,7 @@ function makeMinion(role,rarity,x,z){const R=ROLES[role];const g=new THREE.Group
   g.userData.minion=m;recompute(m);m.hp=m.maxhp;minions.push(m);return m}
 function recompute(m){const st={atk:1,def:0,spd:1,hp:1,gun:1,work:1,cap:0,rate:1,reach:0,stun:0,thorns:0,burn:0};
   for(const sl of ['arma','armadura','acessorio']){const it=m.eq[sl];if(!it)continue;for(const k in it.st){if(k==='def'||k==='cap'||k==='reach'||k==='stun'||k==='thorns'||k==='burn')st[k]+=it.st[k];else st[k]*=it.st[k]}}
-  st.def=Math.min(.8,st.def);const R=m.rarity,T=m.trait;const LV=1+(m.lvl-1)*.07;st.atk*=LV;st.gun*=1+(m.lvl-1)*.05;
+  st.def=Math.min(.8,st.def);const R=m.rarity,T=m.trait;if(m.rank){const vb=m.rank>1?1.35:1.15;st.atk*=vb;st.hp*=vb}const LV=1+(m.lvl-1)*.07;st.atk*=LV;st.gun*=1+(m.lvl-1)*.05;
   m.speed=1.5*(m.role==='col'?4.2:m.role==='sol'?3.8:3.4)*(1+R*.12)*(T==='Rápido'?1.3:1)*st.spd*(m.role==='col'?1+state.lootMag*.15:1);
   m.work=(1+R*.25)*(T==='Rápido'?1.25:1)*st.work*LV;
   const hb=(m.role==='sol'?85:45)*(T==='Teimoso'?1.8:1)*(1+R*.2)*st.hp*LV*(m.hero?2.5*(heroHas(m.hero,'hp')?1.5:1):1)*(m.role==='sol'&&state.buildings&&state.buildings.barracks?1.25:1);const ratio=m.maxhp?m.hp/m.maxhp:1;m.maxhp=hb;m.hp=Math.max(1,hb*ratio);m.st=st;
@@ -298,7 +298,7 @@ function updGun(m,dt){
 function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;const RL=state.rally;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||(RL?Math.hypot(e.pos.x-RL.x,e.pos.z-RL.z)>14:Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+30)||(e.fly&&e.group.position.y>m.group.position.y+3.2)||(!e.fly&&e.gy>GY+3))continue;const d=hd(e.pos,m.pos);const pri=postDist(m,e.pos.x,e.pos.z)*.6+(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+d;if(pri<bd){bd=pri;tgt=e}}
   if(tgt&&(inside(tgt.pos.x,tgt.pos.z)||state.phase!=='wave'||tgt.state==='attack'||hd(tgt.pos,m.pos)<14)){const reach=tgt.radius+1.3+m.st.reach;
     if(walkTo(m,tgt.pos.x,tgt.pos.z,dt,reach)||hd(tgt.pos,m.pos)<reach+.1){m.group.rotation.y=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);
-      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
+      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);tgt.lastSol=m;hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
         if(tgt.dead)gainXP(m,6+tgt.maxhp/12);if(m.st.stun&&Math.random()<m.st.stun)tgt.stun=Math.max(tgt.stun,.6);if(m.st.burn)tgt.afire=Math.max(tgt.afire,2);m.wpn.rotation.x=-1.2;spawnDebris(tgt.pos.x,tgt.gy+.8,tgt.pos.z,tgt.T.color,2,.2)}}
     m.wpn.rotation.x*=.85;return}
   // soldiers hold the field outside the walls, in front of the gate

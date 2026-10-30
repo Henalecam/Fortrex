@@ -298,4 +298,6 @@ window.__farol=()=>{state.ups.farol=1;raiseLighthouse();simTime=(Math.ceil(simTi
 window.__xbow=n=>{state.ups.crossbow=n;startWave();return n};
 window.__pathN=()=>{const p=findPath(CX-6.5,CZ-13.5,CX+6.5,CZ-13.5);const q=findPath(CX+.5,CZ-14.5,CX+4.5,CZ-8.5);const r=findPath(CX+.5,CZ-14.5,CX+.5,CZ-30);return (p?p.length:"none")+"/"+(q?q.length:"none")+"/"+(r?r.length:"none")+" w"+walkCell(CX,CZ-15)+","+walkCell(CX,CZ-14);return (p?p.length:'none')+'/'+(q?q.length:'none')};
 window.__dragon=()=>{state.ups.dragon=1;state.wave=Math.max(8,state.wave);startWave();return 1};
+window.__vetTop=()=>minions.filter(m=>m.role==="sol").map(m=>m.kills||0).sort((a,b)=>b-a).slice(0,4);
+window.__vet=()=>{const m=minions.find(m=>m.role==="sol"&&!m.hero);for(let i=0;i<60;i++)vetKill(m);return [m.name,m.rank,m.kills,Math.round(m.maxhp),m.pos.x,m.pos.z]};
 window.__dpos=()=>dragon?{x:dragon.g.position.x,z:dragon.g.position.z}:null;

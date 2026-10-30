@@ -1012,7 +1012,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   spawnDebris(e.pos.x,e.group.position.y+.6,e.pos.z,e.T.color,t==='colossus'?140:t==='boss'?60:t==='ram'?18:10,big?.8:.4);SFX.shatter(t!=='crawler');
   hitstop=Math.max(hitstop,t==='colossus'?.22:t==='boss'?.14:.05);shake=Math.max(shake,t==='colossus'?1.4:t==='boss'?.9:.22);if(big){hideBoss();slowmo=1.3;toast(`${e.T.n} derrotado!`,'r4')}
   if(t==='colossus'){const fx=e.pos.x+Math.sin(e.group.rotation.y)*3,fz=e.pos.z+Math.cos(e.group.rotation.y)*3;pendingBooms.push({x:fx,y:GY+.5,z:fz,r:3.6,dmg:230,o:{src:'env'},t:.25});toast('O Colosso desabou!','r4')}
-  dropTable(e);state.kills++;state.wk++;addCombo(e);if(state.ev==='bloodmoon'&&!e.rival){state.material+=1;for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&Math.abs(m.pos.x-e.pos.x)<4&&Math.abs(m.pos.z-e.pos.z)<4)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.12)}}
+  dropTable(e);state.kills++;state.wk++;if(e.lastSol&&!e.rival)vetKill(e.lastSol);addCombo(e);if(state.ev==='bloodmoon'&&!e.rival){state.material+=1;for(const m of minions)if(m.role==='sol'&&m.wounded<=0&&Math.abs(m.pos.x-e.pos.x)<4&&Math.abs(m.pos.z-e.pos.z)<4)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.12)}}
 function addCombo(e){state.combo=(simTime-state.comboT<1.6)?state.combo+1:1;state.comboT=simTime;state.comboBest=Math.max(state.comboBest,state.combo);if(state.combo>=5&&state.combo%5===0){label({x:e.pos.x,y:e.gy+1,z:e.pos.z},`COMBO ×${state.combo}`,'#ff8a5c');SFX.loot(Math.min(4,Math.floor(state.combo/10)))}}
 function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,data)=>spawnLoot(e.pos.x+rnd(-.6,.6),e.gy+1,e.pos.z+rnd(-.6,.6),kind,rr,data);
   if(big||Math.random()<.65)at('material',0,{amount:Math.max(1,Math.round((({crawler:2,ram:4,climber:2,sapper:2,flyer:2,shaman:5,boss:12,colossus:26,queen:30,titan:40,knight:4,archer:3,rammer:6,general:40,golem:30,wyrm:24,necro:22,mistking:60,ship:30,pirate:3})[t]??2)*.4+r*.5))});
@@ -1113,7 +1113,7 @@ function makeMinion(role,rarity,x,z){const R=ROLES[role];const g=new THREE.Group
   g.userData.minion=m;recompute(m);m.hp=m.maxhp;minions.push(m);return m}
 function recompute(m){const st={atk:1,def:0,spd:1,hp:1,gun:1,work:1,cap:0,rate:1,reach:0,stun:0,thorns:0,burn:0};
   for(const sl of ['arma','armadura','acessorio']){const it=m.eq[sl];if(!it)continue;for(const k in it.st){if(k==='def'||k==='cap'||k==='reach'||k==='stun'||k==='thorns'||k==='burn')st[k]+=it.st[k];else st[k]*=it.st[k]}}
-  st.def=Math.min(.8,st.def);const R=m.rarity,T=m.trait;const LV=1+(m.lvl-1)*.07;st.atk*=LV;st.gun*=1+(m.lvl-1)*.05;
+  st.def=Math.min(.8,st.def);const R=m.rarity,T=m.trait;if(m.rank){const vb=m.rank>1?1.35:1.15;st.atk*=vb;st.hp*=vb}const LV=1+(m.lvl-1)*.07;st.atk*=LV;st.gun*=1+(m.lvl-1)*.05;
   m.speed=1.5*(m.role==='col'?4.2:m.role==='sol'?3.8:3.4)*(1+R*.12)*(T==='Rápido'?1.3:1)*st.spd*(m.role==='col'?1+state.lootMag*.15:1);
   m.work=(1+R*.25)*(T==='Rápido'?1.25:1)*st.work*LV;
   const hb=(m.role==='sol'?85:45)*(T==='Teimoso'?1.8:1)*(1+R*.2)*st.hp*LV*(m.hero?2.5*(heroHas(m.hero,'hp')?1.5:1):1)*(m.role==='sol'&&state.buildings&&state.buildings.barracks?1.25:1);const ratio=m.maxhp?m.hp/m.maxhp:1;m.maxhp=hb;m.hp=Math.max(1,hb*ratio);m.st=st;
@@ -1193,7 +1193,7 @@ function updGun(m,dt){
 function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;const RL=state.rally;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||(RL?Math.hypot(e.pos.x-RL.x,e.pos.z-RL.z)>14:Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+30)||(e.fly&&e.group.position.y>m.group.position.y+3.2)||(!e.fly&&e.gy>GY+3))continue;const d=hd(e.pos,m.pos);const pri=postDist(m,e.pos.x,e.pos.z)*.6+(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+d;if(pri<bd){bd=pri;tgt=e}}
   if(tgt&&(inside(tgt.pos.x,tgt.pos.z)||state.phase!=='wave'||tgt.state==='attack'||hd(tgt.pos,m.pos)<14)){const reach=tgt.radius+1.3+m.st.reach;
     if(walkTo(m,tgt.pos.x,tgt.pos.z,dt,reach)||hd(tgt.pos,m.pos)<reach+.1){m.group.rotation.y=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);
-      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
+      if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1);tgt.lastSol=m;hurtEnemy(tgt,dmg,{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
         if(tgt.dead)gainXP(m,6+tgt.maxhp/12);if(m.st.stun&&Math.random()<m.st.stun)tgt.stun=Math.max(tgt.stun,.6);if(m.st.burn)tgt.afire=Math.max(tgt.afire,2);m.wpn.rotation.x=-1.2;spawnDebris(tgt.pos.x,tgt.gy+.8,tgt.pos.z,tgt.T.color,2,.2)}}
     m.wpn.rotation.x*=.85;return}
   // soldiers hold the field outside the walls, in front of the gate
@@ -2251,15 +2251,21 @@ function crossbowTick(dt){for(let i=bolts.length-1;i>=0;i--){const b=bolts[i];b.
 let dragon=null;
 function makeDragon(){const g=new THREE.Group();const c=0x3fae6a;box(1.2,.9,3,c,0,0,0,g);const h=box(.9,.8,1.1,c,0,.3,1.9,g);box(.5,.3,.6,0xf6d76b,0,.05,2.5,g);for(const s of[-1,1]){box(.12,.5,.12,0xf6f1ff,s*.3,.85,1.9,g)}box(.4,.4,2,shadeHex(c,-.15),0,.1,-2.3,g);
   const wings=[];for(const s of[-1,1]){const w=new THREE.Group();w.position.set(s*.6,.3,0);const m=box(3,.12,1.8,0x2f8a55,s*1.5,0,0,w);g.add(w);wings.push(w)}g.scale.setScalar(1.3);scene.add(g);const sh=new THREE.Mesh(new THREE.CircleGeometry(2.6,20),new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.22,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.scale.set(1,1.6,1);scene.add(sh);return{g,wings,a:0,cd:3,sh,perch:0,hp:1,down:0,claw:0}}
-function dragonTick(dt){if(!state.ups.dragon){if(dragon){scene.remove(dragon.g);scene.remove(dragon.sh);dragon=null}return}if(!dragon)dragon=makeDragon();const D=dragon;if(state.phase!=='wave'){D.hp=Math.min(1,D.hp+dt*.05);D.down=0}const rest=state.phase!=='wave'||D.down>0;D.perch+=((rest?1:0)-D.perch)*Math.min(1,dt*.8);D.a+=dt*.35*(1-D.perch);const R=30,fx=CX+Math.cos(D.a)*R,fz=CZ+Math.sin(D.a)*R,fy=GY+13+Math.sin(simTime*1.3)*1.2;const px=CX+.5,pz=CZ+.5,py=GY+KH+2.2;const x=fx+(px-fx)*D.perch,z=fz+(pz-fz)*D.perch;D.g.position.set(x,fy+(py-fy)*D.perch,z);D.g.rotation.y=-D.a;D.sh.position.set(x,surf(x,z)+.05,z);D.sh.rotation.z=D.a;D.sh.visible=D.perch<.9;
-  for(const [k,w] of D.wings.entries())w.rotation.z=(k?-1:1)*(D.perch>.9?.9:Math.sin(simTime*6)*.5);if(state.phase!=='wave')return;if(D.down>0){D.down-=dt;D.hp=Math.min(1,D.hp+dt*.02);if(D.down<=0)toast('🐲 O dragão volta aos céus!','r2');return}const Y=D.g.position.y;D.claw-=dt;let nf=null,nd=7;for(const e of enemies){if(e.dead||e.type!=='flyer')continue;const d=Math.hypot(e.pos.x-x,e.pos.z-z);if(d<22&&d>.8){const st=Math.min(d-.8,e.speed*dt*1.6);e.pos.x+=(x-e.pos.x)/d*st;e.pos.z+=(z-e.pos.z)/d*st}if(d<4)D.hp-=e.T.dmg*dt*.005*(1+state.wave*.02);if(d<nd){nd=d;nf=e}}if(nf&&D.claw<=0){D.claw=1.1;dmgEnemy(nf,(30+state.wave*5)*state.dmgMul,true)}window.__dhp=D.hp;window.__dfly=[enemies.filter(e=>!e.dead&&e.type==='flyer').length,+(nd).toFixed(1)];if(D.hp<=0){D.hp=0;D.down=25;toast('🐲 Os voadores derrubaram o dragão! Ele se recolhe na torre por 25 s.','r3');return}D.cd-=dt;if(D.cd>0)return;D.cd=4;
+const _dhurt=new THREE.Color(0xd8342c);function dragonTick(dt){if(!state.ups.dragon){if(dragon){scene.remove(dragon.g);scene.remove(dragon.sh);dragon=null}return}if(!dragon)dragon=makeDragon();const D=dragon;if(state.phase!=='wave'){D.hp=Math.min(1,D.hp+dt*.05);D.down=0}const rest=state.phase!=='wave'||D.down>0;D.perch+=((rest?1:0)-D.perch)*Math.min(1,dt*.8);D.a+=dt*.35*(1-D.perch);const R=30,fx=CX+Math.cos(D.a)*R,fz=CZ+Math.sin(D.a)*R,fy=GY+13+Math.sin(simTime*1.3)*1.2;const px=CX+.5,pz=CZ+.5,py=GY+KH+2.2;const x=fx+(px-fx)*D.perch,z=fz+(pz-fz)*D.perch;D.g.position.set(x,fy+(py-fy)*D.perch,z);D.g.rotation.y=-D.a;D.sh.position.set(x,surf(x,z)+.05,z);D.sh.rotation.z=D.a;D.sh.visible=D.perch<.9;
+  for(const [k,w] of D.wings.entries())w.rotation.z=(k?-1:1)*(D.perch>.9?.9:Math.sin(simTime*6)*.5);if(state.phase!=='wave')return;if(D.down>0){D.down-=dt;D.hp=Math.min(1,D.hp+dt*.02);if(D.down<=0)toast('🐲 O dragão volta aos céus!','r2');return}const Y=D.g.position.y;D.claw-=dt;let nf=null,nd=7;for(const e of enemies){if(e.dead||e.type!=='flyer')continue;const d=Math.hypot(e.pos.x-x,e.pos.z-z);if(d<22&&d>.8){const st=Math.min(d-.8,e.speed*dt*1.6);e.pos.x+=(x-e.pos.x)/d*st;e.pos.z+=(z-e.pos.z)/d*st}if(d<4)D.hp-=e.T.dmg*dt*.005*(1+state.wave*.02);if(d<nd){nd=d;nf=e}}if(nf&&D.claw<=0){D.claw=1.1;dmgEnemy(nf,(30+state.wave*5)*state.dmgMul,true)}window.__dhp=D.hp;if(!D.mats){D.mats=[];D.g.traverse(o=>{if(o.material&&o.material.color.getHex()===0x3fae6a){o.material=o.material.clone();D.mats.push(o.material)}})}for(const mt of D.mats)mt.color.setHex(0x3fae6a).lerp(_dhurt,(1-D.hp)*.8);window.__dfly=[enemies.filter(e=>!e.dead&&e.type==='flyer').length,+(nd).toFixed(1)];if(D.hp<=0){D.hp=0;D.down=25;toast('🐲 Os voadores derrubaram o dragão! Ele se recolhe na torre por 25 s.','r3');return}D.cd-=dt;if(D.cd>0)return;D.cd=4;
   let best=null,bs=0;for(const e of enemies){if(e.dead)continue;let n=0;for(const o of enemies)if(!o.dead&&Math.abs(o.pos.x-e.pos.x)<5&&Math.abs(o.pos.z-e.pos.z)<5)n++;if(n>bs&&Math.hypot(e.pos.x-x,e.pos.z-z)<45){bs=n;best=e}}if(!best)return;
   const tx=best.pos.x,tz=best.pos.z;for(let k=0;k<26;k++){const f=k/26;spawnFlame(x+(tx-x)*f+rnd(-1,1)*f*2,D.g.position.y+(best.gy+.5-D.g.position.y)*f,z+(tz-z)*f+rnd(-1,1)*f*2,1.2)}
   for(const e of enemies)if(!e.dead&&Math.hypot(e.pos.x-tx,e.pos.z-tz)<5){dmgEnemy(e,(40+state.wave*7)*state.dmgMul,true);if(e.type!=='imp'&&e.type!=='titan')e.afire=Math.max(e.afire||0,3)}if(SFX.boom)SFX.boom(false)}
 
+// v0.93 veteranos: soldados ganham patente por abates
+const VET=[[20,'Veterano','🎖️',0xd9b24c],[50,'Lenda','🌟',0xffe06a]];
+function vetCrest(m){if(m.crest){m.group.remove(m.crest)}if(!m.rank)return;const V=VET[m.rank-1];m.crest=box(.3,.3,.3,V[3],0,1.95,0,m.group);m.crest.rotation.set(.6,.785,0)}
+function vetKill(m){if(!m||m.dead||m.hero||!minions.includes(m))return;m.kills=(m.kills||0)+1;const nr=VET.filter(v=>m.kills>=v[0]).length;if(nr>(m.rank||0)){m.rank=nr;const V=VET[nr-1];recompute(m);m.hp=m.maxhp;vetCrest(m);toast(`${V[2]} ${m.name} virou ${V[1]} (${m.kills} abates): +${nr>1?35:15}% vida e ataque.`,'r2');if(SFX.chime)SFX.chime()}}
+function vetRestore(m){if(m.hero)return;m.rank=VET.filter(v=>(m.kills||0)>=v[0]).length;if(m.rank){recompute(m);vetCrest(m)}}
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.92;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.93;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2307,7 +2313,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.89,'🔧 Ajustes internos e verificações (farol não bloqueia o pátio).'],
   [0.90,'🐲 Nova Maravilha: Ninho do dragão (horda 16+) — um dragão aliado sobrevoa a cidadela e cospe fogo nos maiores grupos.'],
   [0.91,'🐲 O dragão aliado voa mais baixo com sombra no chão e, entre as hordas, pousa no alto da torre central.'],
-  [0.92,'🦅 Voadores agora caçam o dragão: ele os abate com as garras, mas se for cercado cai ferido e se recolhe na torre por 25 s.']];
+  [0.92,'🦅 Voadores agora caçam o dragão: ele os abate com as garras, mas se for cercado cai ferido e se recolhe na torre por 25 s.'],
+  [0.93,'🎖️ Soldados ganham patente: Veterano aos 20 abates (+15% vida/ataque) e Lenda aos 50 (+35%), com brasão dourado. O dragão fica vermelho quando ferido.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2347,7 +2354,7 @@ function loadGame(){const d=readSave();if(!d)return false;
   // army
   for(const T of d.turrets||[])if(TURRETS[T.type]&&vox[T.anchor])makeTurret(T.type,T.anchor,T.r||0);
   for(const s of d.minions||[]){let m;if(s.hero){const H=HEROES.find(h=>h.id===s.hero);if(!H)continue;spawnHero(H);m=state.heroes[H.id].m}else{if(!ROLES[s.role])continue;m=makeMinion(s.role,s.r||0,s.x,s.z);m.name=s.name||m.name;m.trait=s.trait||m.trait}
-    m.lvl=s.lvl||1;m.xp=s.xp||0;m.kills=s.kills||0;const eq=revive(s.eq||{});for(const k in m.eq)m.eq[k]=eq[k]||null;recompute(m);m.hp=m.maxhp}
+    m.lvl=s.lvl||1;m.xp=s.xp||0;m.kills=s.kills||0;vetRestore(m);const eq=revive(s.eq||{});for(const k in m.eq)m.eq[k]=eq[k]||null;recompute(m);m.hp=m.maxhp}
   // realm
   if(d.realm){const R=d.realm;REALM.facs.length=0;for(const f of R.facs)REALM.facs.push(f);REALM.cities.length=0;for(const c of R.cities)REALM.cities.push({...c,fac:REALM.facs[c.fac]||REALM.facs[0]});
     REALM.armies.length=0;REALM.pois.length=0;for(const p of revive(R.pois||[]))REALM.pois.push(p);REALM.t=R.t||0;REALM.spawnT=R.spawnT||100;REALM.poiT=R.poiT||45;REALM.nextId=R.nextId||REALM.cities.length+REALM.pois.length+5;REALM.log.length=0;for(const l of R.log||[])REALM.log.push(l);REALM.deco=null}
@@ -2656,6 +2663,8 @@ window.__farol=()=>{state.ups.farol=1;raiseLighthouse();simTime=(Math.ceil(simTi
 window.__xbow=n=>{state.ups.crossbow=n;startWave();return n};
 window.__pathN=()=>{const p=findPath(CX-6.5,CZ-13.5,CX+6.5,CZ-13.5);const q=findPath(CX+.5,CZ-14.5,CX+4.5,CZ-8.5);const r=findPath(CX+.5,CZ-14.5,CX+.5,CZ-30);return (p?p.length:"none")+"/"+(q?q.length:"none")+"/"+(r?r.length:"none")+" w"+walkCell(CX,CZ-15)+","+walkCell(CX,CZ-14);return (p?p.length:'none')+'/'+(q?q.length:'none')};
 window.__dragon=()=>{state.ups.dragon=1;state.wave=Math.max(8,state.wave);startWave();return 1};
+window.__vetTop=()=>minions.filter(m=>m.role==="sol").map(m=>m.kills||0).sort((a,b)=>b-a).slice(0,4);
+window.__vet=()=>{const m=minions.find(m=>m.role==="sol"&&!m.hero);for(let i=0;i<60;i++)vetKill(m);return [m.name,m.rank,m.kills,Math.round(m.maxhp),m.pos.x,m.pos.z]};
 window.__dpos=()=>dragon?{x:dragon.g.position.x,z:dragon.g.position.z}:null;
 
 })();

@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.92;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.93;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -48,7 +48,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.89,'🔧 Ajustes internos e verificações (farol não bloqueia o pátio).'],
   [0.90,'🐲 Nova Maravilha: Ninho do dragão (horda 16+) — um dragão aliado sobrevoa a cidadela e cospe fogo nos maiores grupos.'],
   [0.91,'🐲 O dragão aliado voa mais baixo com sombra no chão e, entre as hordas, pousa no alto da torre central.'],
-  [0.92,'🦅 Voadores agora caçam o dragão: ele os abate com as garras, mas se for cercado cai ferido e se recolhe na torre por 25 s.']];
+  [0.92,'🦅 Voadores agora caçam o dragão: ele os abate com as garras, mas se for cercado cai ferido e se recolhe na torre por 25 s.'],
+  [0.93,'🎖️ Soldados ganham patente: Veterano aos 20 abates (+15% vida/ataque) e Lenda aos 50 (+35%), com brasão dourado. O dragão fica vermelho quando ferido.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -88,7 +89,7 @@ function loadGame(){const d=readSave();if(!d)return false;
   // army
   for(const T of d.turrets||[])if(TURRETS[T.type]&&vox[T.anchor])makeTurret(T.type,T.anchor,T.r||0);
   for(const s of d.minions||[]){let m;if(s.hero){const H=HEROES.find(h=>h.id===s.hero);if(!H)continue;spawnHero(H);m=state.heroes[H.id].m}else{if(!ROLES[s.role])continue;m=makeMinion(s.role,s.r||0,s.x,s.z);m.name=s.name||m.name;m.trait=s.trait||m.trait}
-    m.lvl=s.lvl||1;m.xp=s.xp||0;m.kills=s.kills||0;const eq=revive(s.eq||{});for(const k in m.eq)m.eq[k]=eq[k]||null;recompute(m);m.hp=m.maxhp}
+    m.lvl=s.lvl||1;m.xp=s.xp||0;m.kills=s.kills||0;vetRestore(m);const eq=revive(s.eq||{});for(const k in m.eq)m.eq[k]=eq[k]||null;recompute(m);m.hp=m.maxhp}
   // realm
   if(d.realm){const R=d.realm;REALM.facs.length=0;for(const f of R.facs)REALM.facs.push(f);REALM.cities.length=0;for(const c of R.cities)REALM.cities.push({...c,fac:REALM.facs[c.fac]||REALM.facs[0]});
     REALM.armies.length=0;REALM.pois.length=0;for(const p of revive(R.pois||[]))REALM.pois.push(p);REALM.t=R.t||0;REALM.spawnT=R.spawnT||100;REALM.poiT=R.poiT||45;REALM.nextId=R.nextId||REALM.cities.length+REALM.pois.length+5;REALM.log.length=0;for(const l of R.log||[])REALM.log.push(l);REALM.deco=null}
