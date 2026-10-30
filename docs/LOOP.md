@@ -96,6 +96,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.51: ⭐ Talentos de herói (níveis 3/6/9, escolha 1 de 2: Prontidão, Fúria do campeão, Coração de ferro, Vigor; salvos em state.heroTal; saves antigos recebem os talentos atrasados ao carregar). Corrigido: heróis perdiam o bônus de vida ×2,5 ao subir de nível/equipar (agora no recompute) e a Caserna perdia o +25%. Celular: heróis numa coluna flutuante acima do dock (dock sempre em 2 linhas).
 - v0.52: 🤝 Socorro (novo objetivo do reino): uma fortaleza vizinha cercada pede ajuda; vencer os sitiantes a torna aliada (não ataca você, você não é alvo dela, e paga tributo de 4+2×nível material por horda; 🤝 no mapa). Talentos aparecem na ficha do herói. Teste longo com heróis mais fortes: horda 23 em 30 min (igual à versão anterior), sem erros.
 - v0.53: 🤝 Aliados mandam reforços: quando uma fortaleza rival cerca você, cada cidade aliada envia 1–3 soldados (até 8, com o chapéu na cor da facção) que vão embora quando a batalha acaba (não entram no save). Cidades aliadas mostram 🤝 no mapa do reino.
+- v0.54: 🚩 Porta-estandarte (horda 12+, ~50% das hordas): cavaleiro com bandeira vermelha, 2,2× vida; inimigos a até 8 blocos ficam 20% mais rápidos e levam 20% menos dano; ao cair, os vizinhos entram em pânico (atordoados 1,8 s). Mapa do reino no celular mostra só o primeiro nome das cidades (o selecionado e Fortrex completos). Soldados aliados confirmados indo embora ao fim do cerco.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

@@ -174,8 +174,8 @@ function drawRealm(){if(!REALM.open||!rctx)return;const dpr=Math.min(2,window.de
     // level badge
     g.fillStyle=col;g.beginPath();g.arc(x+s*1.05,y-s*.35,8,0,Math.PI*2);g.fill();g.strokeStyle='#fff';g.lineWidth=1.5;g.stroke();g.fillStyle='#fff';g.font='700 9px Fredoka,sans-serif';g.textAlign='center';g.fillText(c.lvl,x+s*1.05,y-s*.35+3);
     // label pill
-    const label=(c.home?'👑 ':'')+(c.ally?'🤝 ':'')+c.name;g.font=`700 ${c.home?12:11}px Fredoka,sans-serif`;const lw=g.measureText(label).width+12;g.fillStyle='rgba(255,255,255,.85)';const ly=y+s*1.2+4;g.beginPath();g.roundRect?g.roundRect(x-lw/2,ly,lw,28,8):g.rect(x-lw/2,ly,lw,28);g.fill();
-    g.fillStyle='#2b2d4a';g.fillText(label,x,ly+12);g.font='600 9.5px Nunito,sans-serif';g.fillStyle='#6b6e8f';g.fillText(`⚔ ${Math.round(c.garrison)} · ${c.fac.isMe?'sua':facOf(c).name.split(' ')[0]}`,x,ly+24)}
+    const compact=V.w<560&&!c.home&&REALM.sel!==c;const label=(c.home?'👑 ':'')+(c.ally?'🤝 ':'')+(compact?c.name.split(' ')[0]:c.name);g.font=`700 ${c.home?12:compact?10:11}px Fredoka,sans-serif`;const lw=g.measureText(label).width+(compact?8:12);g.fillStyle='rgba(255,255,255,.85)';const ly=y+s*1.2+(compact?2:4);const lh=compact?15:28;g.beginPath();g.roundRect?g.roundRect(x-lw/2,ly,lw,lh,compact?6:8):g.rect(x-lw/2,ly,lw,lh);g.fill();
+    g.fillStyle='#2b2d4a';g.fillText(label,x,ly+(compact?11:12));if(!compact){g.font='600 9.5px Nunito,sans-serif';g.fillStyle='#6b6e8f';g.fillText(`⚔ ${Math.round(c.garrison)} · ${c.fac.isMe?'sua':facOf(c).name.split(' ')[0]}`,x,ly+24)}}
   // compass + title
   const [kx,ky]=[V.w-38,38];g.fillStyle='rgba(255,255,255,.7)';g.beginPath();g.arc(kx,ky,22,0,Math.PI*2);g.fill();g.fillStyle='#d9414f';g.beginPath();g.moveTo(kx,ky-18);g.lineTo(kx+5,ky);g.lineTo(kx-5,ky);g.fill();g.fillStyle='#2b2d4a';g.beginPath();g.moveTo(kx,ky+18);g.lineTo(kx+5,ky);g.lineTo(kx-5,ky);g.fill();g.font='700 9px Fredoka,sans-serif';g.textAlign='center';g.fillText('N',kx,ky-21+(-2));
   g.font='700 18px Fredoka,sans-serif';g.textAlign='left';g.fillStyle='rgba(43,45,74,.8)';g.fillText('Reino de Fortrex',16,28);
