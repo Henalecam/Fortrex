@@ -1,6 +1,6 @@
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.66;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.67;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -22,7 +22,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.63,'🗺️ Escolha o bioma na tela inicial (ou 🎲 aleatório). Erupções agora mostram colunas de fogo onde as bombas vão cair.'],
   [0.64,'🏜️❄️🐸 Cada bioma tem sua regra: Rubro — calor do meio-dia cansa soldados fora das muralhas; Gelada — lagos congelados racham sob inimigos pesados (que caem na água gelada); Bruma — à noite a horda fica escondida na névoa até chegar perto.'],
   [0.65,'🌾 Campos Verdes: colheita após cada horda rende material. A regra de cada bioma aparece na tela inicial e ao passar o mouse no relógio.'],
-  [0.66,'⚡ Opção Gráficos leves (Automação → Opções): sombras simples e resolução menor; já vem ligada no celular.']];
+  [0.66,'⚡ Opção Gráficos leves (Automação → Opções): sombras simples e resolução menor; já vem ligada no celular.'],
+  [0.67,'⚡ Gráficos leves agora desligam as sombras e a suavização — bem mais rápido em celulares e notebooks fracos.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}

@@ -1,9 +1,10 @@
 // ───────── world: renderer, voxel grid, terrain, blueprint, fluids, fire, explosions
 const canvas=$('c');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
 if(OPTS.lowGfx===undefined)OPTS.lowGfx=innerWidth<600;
+// light graphics: no MSAA and no shadow pass (the shadow pass re-draws every voxel instance — the biggest GPU cost)
+const renderer=new THREE.WebGLRenderer({canvas,antialias:!OPTS.lowGfx,powerPreference:'high-performance'});
 renderer.setPixelRatio(OPTS.lowGfx?1:Math.min(window.devicePixelRatio,2));
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=OPTS.lowGfx?THREE.BasicShadowMap:THREE.PCFSoftShadowMap;
+renderer.shadowMap.enabled=!OPTS.lowGfx;renderer.shadowMap.type=OPTS.lowGfx?THREE.BasicShadowMap:THREE.PCFSoftShadowMap;
 renderer.outputEncoding=THREE.sRGBEncoding;
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0xdff1f7);scene.fog=new THREE.Fog(0xdff1f7,95,200);
