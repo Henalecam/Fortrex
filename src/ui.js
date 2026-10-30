@@ -173,7 +173,7 @@ function offerRewards(){const pool=rewardPool();const picks=[];while(picks.lengt
   $('reward').style.display='flex';SFX.loot(1)}
 
 // ── boss bar, tooltip
-function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName').textContent=`${e.T.n} ${RARITY[e.rarity].n}${e.blvl?` · nv ${e.blvl}`:''}`;$('bossName').style.color=`var(--${RARITY[e.rarity].css})`}
+function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName').textContent=`${e.T.n} ${RARITY[e.rarity].n}${e.blvl?` · nv ${e.blvl}`:''}${e.bossAff==='furioso'?' · 😡 Furioso':e.bossAff==='escudo'?' · 🔷 Escudo':''}`;$('bossName').style.color=`var(--${RARITY[e.rarity].css})`}
 function hideBoss(){state.boss=null;$('bossbar').style.display='none'}
 function showTip(cx,cy,t,s){const el=$('tip');el.innerHTML=esc(t)+(s?`<small>${esc(s)}</small>`:'');el.style.left=cx+'px';el.style.top=cy+'px';el.style.display='block'}
 function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}

@@ -102,6 +102,7 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 - v0.57: 💔 Blocos do baú destruídos durante a horda não são mais reconstruídos pelos reparadores até o descanso (antes o baú era quase imortal; a Engenheira ainda pode reerguê-los). Dano de inimigos no baú ×1,5 (era ×2). Resultados: passivo sem gastar morre na horda 18 (antes sobrevivia 23+); bot ativo Normal horda 21 em 25 min sem perder o baú; bot Brutal horda 15 em 20 min.
 - v0.58: 📦 Contador do baú no topo (escondido com o baú inteiro; aparece piscando em vermelho durante a horda quando falta pedaço, com aviso a cada 12 s no máximo). No celular ele toma o lugar do relógio.
 - v0.59: 🌀 Torre de vento (arma nova, horda 8+, entra no sorteio de loot): a cada 2,6 s uma rajada em cone (alcance 16) empurra os Devoradores 4–7 blocos para trás, atordoa 0,5 s, derruba escaladores e dá dano leve; não afeta chefes grandes. Modelo com hélice de 4 pás.
+- v0.60: 😡🔷 Afixos de chefe (horda 15+, 60% dos chefes): Furioso (abaixo de 50% de vida: +50% velocidade e dano, aura vermelha) ou Escudo (bolha azul de 30% da vida que absorve 85% de cada golpe e regenera após 4 s sem levar dano). Torre de vento não empurra o mesmo inimigo de novo por 4 s (evita travar a horda). Bot: horda 21 em 25 min, baú intacto.
 
 ## Backlog (próximas rodadas)
 - [ ] Salvar partida (semente + estado essencial) — avaliar custo

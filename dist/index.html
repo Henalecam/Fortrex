@@ -815,7 +815,7 @@ function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRiva
   let dy=t.yaw-t.group.rotation.y;while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;t.group.rotation.y+=dy*Math.min(1,dt*7);
   t.pivot.rotation.x+=(0-t.pivot.rotation.x)*Math.min(1,dt*5);
   if(t.reload>0)return;t.reload=t.T.reload;const from=new THREE.Vector3(t.pos.x,t.pos.y+.9,t.pos.z);
-  if(t.type==='wind'){const fx=Math.sin(t.yaw),fz=Math.cos(t.yaw);let n=0;for(const e of enemies){if(e.dead||BIG(e.type))continue;const ex=e.pos.x-t.pos.x,ez=e.pos.z-t.pos.z,d=Math.hypot(ex,ez);if(d>range||d<.1)continue;if((ex*fx+ez*fz)/d<.6)continue;const push=(4+t.r*.8)*(1-d/range*.5);e.pos.x+=ex/d*push;e.pos.z+=ez/d*push;e.stun=Math.max(e.stun||0,.5);dmgEnemy(e,dmg,false);if(CLIMBS(e.type))e.gy=GY;n++}
+  if(t.type==='wind'){const fx=Math.sin(t.yaw),fz=Math.cos(t.yaw);let n=0;for(const e of enemies){if(e.dead||BIG(e.type))continue;const ex=e.pos.x-t.pos.x,ez=e.pos.z-t.pos.z,d=Math.hypot(ex,ez);if(d>range||d<.1)continue;if((ex*fx+ez*fz)/d<.6)continue;if((e.windT||0)>simTime){dmgEnemy(e,dmg,false);continue}e.windT=simTime+4;const push=(4+t.r*.8)*(1-d/range*.5);e.pos.x+=ex/d*push;e.pos.z+=ez/d*push;e.stun=Math.max(e.stun||0,.5);dmgEnemy(e,dmg,false);if(CLIMBS(e.type))e.gy=GY;n++}
     for(let k=0;k<8;k++){const s=rnd(1,range);spawnDebris(t.pos.x+fx*s+rnd(-1,1),from.y+rnd(-.3,.8),t.pos.z+fz*s+rnd(-1,1),0xe8f4ff,1,.12)}if(t.group.userData.fan)t.group.userData.fan.rotation.z+=2;SFX.pop&&SFX.pop();return}
   if(t.type==='flamer'){const fx=Math.sin(t.yaw),fz=Math.cos(t.yaw);for(let k=0;k<5;k++){const s=rnd(.5,range);spawnFlame(t.pos.x+fx*s+rnd(-.4,.4)*s*.2,from.y+rnd(-.2,.2),t.pos.z+fz*s+rnd(-.4,.4)*s*.2,.9)}
     for(const e of enemies){if(e.dead)continue;const ex=e.pos.x-t.pos.x,ez=e.pos.z-t.pos.z,d=Math.hypot(ex,ez);if(d>range||d<.1)continue;if((ex*fx+ez*fz)/d<.82)continue;dmgEnemy(e,dmg,false);e.afire=Math.max(e.afire,2.5)}
@@ -948,11 +948,11 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   const e={type,T,rarity,group:g,pos:g.position,vel:new THREE.Vector3(),hp:hpm,maxhp:hpm,radius:T.radius*US,state:'walk',timer:0,target:-1,dead:false,bob:rnd(0,6),
     speed:T.speed*1.5*rnd(.9,1.1)*DIFF().sp*(state.ev==='elite'?1.15:1)*Math.min(1.3,1+Math.max(0,state.wave-12)*.015),armor:Math.min(.55,Math.max(0,state.wave-14)*.025+(state.wave>=6?(DIFF().arm||0):0)),parts:[body,head],sc,legs,fly:type==='flyer'||type==='wyrm',blvl:BIG(type)?1+Math.floor(state.wave/5):0,alt:type==='wyrm'?GY+12:GY+9+rnd(0,2),stun:0,fuse:-1,gy:0,afire:0,slowT:0,iceT:0,hit:0,viaWall:Math.random()<.4,inLava:false,inWater:false};
   if(DIFF().dmg!==1)e.T={...T,dmg:T.dmg*DIFF().dmg};
-  rollAffix(e);if(state.vein&&state.phase==='wave'&&!BIG(type)&&!CLIMBS(type)&&type!=='goblin'&&type!=='flyer'&&type!=='ship'&&Math.random()<.15)e.veinRaid=true;
+  rollAffix(e);if(BIG(type)&&type!=='ship'&&type!=='general'&&state.wave>=15&&Math.random()<.6){e.bossAff=pick(['furioso','escudo']);if(e.bossAff==='escudo'){e.shieldMax=e.maxhp*.3;e.shield=e.shieldMax}}if(state.vein&&state.phase==='wave'&&!BIG(type)&&!CLIMBS(type)&&type!=='goblin'&&type!=='flyer'&&type!=='ship'&&Math.random()<.15)e.veinRaid=true;
   setupChunks(e,body,head);
   e.gy=CLIMBS(type)?topY(x,z):surfE(x,z);g.position.y=e.fly?e.alt:e.gy;g.userData.enemy=e;
   if(BIG(type)){showBoss(e);const ring=new THREE.Mesh(new THREE.RingGeometry(e.radius*1.15,e.radius*1.45,32),new THREE.MeshBasicMaterial({color:RARITY[Math.max(2,rarity)].c,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.08;g.add(ring);e.aura=ring}enemies.push(e);return e}
-function dmgEnemy(e,d,flash,crit){if(e.dead)return;e.lastHit=simTime;if(e.inspired>simTime&&!e.bearer)d*=.8;if(e.armor)d*=1-e.armor;if(e.type==='beetle'&&e.chunks&&e.lost<e.chunks.length*.35){d*=.5;if(Math.random()<.05)label({x:e.pos.x,y:e.gy+1.6,z:e.pos.z},'carapaça','#5cc0c0')}if(e.type==='necro'&&e.summ&&e.summ.filter(s=>!s.dead).length>=3){d*=.3;if(Math.random()<.08)label({x:e.pos.x,y:e.gy+e.sc*1.5,z:e.pos.z},'escudo de ossos','#7dff9a')}e.hp-=d;if(e.chunks&&e.hp>0)chipEnemy(e,d);if(flash&&(d>=14||crit)&&Math.random()<(crit?1:.5))label({x:e.pos.x+rnd(-.3,.3),y:e.group.position.y-.6+e.sc*.6,z:e.pos.z},crit?`${Math.round(d)}!`:String(Math.round(d)),crit?'#e0a000':'#6b6e8f');if(flash){e.hit=.1;for(const p of e.parts)p.material.emissive.setHex(0xffffff)}if(e.hp<=0)killEnemy(e)}
+function dmgEnemy(e,d,flash,crit){if(e.dead)return;e.lastHit=simTime;if(e.shield>0){const a=Math.min(e.shield,d*.85);e.shield-=a;d-=a;if(e.shield<=0){label({x:e.pos.x,y:e.gy+e.sc*1.8,z:e.pos.z},'ESCUDO QUEBRADO!','#4f9cf2');if(e.shieldMesh)e.shieldMesh.visible=false}}if(e.inspired>simTime&&!e.bearer)d*=.8;if(e.armor)d*=1-e.armor;if(e.type==='beetle'&&e.chunks&&e.lost<e.chunks.length*.35){d*=.5;if(Math.random()<.05)label({x:e.pos.x,y:e.gy+1.6,z:e.pos.z},'carapaça','#5cc0c0')}if(e.type==='necro'&&e.summ&&e.summ.filter(s=>!s.dead).length>=3){d*=.3;if(Math.random()<.08)label({x:e.pos.x,y:e.gy+e.sc*1.5,z:e.pos.z},'escudo de ossos','#7dff9a')}e.hp-=d;if(e.chunks&&e.hp>0)chipEnemy(e,d);if(flash&&(d>=14||crit)&&Math.random()<(crit?1:.5))label({x:e.pos.x+rnd(-.3,.3),y:e.group.position.y-.6+e.sc*.6,z:e.pos.z},crit?`${Math.round(d)}!`:String(Math.round(d)),crit?'#e0a000':'#6b6e8f');if(flash){e.hit=.1;for(const p of e.parts)p.material.emissive.setHex(0xffffff)}if(e.hp<=0)killEnemy(e)}
 // elite affixes: from wave 8 some common enemies come with a trait shown by a colored ring at their feet
 const AFFIX={fast:{n:'Veloz',c:0xffd23d},armor:{n:'Blindado',c:0x8ea9c6},vamp:{n:'Vampiro',c:0xd9414f},boom:{n:'Explosivo',c:0xff7a2a},regen:{n:'Regenerante',c:0x5cc08c}};
 const AFF_GEO=new THREE.RingGeometry(.62,.82,20);const AFF_MAT={};
@@ -1256,6 +1256,12 @@ function goblinBrain(e,dt,sf){const L=state.fieldTraps;if(!L||!L.length)return f
 function makeBearer(e){e.bearer=true;e.maxhp*=2.2;e.hp=e.maxhp;const pole=box(.08*US,2.2*US,.08*US,0x6b4426,-.35*US,1.5*US,-.1*US,e.group);const flag=box(.6*US,.45*US,.04*US,0xd9414f,-.05*US,2.3*US,-.1*US,e.group);flag.material.emissive.setHex(0x5a1010);e.flag=flag}
 let bearAcc=0;function bearerTick(dt){bearAcc+=dt;if(bearAcc<.5)return;bearAcc=0;for(const b of enemies){if(b.dead||!b.bearer)continue;if(b.flag)b.flag.rotation.y=Math.sin(simTime*4)*.3;for(const o of enemies)if(!o.dead&&o!==b&&Math.abs(o.pos.x-b.pos.x)<8&&Math.abs(o.pos.z-b.pos.z)<8){if(!(o.inspired>simTime))o.speed*=1.2;o.inspired=simTime+1.2;o.inspT=simTime}}
   for(const o of enemies)if(!o.dead&&o.inspT&&o.inspired<=simTime){o.speed/=1.2;o.inspT=0}}
+
+// boss affixes (wave 15+): Furioso enrages below half health; Escudo carries a regenerating shield that soaks 85% of each hit
+let bossAffAcc=0;function bossAffTick(dt){bossAffAcc+=dt;if(bossAffAcc<.25)return;const t=bossAffAcc;bossAffAcc=0;for(const e of enemies){if(e.dead||!e.bossAff)continue;
+  if(e.bossAff==='furioso'&&!e.enraged&&e.hp<e.maxhp*.5){e.enraged=true;e.speed*=1.5;e.T={...e.T,dmg:e.T.dmg*1.5,rate:e.T.rate*.75};if(e.aura)e.aura.material=new THREE.MeshBasicMaterial({color:0xff3a2a,transparent:true,opacity:.75,side:THREE.DoubleSide,depthWrite:false});toast(`😡 ${e.T.n} enfureceu: mais rápido e mais forte!`,'r3');shake=Math.max(shake,.4)}
+  if(e.bossAff==='escudo'){if(!e.shieldMesh){e.shieldMesh=new THREE.Mesh(new THREE.SphereGeometry(e.radius*1.6/e.group.scale.x,16,10),new THREE.MeshBasicMaterial({color:0x6fb6ff,transparent:true,opacity:.22,depthWrite:false}));e.shieldMesh.position.y=e.radius*1.2/e.group.scale.x;e.group.add(e.shieldMesh)}
+    if(e.shield<e.shieldMax&&simTime-(e.lastHit||0)>4){const was=e.shield;e.shield=Math.min(e.shieldMax,e.shield+e.shieldMax*.06*t);if(was<=0&&e.shield>0)e.shieldMesh.visible=true}if(e.shieldMesh)e.shieldMesh.material.opacity=e.shield>0?.12+.18*(e.shield/e.shieldMax):0}}}
 
 // ───────── rival cities, raids, expeditions, game modes, smart traps, day/night and world regrowth
 const rivals=[];
@@ -1799,7 +1805,7 @@ function offerRewards(){const pool=rewardPool();const picks=[];while(picks.lengt
   $('reward').style.display='flex';SFX.loot(1)}
 
 // ── boss bar, tooltip
-function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName').textContent=`${e.T.n} ${RARITY[e.rarity].n}${e.blvl?` · nv ${e.blvl}`:''}`;$('bossName').style.color=`var(--${RARITY[e.rarity].css})`}
+function showBoss(e){state.boss=e;$('bossbar').style.display='block';$('bossName').textContent=`${e.T.n} ${RARITY[e.rarity].n}${e.blvl?` · nv ${e.blvl}`:''}${e.bossAff==='furioso'?' · 😡 Furioso':e.bossAff==='escudo'?' · 🔷 Escudo':''}`;$('bossName').style.color=`var(--${RARITY[e.rarity].css})`}
 function hideBoss(){state.boss=null;$('bossbar').style.display='none'}
 function showTip(cx,cy,t,s){const el=$('tip');el.innerHTML=esc(t)+(s?`<small>${esc(s)}</small>`:'');el.style.left=cx+'px';el.style.top=cy+'px';el.style.display='block'}
 function hoverAt(cx,cy){if(state.build.on){updateGhost(cx,cy);return}
@@ -2094,7 +2100,7 @@ let chestAcc=0,chestLast=-1;function chestTick(dt){chestAcc+=dt;if(chestAcc<.3)r
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.59;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.60;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2109,7 +2115,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.56,'⚡ Ímpeto: chamar a próxima horda nos primeiros 12 s de descanso rende material (o botão mostra quanto). Normal ficou um pouco mais difícil e o baú sofre o dobro de dano quando alcançado.'],
   [0.57,'💔 Pedaços do baú destruídos durante a horda só são reconstruídos no descanso (antes os reparadores refaziam na hora). A Engenheira ainda pode reerguê-los com Reconstrução.'],
   [0.58,'📦 Contador do baú no topo da tela aparece piscando quando ele perde pedaços, com aviso.'],
-  [0.59,'🌀 Nova arma: Torre de vento (horda 8+) — rajada em cone que empurra a horda para trás e derruba escaladores.']];
+  [0.59,'🌀 Nova arma: Torre de vento (horda 8+) — rajada em cone que empurra a horda para trás e derruba escaladores.'],
+  [0.60,'😡🔷 Chefes da horda 15+ podem vir Furiosos (enfurecem abaixo da metade da vida) ou com Escudo (bolha que absorve dano e se regenera se você parar de atacar). Torre de vento não empurra o mesmo inimigo de novo por 4 s.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2299,7 +2306,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);chestTick(dt);bossAffTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':'r1');state.combo=0}
@@ -2438,6 +2445,7 @@ window.__bearer=()=>{const e=makeEnemy('knight',1,CX+30,CZ);makeBearer(e);for(le
 window.__ward=()=>{state.wave=Math.max(8,state.wave);startWave();return wardUp()};
 window.__chestHit=n=>{let k=0;for(const i of _chestVox)if(vox[i]===5&&k<n){removeVox(i,'enemy');k++}return chestAlive()};
 window.__wind=()=>{const a=TOWER_ANCHORS[1];const t=makeTurret("wind",a,2);state.wave=Math.max(8,state.wave);startWave();return {x:t.pos.x,z:t.pos.z}};
+window.__bossAff=k=>{state.wave=Math.max(15,state.wave);startWave();const e=makeEnemy('golem',2,CX+34,CZ);e.bossAff=k;if(k==='escudo'){e.shieldMax=e.maxhp*.3;e.shield=e.shieldMax}return {x:e.pos.x,z:e.pos.z,hp:Math.round(e.maxhp)}};
 
 })();
 </script>
