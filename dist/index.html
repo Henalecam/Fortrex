@@ -264,6 +264,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
   <button class="btn" id="bomb" title="Bombardeio: 25 material">💣<span class="lb">Bomba</span><span class="cost" id="bombCd">25</span></button>
   <button class="btn war" id="raidBtn" hidden title="Envia soldados e curandeiros contra a fortaleza inimiga">⚔️<span class="lb">Atacar</span></button>
   <button class="btn" id="recallBtn" hidden title="Chama a expedição de volta">🏳️<span class="lb">Recuar</span></button>
+  <button class="btn" id="bWard" hidden title="Égide do Guardião: por 7 s os blocos da cidadela não sofrem dano (recarga 100 s)">🛡️<span class="lb">Égide</span><span class="cost" id="wardCd"></span></button>
   <button class="btn" id="bRally" title="Bandeira de reunião: clique no mapa e os soldados se juntam ali por 30 s">🚩<span class="lb">Reunir</span></button>
   <button class="btn" id="camHome" title="Centralizar na cidadela (H)">🏰</button>
   <span class="sep"></span>
@@ -462,7 +463,7 @@ function setFluid(i,m,lv,src){if(SOLIDM(vox[i]))return;vox[i]=m;hp[i]=lv;fluids.
 
 // src: 'enemy' | 'player' | 'env'. Player damage never touches the fortress (blue) — no friendly fire.
 function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m))return false;if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
-  if(blue[i]){if(src==='player')return false;if(src==='env')d*=.4}
+  if(blue[i]){if(src==='player')return false;if(src==='env')d*=.4;if(state.wardT>0)d*=.08}
   if(m===20)d*=.45;if(m===14)d*=.7;
   if(m===5&&src==='enemy')d*=.45;
   if(src==='enemy'&&who&&m===16&&blue[i])dmgEnemy(who,d*.7+6,true);
@@ -1959,7 +1960,7 @@ function popLantern(L,auto){const k=lanterns.indexOf(L);if(k<0)return;lanterns.s
 function festivalTick(dt){for(let i=lanterns.length-1;i>=0;i--){const L=lanterns[i];L.t-=dt;L.ph+=dt;L.g.position.y+=dt*.35;L.g.position.x+=Math.sin(L.ph*.7)*dt*.4;L.g.rotation.y+=dt;if(L.t<=0)popLantern(L,true)}}
 // ───────── first-time tips: short, contextual, each shown once (remembered in the browser)
 const TIPS_SEEN=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_tips')||'{}')}catch(e){return{}}})();
-const TIPS=[{id:'bearer',c:()=>enemies.some(e=>e.bearer&&!e.dead),t:'🚩 Um porta-estandarte inimigo acelera e protege a horda ao redor. Clique nele para concentrar o fogo: quando cai, todos por perto entram em pânico.'},{id:'goblin',c:()=>enemies.some(e=>e.type==='goblin'&&!e.dead),t:'🔧 Sabotadores (duendes com chave inglesa) desarmam as armadilhas dos Sapadores. Concentre o fogo neles.'},{id:'oil',c:()=>state.wave>=6&&state.phase==='rest'&&!state.ups.oil&&enemies.length===0,t:'🫕 Escaladores e aranhas passam por cima das muralhas. Óleo fervente (Upgrades) derruba eles lá de cima.'},{id:'mason',c:()=>state.wave>=4&&state.phase==='rest'&&!state.ups.masonry,t:'🧱 Alvenaria (Upgrades) troca os blocos da cidadela por materiais melhores, de graça, depois de cada horda.'},{id:'sappers',c:()=>(state.fieldTraps||[]).length>=4,t:'💣 Os sapadores espalham minas, espinhos e barris pelo mapa onde a horda passa. Compre Sapadores para mais armadilhas.'},{id:'affix',c:()=>enemies.some(e=>e.aff&&!e.dead),t:'💍 Anéis coloridos nos pés marcam inimigos de elite: amarelo veloz, azul blindado, vermelho vampiro, laranja explode ao morrer, verde regenera.'},
+const TIPS=[{id:'ward',c:()=>state.wave>=8&&state.phase==='wave'&&chestAlive()<18,t:'🛡️ O baú está sendo atacado! Use a Égide do Guardião (dock) para proteger a cidadela por 7 s.'},{id:'bearer',c:()=>enemies.some(e=>e.bearer&&!e.dead),t:'🚩 Um porta-estandarte inimigo acelera e protege a horda ao redor. Clique nele para concentrar o fogo: quando cai, todos por perto entram em pânico.'},{id:'goblin',c:()=>enemies.some(e=>e.type==='goblin'&&!e.dead),t:'🔧 Sabotadores (duendes com chave inglesa) desarmam as armadilhas dos Sapadores. Concentre o fogo neles.'},{id:'oil',c:()=>state.wave>=6&&state.phase==='rest'&&!state.ups.oil&&enemies.length===0,t:'🫕 Escaladores e aranhas passam por cima das muralhas. Óleo fervente (Upgrades) derruba eles lá de cima.'},{id:'mason',c:()=>state.wave>=4&&state.phase==='rest'&&!state.ups.masonry,t:'🧱 Alvenaria (Upgrades) troca os blocos da cidadela por materiais melhores, de graça, depois de cada horda.'},{id:'sappers',c:()=>(state.fieldTraps||[]).length>=4,t:'💣 Os sapadores espalham minas, espinhos e barris pelo mapa onde a horda passa. Compre Sapadores para mais armadilhas.'},{id:'affix',c:()=>enemies.some(e=>e.aff&&!e.dead),t:'💍 Anéis coloridos nos pés marcam inimigos de elite: amarelo veloz, azul blindado, vermelho vampiro, laranja explode ao morrer, verde regenera.'},
   {id:'start',c:()=>simTime>3,t:'👥 Seus minions trabalham sozinhos: reparam, coletam, lutam e operam armas. Clique em um para ver a ficha.'},
   {id:'wave',c:()=>state.phase==='wave'&&state.wave===1,t:'🔥 Clique num inimigo para concentrar o fogo de todas as armas nele.'},
   {id:'auto',c:()=>state.wave>=2&&state.phase==='rest',t:'⚙️ No menu Automação você liga construção, upgrades, venda e recompensas automáticas.'},
@@ -2067,9 +2068,17 @@ let allyAcc=0;function allyTick(dt){allyAcc+=dt;if(allyAcc<1)return;allyAcc=0;co
   if(n)toast(`🤝 Seus aliados mandaram ${n} soldados contra ${R.name}!`,'r4')}
 function hex2int(c){return typeof c==='number'?c:parseInt(String(c).replace('#',''),16)}
 
+// Guardian's aegis: an active shield over the citadel — 7 s of near-immunity for blueprint blocks, 100 s cooldown, from wave 8
+let wardMesh=null;
+function wardUp(){if(state.wave<8||(state.wardCd||0)>0||state.phase!=='wave')return false;state.wardT=7;state.wardCd=100;
+  if(!wardMesh){wardMesh=new THREE.Mesh(new THREE.SphereGeometry(WR+4,32,16,0,Math.PI*2,0,Math.PI/2),new THREE.MeshBasicMaterial({color:0x8fe3ff,transparent:true,opacity:.18,side:THREE.DoubleSide,depthWrite:false}));wardMesh.position.set(CX,GY,CZ);scene.add(wardMesh)}wardMesh.visible=true;
+  SFX.open();shake=Math.max(shake,.25);toast('🛡️ Égide do Guardião: a cidadela está protegida por 7 s!','r4');return true}
+function wardTick(dt){const b=$('bWard');if(b){const on=state.wave>=8;if(b.hidden===on)b.hidden=!on;const cd=state.wardCd||0;$('wardCd').textContent=state.wardT>0?Math.ceil(state.wardT)+'s':cd>0?Math.ceil(cd)+'s':'';b.classList.toggle('on',state.wardT>0)}
+  if(state.wardCd>0)state.wardCd-=dt;if(state.wardT>0){state.wardT-=dt;if(wardMesh){wardMesh.material.opacity=.12+.08*Math.sin(simTime*8);if(state.wardT<=0)wardMesh.visible=false}}}
+
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.54;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=0.55;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -2079,7 +2088,8 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [0.51,'⭐ Talentos de herói nos níveis 3, 6 e 9; heróis não perdem mais a vida extra ao subir de nível; no celular os heróis ficam numa coluna própria.'],
   [0.52,'🤝 Socorro no reino: ajude uma fortaleza cercada e ela vira aliada (não ataca você e paga tributo a cada horda). Talentos aparecem na ficha do herói.'],
   [0.53,'🤝 Aliados mandam soldados quando uma fortaleza rival cerca você; aliadas aparecem com 🤝 no mapa do reino.'],
-  [0.54,'🚩 Porta-estandarte inimigo (horda 12+): acelera e protege a horda ao redor; derrube-o para causar pânico. Mapa do reino mais legível no celular.']];
+  [0.54,'🚩 Porta-estandarte inimigo (horda 12+): acelera e protege a horda ao redor; derrube-o para causar pânico. Mapa do reino mais legível no celular.'],
+  [0.55,'🛡️ Égide do Guardião (horda 8+): botão no dock que deixa a cidadela quase invulnerável por 7 s, recarga de 100 s.']];
 function showNews(since){const L=CHANGES.filter(([v])=>v>since+1e-9);if(!L.length)return;$('newsSub').textContent=`Desde a versão ${since.toFixed(2)} que você jogou:`;$('newsList').innerHTML=L.map(([v,t])=>`<li>${esc(t)} <span class="v">v${v.toFixed(2)}</span></li>`).join('');$('news').hidden=false;$('newsOk').onclick=()=>{$('news').hidden=true}}
 const SAVE_SKIP=new Set(['running','card','focus','boss','healQ','rally','heroes','quest','caravan','volleys','build','choosing','heroOffer','bombMode','rallyMode','queue','starfall','blitz']);
 function rleEnc(a){const out=[];let i=0;while(i<a.length){const v=a[i];let n=1;while(i+n<a.length&&a[i+n]===v&&n<65535)n++;out.push(v,n&255,n>>8);i+=n}
@@ -2254,7 +2264,7 @@ setInterval(()=>{if(REALM.open){drawRealm();if(Math.random()<.2)renderRealmInfo(
 $('auto').onclick=()=>{state.auto=!state.auto;updateHud()};
 $('snd').onclick=()=>{soundOn=!soundOn;if(soundOn)ac();$('snd').textContent=soundOn?'🔊':'🔇'};
 $('focus').onclick=()=>toast('Clique num Devorador para concentrar o fogo de todas as armas','r0');
-$('bRally').onclick=()=>{if(state.rally){state.rally=null;removeFlag();toast('Soldados voltam aos postos','r1',true);return}state.rallyMode=!state.rallyMode;$('bRally').classList.toggle('armed',state.rallyMode);if(state.rallyMode)toast('Clique onde os soldados devem se reunir','r2',true)};
+$('bWard').onclick=()=>{if(!wardUp())toast(state.phase!=='wave'?'A Égide só funciona durante a horda':'Égide recarregando','r0')};$('bRally').onclick=()=>{if(state.rally){state.rally=null;removeFlag();toast('Soldados voltam aos postos','r1',true);return}state.rallyMode=!state.rallyMode;$('bRally').classList.toggle('armed',state.rallyMode);if(state.rallyMode)toast('Clique onde os soldados devem se reunir','r2',true)};
 $('bomb').onclick=()=>{if(state.bombCd>0){toast('Bombardeio recarregando','r0');return}if(state.material<25){toast('Precisa de 25 material','r0');return}state.bombMode=!state.bombMode;if(state.bombMode){if(state.build.on)closeSide('buildPanel');toast('Clique onde a bomba deve cair','r2')}updateHud()};
 $('continue').onclick=()=>{$('over').style.display='none';if(!loadGame())newGame();if(!soundOn){soundOn=true;ac();$('snd').textContent='🔊'}};$('optSave').onclick=()=>saveGame(true);refreshSaveUi();addEventListener('beforeunload',()=>{if(canSave()&&state.savedWave!==state.wave)saveGame(false)});
 $('start').onclick=()=>{$('over').style.display='none';newGame();if(!soundOn){soundOn=true;ac();$('snd').textContent='🔊'}};
@@ -2269,7 +2279,7 @@ function simulate(dt){simTime+=dt;
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0)startWave()}
     for(const e of enemies)updateEnemy(e,dt);for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     for(const m of minions)updateMinion(m,dt);for(const t of turrets)updateTurret(t,dt);for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
-    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
+    rivalTick(dt);heatTick(dt);lifeTick(dt);if(state.phase==='wave')weatherTick(dt);else if(hemi.color.getHex()!==0xfff6e8){hemi.color.setHex(0xfff6e8);hemi.groundColor.setHex(0x9fc5a8)}{const bv=$('bloodVig'),on=state.phase==='wave'&&state.ev==='bloodmoon';if(bv.hidden===on)bv.hidden=!on}musicTick(dt);if(state.phase!=='wave')selfRepairTick(dt);autoSellTick(dt);heroTick(dt);moraleTick(dt);achTick(dt);festivalTick(dt);tipTick(dt);rallyTick(dt);trapTick(dt);oilTick(dt);veinTick(dt);districtTick(dt);huntTick(dt);allyTick(dt);bearerTick(dt);wardTick(dt);autosaveTick(dt);updateProjectiles(dt);updateShots(dt);updateRings(dt);updateBombs(dt);processBooms(dt);tickFire(dt);tickFluids(dt);tickSpecials(dt);if(settleDirty)settle();
     if(state.focusT>0)state.focusT-=dt;if(state.focusCd>0)state.focusCd-=dt;if(state.bombCd>0)state.bombCd-=dt;
     if(state.boss&&!state.boss.dead){const b=state.boss;$('bossFill').style.width=(Math.max(0,b.hp)/b.maxhp*100)+'%';if(b.type==='colossus'){const n=b.legs.filter(L=>L.alive).length;$('bossName').textContent=`Colosso ${RARITY[b.rarity].n} · ${n} pernas`}}
     if(state.combo>=5&&simTime-state.comboT>1.6){const g=Math.floor(state.combo*.3);state.material+=g;toast(`Combo ×${state.combo} · +${g} material`,state.combo>=25?'r4':'r1');state.combo=0}
@@ -2297,7 +2307,7 @@ window.__dbg=()=>({wave:state.wave,mat:Math.floor(state.material),chest:chestAli
   turrets:turrets.map(t=>`${t.type}${t.gunner&&t.gunner.state==='man'?'*':''}:${Math.round(t.hp)}`),fluids:fluids.size,burning:burning.size,armory:state.inv.armory.length,inv:JSON.stringify(state.inv.blocks),ev:state.ev,plan:blueList.filter(i=>vox[i]!==blue[i]).length,planS:blueList.filter(i=>vox[i]!==blue[i]).slice(0,8).map(i=>`${ix(i)},${iy(i)},${iz(i)} v${vox[i]} b${blue[i]} s${+supported(i)} busy${+cellBusy(i)}`).join(' | '),kills:state.kills,cols:minions.filter(m=>m.role==='col').map(m=>`${m.state} t${m.timer.toFixed(1)} @${m.pos.x.toFixed(0)},${m.pos.z.toFixed(0)} y${m.group.position.y.toFixed(1)} wc${walkCell(Math.floor(m.pos.x),Math.floor(m.pos.z))} task${m.task&&m.task.L?Math.round(m.task.L.x)+','+Math.round(m.task.L.z):'-'} bag${m.bag.length}`),lootS:loot.filter(L=>!L.carried&&!L.claimed).slice(0,6).map(L=>`${L.kind}@${L.x.toFixed(0)},${L.y.toFixed(1)},${L.z.toFixed(0)} ok${+lootOK(L)} un${+(L.unreach>simTime)} rest${+L.rest}`)});
 genWorld();placeCamera();requestAnimationFrame(frame);
 // bot used by the headless test to exercise build/arsenal paths like a player would
-window.__bot=()=>{const out=[];for(const H of HEROES){const S=state.heroes&&state.heroes[H.id];if(S&&S.cd<=0&&enemies.filter(e=>!e.dead&&Math.hypot(e.pos.x-S.m.pos.x,e.pos.z-S.m.pos.z)<(H.id==='archer'?40:8)).length>=4){heroAbility(H.id);out.push('hero')}}state.autoBuild=true;state.autoUp=true;state.autoSell=true;if(state.merchant){renderMerch();const k=state.merchant.offers.findIndex(o=>!o.sold&&o.price<state.material*.5);if(k>=0){const b=document.querySelector(`[data-buy="${k}"]`);if(b){b.click();out.push('buy')}}}{const B=battle();if(B&&!minions.some(m=>m.raid)&&battleOdds(B.lvl).p>.45){sendRaid();out.push('raid')}if(!state.quest&&REALM.pois.length){const P=REALM.pois.find(q=>questOdds(q).p>.6);if(P&&acceptPoi(P))out.push('poi')}}
+window.__bot=()=>{const out=[];{const B=enemies.find(e=>e.bearer&&!e.dead);if(B&&state.focus!==B){state.focus=B;state.focusT=8;out.push('focus-bearer')}}if(state.phase==='wave'&&state.wave>=8&&(state.wardCd||0)<=0&&chestAlive()<18){wardUp();out.push('ward')}for(const H of HEROES){const S=state.heroes&&state.heroes[H.id];if(S&&S.cd<=0&&enemies.filter(e=>!e.dead&&Math.hypot(e.pos.x-S.m.pos.x,e.pos.z-S.m.pos.z)<(H.id==='archer'?40:8)).length>=4){heroAbility(H.id);out.push('hero')}}state.autoBuild=true;state.autoUp=true;state.autoSell=true;if(state.merchant){renderMerch();const k=state.merchant.offers.findIndex(o=>!o.sold&&o.price<state.material*.5);if(k>=0){const b=document.querySelector(`[data-buy="${k}"]`);if(b){b.click();out.push('buy')}}}{const B=battle();if(B&&!minions.some(m=>m.raid)&&battleOdds(B.lvl).p>.45){sendRaid();out.push('raid')}if(!state.quest&&REALM.pois.length){const P=REALM.pois.find(q=>questOdds(q).p>.6);if(P&&acceptPoi(P))out.push('poi')}}
   if(state.phase==='wave'&&state.bombCd<=0&&state.material>60){const e=enemies.find(e=>!e.dead&&!e.fly&&!inside(e.pos.x,e.pos.z));if(e){dropBomb(e.pos.x,e.pos.z);out.push('bomb')}}
   for(const L of loot)if(L.kind==='treasure'&&!L.carried){openTreasure(L);out.push('open');break}
   return out.join(' ')};
@@ -2405,6 +2415,7 @@ window.__allies=()=>REALM.cities.filter(c=>c.ally).map(c=>c.name);
 window.__siege=()=>{const c=REALM.cities.find(x=>!x.fac.isMe&&!x.ally);if(!c)return 'none';const A=REALM.cities.find(x=>!x.fac.isMe&&x!==c);if(A)A.ally=true;startBattle(c,'defend',30);return c.name+' ally='+(A&&A.name)};
 window.__helpers=()=>minions.filter(m=>m.allyHelp).length;
 window.__bearer=()=>{const e=makeEnemy('knight',1,CX+30,CZ);makeBearer(e);for(let k=0;k<5;k++)makeEnemy('crawler',0,CX+30+rnd(-2,2),CZ+rnd(-2,2));return e.maxhp};
+window.__ward=()=>{state.wave=Math.max(8,state.wave);startWave();return wardUp()};
 
 })();
 </script>
