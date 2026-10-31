@@ -1013,9 +1013,9 @@ function blessOn(k){const B=state.bless;return !!B&&B.k===k&&B.w===state.wave&&s
 function blessOffer(){if(state.wave<4||state.raid){state.blessOffer=null;renderBless();return}const ks=Object.keys(BLESS);const a=pick(ks);let b=pick(ks);while(b===a)b=pick(ks);state.blessOffer=[a,b];renderBless()}
 function blessPick(k){if(!state.blessOffer||!state.blessOffer.includes(k))return;state.bless={k,w:state.wave};state.blessOffer=null;SFX.click&&SFX.click();renderBless()}
 function blessStart(){if(state.blessOffer){state.blessOffer=null}renderBless(true)}
-let _blT=0,_blK='';function blessTick(dt){const key=JSON.stringify([state.blessOffer,state.bless&&state.bless.w===state.wave?state.bless.k:0,state.phase==='wave']);if(key!==_blK){_blK=key;renderBless()}if(!blessOn('vigor'))return;_blT-=dt;if(_blT>0)return;_blT=1;for(const m of minions)if(!m.wounded&&m.hp<m.maxhp)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.025)}
+let _blT=0,_blK='';function blessTick(dt){const key=JSON.stringify([!!state.choosing,state.blessOffer,state.bless&&state.bless.w===state.wave?state.bless.k:0,state.phase==='wave']);if(key!==_blK){_blK=key;renderBless()}if(!blessOn('vigor'))return;_blT-=dt;if(_blT>0)return;_blT=1;for(const m of minions)if(!m.wounded&&m.hp<m.maxhp)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.025)}
 function renderBless(starting){const el=$('bless');if(!el)return;{const r=$('report');const rb=r&&r.offsetParent&&r.style.display!=='none'?r.getBoundingClientRect().bottom:0;el.style.top=rb>0?Math.round(rb+8)+'px':''}const O=state.blessOffer,B=state.bless;
-  if(O&&state.phase!=='wave'){el.hidden=false;el.className='offer';el.innerHTML=`<div class="bh">✨ Escolha uma bênção para a horda ${state.wave}</div><div class="bc">${O.map(k=>`<button data-k="${k}"><i>${BLESS[k].ico}</i><b>${BLESS[k].n}</b><span>${BLESS[k].d}</span></button>`).join('')}</div>`;el.querySelectorAll('button').forEach(b=>b.onclick=()=>blessPick(b.dataset.k));return}
+  if(O&&state.phase!=='wave'&&!state.choosing){el.hidden=false;el.className='offer';el.innerHTML=`<div class="bh">✨ Escolha uma bênção para a horda ${state.wave}</div><div class="bc">${O.map(k=>`<button data-k="${k}"><i>${BLESS[k].ico}</i><b>${BLESS[k].n}</b><span>${BLESS[k].d}</span></button>`).join('')}</div>`;el.querySelectorAll('button').forEach(b=>b.onclick=()=>blessPick(b.dataset.k));return}
   if(B&&B.w===state.wave&&BLESS[B.k]){el.hidden=false;el.className='chip';el.innerHTML=`${BLESS[B.k].ico} ${BLESS[B.k].n}${state.phase==='wave'?'':' · próxima horda'}`;return}
   el.hidden=true;el.innerHTML=''}
 window.__bless=(k)=>{if(!state.blessOffer)blessOffer();if(k)state.blessOffer[0]=k;blessPick(state.blessOffer[0]);return state.bless};
@@ -1069,3 +1069,15 @@ const _bossAI0=bossAI;bossAI=function(e,dt){if(e.type!=='runico')return _bossAI0
   return _bossAI0(e,dt)};
 const _bossOfWave0=bossOfWave;bossOfWave=function(w){if(w>=35&&(w-35)%20===0)return 'runico';return _bossOfWave0(w)};
 window.__runico=()=>{const e=makeEnemy('runico',1,CX+24,CZ+8);state.boss=e;return [e.maxhp|0,e.sc]};
+
+// v4.3 MOTIVAR: no descanso, toque num minion e motive-o (até 3 por descanso) — +20% de dano e velocidade na próxima horda
+const CHEER_MAX=3;
+function cheerLeft(){return state.cheerW===state.wave?CHEER_MAX-(state.cheerN||0):CHEER_MAX}
+function cheerHtml(m){if(m.wounded>0)return'';if(m.cheerW===state.wave)return`<div class="cheer on">💪 Motivado para a horda ${state.wave}: +20% dano e velocidade</div>`;if(state.phase==='wave')return'';const L=cheerLeft();return`<button class="btn sm cheerB" id="cCheer" ${L<=0?'disabled':''}>💪 Motivar <span>${L>0?`(${L} restante${L>1?'s':''} neste descanso)`:'(sem motivações neste descanso)'}</span></button>`}
+function cheer(m){if(state.phase==='wave'||m.wounded>0||m.cheerW===state.wave||cheerLeft()<=0)return false;if(state.cheerW!==state.wave){state.cheerW=state.wave;state.cheerN=0}state.cheerN++;m.cheerW=state.wave;
+  m.hopT=.5;for(let k=0;k<10;k++)spawnDebris(m.pos.x+rnd(-.4,.4),m.group.position.y+1.6,m.pos.z+rnd(-.4,.4),pick([0xffd23d,0xff7a9a,0x7dffc8]),1,.12);label({x:m.pos.x,y:m.group.position.y+2.3,z:m.pos.z},'💪 Motivado!','#ffb000');SFX.click&&SFX.click();gainXP&&gainXP(m,.5);return true}
+const cheerOn=m=>m&&m.cheerW===state.wave&&state.phase==='wave';
+function cheerTick(dt){for(const m of minions){if(m.hopT>0){m.hopT-=dt;m.group.position.y+=Math.max(0,Math.sin((.5-m.hopT)/.5*Math.PI))*.12}if(cheerOn(m)&&Math.random()<dt*1.2)spawnDebris(m.pos.x,m.group.position.y+1.8,m.pos.z,0xffd23d,1,.08)}}
+window.__cheer=()=>{const ms=minions.filter(m=>!m.wounded).slice(0,4);return ms.map(m=>cheer(m))};
+TIPS.push({id:'cheer',c:()=>state.wave>=3&&state.phase==='rest'&&cheerLeft()===CHEER_MAX,t:'💪 No descanso, toque num minion e use Motivar: até 3 por descanso, +20% de dano e velocidade na próxima horda.'});
+window.__card=(i)=>{openCard({m:minions[i||0]});return minions[i||0].name};
