@@ -93,6 +93,11 @@ const SFX={
   open(){if(!soundOn)return;tone('triangle',392,0,.15,.15);tone('triangle',523,0,.15,.15,.1);tone('triangle',784,0,.5,.18,.2);nz(.6,'highpass',3000,0,.08,.05)},
   freeze(){if(!soundOn||throttle('fr',100))return;nz(.3,'highpass',4000,0,.12);tone('sine',1600,2400,.2,.05)},
   build(){if(!soundOn||throttle('bu',60))return;tone('square',220,330,.06,.05)},
+  click(){if(!soundOn||throttle('cl',60))return;tone('triangle',660,880,.05,.08)},
+  bless(){if(!soundOn)return;[659,880,1175,1568].forEach((f,i)=>tone('sine',f,0,.4,.1,i*.06));nz(.5,'highpass',5000,0,.05,.15)},
+  cheer(){if(!soundOn||throttle('ch',90))return;tone('square',330,520,.08,.07);tone('square',494,780,.1,.07,.09)},
+  champ(){if(!soundOn)return;tone('sawtooth',110,82,.9,.16);tone('sawtooth',165,123,.9,.08,.05);nz(.7,'lowpass',400,0,.18,.1)},
+  rune(){if(!soundOn||throttle('ru',200))return;tone('sine',1320,990,.35,.09);tone('sine',1980,1485,.35,.05,.04)},
   fanfare(big){if(!soundOn)return;const n=big?[523,659,784,1047,784,1047]:[523,659,784];n.forEach((f,i)=>tone('triangle',f,0,big&&i===n.length-1?.7:.22,.13,i*.11));if(big)nz(.8,'highpass',3500,0,.06,.4)},
 };
 
