@@ -210,6 +210,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v6.5: onde vai o tempo após a h20 (corrida de 70 min, por horda: descanso/horda/cauda): hordas de 110–200 s (normal p/ 200–300 inimigos); cada DERROTA custa ~100–170 s extras (a horda perdida aparece como “descanso” longo no log); caudas: titã a 22 do centro por 137 s (h24, lutando na muralha), colosso 40 s. Conclusão: a lentidão tardia é do bot (perde hordas), não um defeito do jogo — curva mantida. Correção de cauda: chefes em marcha furiosa com ≥80 s de cauda sangram 2% da vida/s. 2 corridas de 1200 s: h17 nas duas, cauda máx 16 e 35 s (antes até 137). Testes: t5 600 w12 sem erros; tcompat v041/v060 OK.
 
+- v6.6 (só ferramenta de teste, sem mudança de jogo): bot melhorado — bomba no AGLOMERADO mais denso perto da muralha (peso 4 p/ chefes, ×1,5 colado no muro, exige ≥3) em vez do primeiro inimigo fora; motiva até 3 soldados em todo descanso; com window.__botPlus a Égide sobe quando o baú cai abaixo de 24 voxels (antes 18). tecon_plus 2700 s: h10 460 s, h15 973 s, h20 1574 s (26 min), h24 2446 s (41 min), 1 derrota só (h20) — antes (bot antigo, v6.4) h20 2021 s, h24 3045 s, 3 derrotas até h24. O bot novo é a base para medir h30+ na próxima rodada. Testes: t5 600 w12 sem erros; tcompat v041/v060 OK.
+
 ## ESTADO DO JOGO (v6.0)
 **Curva** (bot, Normal): h10 ≈ 8–9 min · h15 ≈ 16–17 min · h20 ≈ 27 min · 1ªs derrotas h21–24 · Tranquilo: h24 sem derrotas · Brutal: 1ª derrota ~h9. t5 600 estável em w12 (antes w7–w12).
 **Desempenho**: 200–1600 malhas; A* aliviado; estilhaços em repouso parados; fim de horda sem caudas longas (expostos → surtida → sangramento); inimigos longe atravessam terreno natural em vez de cavar.
