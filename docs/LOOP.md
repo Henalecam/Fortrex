@@ -218,11 +218,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v6.9: malhas por categoria (__meshStats, save h19 forçando h30): com 288 inimigos vivos → inimigos 3876 malhas (≈13 por inimigo: 2 corpos instanciados + 7–28 peças: pernas, olhos, acessórios; enxame 30, aranha 18), minions 1228 (≈15 cada: pernas, braços, cabeça, olhos, sobrancelhas, boca, chapéu, prop), armas ~110, loot pouco. Conclusão: loot não pesa; a fusão de loot foi descartada. LOD: (1) inimigos não-chefes/não-campeões com distância à câmera/escala > 38 escondem as peças não instanciadas (o corpo de voxels continua) — reavaliado a cada 0,4 s; (2) rostos dos minions (olhos, sobrancelhas, boca) escondidos com cam.dist ≥ 46 (heróis sempre). Medição (h30, ~95 vivos, câmera padrão 70): malhas desenhadas 2653 → 2282 (−14%); 1 s simulado 763 → 660 ms. Visual na câmera padrão inalterado (corpos completos). Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
-## ESTADO DO JOGO (v6.0)
-**Curva** (bot, Normal): h10 ≈ 8–9 min · h15 ≈ 16–17 min · h20 ≈ 27 min · 1ªs derrotas h21–24 · Tranquilo: h24 sem derrotas · Brutal: 1ª derrota ~h9. t5 600 estável em w12 (antes w7–w12).
-**Desempenho**: 200–1600 malhas; A* aliviado; estilhaços em repouso parados; fim de horda sem caudas longas (expostos → surtida → sangramento); inimigos longe atravessam terreno natural em vez de cavar.
-**Bom**: 37 tipos de inimigo, 10 chefes (com Sentinela Rúnica h35), campeões com afixos, raids, eventos raros (aurora, eclipse de cristal), 8 estilos de castelo e 14 pequenas obras; progressão (marcos, selos, recordes, Renascer, forja); descanso com escolhas (bênçãos, Motivar, prévia, forja); economia tardia saudável (orçamento de reconstrução); interface pensada p/ celular; sons p/ os momentos-chave; saves antigos sempre carregam.
-**Falta / próximos**: corrida natural até h30+ (Sentinela Rúnica num jogo real); desempenho com 300+ vivos no h30+; caudas de chefes de cerco (até ~90 s); animações CSS não testáveis no harness; mais variedade de armas/torres; música.
+- v7.0 (MARCO — bateria completa): t5 600 ×2 = w11, w12 sem erros; tcompat v041/v060 OK; tmob 390×844 e 844×390 e tnew sem erros. tecon_plus 2700 s: h10 523 s, h15 986 s, h20 1749 s (29 min), h24 2679 s (45 min), 2 derrotas (h18, h21); caudas ≤73 s; malhas 200–1730. Conteúdo: QUALIDADE (Automação → Qualidade, toque alterna Leve/Normal/Alta, salva em OPTS.q): Leve = dpr 1, sem sombras, LOD de inimigos 26, rostos <30; Normal = dpr ≤1,5, sombras, LOD 38, rostos <46; Alta = dpr ≤2, LOD 64, rostos <80. README com v6.1–v6.9.
+
+## ESTADO DO JOGO (v7.0)
+**Curva** (bot forte tecon_plus, Normal): h10 ≈ 8–9 min · h15 ≈ 16 min · h20 ≈ 25–29 min · h25 ≈ 46 min · 1ªs derrotas h18–21 · o bot estaciona em h24–27 (teto do bot). Tranquilo: h24 sem derrotas; Brutal: 1ª derrota ~h9. t5 600 estável em w11–w12.
+**Desempenho**: LOD de inimigos e rostos (−14% de malhas no h30); A* aliviado; fins de horda sem caudas (expostos → surtida → sangramento; chefes → marcha furiosa → sangramento); reino com teto de 18 rivais.
+**Bom**: 38 tipos de inimigo, 10 chefes, campeões com afixos, raids, eventos raros (aurora, eclipse de cristal); 10 armas (nova: correntes), 8 estilos de castelo, 14 pequenas obras; progressão (marcos, selos, recordes, Renascer, forja); descanso com escolhas (bênçãos, Motivar, prévia, forja); trilha procedural e sons; tutorial de 30 s; qualidade ajustável; saves antigos sempre carregam.
+**Falta / próximos**: h30+ e Sentinela Rúnica numa corrida natural (o bot não chega); mais minions/heróis com identidade; balancear Brutal tardio; animações CSS não testáveis no harness; desempenho dos minions (≈15 malhas cada).
 
 
 ## Backlog (próximas rodadas)

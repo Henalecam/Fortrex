@@ -14,7 +14,7 @@ Abra `dist/index.html` num navegador (precisa de internet para carregar three.js
 - **Raids** (☠️ no descanso a partir da horda 6, a cada 4 hordas): três ondas de elites insanas, mini-chefes e o Arauto do Abismo; recompensas grandes.
 - **Hordas infinitas** com dificuldade crescente (Tranquilo / Normal / Brutal), eventos (bruma, eclipse, lua de sangue, revoada, terremoto, piratas, nevasca, **aurora boreal**, **eclipse de cristal**…) e chefes a cada 5 hordas — a partir da 15 podem vir *Furiosos* ou com *Escudo*; na 35 (e a cada 20) chega a **Sentinela Rúnica**, com runas explosivas, raio que corta muralhas e escudo. Perder uma horda só faz recuar uma; ‹ › no topo navega entre hordas.
 - **Inimigos variados** (corpos em voxels pequenos, despedaçáveis): escaladores, aranhas, aríetes, sabotadores, porta-estandartes, escudeiros, cavadores que passam por baixo das muralhas, bombardeiros voadores, mímicos, golens de cristal, cavaleiros com investida, **Portadores de Bruma** (horda 18+, névoa que protege os vizinhos), **Colossos de Rastejantes** (horda 25+, se dividem ao morrer), elites com afixos (veloz, blindado, vampiro, explosivo, regenerante) e **Campeões** nomeados (horda 8+) com barra de chefe, afixos próprios a partir da 12 (Veloz, Regenerador, Blindado, Furioso) e lendário garantido. Chefes com golpes telegrafados e fases.
-- **Armas:** canhão, balista, lança-chamas, morteiro, tesla, torre de vento, canhão de gelo, catapulta, raio-sol, torre de correntes — limitadas por plataformas.
+- **Armas:** canhão, balista, lança-chamas, morteiro, tesla, torre de vento, canhão de gelo, catapulta, raio-sol, torre de correntes (prende e arrasta) — limitadas por plataformas.
 - **Estilos de castelo** (Construir → Castelo): Clássico, Cidadela Colossal, Zigurate Solar, Agulhas Góticas, Forte Estrela, Fortaleza Anã, Cidadela Élfica — ao trocar, reparadores e pedreiros desmontam e constroem bloco por bloco.
 - **Cidadela que cresce sozinha:** expansões por horda, blocos trocados pelo melhor disponível com Upgrade automático (madeira → aço rúnico), reparo grátis entre hordas, **Égide** (escudo de 7 s), **Óleo fervente**, **Sapadores** que espalham armadilhas, **Canil** com cães de guarda.
 - **Distritos** (escolha a cada fase: Ferraria, Torre arcana, Celeiro, Mercado, Caserna, Santuário) e **Maravilhas** para o fim de jogo.
@@ -31,7 +31,9 @@ Abra `dist/index.html` num navegador (precisa de internet para carregar three.js
 - **Encomenda na forja** (hordas 10–21): pague material por um item épico do tipo que quiser.
 - **Recordes** no Códex: horda mais rápida, maior combo, mais abates, horda mais alta sem feridos.
 - **Fim de horda sem enrolação**: retardatários ficam *expostos* (mais frágeis) e os soldados saem em **surtida** para caçá-los.
-- **Tutorial de 30 s** opcional na tela inicial, e sons próprios para bênçãos, Motivar, Campeões e runas.
+- **Tutorial de 30 s** opcional na tela inicial, sons próprios para bênçãos, Motivar, Campeões e runas, e **trilha procedural** (calma no descanso, percussão na horda, tom menor com chefe).
+- **Qualidade** (Automação → Qualidade: Leve/Normal/Alta) ajusta resolução, sombras e a distância de detalhe; inimigos longe e rostos de minions usam LOD.
+- Chefes que sobram no fim da horda **avançam furiosos** e depois sangram; nenhuma horda fica presa num retardatário.
 - **Setas de borda** apontam inimigos fora da tela (douradas para chefes/campeões); interface pensada também para celular.
 - Conquistas, relíquias, veio de ouro disputado, caçada noturna ao lobo alfa, tesouros enterrados.
 

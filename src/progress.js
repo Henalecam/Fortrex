@@ -1169,10 +1169,17 @@ const TUT=[['🧱','Construa e deixe os minions trabalharem','Toque em 🧱 Cons
 window.__meshStats=()=>{const c={};const tag=o=>{let p=o;while(p){if(p.userData&&p.userData.enemy)return 'enemy';if(p.userData&&p.userData.minion)return 'minion';if(p.userData&&p.userData.loot)return 'loot';if(p===scene)return 'scene';p=p.parent}return '?'};const eg=new Set(enemies.map(e=>e.group)),mg=new Set(minions.map(m=>m.group)),lg=new Set(loot.map(l=>l.g)),tg=new Set(turrets.map(t=>t.group));scene.traverse(o=>{if(!o.isMesh&&!o.isLine)return;let p=o,k='other';while(p&&p!==scene){if(eg.has(p)){k='enemy';break}if(mg.has(p)){k='minion';break}if(lg.has(p)){k='loot';break}if(tg.has(p)){k='turret';break}p=p.parent}c[k]=(c[k]||0)+1});c.nE=enemies.filter(e=>!e.dead).length;c.nM=minions.length;c.nL=loot.length;return c};
 
 // v6.9 LOD de rostos: com a câmera longe, olhos/sobrancelhas/boca dos minions não são desenhados (−4 chamadas de desenho por minion)
-let _lodT=0,_lodOn=null;function faceLodTick(dt){_lodT-=dt;if(_lodT>0)return;_lodT=.5;const near=cam.dist<46;for(const m of minions){if(!m.eyesM)continue;const v=near||m.hero;if(m.eyesM.visible!==v){m.eyesM.visible=v;if(m.mouth)m.mouth.visible=v;for(const b of m.brows||[])b.visible=v}}_lodOn=near}
+let _lodT=0,_lodOn=null;function faceLodTick(dt){_lodT-=dt;if(_lodT>0)return;_lodT=.5;const near=cam.dist<(window.__faceD||46);for(const m of minions){if(!m.eyesM)continue;const v=near||m.hero;if(m.eyesM.visible!==v){m.eyesM.visible=v;if(m.mouth)m.mouth.visible=v;for(const b of m.brows||[])b.visible=v}}_lodOn=near}
 window.__drawCount=()=>{let n=0;scene.traverseVisible(o=>{if(o.isMesh)n++});return [n,Math.round(cam.dist)]};
 window.__enemyMesh=(t)=>{const e=makeEnemy(t||'brute',0,CX+30,CZ);const o=[];e.group.traverse(x=>{if(x.isMesh)o.push((x.isInstancedMesh?'I'+x.count:'M')+(x.visible?'':'h'))});const r=[o.length,o.join(',')];e.dead=true;scene.remove(e.group);return r};
 
 // v6.9 LOD de inimigos: longe da câmera, só o corpo de voxels (instanciado) é desenhado; pernas/olhos/acessórios somem (corpo continua)
 let _elodT=0;function enemyLodTick(dt){_elodT-=dt;if(_elodT>0)return;_elodT=.4;const cp=camera.position;for(const e of enemies){if(e.dead)continue;if(!e._lod){e._lod=[];e.group.traverse(o=>{if(o.isMesh&&!o.isInstancedMesh&&o!==e.shieldMesh&&o!==e.champRing&&o!==e.aura&&o.visible)e._lod.push(o)})}
   const d=Math.hypot(e.pos.x-cp.x,e.gy-cp.y,e.pos.z-cp.z)/Math.max(.6,e.sc||1);const far=!BIG(e.type)&&!e.champ&&d>(window.__lodK||38);if(e._far!==far){e._far=far;for(const o of e._lod)o.visible=!far}}}
+
+// v7.0 QUALIDADE (Leve / Normal / Alta): resolução, sombras, distância de detalhe dos inimigos e dos rostos
+function qual(){return OPTS.q||(OPTS.lowGfx?'leve':'normal')}
+const QUAL={leve:{dpr:1,lod:26,face:30,sh:false,n:'Leve'},normal:{dpr:1.5,lod:38,face:46,sh:true,n:'Normal'},alta:{dpr:2,lod:64,face:80,sh:true,n:'Alta'}};
+function applyQual(){const Q=QUAL[qual()];window.__lodK=window.__lodKTest||Q.lod;window.__faceD=Q.face;try{renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,Q.dpr));renderer.shadowMap.enabled=Q.sh;if(sun)sun.castShadow=Q.sh;resize()}catch(e){}}
+function qualUi(){const b=$('optLow');if(!b)return;const Q=QUAL[qual()];b.classList.toggle('on',qual()!=='normal');const t=b.querySelector('b'),d=b.querySelector('span');if(t)t.textContent='Qualidade: '+Q.n;if(d)d.textContent=qual()==='leve'?'Sem sombras, resolução menor e menos detalhe de longe. Bem mais rápido no celular. Toque para trocar.':qual()==='alta'?'Resolução cheia e detalhes até mais longe. Pede mais da placa de vídeo. Toque para trocar.':'Equilíbrio entre beleza e desempenho. Toque para trocar.'}
+setTimeout(applyQual,0);
