@@ -211,6 +211,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 @media (max-width:760px){#combo{top:calc(150px + env(safe-area-inset-top,0px));font-size:32px}}
 @media (pointer:coarse){#bottom .dock .btn{min-height:40px}#wPrev,#wNext{min-width:30px;min-height:30px}#tipX{min-width:34px;min-height:32px}}
 body:has(.side[style*="flex"]) #edge{display:none}body:has(#shop[style*="flex"]) #reveal,body:has(#arsenal[style*="flex"]) #reveal{right:auto;left:max(12px,env(safe-area-inset-left,0px))}@media (max-width:900px){body:has(.side[style*="flex"]) #reveal{opacity:.35}}
+#crystalFx{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(circle at 78% 14%,rgba(220,240,255,.85) 0 3.2%,rgba(150,120,255,.35) 3.6%,transparent 9%),radial-gradient(ellipse at center,rgba(60,40,140,0) 40%,rgba(50,30,120,.42) 100%),rgba(70,90,200,.16);mix-blend-mode:multiply}#crystalFx::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 78% 14%,rgba(200,246,255,.9) 0 2.6%,transparent 3%);mix-blend-mode:screen;animation:cryP 3s ease-in-out infinite}@keyframes cryP{50%{opacity:.6}}
 #auroraFx{position:fixed;inset:0;pointer-events:none;z-index:0}#auroraFx::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,rgba(20,40,70,.18) 30%,rgba(10,25,55,.55) 100%),rgba(30,60,90,.22);mix-blend-mode:multiply}#auroraFx::after{content:'';position:absolute;left:0;right:0;top:0;height:50%;opacity:.9;background:linear-gradient(100deg,transparent 4%,rgba(90,255,190,.55) 20%,transparent 36%,rgba(140,170,255,.5) 54%,transparent 70%,rgba(210,140,255,.5) 86%,transparent 98%);background-size:200% 100%;-webkit-mask:linear-gradient(180deg,#000 0%,#000 25%,transparent 100%);mask:linear-gradient(180deg,#000 0%,#000 25%,transparent 100%);animation:aur 14s linear infinite}@keyframes aur{0%{background-position:0 0}100%{background-position:-200% 0}}
 #bless{position:fixed;left:50%;transform:translateX(-50%);top:calc(152px + env(safe-area-inset-top,0px));z-index:5;pointer-events:auto;max-width:94vw}
 #bless.chip{padding:5px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);font-size:12.5px;font-weight:600;box-shadow:0 4px 14px rgba(43,45,74,.1);pointer-events:none}
@@ -249,7 +250,7 @@ body:has(#buildPanel[style*="flex"]) #rail{left:calc(min(320px,90vw) + 26px)}
 
 <canvas id="c"></canvas>
 <div id="rainFx" hidden></div>
-<div id="auroraFx" hidden></div><div id="bloodVig" hidden style="position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at center,rgba(120,10,25,0) 45%,rgba(120,10,25,.42) 100%),rgba(150,20,30,.12);mix-blend-mode:multiply"></div>
+<div id="auroraFx" hidden></div><div id="crystalFx" hidden></div><div id="bloodVig" hidden style="position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at center,rgba(120,10,25,0) 45%,rgba(120,10,25,.42) 100%),rgba(150,20,30,.12);mix-blend-mode:multiply"></div>
 
 <div id="top" class="bar">
   <span class="title">FORTREX</span>

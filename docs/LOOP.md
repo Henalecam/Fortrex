@@ -196,6 +196,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v5.8: corrida 2700 s (build v5.7 com +1,5%/horda de vida após h12): h10 538 s, h15 968 s, h20 1619 s (27 min ✓ meta 25–30), h23 2089 s; 3 derrotas na h24 (recua à h21) — 1ªs derrotas dentro da meta h20–25 ✓; caudas ≤41 s. Conteúdo visual: animações ociosas dos minions no descanso (lookTick, ~25 Hz): a cada 3–7 s sorteiam espreguiçar (braços ao alto), acenar (um braço balançando) ou olhar em volta (giro lento), voltando ao normal ao andar/trabalhar. O ciclo dia/noite já tinha céu crepuscular — mantido. Testes: t5 600 w13 sem erros; tcompat v041/v060 OK.
 
+- v5.9: evento ECLIPSE DE CRISTAL (cristal; w≥10; peso normal no sorteio): dano recebido pelos Devoradores ×0,83 (≈+20% de dureza); ao morrer, 35% soltam um cristal de material (6+0,8·w), chefes soltam 6; estilhaços ciano/lilás. Visual: luz fria (hemi azul, chão violeta, sol fraco azulado), faíscas de cristal no céu e overlay #crystalFx (vinheta violeta multiply + lua de cristal pulsando no canto superior direito). Teste isolado h12 forçado: material 72→142 em 15 s de horda (antes 60–72 no mesmo ponto). Lição: o tingimento do céu via scene.background é sobrescrito pelo ciclo do dia — overlay CSS é o que garante a leitura do evento. Testes: t5 600 w10 sem erros; tcompat v041/v060 OK.
+
 ## ESTADO DO JOGO (v5.0)
 **Curva** (bot, Normal): h10 ≈ 9–12 min · h15 ≈ 18–21 min · h20 ≈ 28–30 min · h24 ≈ 40–45 min; derrotas raras até h24; h25 (Rei da Bruma) é o primeiro teste duro. Sem fim: escala contínua, h30+ ainda não medida numa corrida natural.
 **Desempenho**: 200–1600 malhas; A* aliviado (passeio estável, recuo em falhas); estilhaços em repouso sem física; h25+ compacta rastejantes em Colossos (fila h30 −22%).
