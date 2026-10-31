@@ -18,7 +18,7 @@ Abra `dist/index.html` num navegador (precisa de internet para carregar three.js
 - **Estilos de castelo** (Construir → Castelo): Clássico, Cidadela Colossal, Zigurate Solar, Agulhas Góticas, Forte Estrela, Fortaleza Anã, Cidadela Élfica — ao trocar, reparadores e pedreiros desmontam e constroem bloco por bloco.
 - **Cidadela que cresce sozinha:** expansões por horda, blocos trocados pelo melhor disponível com Upgrade automático (madeira → aço rúnico), reparo grátis entre hordas, **Égide** (escudo de 7 s), **Óleo fervente**, **Sapadores** que espalham armadilhas, **Canil** com cães de guarda.
 - **Distritos** (escolha a cada fase: Ferraria, Torre arcana, Celeiro, Mercado, Caserna, Santuário) e **Maravilhas** para o fim de jogo.
-- **Heróis** (Paladina, Arqueira, Mago, Engenheira, Berserker, Sacerdotisa) com habilidades e **talentos** nos níveis 3/6/9.
+- **Heróis** (Paladina, Arqueira, Mago, Engenheira, Berserker, Sacerdotisa, Alquimista) com habilidades e **talentos** nos níveis 3/6/9.
 - **Reino:** fortalezas rivais, alianças (ajude uma cidade cercada e ela vira aliada), covis, ruínas, caravanas, **expedições** de coletores e um **viajante** com tratos arriscados.
 - **Climas que vêm e vão** durante a partida (3–5 hordas cada): Estação fértil (colheita), Onda de calor, Inverno rigoroso (lagos congelam e racham), Despertar vulcânico (erupções), Bruma do pântano (horda invisível à noite).
 - **Bênçãos** no descanso (horda 4+): escolha 1 de 2 para a próxima horda (Fúria, Muralha firme, Colheita, Olhos de águia, Vigor).
