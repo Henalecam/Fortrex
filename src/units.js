@@ -185,7 +185,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(!e.stun)enemyAnim(e,d
   if(e.type==='sapper'&&victim){e.fuse=.5;return}
   if(e.state==='attack'){e.vel.set(0,0,0);if(!SOLIDM(vox[e.target])){e.state='walk';return}
     if(e.timer<=0){e.timer=e.T.rate;const tx=ix(e.target),tz=iz(e.target),ty=iy(e.target);
-      if(e.type==='ram'||e.type==='rammer'||e.type==='brute'||BIG(e.type)){const R=BIG(e.type)?2:1;for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++)for(let y=ty;y<ty+3;y++)if(inb(tx+dx,y,tz+dz))damageVox(idx(tx+dx,y,tz+dz),e.T.dmg*(dx||dz?.45:1),'enemy',e);shake=Math.max(shake,.3);SFX.boom(false)}
+      if(e.type==='ram'||e.type==='rammer'||e.type==='brute'||BIG(e.type)){const R=BIG(e.type)?2:1;for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++)for(let y=ty;y<ty+3;y++)if(inb(tx+dx,y,tz+dz)){const j=idx(tx+dx,y,tz+dz);if(vox[j]===5&&j!==e.target&&!window.__oldRam&&(e.type==='ram'||e.type==='rammer'))continue;damageVox(j,e.T.dmg*(dx||dz?.45:1),'enemy',e)}if(vox[e.target]===5&&(e.type==='ram'||e.type==='rammer')&&!e.chestCall){e.chestCall=1;label({x:e.pos.x,y:e.gy+2.2,z:e.pos.z},'🪵 aríete no baú!','#ff9a3c')}shake=Math.max(shake,.3);SFX.boom(false)}
       else damageVox(e.target,e.T.dmg*(1+e.rarity*.2),'enemy',e);e.lunge=.25}
     if(e.lunge>0){e.lunge-=dt;e.group.position.y=e.gy+Math.sin(Math.max(0,e.lunge)/.25*Math.PI)*.3}else e.group.position.y=e.gy;return}
   // anti-stuck: no progress for 9 s → smash the ground ahead (big) or hop forward

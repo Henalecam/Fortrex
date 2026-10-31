@@ -574,13 +574,14 @@ function setVox(i,m){const old=vox[i];if(SOLIDM(old)&&!SOLIDM(m)){removedQ.push(
 function setFluid(i,m,lv,src){if(SOLIDM(vox[i]))return;vox[i]=m;hp[i]=lv;fluids.add(i);if(src)fluidSrc.add(i);burning.delete(i);markCol(ix(i),iz(i));touch(i)}
 
 // src: 'enemy' | 'player' | 'env'. Player damage never touches the fortress (blue) — no friendly fire.
-function damageVox(i,d,src='env',who=null){const m=vox[i];if(m===5&&who&&(who.type==='ram'||who.type==='rammer'))state.ramHit=(state.ramHit||0)+1;if(m===5&&window.__chestDmg){const k=who&&who.type?who.type+(who.mv?':'+who.mv.k:''):src;window.__chestDmg[k]=(window.__chestDmg[k]||0)+d}if(src==='enemy'&&blessOn('muralha'))d*=.75;if(!m||m===1||FLUID(m))return false;if(src!=='player'&&iy(i)<GY&&Math.max(Math.abs(ix(i)-CX),Math.abs(iz(i)-CZ))<=WR+48){if(who&&who.pos&&!who.fly&&!who.dead){who.gy=Math.max(who.gy,iy(i)+1);who.group.position.y=who.gy;who.target=-1;who.state='walk';who.path=null}return false}if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
+function damageVox(i,d,src='env',who=null){const m=vox[i];if(m===5&&who&&(who.type==='ram'||who.type==='rammer'))state.ramHit=(state.ramHit||0)+1;if(src==='enemy'&&blessOn('muralha'))d*=.75;if(!m||m===1||FLUID(m))return false;if(src!=='player'&&iy(i)<GY&&Math.max(Math.abs(ix(i)-CX),Math.abs(iz(i)-CZ))<=WR+48){if(who&&who.pos&&!who.fly&&!who.dead){who.gy=Math.max(who.gy,iy(i)+1);who.group.position.y=who.gy;who.target=-1;who.state='walk';who.path=null}return false}if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
   if(blue[i]){if(src==='player')return false;if(src==='env')d*=.4;if(state.wardT>0)d*=.08}
   if(m===5&&who&&who.type&&state.contract)state.contract.hit=1;if(m===5&&who&&CLIMBS(who.type))state.climbHitChest=true;
   if(m===5&&src==='enemy')d*=who&&(who.type==='ram'||who.type==='rammer')?.6:1.5;
   if(m===20)d*=.45;if(m===14)d*=.7;
   if(m===5&&src==='enemy')d*=.45;
   if(src==='enemy'&&who&&m===16&&blue[i])dmgEnemy(who,d*.7+6,true);
+  if(m===5&&window.__chestDmg){const k=who&&who.type?who.type+(who.mv?':'+who.mv.k:''):src;window.__chestDmg[k]=(window.__chestDmg[k]||0)+Math.min(d,Math.max(0,hp[i]))}
   hp[i]-=d;if(hp[i]<=0){removeVox(i,src);return true}
   if(m!==12&&m!==13)damaged.add(i);paint(i);if(Math.random()<.5)SFX.crunch(m===4||m===20);return false}
 function removeVox(i,src){const m=vox[i];if(!m)return;const x=ix(i),y=iy(i),z=iz(i);
@@ -1169,7 +1170,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(!e.stun)enemyAnim(e,d
   if(e.type==='sapper'&&victim){e.fuse=.5;return}
   if(e.state==='attack'){e.vel.set(0,0,0);if(!SOLIDM(vox[e.target])){e.state='walk';return}
     if(e.timer<=0){e.timer=e.T.rate;const tx=ix(e.target),tz=iz(e.target),ty=iy(e.target);
-      if(e.type==='ram'||e.type==='rammer'||e.type==='brute'||BIG(e.type)){const R=BIG(e.type)?2:1;for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++)for(let y=ty;y<ty+3;y++)if(inb(tx+dx,y,tz+dz))damageVox(idx(tx+dx,y,tz+dz),e.T.dmg*(dx||dz?.45:1),'enemy',e);shake=Math.max(shake,.3);SFX.boom(false)}
+      if(e.type==='ram'||e.type==='rammer'||e.type==='brute'||BIG(e.type)){const R=BIG(e.type)?2:1;for(let dx=-R;dx<=R;dx++)for(let dz=-R;dz<=R;dz++)for(let y=ty;y<ty+3;y++)if(inb(tx+dx,y,tz+dz)){const j=idx(tx+dx,y,tz+dz);if(vox[j]===5&&j!==e.target&&!window.__oldRam&&(e.type==='ram'||e.type==='rammer'))continue;damageVox(j,e.T.dmg*(dx||dz?.45:1),'enemy',e)}if(vox[e.target]===5&&(e.type==='ram'||e.type==='rammer')&&!e.chestCall){e.chestCall=1;label({x:e.pos.x,y:e.gy+2.2,z:e.pos.z},'🪵 aríete no baú!','#ff9a3c')}shake=Math.max(shake,.3);SFX.boom(false)}
       else damageVox(e.target,e.T.dmg*(1+e.rarity*.2),'enemy',e);e.lunge=.25}
     if(e.lunge>0){e.lunge-=dt;e.group.position.y=e.gy+Math.sin(Math.max(0,e.lunge)/.25*Math.PI)*.3}else e.group.position.y=e.gy;return}
   // anti-stuck: no progress for 9 s → smash the ground ahead (big) or hop forward
@@ -3231,9 +3232,9 @@ window.__ghost=()=>{const e=makeEnemy('brute',0,CX+30,CZ);e.aff='ghost';e.stun=9
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=7.4;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=7.5;
 // player-facing changelog shown once when a save from an older version is continued
-const CHANGES=[[7.4,'📖 Códex: cada inimigo mostra seu tipo de ataque, e uma nova seção lista os afixos de elite, chefe e campeão que você já enfrentou.'],[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
+const CHANGES=[[7.5,'🪵 Aríetes no baú: o golpe acerta só o bloco mirado (antes espalhava em todo o baú) e um aviso "aríete no baú!" aparece quando um deles alcança o tesouro.'],[7.4,'📖 Códex: cada inimigo mostra seu tipo de ataque, e uma nova seção lista os afixos de elite, chefe e campeão que você já enfrentou.'],[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
   [0.46,'🏘️ Distritos: nas hordas 4, 10, 16 e 22 escolha Ferraria, Torre arcana, Celeiro, Mercado, Caserna ou Santuário.'],[0.47,'🐺 Caçada noturna: um lobo alfa ronda à noite e deixa tesouro raro.'],
   [0.48,'🔕 Menos avisos repetidos; inimigos tardios mais resistentes.'],[0.49,'🏛️ Maravilhas (Observatório, Catedral, Grande Muralha, Estátua) e dock do celular em 2 linhas.'],
@@ -3741,6 +3742,7 @@ window.__newSt=()=>enemies.filter(e=>!e.dead&&['escudeiro','cavador','bombardeir
 
 window.__econ=()=>ECON;
 window.__dropFx=()=>{const ks=[['equip',2,{item:makeEquip(2)}],['turret',3,{type:'ballista'}],['equip',4,{item:makeEquip(4)}],['treasure',3,{}]];ks.forEach(([k,r,d],n)=>spawnLoot(CX+6+n*3,GY+1.5,CZ+24,k,r,d));const L=spawnLoot(CHEST.x,GY+2,CHEST.z+2,'equip',4,{item:makeEquip(4)});deposit(L,null);const L3=spawnLoot(CHEST.x,GY+2,CHEST.z+2,'equip',3,{item:makeEquip(3)});deposit(L3,null);return 1};
+window.__ramChest=(type,W,n)=>{window.__etest(type,W,0);for(let k=0;k<n;k++){const a=k/n*Math.PI*2;const e=makeEnemy(type,0,CHEST.x+Math.cos(a)*2.4,CHEST.z+Math.sin(a)*2.4);e.gy=GY;}window.__rc={t0:simTime};return chestAlive()};window.__rcStat=()=>({t:Math.round(simTime-window.__rc.t0),chest:chestAlive(),hp:_chestVox.map(i=>Math.round(hp[i])).join('/'),alive:enemies.filter(e=>!e.dead&&!e.rival).length,st:enemies.filter(e=>!e.dead).map(e=>e.state+(e.target>=0?vox[e.target]:'')).join(' ')});
 window.__etest=(type,W,n)=>{state.wave=W;state.maxWave=W;document.getElementById('next').click();state.queue=[];for(const e of enemies)if(!e.dead){e.dead=true;scene.remove(e.group)}
   window.__et={t0:simTime,miss0:blueList.filter(i=>blue[i]&&vox[i]!==blue[i]).length,chest0:chestAlive(),hurt:0,type};for(let k=0;k<n;k++){const a=k/n*Math.PI*2+.3;makeEnemy(type,0,CX+Math.cos(a)*52,CZ+Math.sin(a)*52)}return enemies.filter(e=>!e.dead).length};
 window.__etStat=()=>{const T=window.__et;const al=enemies.filter(e=>!e.dead&&!e.rival);return {alive:al.length,t:Math.round(simTime-T.t0),blk:blueList.filter(i=>blue[i]&&vox[i]!==blue[i]).length-T.miss0,chest:T.chest0-chestAlive(),wounded:minions.filter(m=>m.wounded>0).length,turLost:turrets.filter(t=>!t.alive).length}};

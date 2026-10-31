@@ -226,6 +226,15 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v7.5 — Aríetes no baú: só o bloco mirado
+- Diagnóstico: o log de "dano no baú" da v7.4 contava dano bruto em cada bloco do 3×3×3 do golpe, antes das reduções do baú (×0,6 aríete, ×0,45 inimigo) e sem contar reparos — por isso os 56k. Agora __chestDmg registra o HP realmente perdido.
+- Teste dirigido (tram.js, aríetes colados ao baú, h28, 8 aríetes, 90 s): antigo 216k bruto; novo 23,5k (−89%). Em ambos os reparadores seguram o baú — a derrota vinha de pressão acumulada.
+- Mudança: golpe de ram/rammer só fere o bloco de baú mirado (paredes e portões continuam com área). Aviso "🪵 aríete no baú!" uma vez por aríete.
+- Tranquilo 2400 s (tecon_calmo3): h26 aos 39 min, 0 derrotas (v7.4: h25 aos 34 min com 1 derrota). Maior dano real no baú por horda: escaladores 986 (h25), aranhas 451, Rei da Bruma 302, rammer 220.
+- Normal 2400 s (tecon_plus): h23 aos 38 min, 0 derrotas.
+- t5 600: h11, 0 erros. tcompat v0.41 → w15, v0.60 → w20, 0 erros.
+- Próximo foco: escaladores são agora a maior fonte de dano no baú no fim de jogo.
+
 ## v7.4 — Códex com ataques e afixos; corrida longa Tranquilo (70 min)
 - Códex: cada inimigo do bestiário agora descreve seu ataque (conferido contra o código: gosma se divide, diabrete regenera na lava, besouro meio-dano até perder placas, Rei da Bruma teleporta e trava torres…). Nova seção "Afixos" (6 de elite, 2 de chefe, 4 de campeão) registra o que já foi enfrentado (state.codex.af, compatível com saves antigos). Contador de selos sincroniza ao abrir (evita "próximo selo em -3").
 - Corrida Tranquilo 4200 s com bot forte (tecon_calmo3, log de dano no baú por atacante): h24 aos 30 min, h25 34 min, h28 47 min, h29 65 min. 3 derrotas (h25, h28 ×2). **Sentinela (h35) ainda não alcançada.**
