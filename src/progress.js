@@ -1021,11 +1021,11 @@ function renderBless(starting){const el=$('bless');if(!el)return;{const r=$('rep
 window.__bless=(k)=>{if(!state.blessOffer)blessOffer();if(k)state.blessOffer[0]=k;blessPick(state.blessOffer[0]);return state.bless};
 
 // v4.0 CÓDEX: bestiário (inimigos já abatidos, com contagem) e eventos já vividos
-function codexKill(e){if(e.rival||e.lineup)return;const C=state.codex||(state.codex={e:{},ev:{},ch:0});const t=e.type;C.e[t]=(C.e[t]||0)+1;if(e.champ)C.ch=(C.ch||0)+1;if(C.e[t]===1&&$('codex')&&$('codex').style.display==='flex')renderCodex()}
+function codexKill(e){if(e.rival||e.lineup)return;const C=state.codex||(state.codex={e:{},ev:{},ch:0});const t=e.type;C.e[t]=(C.e[t]||0)+1;if(e.champ)C.ch=(C.ch||0)+1;if(C.e[t]===1)codexSeal(C);if(C.e[t]===1&&$('codex')&&$('codex').style.display==='flex')renderCodex()}
 function codexEv(k){const C=state.codex||(state.codex={e:{},ev:{},ch:0});C.ev[k]=(C.ev[k]||0)+1}
 const CODEX_SKIP={shard:1,ship:1,pirate:1};
 function renderCodex(){const C=state.codex||{e:{},ev:{}};const all=Object.keys(ETYPES).filter(t=>!CODEX_SKIP[t]&&ETYPES[t].n);const seen=all.filter(t=>C.e[t]);const evs=Object.keys(EVENTS);const evSeen=evs.filter(k=>C.ev[k]);
-  $('codexSub').innerHTML=`Inimigos ${seen.length}/${all.length} · Eventos ${evSeen.length}/${evs.length}${C.ch?` · 👑 ${C.ch} campeões`:''}`;
+  const nS=C.seals||0,tot=Math.floor(all.length/5);$('codexSub').innerHTML=`<div class="cxs">${Array.from({length:tot},(_,i)=>`<i class="${i<nS?'on':''}" title="Selo ${i+1}: ${(i+1)*5} inimigos descobertos — +2% de dano">${i<nS?'🏅':'○'}</i>`).join('')}<span>${nS<tot?`próximo selo em ${(nS+1)*5-seen.length} inimigo(s) novo(s)`:'Códex de caça completo!'}</span></div>Inimigos ${seen.length}/${all.length} · Eventos ${evSeen.length}/${evs.length}${C.ch?` · 👑 ${C.ch} campeões`:''}`;
   const boss=t=>BIG(t);const row=t=>{const n=C.e[t]||0;const T=ETYPES[t];return n?`<div class="cx on"><b>${T.n}</b><span>${boss(t)?'chefe · ':''}${n.toLocaleString('pt-BR')} abatido${n>1?'s':''}</span><em>vida ${Math.round(T.hp)} · dano ${Math.round(T.dmg||0)}</em></div>`:`<div class="cx"><b>???</b><span>ainda não enfrentado</span></div>`};
   const order=all.slice().sort((a,b)=>(boss(a)-boss(b))||((C.e[b]?1:0)-(C.e[a]?1:0)));
   $('codexBody').innerHTML=`<div class="cxh">Bestiário</div><div class="cxg">${order.map(row).join('')}</div><div class="cxh">Eventos</div><div class="cxg">${evs.map(k=>C.ev[k]?`<div class="cx on"><b>${EVENTS[k].n}</b><span>${C.ev[k]}× · ${EVENTS[k].d}</span></div>`:`<div class="cx"><b>???</b><span>a partir da horda ${EVENTS[k].w}</span></div>`).join('')}</div>`}
@@ -1036,3 +1036,7 @@ TIPS.push({id:'champ',c:()=>enemies.some(e=>e.champ&&!e.dead),t:'👑 Um Campeã
   {id:'edge',c:()=>{const b=$('edge');return state.phase==='wave'&&b&&!b.hidden&&[...b.children].some(d=>d.style.display!=='none')},t:'🧭 Setas vermelhas na borda apontam inimigos fora da tela (douradas = chefe ou campeão).'},
   {id:'castle',c:()=>state.wave>=6&&state.phase==='rest',t:'🏰 Em 🧱 Construir → Castelo você troca o estilo da cidadela (Colossal, Zigurate, Fortaleza Anã…). Os minions refazem tudo bloco por bloco.'},
   {id:'codex',c:()=>state.codex&&Object.keys(state.codex.e).length>=6,t:'📖 O Códex (📖 na barra lateral) guarda cada inimigo que você já derrotou e cada evento vivido.'});
+
+// v4.1 SELOS DO CÓDEX: a cada 5 tipos de inimigo descobertos, um selo com bônus permanente
+function codexSeal(C){const n=Object.keys(C.e).filter(t=>!CODEX_SKIP[t]&&ETYPES[t]).length;const want=Math.floor(n/5);C.seals=C.seals||0;while(C.seals<want){C.seals++;state.dmgMul*=1.02;const g=40+C.seals*20;state.material+=g;toast(`🏅 Selo ${C.seals} do Códex: ${C.seals*5} inimigos descobertos! +2% de dano permanente e +${g} material.`,'r3',true);SFX.fanfare&&SFX.fanfare(false)}}
+window.__seal=()=>{const C=state.codex||(state.codex={e:{},ev:{},ch:0});for(const t of ['crawler','wolf','spider','slime','imp','brute','beetle','climber','sapper','ram'])C.e[t]=C.e[t]||1;codexSeal(C);openSide('codex');return [C.seals,state.dmgMul]};
