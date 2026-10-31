@@ -1001,11 +1001,11 @@ function edgeTick(dt){_edgeT-=dt;if(_edgeT>0)return;_edgeT=.2;const box=$('edge'
   if(state.phase!=='wave'||window.__headless&&!window.__edgeShow){if(box.childElementCount&&!box.hidden)box.hidden=true;return}box.hidden=false;
   const W2=innerWidth/2,H2=innerHeight/2,S={};let on=0;
   for(const e of enemies){if(e.dead||e.rival||e.lineup||e.dormant>0)continue;_ev3.set(e.pos.x,(e.fly?e.group.position.y:e.gy)+1,e.pos.z).project(camera);let x=_ev3.x,y=_ev3.y;const back=_ev3.z>1;if(back){x=-x;y=-y}
-    if(!back&&Math.abs(x)<.98&&Math.abs(y)<.92){on++;continue}const a=Math.atan2(y*H2,x*W2);const k=Math.round((a+Math.PI)/(Math.PI/6))%12;const B=S[k]||(S[k]={n:0,a:0,big:0});B.n++;B.a=a;if(BIG(e.type)||e.champ)B.big=1}
+    if(!back&&Math.abs(x)<.98&&Math.abs(y)<.92){on++;continue}const a=Math.atan2(y*H2,x*W2);const k=Math.round((a+Math.PI)/(Math.PI/6))%12;const B=S[k]||(S[k]={n:0,a:0,big:0,ram:0});B.n++;B.a=a;if(BIG(e.type)||e.champ)B.big=1;if(e.type==='ram')B.ram++}
   while(_edge.length<12){const d=document.createElement('div');d.className='edgeA';d.innerHTML='<i></i><b></b>';d.style.display='none';box.appendChild(d);_edge.push(d)}
   _edge.forEach((d,k)=>{const B=S[k];if(!B){d.style.display='none';return}d.style.display='';const c=Math.cos(B.a),s=Math.sin(B.a);const m=innerWidth<700?52:84,top=72,bot=112;
     const tx=c?((c>0?W2-m:-(W2-m))/c):1e9,ty=s?((s>0?H2-top:-(H2-bot))/s):1e9;const t=Math.min(Math.abs(tx),Math.abs(ty));
-    d.style.transform=`translate(${W2+c*t-15}px,${H2-s*t-15}px)`;d.firstChild.style.transform=`rotate(${-B.a}rad)`;d.lastChild.textContent=B.n>1?B.n:'';d.classList.toggle('big',!!B.big)})}
+    d.style.transform=`translate(${W2+c*t-15}px,${H2-s*t-15}px)`;d.firstChild.style.transform=`rotate(${-B.a}rad)`;d.lastChild.textContent=B.n>1?B.n:'';d.classList.toggle('big',!!B.big);d.classList.toggle('ram',!B.big&&B.ram>=Math.max(2,B.n*.3));d.title=B.ram?`${B.ram} aríete(s)`:''})}
 
 // v3.9 BÊNÇÃOS: no descanso (horda 4+) escolha 1 de 2 bênçãos que valem só para a próxima horda
 const BLESS={furia:{ico:'🔥',n:'Fúria',d:'+20% de dano das armas'},muralha:{ico:'🧱',n:'Muralha firme',d:'blocos sofrem −25% de dano'},colheita:{ico:'🌾',n:'Colheita',d:'+40% de material dos abates'},alcance:{ico:'🔭',n:'Olhos de águia',d:'+15% de alcance das armas'},vigor:{ico:'💚',n:'Vigor',d:'minions recuperam vida durante a horda'}};
@@ -1116,3 +1116,12 @@ window.__econ2=()=>({last:state.lastEcon,bud:state.rebBud,cur:{i:Math.round(_mIn
 // v4.8 PRÉVIA DA PRÓXIMA HORDA: no descanso, os tipos que vêm (e o chefe) numa linha compacta
 function nextPreview(){if(state.phase==='wave'||state.raid)return null;if(!state.nextQ||state.nextQ.w!==state.wave){state.nextQ={w:state.wave,q:waveSpec(state.wave)}}const c={};for(const t of state.nextQ.q)c[t]=(c[t]||0)+1;const boss=Object.keys(c).filter(t=>BIG(t));const rest=Object.entries(c).filter(([t])=>!BIG(t)).sort((a,b)=>b[1]-a[1]);return {n:state.nextQ.q.length,boss,top:rest.slice(0,5),more:Math.max(0,rest.length-5)}}
 function previewHtml(){const P=nextPreview();if(!P)return'';const nm=t=>(ETYPES[t]&&ETYPES[t].n)||t;return`<div class="nxp">Vem aí <b>${P.n}</b>: ${P.boss.map(t=>`<span class="nb">👑 ${nm(t)}</span>`).join('')}${P.top.map(([t,n])=>`<span>${nm(t)} ×${n}</span>`).join('')}${P.more?`<span>+${P.more} tipos</span>`:''}</div>`}
+
+TIPS.push({id:'ram',c:()=>(state.ramHit||0)>=3,t:'🐏 Aríetes estão batendo no baú! Óleo fervente (Upgrades) queima quem chega ao portão, a Égide segura o baú por 7 s e canhões/morteiros perto do portão param a investida. Setas laranja na borda mostram grupos de aríetes.'});
+
+// v4.9 MODO FOTO: some a interface por 8 s (P ou opção); qualquer toque/tecla volta
+let _photoT=0;function photoMode(on){const b=document.body;if(on===undefined)on=!b.classList.contains('photo');b.classList.toggle('photo',on);clearTimeout(_photoT);if(on&&!window.__revealHold){_photoT=setTimeout(()=>photoMode(false),8000);setTimeout(()=>{const h=$('photoHint');if(h)h.style.opacity='0'},2200)}else{const h=$('photoHint');if(h)h.style.opacity=''}}
+(()=>{const o=$('optPhoto');if(o)o.onclick=()=>{const om=$('autoPop');if(om)om.classList.remove('open');setTimeout(()=>photoMode(true),60)};
+  window.addEventListener('keydown',e=>{if((e.key==='p'||e.key==='P')&&!e.ctrlKey&&!e.metaKey&&!(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))){photoMode();e.preventDefault()}else if(document.body.classList.contains('photo')&&e.key==='Escape')photoMode(false)});
+  window.addEventListener('pointerdown',()=>{if(document.body.classList.contains('photo'))setTimeout(()=>photoMode(false),0)},true)})();
+window.__photo=()=>{photoMode(true);return document.body.className};
