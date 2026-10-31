@@ -30,6 +30,7 @@ function sparkle(x,y,z,color,n){for(let k=0;k<n;k++)spawnDebris(x,y,z,color,1,.1
 
 // ── lightning beams
 const beams=[];const beamMat=new THREE.LineBasicMaterial({color:0x9fe8ff,transparent:true,opacity:.95});
+function chainLine(a,b){const n=10,pts=[];for(let k=0;k<=n;k++){const t=k/n;pts.push(new THREE.Vector3(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t-Math.sin(t*Math.PI)*.6,a.z+(b.z-a.z)*t))}const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x8a8aa0,transparent:true,opacity:1}));scene.add(l);_ulines.push({l,t:.35})}
 function beam(a,b){const pts=[];const n=7;for(let k=0;k<=n;k++){const t=k/n,j=k&&k<n?1:0;pts.push(new THREE.Vector3(a.x+(b.x-a.x)*t+j*rnd(-.3,.3),a.y+(b.y-a.y)*t+j*rnd(-.3,.3),a.z+(b.z-a.z)*t+j*rnd(-.3,.3)))}
   const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),beamMat);scene.add(l);beams.push({l,life:.16})}
 function updateBeams(dt){for(let i=beams.length-1;i>=0;i--){const b=beams[i];b.life-=dt;if(b.life<=0){scene.remove(b.l);b.l.geometry.dispose();beams.splice(i,1)}}}
@@ -109,7 +110,7 @@ function updateLoot(dt){for(let k=loot.length-1;k>=0;k--){const L=loot[k];if(!L)
 function lootPick(kind,r,big){const k=Math.random();if(r>=4&&Math.random()<.35){if(Math.random()<.5){const U=pick(Object.entries(UNIQ_T));return['turret',{type:U[1].type,u:U[0]}]}return['equip',{item:makeUniqueEquip()}]}
   if(kind==='any'){if(k<.42)return['equip',{item:makeEquip(r)}];if(k<.72)return['block',randBlockPack(r)];if(k<.9)return['turret',{type:randTurretType()}];return['material',{amount:2+r*2}]}}
 function randBlockPack(r){let pool=(r>=3?[16,17,18,31,15,10,14,19,20,9,8]:r>=2?[16,17,18,31,15,10,14,19,9]:r>=1?[16,17,18,31,15,10,14]:[16,17,18,31,10]).filter(m=>isUnlocked('block',m));if(!pool.length)pool=[16,17,10];const m=pick(pool);return{m,n:FLUID(m)?1+Math.floor(r/2):4+r*3+rint(0,3)}}
-function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon','catapult','sunray','wind'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
+function randTurretType(){const p=['ballista','flamer','mortar','tesla','frost','cannon','ballista','cannon','catapult','sunray','wind','chain'].filter(t=>isUnlocked('turret',t));return pick(p.length?p:['cannon'])}
 function openTreasure(L){removeLoot(L);const r=L.r;const n=1+Math.ceil(r*.5)+(Math.random()<.3?1:0);
   for(let k=0;k<n;k++){const rr=k===0?r:Math.max(0,Math.min(r-1,lootRarity(r*.05+state.luck)));const [kind,data]=lootPick('any',rr);
     const it=spawnLoot(L.x,L.y+.6,L.z,kind,rr,data);if(it){const a=k/n*Math.PI*2;it.vx=Math.cos(a)*rnd(3,5);it.vz=Math.sin(a)*rnd(3,5);it.vy=rnd(6,9)}}
@@ -134,6 +135,7 @@ const TURRETS={
   mortar:{n:'Morteiro',ico:'🎇',range:48,minRange:7,reload:2.6,dmg:76,hp:120,v:3,d:'Tiro em arco que abre crateras. Não acerta Voadores.'},
   tesla:{n:'Torre Tesla',ico:'⚡',range:20,reload:1.5,dmg:22,hp:110,v:2,d:'Raio que salta entre 4 alvos; dobra na água.'},
   sunray:{n:'Torre de raio-sol',ico:'☀️',range:30,reload:.12,dmg:3.6,hp:130,v:4,d:'Feixe contínuo que esquenta: quanto mais tempo no mesmo alvo, mais dano (até 4×).'},
+  chain:{n:'Torre de correntes',ico:'⛓️',range:26,reload:2,dmg:34,hp:150,v:3,d:'Arremessa um gancho: fere, prende o Devorador por 1,3 s e o arrasta para longe da muralha. Não segura chefes.'},
   catapult:{n:'Catapulta',ico:'🛢️',range:58,minRange:10,reload:5.2,dmg:95,hp:140,v:4,d:'Arremessa barris explosivos em arco: área enorme e fogo. Não acerta Voadores.'},
   wind:{n:'Torre de vento',ico:'🌀',range:16,reload:2.6,dmg:8,hp:120,v:3,d:'Rajada em cone que empurra os Devoradores para trás e derruba escaladores. Não acerta chefes grandes.'},
   frost:{n:'Canhão de gelo',ico:'❄️',range:28,reload:1.1,dmg:13,hp:120,v:2,d:'Congela Devoradores e transforma lava em obsidiana.'},
@@ -145,6 +147,7 @@ function buildTurretModel(type,r,g,pivot){const dark=0x4a4866,mid=0x6d6a8a;
   else if(type==='ballista'){box(.8,.3,.8,0x8a6a45,0,.15,0,g);box(1.3,.1,.12,0xb5895a,0,.15,.25,pivot);box(.12,.12,1.1,0x6b5235,0,.12,.1,pivot);box(.06,.06,.9,0xdfe6f0,0,.22,.2,pivot)}
   else if(type==='flamer'){box(.8,.3,.8,mid,0,.15,0,g);const t=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.6,10),new THREE.MeshLambertMaterial({color:0xc9413b}));t.position.set(0,.25,-.1);t.castShadow=true;pivot.add(t);box(.18,.18,.8,0x3a3a4a,0,.2,.45,pivot)}
   else if(type==='sunray'){box(.9,.35,.9,0xe8dcb0,0,.17,0,g);const pr=new THREE.Mesh(new THREE.OctahedronGeometry(.38,0),new THREE.MeshLambertMaterial({color:0xffcf3d,emissive:0xffb13d,emissiveIntensity:.6}));pr.position.set(0,.55,0);pivot.add(pr);box(.1,.1,.6,0xffe08a,0,.5,.35,pivot)}
+  else if(type==='chain'){box(.95,.35,.95,0x3a3a4a,0,.17,0,g);const d=new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,.7,10),new THREE.MeshLambertMaterial({color:0x6d6a8a}));d.rotation.z=Math.PI/2;d.position.set(0,.4,0);pivot.add(d);box(.16,.16,.9,0x2b2d4a,0,.42,.45,pivot);const h=box(.34,.12,.12,0xdfe6f0,0,.42,.92,pivot);box(.1,.25,.1,0xdfe6f0,.14,.3,.92,pivot)}
   else if(type==='catapult'){box(1.1,.3,1.1,0x8a6a45,0,.15,0,g);for(const s of[-1,1])box(.12,.7,.12,0x6b5235,s*.4,.5,0,g);const arm=box(.12,.12,1.4,0xb5895a,0,.55,.1,pivot);arm.rotation.x=-.5;box(.4,.35,.4,0xc9413b,0,.95,-.45,pivot)}
   else if(type==='mortar'){box(1,.3,1,mid,0,.15,0,g);const b=box(.6,.6,.8,dark,0,.25,.1,pivot);b.rotation.x=-.8}
   else if(type==='tesla'){box(.7,.3,.7,0x5b6fae,0,.15,0,g);box(.3,1.1,.3,0x8ea9c6,0,.85,0,g);const s=new THREE.Mesh(new THREE.SphereGeometry(.3,10,10),lmat(0x9fe8ff,.8));s.position.y=1.55;g.add(s)}
@@ -184,6 +187,7 @@ function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRiva
     if(Math.random()<.15){const s=rnd(2,range);const x=Math.floor(t.pos.x+fx*s),z=Math.floor(t.pos.z+fz*s);for(let y=GY-1;y<GY+5;y++)if(inb(x,y,z))ignite(idx(x,y,z),'player')}SFX.whoosh();return}
   if(t.type==='tesla'){const hit=[tgt];let cur=tgt;const n=4+Math.floor(t.r/2);for(let k=1;k<n;k++){let nx=null,nd=8;for(const e of enemies){if(e.dead||hit.includes(e))continue;const d=hd(e.pos,cur.pos);if(d<nd||(cur.inWater&&e.inWater&&d<13)){nd=d;nx=e}}if(!nx)break;hit.push(nx);cur=nx}
     let a=new THREE.Vector3(t.pos.x,t.pos.y+1.55*US,t.pos.z),m=1;for(const e of hit){const b=enemyAim(e);beam(a,b);hurtEnemy(e,dmg*m*(e.inWater?2:1),b);if(e.dead&&g)gainXP(g,3);e.stun=Math.max(e.stun,.35);a=b;m*=.85}SFX.zap();return}
+  if(t.type==='chain'){const to=new THREE.Vector3(aim.x,aim.y,aim.z);chainLine(new THREE.Vector3(t.pos.x,t.pos.y+.9,t.pos.z),to);hurtEnemy(tgt,dmg,aim);SFX.twang&&SFX.twang();if(!tgt.dead&&!BIG(tgt.type)&&!tgt.fly){tgt.stun=Math.max(tgt.stun||0,1.3);const ox=tgt.pos.x-CX,oz=tgt.pos.z-CZ,od=Math.hypot(ox,oz)||1;const nx=tgt.pos.x+ox/od*4,nz=tgt.pos.z+oz/od*4;if(walkCell(Math.floor(nx),Math.floor(nz))>-99){tgt.pos.x=nx;tgt.pos.z=nz;tgt.gy=surfE(nx,nz);tgt.group.position.y=tgt.gy;tgt.path=null;tgt.target=-1;tgt.state='walk'}for(let k=0;k<4;k++)spawnDebris(tgt.pos.x,tgt.gy+.6,tgt.pos.z,0x8a8aa0,1,.15)}return}
   if(t.type==='sunray'){if(t.heatT!==tgt){t.heatT=tgt;t.heat=0}t.heat=Math.min(3,t.heat+t.T.reload*.45);hurtEnemy(tgt,dmg*(1+t.heat),aim);beam(new THREE.Vector3(t.pos.x,t.pos.y+1,t.pos.z),aim);if(Math.random()<.3)spawnFlame(aim.x,aim.y,aim.z,.5);if(t.heat>2.5&&Math.random()<.05)tgt.afire=Math.max(tgt.afire||0,2);return}
   if(LOB(t.type)){const cat=t.type==='catapult';const T=clamp(Math.hypot(dx,dz)/(cat?17:15),1.1,cat?3.4:2.8);const gr=20;const vel=new THREE.Vector3(dx/T,(aim.y-from.y+.5*gr*T*T)/T,dz/T);shoot(from,vel,gr,dmg,'shell',t);if(cat){const P=projectiles[projectiles.length-1];P.cat=true;P.mesh.material=BARREL_MAT;P.mesh.scale.setScalar(1.9)}SFX.thud();return}
   const sp=t.type==='ballista'?52:t.type==='frost'?32:34,gr=t.type==='ballista'?2:t.type==='frost'?5:6;const dist=from.distanceTo(aim);const lead=aim.clone().addScaledVector(tgt.vel,dist/sp);lead.y+=gr*(dist/sp)*(dist/sp)*.5;

@@ -200,6 +200,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v6.0 (MARCO — bateria completa): t5 600 ×3 = w12, w12, w12 sem erros; tcompat v041/v060 OK; tmob 390×844 e 844×390 sem erros (botões de recuo levados a ≥36 px no toque); tnew ok. Corrida 2700 s: h10 504 s, h15 1032 s, h20 1653 s (27,5 min), 2 derrotas na h21 (recua à h19), h23 2564 s; caudas ≤73 s; malhas 200–1400. Conteúdo: TUTORIAL DE 30 s na tela inicial (📘 Como jogar: 3 cartões — construir, horda, descanso; destacado para quem nunca jogou; o último botão começa a partida). README com v5.1–v5.9.
 
+- v6.1: arma TORRE DE CORRENTES (chain; desbloqueia h11; no sorteio de loot de armas): alcance 26, recarga 2, dano 34, vida 150; gancho com corrente que cai em arco (chainLine), fere, atordoa 1,3 s e arrasta o alvo 4 blocos para fora (se o destino é caminhável), zera alvo/rota; não afeta chefes nem voadores. Modelo: base de ferro, tambor cilíndrico, braço e gancho claro. DPS no teste isolado (twpn3, raridade 0): correntes 8,7–11,6 vs balista 10,6–11,2 vs canhão 13,9–14,7 — mais baixo, compensado pelo controle. Testes: t5 600 w13 sem erros; tcompat v041/v060 OK.
+
 ## ESTADO DO JOGO (v6.0)
 **Curva** (bot, Normal): h10 ≈ 8–9 min · h15 ≈ 16–17 min · h20 ≈ 27 min · 1ªs derrotas h21–24 · Tranquilo: h24 sem derrotas · Brutal: 1ª derrota ~h9. t5 600 estável em w12 (antes w7–w12).
 **Desempenho**: 200–1600 malhas; A* aliviado; estilhaços em repouso parados; fim de horda sem caudas longas (expostos → surtida → sangramento); inimigos longe atravessam terreno natural em vez de cavar.
