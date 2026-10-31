@@ -51,7 +51,7 @@ const ETYPES={
   imp:{hp:18,speed:4.2,dmg:6,rate:.5,color:0xe0443a,radius:.4,n:'Diabrete'},
   brute:{hp:140,speed:1.7,dmg:30,rate:1.3,color:0x8a5a44,radius:.85,n:'Bruto'},
   beetle:{hp:90,speed:2.0,dmg:14,rate:.9,color:0x2f6b6b,radius:.75,n:'Besouro Blindado'},
-  mistking:{hp:4200,speed:1.1,dmg:90,rate:1.3,color:0x2a1f45,radius:2.0,n:'Rei da Bruma'},
+  mistking:{hp:3600,speed:1.1,dmg:72,rate:1.3,color:0x2a1f45,radius:2.0,n:'Rei da Bruma'},
   golem:{hp:1700,speed:.9,dmg:65,rate:1.8,color:0x8d8578,radius:1.9,n:'Golem de Pedra'},
   wyrm:{hp:1100,speed:2.6,dmg:40,rate:1.2,color:0xe0662c,radius:1.5,n:'Serpe de Fogo'},
   necro:{hp:950,speed:1.4,dmg:35,rate:1.4,color:0x4b2e6b,radius:1.2,n:'Necromante da Bruma'},
