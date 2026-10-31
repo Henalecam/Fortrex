@@ -198,11 +198,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v5.9: evento ECLIPSE DE CRISTAL (cristal; w≥10; peso normal no sorteio): dano recebido pelos Devoradores ×0,83 (≈+20% de dureza); ao morrer, 35% soltam um cristal de material (6+0,8·w), chefes soltam 6; estilhaços ciano/lilás. Visual: luz fria (hemi azul, chão violeta, sol fraco azulado), faíscas de cristal no céu e overlay #crystalFx (vinheta violeta multiply + lua de cristal pulsando no canto superior direito). Teste isolado h12 forçado: material 72→142 em 15 s de horda (antes 60–72 no mesmo ponto). Lição: o tingimento do céu via scene.background é sobrescrito pelo ciclo do dia — overlay CSS é o que garante a leitura do evento. Testes: t5 600 w10 sem erros; tcompat v041/v060 OK.
 
-## ESTADO DO JOGO (v5.0)
-**Curva** (bot, Normal): h10 ≈ 9–12 min · h15 ≈ 18–21 min · h20 ≈ 28–30 min · h24 ≈ 40–45 min; derrotas raras até h24; h25 (Rei da Bruma) é o primeiro teste duro. Sem fim: escala contínua, h30+ ainda não medida numa corrida natural.
-**Desempenho**: 200–1600 malhas; A* aliviado (passeio estável, recuo em falhas); estilhaços em repouso sem física; h25+ compacta rastejantes em Colossos (fila h30 −22%).
-**Bom**: variedade (35 tipos de inimigo, 9 chefes, campeões com afixos, raids, eventos raros como aurora), progressão (marcos, selos do Códex, Renascer), descanso com escolhas (bênçãos, Motivar, prévia), interface enxuta e funcional no celular, saves antigos sempre carregam.
-**Falta / próximos passos**: corrida natural até h30+ e Sentinela Rúnica num jogo real; desempenho com 300+ inimigos vivos; equilíbrio por dificuldade (Tranquilo/Brutal pouco medidos); animações CSS não testáveis no harness (validar por DOM); mais variedade de templates de castelo e de pequenas obras; som/música não revisados há muitas versões.
+- v6.0 (MARCO — bateria completa): t5 600 ×3 = w12, w12, w12 sem erros; tcompat v041/v060 OK; tmob 390×844 e 844×390 sem erros (botões de recuo levados a ≥36 px no toque); tnew ok. Corrida 2700 s: h10 504 s, h15 1032 s, h20 1653 s (27,5 min), 2 derrotas na h21 (recua à h19), h23 2564 s; caudas ≤73 s; malhas 200–1400. Conteúdo: TUTORIAL DE 30 s na tela inicial (📘 Como jogar: 3 cartões — construir, horda, descanso; destacado para quem nunca jogou; o último botão começa a partida). README com v5.1–v5.9.
+
+## ESTADO DO JOGO (v6.0)
+**Curva** (bot, Normal): h10 ≈ 8–9 min · h15 ≈ 16–17 min · h20 ≈ 27 min · 1ªs derrotas h21–24 · Tranquilo: h24 sem derrotas · Brutal: 1ª derrota ~h9. t5 600 estável em w12 (antes w7–w12).
+**Desempenho**: 200–1600 malhas; A* aliviado; estilhaços em repouso parados; fim de horda sem caudas longas (expostos → surtida → sangramento); inimigos longe atravessam terreno natural em vez de cavar.
+**Bom**: 37 tipos de inimigo, 10 chefes (com Sentinela Rúnica h35), campeões com afixos, raids, eventos raros (aurora, eclipse de cristal), 8 estilos de castelo e 14 pequenas obras; progressão (marcos, selos, recordes, Renascer, forja); descanso com escolhas (bênçãos, Motivar, prévia, forja); economia tardia saudável (orçamento de reconstrução); interface pensada p/ celular; sons p/ os momentos-chave; saves antigos sempre carregam.
+**Falta / próximos**: corrida natural até h30+ (Sentinela Rúnica num jogo real); desempenho com 300+ vivos no h30+; caudas de chefes de cerco (até ~90 s); animações CSS não testáveis no harness; mais variedade de armas/torres; música.
 
 
 ## Backlog (próximas rodadas)
