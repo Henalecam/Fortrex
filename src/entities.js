@@ -30,7 +30,7 @@ function sparkle(x,y,z,color,n){for(let k=0;k<n;k++)spawnDebris(x,y,z,color,1,.1
 
 // ── lightning beams
 const beams=[];const beamMat=new THREE.LineBasicMaterial({color:0x9fe8ff,transparent:true,opacity:.95});
-function chainLine(a,b){const n=10,pts=[];for(let k=0;k<=n;k++){const t=k/n;pts.push(new THREE.Vector3(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t-Math.sin(t*Math.PI)*.6,a.z+(b.z-a.z)*t))}const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x8a8aa0,transparent:true,opacity:1}));scene.add(l);_ulines.push({l,t:.35})}
+function chainLine(a,b){const n=10,pts=[];for(let k=0;k<=n;k++){const t=k/n;pts.push(new THREE.Vector3(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t-Math.sin(t*Math.PI)*.6,a.z+(b.z-a.z)*t))}const l=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),16,.08,5,false),new THREE.MeshBasicMaterial({color:0x6d6a8a,transparent:true,opacity:1}));scene.add(l);_ulines.push({l,t:.45})}
 function beam(a,b){const pts=[];const n=7;for(let k=0;k<=n;k++){const t=k/n,j=k&&k<n?1:0;pts.push(new THREE.Vector3(a.x+(b.x-a.x)*t+j*rnd(-.3,.3),a.y+(b.y-a.y)*t+j*rnd(-.3,.3),a.z+(b.z-a.z)*t+j*rnd(-.3,.3)))}
   const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),beamMat);scene.add(l);beams.push({l,life:.16})}
 function updateBeams(dt){for(let i=beams.length-1;i>=0;i--){const b=beams[i];b.life-=dt;if(b.life<=0){scene.remove(b.l);b.l.geometry.dispose();beams.splice(i,1)}}}
