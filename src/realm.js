@@ -25,7 +25,7 @@ function realmTick(dt){if(!REALM.cities.length)return;REALM.t+=dt;if(state.battl
   for(let i=REALM.armies.length-1;i>=0;i--){const A=REALM.armies[i];const dx=A.to.x-A.x,dy=A.to.y-A.y,d=Math.hypot(dx,dy);const st=A.speed*dt;
     if(d>st){A.x+=dx/d*st;A.y+=dy/d*st;continue}REALM.armies.splice(i,1);arrive(A)}
   // new, stronger fortresses rise at the edges of the known world
-  REALM.spawnT-=dt;const foes=REALM.cities.filter(c=>!c.fac.isMe);if(REALM.spawnT<=0&&(foes.length<10||Math.random()<.3)){REALM.spawnT=rnd(70,120);const top=Math.max(1,...REALM.cities.map(c=>c.lvl));
+  REALM.spawnT-=dt;const foes=REALM.cities.filter(c=>!c.fac.isMe);if(REALM.spawnT<=0&&foes.length<18&&(foes.length<10||Math.random()<.3)){REALM.spawnT=rnd(70,120);const top=Math.max(1,...REALM.cities.map(c=>c.lvl));
     const a=rnd(0,Math.PI*2);const f=newFac(FAC_COLORS[1+REALM.facs.length%(FAC_COLORS.length-1)],'');const c=addCity(clamp(500+Math.cos(a)*rnd(380,470),40,960),clamp(500+Math.sin(a)*rnd(330,420),40,960),Math.min(12,top+rint(0,1)),f);f.name=c.name;rlog(`Uma nova fortaleza surge: ${c.name} (nv ${c.lvl})`,'r3')}
   // the world keeps getting stronger whether you fight or not
   REALM.growT=(REALM.growT??180)-dt;if(REALM.growT<=0){REALM.growT=rnd(140,210);const foes2=REALM.cities.filter(c=>!c.fac.isMe);if(foes2.length){const c=pick(foes2);c.lvl=Math.min(20,c.lvl+1);c.garrison+=c.lvl*3;c.flash=simTime;rlog(`${c.name} cresce para nv ${c.lvl}`,'r0')}}

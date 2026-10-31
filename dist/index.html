@@ -1619,7 +1619,7 @@ function realmTick(dt){if(!REALM.cities.length)return;REALM.t+=dt;if(state.battl
   for(let i=REALM.armies.length-1;i>=0;i--){const A=REALM.armies[i];const dx=A.to.x-A.x,dy=A.to.y-A.y,d=Math.hypot(dx,dy);const st=A.speed*dt;
     if(d>st){A.x+=dx/d*st;A.y+=dy/d*st;continue}REALM.armies.splice(i,1);arrive(A)}
   // new, stronger fortresses rise at the edges of the known world
-  REALM.spawnT-=dt;const foes=REALM.cities.filter(c=>!c.fac.isMe);if(REALM.spawnT<=0&&(foes.length<10||Math.random()<.3)){REALM.spawnT=rnd(70,120);const top=Math.max(1,...REALM.cities.map(c=>c.lvl));
+  REALM.spawnT-=dt;const foes=REALM.cities.filter(c=>!c.fac.isMe);if(REALM.spawnT<=0&&foes.length<18&&(foes.length<10||Math.random()<.3)){REALM.spawnT=rnd(70,120);const top=Math.max(1,...REALM.cities.map(c=>c.lvl));
     const a=rnd(0,Math.PI*2);const f=newFac(FAC_COLORS[1+REALM.facs.length%(FAC_COLORS.length-1)],'');const c=addCity(clamp(500+Math.cos(a)*rnd(380,470),40,960),clamp(500+Math.sin(a)*rnd(330,420),40,960),Math.min(12,top+rint(0,1)),f);f.name=c.name;rlog(`Uma nova fortaleza surge: ${c.name} (nv ${c.lvl})`,'r3')}
   // the world keeps getting stronger whether you fight or not
   REALM.growT=(REALM.growT??180)-dt;if(REALM.growT<=0){REALM.growT=rnd(140,210);const foes2=REALM.cities.filter(c=>!c.fac.isMe);if(foes2.length){const c=pick(foes2);c.lvl=Math.min(20,c.lvl+1);c.garrison+=c.lvl*3;c.flash=simTime;rlog(`${c.name} cresce para nv ${c.lvl}`,'r0')}}
@@ -3192,7 +3192,7 @@ const TUT=[['🧱','Construa e deixe os minions trabalharem','Toque em 🧱 Cons
 
 // ───────── save / continue: a snapshot taken between waves (localStorage). It stores meaning, not internals:
 // world voxels (run-length), state fields, minions, turrets, heroes and the realm — so saves survive game updates.
-const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=6.3;
+const SAVE_KEY='fortrex_save_v1';const GAME_VERSION=6.4;
 // player-facing changelog shown once when a save from an older version is continued
 const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos Sapadores.'],[0.43,'🩸 Lua de sangue: evento com muitos inimigos de elite, mas cada abate rende material.'],
   [0.44,'⛏️ Veio de ouro disputado fora das muralhas — rende material, a horda tenta saquear.'],[0.45,'🌊 O fosso afoga aríetes e rastejadores.'],
@@ -3265,6 +3265,7 @@ const CHANGES=[[0.42,'🔧 Sabotadores: duendes que desarmam as armadilhas dos S
   [2.8,'🛡️ Inimigos novos refeitos (3/5 da reforma): Escudeiro de elmo com pluma e escudo-torre que se ergue ao proteger, Cavador-toupeira com capacete de mineiro e lanterna cavando com as garras, Bombardeiro de óculos de aviador balançando a bomba, Mímico com dentes, língua e olhos dourados, Golem de Cristal com cristais que pulsam, Cavaleiro da Bruma com montaria de olhos roxos, cavaleiro de elmo e lança que abaixa na investida, Pirata de tapa-olho com sabre e papagaio no ombro, e o Navio com bandeira tremulando e canhões. 🔧 Corrigido: inimigo preso em buraco longe da base podia travar a horda para sempre — agora quem fica parado 20 s volta para a trilha.'],
   [2.9,'👑 Chefes refeitos com silhuetas únicas (4/5 da reforma): Devorador de bocarra que mastiga e quatro olhos magenta, Golem de musgo com runas e olho em fenda, Serpe de Fogo com chifres, barriga dourada e boca em brasa, Colosso de pernas enormes com coroa de chifres e viseira vermelha, Necromante flutuante com crânio, grimório girando e cajado verde, Rainha com coroa dourada, olhos compostos e quatro asas translúcidas, Titã de rocha com rachaduras de lava pulsando e o Rei da Bruma com coroa de cristais e tentáculos. Todos respiram e os olhos ardem mais forte a cada fase.'],
   [3.0,'🏰 Fim da reforma de personagens (5/5): tropas rivais refeitas com a cor da facção — Cavaleiro de elmo com viseira, pluma e tabardo, Arqueiro encapuzado com arco e aljava, Aríete carregado por dois soldados, General de coroa dourada, capa enorme, espadão e estandarte nas costas. Cada castelo rival ganha um estilo próprio (pedra negra, pedra clara, metal ou obsidiana, com alturas de muralha, torres e torre de menagem diferentes).'],
+  [6.4,'🗺️ Reino mais estável em partidas longas: o número de fortalezas rivais tem um teto (18), evitando um mapa lotado e lento depois de horas de jogo.'],
   [6.3,'🎵 Trilha mais musical: no descanso, acordes suaves e um pequeno tema que volta de tempos em tempos; na horda, bumbo e caixa marcando o ritmo; com chefe, tom menor e um baixo grave ameaçador. Tudo gerado na hora, sem arquivos, e desliga junto com o som.'],
   [6.2,'👹 Chefes que sobram no fim da horda por mais de 40 s avançam furiosos (bem mais rápidos) e ficam mais vulneráveis — a horda não fica esperando um colosso perdido. ⛓️ A corrente da Torre de correntes ficou mais grossa e visível.'],
   [6.1,'⛓️ Nova arma (horda 11+): Torre de correntes — arremessa um gancho que fere, prende o Devorador por um instante e o arrasta para longe da muralha. Ótima para segurar aríetes e escaladores; não segura chefes.'],
