@@ -183,7 +183,7 @@ const TIPS=[{id:'start',c:()=>simTime>3,t:'👥 Seus minions trabalham sozinhos:
   {id:'rush',c:()=>rushBonus()>=8,t:'⚡ Ímpeto: chamar a próxima horda logo depois da anterior rende material extra — o botão mostra quanto.'},
   {id:'bomb',c:()=>state.wave>=4&&state.phase==='wave'&&enemies.length>25,t:'💣 Muitos inimigos? Use a Bomba (25 material) e clique onde ela deve cair.'},
   {id:'mason',c:()=>false,t:'🧱 Alvenaria (Upgrades) troca os blocos da cidadela por materiais melhores, de graça, depois de cada horda.'},
-  {id:'affix',c:()=>enemies.some(e=>e.aff&&!e.dead),t:'💍 Anéis coloridos nos pés marcam inimigos de elite: amarelo veloz, azul blindado, vermelho vampiro, laranja explode ao morrer, verde regenera.'},
+  {id:'affix',c:()=>enemies.some(e=>e.aff&&!e.dead),t:'💍 Anéis coloridos nos pés marcam inimigos de elite: amarelo veloz, azul blindado, vermelho vampiro, laranja explode ao morrer, verde regenera, branco-lilás fantasma (some por 1 s e fica imune).'},
   {id:'sappers',c:()=>(state.fieldTraps||[]).length>=4,t:'💣 Os sapadores espalham minas, espinhos e barris pelo mapa onde a horda passa. Compre Sapadores para mais armadilhas.'},
   {id:'rally',c:()=>!!state.vein||enemies.some(e=>e.alpha&&!e.dead),t:'🚩 Reunir: toque no mapa e os soldados vão até lá por 30 s — ótimo para defender o veio de ouro ou caçar o lobo alfa.'},
   {id:'oil',c:()=>state.wave>=6&&!state.ups.oil&&!!state.climbHitChest,t:'🫕 Escaladores e aranhas passam por cima das muralhas. Óleo fervente (Upgrades) derruba eles lá de cima.'},
@@ -1195,3 +1195,7 @@ window.__alch=()=>{const H=HEROES.find(h=>h.id==='alchemist');if(!(state.heroes&
 // v7.2 recorde de horda por dificuldade (neste navegador)
 function diffBest(k){try{return +(JSON.parse(localStorage.getItem('fortrex_best')||'{}')[k]||0)}catch(e){return 0}}
 function diffBestSet(w){if(state.raid)return;const k=OPTS.diff||'normal';try{const B=JSON.parse(localStorage.getItem('fortrex_best')||'{}');if((B[k]||0)<w){B[k]=w;localStorage.setItem('fortrex_best',JSON.stringify(B))}}catch(e){}}
+
+// v7.3 afixo FANTASMA (h16+): a cada 5 s fica 1 s translúcido e imune a todo dano
+let _ghT=0;function ghostTick(dt){_ghT-=dt;if(_ghT>0)return;_ghT=.1;for(const e of enemies){if(e.dead||e.aff!=='ghost')continue;e.ghP=(e.ghP??rnd(0,5))+.1;const on=(e.ghP%5)<1&&!e.exposed;if(on!==!!e.phased){e.phased=on;for(const im of e.vmeshes||[]){im.material.transparent=true;im.material.opacity=on?.3:1;im.material.depthWrite=!on}if(on&&Math.random()<.5)for(let k=0;k<4;k++)spawnDebris(e.pos.x,e.gy+1,e.pos.z,0xd8d8ff,1,.15)}}}
+window.__ghost=()=>{const e=makeEnemy('brute',0,CX+30,CZ);e.aff='ghost';e.stun=99;e.ghP=0;const o=[];for(let i=0;i<60;i++){window.__step(.1);const h=e.hp;dmgEnemy(e,1,false);o.push((e.phased?'P':'.')+(e.hp<h?'d':'-'))}return [o.join(''),(e.vmeshes||[]).length]};

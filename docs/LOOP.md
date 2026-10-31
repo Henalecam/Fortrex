@@ -224,6 +224,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.2: BRUTAL com o bot forte (tecon_plus + diff brutal, 2700 s): antes h21 em 45 min com 2 derrotas — perto demais do Normal (h24). Ajuste DIFFS.brutal: vida ×2,3→×2,75, quantidade ×1,6→×1,7, dano ×1,6→×1,8 (vel. e armadura iguais). Depois: h10 889 s, h15 1407 s, h18 1792 s, h19 2663 s (44 min), 4 derrotas (h9, h18×2, h19) — desafio claro, sem parede. Recorde por dificuldade: fortrex_best {dificuldade: horda máxima} atualizado a cada horda nova, mostrado como “recorde hN” nos botões de dificuldade. Testes: t5 600 w13 sem erros; tcompat v041/v060 OK.
 
+- v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
+
 ## ESTADO DO JOGO (v7.0)
 **Curva** (bot forte tecon_plus, Normal): h10 ≈ 8–9 min · h15 ≈ 16 min · h20 ≈ 25–29 min · h25 ≈ 46 min · 1ªs derrotas h18–21 · o bot estaciona em h24–27 (teto do bot). Tranquilo: h24 sem derrotas; Brutal: 1ª derrota ~h9. t5 600 estável em w11–w12.
 **Desempenho**: LOD de inimigos e rostos (−14% de malhas no h30); A* aliviado; fins de horda sem caudas (expostos → surtida → sangramento; chefes → marcha furiosa → sangramento); reino com teto de 18 rivais.
