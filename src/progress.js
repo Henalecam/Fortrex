@@ -1006,3 +1006,16 @@ function edgeTick(dt){_edgeT-=dt;if(_edgeT>0)return;_edgeT=.2;const box=$('edge'
   _edge.forEach((d,k)=>{const B=S[k];if(!B){d.style.display='none';return}d.style.display='';const c=Math.cos(B.a),s=Math.sin(B.a);const m=innerWidth<700?52:84,top=72,bot=112;
     const tx=c?((c>0?W2-m:-(W2-m))/c):1e9,ty=s?((s>0?H2-top:-(H2-bot))/s):1e9;const t=Math.min(Math.abs(tx),Math.abs(ty));
     d.style.transform=`translate(${W2+c*t-15}px,${H2-s*t-15}px)`;d.firstChild.style.transform=`rotate(${-B.a}rad)`;d.lastChild.textContent=B.n>1?B.n:'';d.classList.toggle('big',!!B.big)})}
+
+// v3.9 BÊNÇÃOS: no descanso (horda 4+) escolha 1 de 2 bênçãos que valem só para a próxima horda
+const BLESS={furia:{ico:'🔥',n:'Fúria',d:'+20% de dano das armas'},muralha:{ico:'🧱',n:'Muralha firme',d:'blocos sofrem −25% de dano'},colheita:{ico:'🌾',n:'Colheita',d:'+40% de material dos abates'},alcance:{ico:'🔭',n:'Olhos de águia',d:'+15% de alcance das armas'},vigor:{ico:'💚',n:'Vigor',d:'minions recuperam vida durante a horda'}};
+function blessOn(k){const B=state.bless;return !!B&&B.k===k&&B.w===state.wave&&state.phase==='wave'}
+function blessOffer(){if(state.wave<4||state.raid){state.blessOffer=null;renderBless();return}const ks=Object.keys(BLESS);const a=pick(ks);let b=pick(ks);while(b===a)b=pick(ks);state.blessOffer=[a,b];renderBless()}
+function blessPick(k){if(!state.blessOffer||!state.blessOffer.includes(k))return;state.bless={k,w:state.wave};state.blessOffer=null;SFX.click&&SFX.click();renderBless()}
+function blessStart(){if(state.blessOffer){state.blessOffer=null}renderBless(true)}
+let _blT=0,_blK='';function blessTick(dt){const key=JSON.stringify([state.blessOffer,state.bless&&state.bless.w===state.wave?state.bless.k:0,state.phase==='wave']);if(key!==_blK){_blK=key;renderBless()}if(!blessOn('vigor'))return;_blT-=dt;if(_blT>0)return;_blT=1;for(const m of minions)if(!m.wounded&&m.hp<m.maxhp)m.hp=Math.min(m.maxhp,m.hp+m.maxhp*.025)}
+function renderBless(starting){const el=$('bless');if(!el)return;{const r=$('report');const rb=r&&r.offsetParent&&r.style.display!=='none'?r.getBoundingClientRect().bottom:0;el.style.top=rb>0?Math.round(rb+8)+'px':''}const O=state.blessOffer,B=state.bless;
+  if(O&&state.phase!=='wave'){el.hidden=false;el.className='offer';el.innerHTML=`<div class="bh">✨ Escolha uma bênção para a horda ${state.wave}</div><div class="bc">${O.map(k=>`<button data-k="${k}"><i>${BLESS[k].ico}</i><b>${BLESS[k].n}</b><span>${BLESS[k].d}</span></button>`).join('')}</div>`;el.querySelectorAll('button').forEach(b=>b.onclick=()=>blessPick(b.dataset.k));return}
+  if(B&&B.w===state.wave&&BLESS[B.k]){el.hidden=false;el.className='chip';el.innerHTML=`${BLESS[B.k].ico} ${BLESS[B.k].n}${state.phase==='wave'?'':' · próxima horda'}`;return}
+  el.hidden=true;el.innerHTML=''}
+window.__bless=(k)=>{if(!state.blessOffer)blessOffer();if(k)state.blessOffer[0]=k;blessPick(state.blessOffer[0]);return state.bless};

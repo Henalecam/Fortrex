@@ -12,8 +12,8 @@ debMesh.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(DEB*3)
 const debris=new Array(DEB).fill(null);let debHead=0;
 function spawnDebris(x,y,z,color,n,size){for(let k=0;k<n;k++){const s=debHead;debHead=(debHead+1)%DEB;debris[s]={x:x+rnd(-.3,.3),y:y+rnd(-.2,.3),z:z+rnd(-.3,.3),vx:rnd(-4,4),vy:rnd(2,8),vz:rnd(-4,4),s:size*rnd(.5,1.1),rx:rnd(0,6),ry:rnd(0,6),life:rnd(1.3,2.3)};_c.setHex(color);debMesh.setColorAt(s,_c)}debMesh.instanceColor.needsUpdate=true}
 function updateDebris(dt){let any=false;for(let s=0;s<DEB;s++){const d=debris[s];if(!d)continue;any=true;d.life-=dt;if(d.life<=0){debris[s]=null;debMesh.setMatrixAt(s,_zero);continue}
-  d.vy-=22*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;d.rx+=d.vx*dt;d.ry+=d.vz*dt;
-  if(d.vy<0&&cellSolid(d.x,d.y-d.s/2,d.z)){d.y=Math.floor(d.y-d.s/2)+1+d.s/2;d.vy=-d.vy*.35;d.vx*=.7;d.vz*=.7}
+  if(d.rest){if(d.life>=.5)continue}else{d.vy-=22*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.z+=d.vz*dt;d.rx+=d.vx*dt;d.ry+=d.vz*dt;
+  if(d.vy<0&&cellSolid(d.x,d.y-d.s/2,d.z)){d.y=Math.floor(d.y-d.s/2)+1+d.s/2;d.vy=-d.vy*.35;d.vx*=.7;d.vz*=.7;if(d.vy<1.3){d.rest=1;d.vy=0}}}
   const sc=d.life<.5?d.s*d.life/.5:d.s;const c=Math.cos(d.rx)*sc,sn=Math.sin(d.rx)*sc,e=_m.elements;e[0]=c;e[1]=0;e[2]=-sn;e[3]=0;e[4]=0;e[5]=sc;e[6]=0;e[7]=0;e[8]=sn;e[9]=0;e[10]=c;e[11]=0;e[12]=d.x;e[13]=d.y;e[14]=d.z;e[15]=1;debMesh.setMatrixAt(s,_m)}
   if(any)debMesh.instanceMatrix.needsUpdate=true}
 
@@ -73,7 +73,7 @@ const LG={material:new THREE.OctahedronGeometry(.32,0),blade:new THREE.BoxGeomet
 const lmat=(c,e)=>new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:e});
 function lootName(L){const d=L.data;switch(L.kind){case'material':return`${d.amount} material`;case'equip':return d.item.n;case'block':return`${d.n}× ${MAT[d.m].n}`;case'turret':return TURRETS[d.type].n;case'recruit':return`Recruta ${ROLES[d.role].n}`;case'treasure':return'Baú do tesouro'}return'?'}
 let spawnLootHook=null;const ECON={dep:{},matLoot:0,log:[],src:{}};
-function spawnLoot(x,y,z,kind,r,data={}){if(spawnLootHook)spawnLootHook(x,y,z,kind,r,data);if(r>=3&&kind!=='material'){const k=kind+r+'@'+((new Error().stack.split('\n')[2]||'').trim().split(' ')[1]||'?');ECON.src[k]=(ECON.src[k]||0)+1}
+function spawnLoot(x,y,z,kind,r,data={}){if(kind==='material'&&data.amount&&blessOn('colheita'))data.amount=Math.ceil(data.amount*1.4);if(spawnLootHook)spawnLootHook(x,y,z,kind,r,data);if(r>=3&&kind!=='material'){const k=kind+r+'@'+((new Error().stack.split('\n')[2]||'').trim().split(' ')[1]||'?');ECON.src[k]=(ECON.src[k]||0)+1}
   if(kind==='material'){for(const o of loot)if(o.kind==='material'&&!o.claimed&&!o.carried&&Math.abs(o.x-x)<2.2&&Math.abs(o.z-z)<2.2){o.data.amount+=data.amount;const sc=1+Math.min(1.2,o.data.amount*.07);o.main.scale.set(sc,sc,sc);return o}if(loot.length>420)return null}
   const g=new THREE.Group();const rc=RARITY[r].c;let main;
   if(kind==='material'){main=new THREE.Mesh(LG.material,lmat(0xf0bd5a,.15));g.add(main)}
@@ -162,12 +162,12 @@ function killTurret(t,drop){if(!t.alive)return;t.alive=false;scene.remove(t.grou
   if(drop){const L=spawnLoot(t.pos.x,t.pos.y+.4,t.pos.z,'turret',t.r,{type:t.type,u:t.u});if(L)L.prio=true;toast(`${t.T.n} caiu! Um coletor vai buscá-la.`,'r0')}}
 function damageTurret(t,d){if(!t.alive)return;t.hp-=d;t.hit=.1;if(t.hp<=0)killTurret(t,true)}
 function checkTurretAnchor(i){const t=turretAt(i);if(t)killTurret(t,true)}
-const turretRange=t=>t.T.range*(state.rangeMul||1)*(state.ups.farol&&Math.hypot(t.pos.x-CX,t.pos.z-(CZ-12))<24?1.15:1)*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?((state.expStage||0)>=6||state.rangeMul>1||state.ups.farol?.92:.72):state.ev==='sandstorm'?((state.expStage||0)>=6?.88:.65):state.ev==='rain'?.9:1);
+const turretRange=t=>t.T.range*(state.rangeMul||1)*(blessOn('alcance')?1.15:1)*(state.ups.farol&&Math.hypot(t.pos.x-CX,t.pos.z-(CZ-12))<24?1.15:1)*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?((state.expStage||0)>=6||state.rangeMul>1||state.ups.farol?.92:.72):state.ev==='sandstorm'?((state.expStage||0)>=6?.88:.65):state.ev==='rain'?.9:1);
 function enemyAim(e){return new THREE.Vector3(e.pos.x,e.fly?e.group.position.y+.5:e.gy+(e.type==='colossus'?2.2:.9),e.pos.z)}
 function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRivalTurret(t,dt);const man=t.gunner&&t.gunner.state==='man';const g=t.gunner;
   if(t.hit>0)t.hit-=dt;if(t.station&&walkCell(Math.floor(t.station.x),Math.floor(t.station.z))<=-99)t.station=findStation(t.pos.x,t.pos.z);
   const rate=(man?1:.45)*(man?g.st.gun*(g.trait==='Olho de Águia'?1.25:1):1)/state.reloadMul*(state.ev==='aurora'&&state.phase==='wave'?1.15:1);
-  const range=turretRange(t),dmg=t.T.dmg*(1+t.r*.25)*state.dmgMul*((state.blessUntil||0)>=state.wave?1.25:1)*(man?1+g.rarity*.1:1);
+  const range=turretRange(t),dmg=t.T.dmg*(1+t.r*.25)*state.dmgMul*(blessOn('furia')?1.2:1)*((state.blessUntil||0)>=state.wave?1.25:1)*(man?1+g.rarity*.1:1);
   t.reload-=dt*rate;
   let tgt=null,bd=1e9;
   if(state.focus&&!state.focus.dead&&state.focusT>0){const d=hd(state.focus.pos,t.pos);if(d<range*1.3&&!(LOB(t.type)&&state.focus.fly))tgt=state.focus}

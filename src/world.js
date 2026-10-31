@@ -77,7 +77,7 @@ function setVox(i,m){const old=vox[i];if(SOLIDM(old)&&!SOLIDM(m)){removedQ.push(
 function setFluid(i,m,lv,src){if(SOLIDM(vox[i]))return;vox[i]=m;hp[i]=lv;fluids.add(i);if(src)fluidSrc.add(i);burning.delete(i);markCol(ix(i),iz(i));touch(i)}
 
 // src: 'enemy' | 'player' | 'env'. Player damage never touches the fortress (blue) — no friendly fire.
-function damageVox(i,d,src='env',who=null){const m=vox[i];if(!m||m===1||FLUID(m))return false;if(src!=='player'&&iy(i)<GY&&Math.max(Math.abs(ix(i)-CX),Math.abs(iz(i)-CZ))<=WR+48){if(who&&who.pos&&!who.fly&&!who.dead){who.gy=Math.max(who.gy,iy(i)+1);who.group.position.y=who.gy;who.target=-1;who.state='walk';who.path=null}return false}if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
+function damageVox(i,d,src='env',who=null){const m=vox[i];if(src==='enemy'&&blessOn('muralha'))d*=.75;if(!m||m===1||FLUID(m))return false;if(src!=='player'&&iy(i)<GY&&Math.max(Math.abs(ix(i)-CX),Math.abs(iz(i)-CZ))<=WR+48){if(who&&who.pos&&!who.fly&&!who.dead){who.gy=Math.max(who.gy,iy(i)+1);who.group.position.y=who.gy;who.target=-1;who.state='walk';who.path=null}return false}if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
   if(blue[i]){if(src==='player')return false;if(src==='env')d*=.4;if(state.wardT>0)d*=.08}
   if(m===5&&who&&who.type&&state.contract)state.contract.hit=1;if(m===5&&who&&CLIMBS(who.type))state.climbHitChest=true;
   if(m===5&&src==='enemy')d*=who&&(who.type==='ram'||who.type==='rammer')?.6:1.5;
