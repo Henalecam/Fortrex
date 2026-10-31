@@ -1032,7 +1032,7 @@ function renderBless(starting){const el=$('bless');if(!el)return;{const r=$('rep
 window.__bless=(k)=>{if(!state.blessOffer)blessOffer();if(k)state.blessOffer[0]=k;blessPick(state.blessOffer[0]);return state.bless};
 
 // v4.0 CÓDEX: bestiário (inimigos já abatidos, com contagem) e eventos já vividos
-function codexKill(e){if(e.rival||e.lineup)return;const C=state.codex||(state.codex={e:{},ev:{},ch:0});const t=e.type;C.e[t]=(C.e[t]||0)+1;if(e.champ)C.ch=(C.ch||0)+1;const af=C.af||(C.af={});if(e.aff)af[e.aff]=1;if(e.bossAff)af['b_'+e.bossAff]=1;if(e.champAff)af['c_'+e.champAff]=1;if(C.e[t]===1)codexSeal(C);if(C.e[t]===1&&$('codex')&&$('codex').style.display==='flex')renderCodex()}
+function codexKill(e){if(e.type==='runico'&&window.__bossLog)window.__bossLog.push({k:'dead',t:Math.round(simTime),w:state.wave});if(e.rival||e.lineup)return;const C=state.codex||(state.codex={e:{},ev:{},ch:0});const t=e.type;C.e[t]=(C.e[t]||0)+1;if(e.champ)C.ch=(C.ch||0)+1;const af=C.af||(C.af={});if(e.aff)af[e.aff]=1;if(e.bossAff)af['b_'+e.bossAff]=1;if(e.champAff)af['c_'+e.champAff]=1;if(C.e[t]===1)codexSeal(C);if(C.e[t]===1&&$('codex')&&$('codex').style.display==='flex')renderCodex()}
 function codexEv(k){const C=state.codex||(state.codex={e:{},ev:{},ch:0});C.ev[k]=(C.ev[k]||0)+1}
 const CODEX_SKIP={shard:1,ship:1,pirate:1};
 function renderCodex(){const C=state.codex||{e:{},ev:{}};if(state.codex)codexSeal(state.codex);const all=Object.keys(ETYPES).filter(t=>!CODEX_SKIP[t]&&ETYPES[t].n);const seen=all.filter(t=>C.e[t]);const evs=Object.keys(EVENTS);const evSeen=evs.filter(k=>C.ev[k]);
@@ -1068,7 +1068,7 @@ function runicTick(dt){for(let i=_runes.length-1;i>=0;i--){const R=_runes[i];R.t
   if(R.k==='rune'){const dmg=(36+state.wave*3)*R.m;explode(Math.floor(R.x),GY,Math.floor(R.z),1.6,0,{src:'enemy'});ringFx(R.x,GY+.5,R.z,R.r,0x5ce0ff);for(let dx=-3;dx<=3;dx++)for(let dz=-3;dz<=3;dz++){if(Math.hypot(dx,dz)>R.r)continue;const x=Math.floor(R.x)+dx,z=Math.floor(R.z)+dz;for(let y=GY;y<GY+5;y++)if(inb(x,y,z)&&vox[idx(x,y,z)])damageVox(idx(x,y,z),dmg,'enemy',R.e)}
     for(const m of minions)if(!m.wounded&&Math.hypot(m.pos.x-R.x,m.pos.z-R.z)<R.r)hurtMinion(m,dmg*.6,R.e);for(const t of turrets)if(t.alive&&t.team!=='r'&&Math.hypot(t.pos.x-R.x,t.pos.z-R.z)<R.r)damageTurret(t,dmg);for(let k=0;k<8;k++)spawnDebris(R.x,GY+.6,R.z,0x5ce0ff,1,.25)}
   if(R.k==='beam'){const e=R.e;if(e.dead)continue;const dmg=(70+state.wave*5)*R.m;const n=Math.ceil(R.len);SFX.boom&&SFX.boom(true);shake=Math.max(shake,.7);
-    for(let s=1;s<=n;s++){const x=R.x+Math.sin(R.ang)*s,z=R.z+Math.cos(R.ang)*s;for(const w of[-1,0,1]){const bx=Math.floor(x+Math.cos(R.ang)*w*.7),bz=Math.floor(z-Math.sin(R.ang)*w*.7);for(let y=GY;y<GY+9;y++)if(inb(bx,y,bz)&&vox[idx(bx,y,bz)])damageVox(idx(bx,y,bz),dmg,'enemy',e)}if(s%2===0)spawnDebris(x,GY+1.5,z,0x9fe8ff,1,.22)}
+    for(let s=1;s<=n;s++){const x=R.x+Math.sin(R.ang)*s,z=R.z+Math.cos(R.ang)*s;for(const w of[-1,0,1]){const bx=Math.floor(x+Math.cos(R.ang)*w*.7),bz=Math.floor(z-Math.sin(R.ang)*w*.7);for(let y=GY;y<GY+9;y++)if(inb(bx,y,bz)&&vox[idx(bx,y,bz)]&&vox[idx(bx,y,bz)]!==5)damageVox(idx(bx,y,bz),dmg,'enemy',e)}if(s%2===0)spawnDebris(x,GY+1.5,z,0x9fe8ff,1,.22)}
     for(const m of minions){if(m.wounded)continue;const dx=m.pos.x-R.x,dz=m.pos.z-R.z;const along=dx*Math.sin(R.ang)+dz*Math.cos(R.ang),side=Math.abs(dx*Math.cos(R.ang)-dz*Math.sin(R.ang));if(along>0&&along<R.len&&side<1.6)hurtMinion(m,dmg*.5,e)}
     for(const t of turrets){if(!t.alive||t.team==='r')continue;const dx=t.pos.x-R.x,dz=t.pos.z-R.z;const along=dx*Math.sin(R.ang)+dz*Math.cos(R.ang),side=Math.abs(dx*Math.cos(R.ang)-dz*Math.sin(R.ang));if(along>0&&along<R.len&&side<1.8)damageTurret(t,dmg)}
     const L=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.1,R.len),new THREE.MeshBasicMaterial({color:0x9fe8ff,transparent:true,opacity:.85}));L.position.set(R.x+Math.sin(R.ang)*R.len/2,e.gy+e.sc*1.9,R.z+Math.cos(R.ang)*R.len/2);L.rotation.y=R.ang;scene.add(L);_ulines.push({l:L,t:.35})}}}
@@ -1082,6 +1082,7 @@ const _bossAI0=bossAI;bossAI=function(e,dt){if(e.type!=='runico')return _bossAI0
   if(k==='shield'){e.shield=e.maxhp*.12;e.rShield=1;if(!e.shieldMesh){const gs=e.group.scale.x||1;e.shieldMesh=new THREE.Mesh(new THREE.SphereGeometry(e.radius*1.5/gs,18,10),new THREE.MeshBasicMaterial({color:0x5ce0ff,transparent:true,opacity:.22,depthWrite:false}));e.shieldMesh.position.y=e.radius*1.2/gs;e.group.add(e.shieldMesh)}e.shieldMesh.visible=true;label({x:e.pos.x,y:e.group.position.y+e.sc*2.4,z:e.pos.z},'🛡️ escudo rúnico!','#5ce0ff');return false}
   return _bossAI0(e,dt)};
 const _bossOfWave0=bossOfWave;bossOfWave=function(w){if(w>=35&&(w-35)%20===0)return 'runico';return _bossOfWave0(w)};
+const _mk0r=makeEnemy;makeEnemy=function(type,...a){const e=_mk0r(type,...a);if(type==='runico'&&window.__bossLog)window.__bossLog.push({k:'spawn',t:Math.round(simTime),hp:Math.round(e.maxhp)});return e};
 window.__runico=()=>{const e=makeEnemy('runico',1,CX+24,CZ+8);state.boss=e;return [e.maxhp|0,e.sc]};
 
 // v4.3 MOTIVAR: no descanso, toque num minion e motive-o (até 3 por descanso) — +20% de dano e velocidade na próxima horda

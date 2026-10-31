@@ -217,7 +217,7 @@ function buildBlueprint(){defaultBlue(baseBlue);if(state.blockTier)for(let i=0;i
 function placeBlue(i,m){m=tierMat(m);state.erased.delete(i);state.custom.set(i,m);if(!blue[i])blueList.push(i);blue[i]=m}
 function eraseBlue(i){if(baseBlue[i])state.erased.add(i);state.custom.delete(i);state.prepaid.delete(i);if(blue[i]){blue[i]=0;const k=blueList.indexOf(i);if(k>=0)blueList.splice(k,1)}}
 function chestAlive(){let n=0;for(const i of _chestVox)if(vox[i]===5)n++;return n}
-function checkChest(){if(state.running&&chestAlive()===0&&!state.retreating)waveLost()}
+function checkChest(){if(state.running&&chestAlive()===0&&!state.retreating){if(window.__noLose){window.__noLose++;for(const i of _chestVox){setVox(i,5);hp[i]=maxHpOf(5)}return}waveLost()}}
 
 // zones kept free of terrain decoration: player city, rival cities, outposts
 function cityZones(){const z=[[CX,CZ,WR+5]];for(const [ox,oz] of OUTPOSTS)z.push([ox,oz,5]);for(const R of (typeof rivals!=='undefined'?rivals:[]))z.push([R.cx,R.cz,R.wr+5]);return z}

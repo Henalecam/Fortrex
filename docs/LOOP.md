@@ -226,6 +226,14 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v7.7 — Sentinela Rúnica vista pela primeira vez (teste de fim de jogo)
+- Novo harness tlate_d.js: carrega a fixture v0.60/h19, pula para hW com material extra (__lateGame), registra nascimento/morte da Sentinela (__bossLog), dano real no baú por fonte e screenshots no momento de cada runa. Interruptor de teste __noLose reconstrói o baú em vez de perder (para observar a luta).
+- Achado: castelo de h19 pulado para h33 perde 9 vezes e recua até h26 — o recuo funciona; a curva de vida cresce ~25%/horda (escala h25 ≈ 99×, h30 ≈ 344×, h35 ≈ 1050×).
+- Sentinela h35: 4,96M de vida (raridade 0; 14,9M com raridade 1), ataca a cada ~3,6 s (≈ 60% runas, 40% raio). Antes: em 280 s o raio de 30 blocos atravessava a muralha e causava ~29k de dano real no baú (≈ 7 baús inteiros) — injusto, sem resposta. Agora o raio abre a muralha mas pula os blocos do baú: dano da Sentinela no baú caiu para ~3,9k (runas + pisão) no mesmo intervalo.
+- Bug: o aviso de chefe dizia "Sentinela Rúnica nv 8 — undefined!" — faltavam dicas para runico/arauto/mistking; adicionadas.
+- Ainda dominante no fim de jogo (castelo fraco): escaladores e aranhas (~50k cada em 290 s com __noLose). Próximo: medir o óleo fervente em escala de h35 e se a Sentinela é derrotável (4,96M) por um castelo forte.
+- t5 600: h11, 0 erros. tcompat v0.41 → w15, v0.60 → w20, 0 erros.
+
 ## v7.6 — Óleo fervente no baú
 - Diagnóstico (tetype h26, 8 escaladores/aranhas): eles sobem a torre de menagem e atacam o baú a ~15 blocos de altura; soldados ficam parados no chão e torres iniciais não alcançam — após 90 s os 8 continuavam vivos (escalador 4,1–4,4k de dano real no baú, aranha 6,9–7,3k, 2–3 blocos de baú perdidos).
 - Mudança: a cada 2 s o baú despeja óleo em inimigos comuns (não chefes/voadores) a ≤3,6 do baú que o atacam ou estão no alto: 7% da vida máx + 12 + 2×horda. Aviso "🫗 óleo fervente!" uma vez por inimigo.
