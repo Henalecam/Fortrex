@@ -1019,3 +1019,20 @@ function renderBless(starting){const el=$('bless');if(!el)return;{const r=$('rep
   if(B&&B.w===state.wave&&BLESS[B.k]){el.hidden=false;el.className='chip';el.innerHTML=`${BLESS[B.k].ico} ${BLESS[B.k].n}${state.phase==='wave'?'':' · próxima horda'}`;return}
   el.hidden=true;el.innerHTML=''}
 window.__bless=(k)=>{if(!state.blessOffer)blessOffer();if(k)state.blessOffer[0]=k;blessPick(state.blessOffer[0]);return state.bless};
+
+// v4.0 CÓDEX: bestiário (inimigos já abatidos, com contagem) e eventos já vividos
+function codexKill(e){if(e.rival||e.lineup)return;const C=state.codex||(state.codex={e:{},ev:{},ch:0});const t=e.type;C.e[t]=(C.e[t]||0)+1;if(e.champ)C.ch=(C.ch||0)+1;if(C.e[t]===1&&$('codex')&&$('codex').style.display==='flex')renderCodex()}
+function codexEv(k){const C=state.codex||(state.codex={e:{},ev:{},ch:0});C.ev[k]=(C.ev[k]||0)+1}
+const CODEX_SKIP={shard:1,ship:1,pirate:1};
+function renderCodex(){const C=state.codex||{e:{},ev:{}};const all=Object.keys(ETYPES).filter(t=>!CODEX_SKIP[t]&&ETYPES[t].n);const seen=all.filter(t=>C.e[t]);const evs=Object.keys(EVENTS);const evSeen=evs.filter(k=>C.ev[k]);
+  $('codexSub').innerHTML=`Inimigos ${seen.length}/${all.length} · Eventos ${evSeen.length}/${evs.length}${C.ch?` · 👑 ${C.ch} campeões`:''}`;
+  const boss=t=>BIG(t);const row=t=>{const n=C.e[t]||0;const T=ETYPES[t];return n?`<div class="cx on"><b>${T.n}</b><span>${boss(t)?'chefe · ':''}${n.toLocaleString('pt-BR')} abatido${n>1?'s':''}</span><em>vida ${Math.round(T.hp)} · dano ${Math.round(T.dmg||0)}</em></div>`:`<div class="cx"><b>???</b><span>ainda não enfrentado</span></div>`};
+  const order=all.slice().sort((a,b)=>(boss(a)-boss(b))||((C.e[b]?1:0)-(C.e[a]?1:0)));
+  $('codexBody').innerHTML=`<div class="cxh">Bestiário</div><div class="cxg">${order.map(row).join('')}</div><div class="cxh">Eventos</div><div class="cxg">${evs.map(k=>C.ev[k]?`<div class="cx on"><b>${EVENTS[k].n}</b><span>${C.ev[k]}× · ${EVENTS[k].d}</span></div>`:`<div class="cx"><b>???</b><span>a partir da horda ${EVENTS[k].w}</span></div>`).join('')}</div>`}
+window.__codex=()=>{openSide('codex');return [Object.keys((state.codex||{e:{}}).e).length,Object.keys((state.codex||{ev:{}}).ev).length]};
+TIPS.push({id:'champ',c:()=>enemies.some(e=>e.champ&&!e.dead),t:'👑 Um Campeão entrou na horda: elite com nome, barra de chefe e (da horda 12) um afixo no anel interno. Derrote-o por um lendário garantido.'},
+  {id:'portador',c:()=>enemies.some(e=>e.type==='portador'&&!e.dead),t:'🏮 Portador de Bruma: a névoa dele reduz o dano em quem está perto. Ele fica atrás da tropa — derrube-o primeiro.'},
+  {id:'bless',c:()=>!!state.blessOffer&&state.phase!=='wave',t:'✨ No descanso, escolha uma bênção no topo da tela — ela vale só para a próxima horda.'},
+  {id:'edge',c:()=>{const b=$('edge');return state.phase==='wave'&&b&&!b.hidden&&[...b.children].some(d=>d.style.display!=='none')},t:'🧭 Setas vermelhas na borda apontam inimigos fora da tela (douradas = chefe ou campeão).'},
+  {id:'castle',c:()=>state.wave>=6&&state.phase==='rest',t:'🏰 Em 🧱 Construir → Castelo você troca o estilo da cidadela (Colossal, Zigurate, Fortaleza Anã…). Os minions refazem tudo bloco por bloco.'},
+  {id:'codex',c:()=>state.codex&&Object.keys(state.codex.e).length>=6,t:'📖 O Códex (📖 na barra lateral) guarda cada inimigo que você já derrotou e cada evento vivido.'});
