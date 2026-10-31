@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v7.6 — Óleo fervente no baú
+- Diagnóstico (tetype h26, 8 escaladores/aranhas): eles sobem a torre de menagem e atacam o baú a ~15 blocos de altura; soldados ficam parados no chão e torres iniciais não alcançam — após 90 s os 8 continuavam vivos (escalador 4,1–4,4k de dano real no baú, aranha 6,9–7,3k, 2–3 blocos de baú perdidos).
+- Mudança: a cada 2 s o baú despeja óleo em inimigos comuns (não chefes/voadores) a ≤3,6 do baú que o atacam ou estão no alto: 7% da vida máx + 12 + 2×horda. Aviso "🫗 óleo fervente!" uma vez por inimigo.
+- Depois: escaladores morrem todos em ~76 s (dano no baú 1,65k, −60%); aranhas em ~50–78 s.
+- Tranquilo 2400 s: h27 aos 37 min, 0 derrotas (v7.5: h26 aos 39 min). Escaladores ainda lideram o dano no baú (até 767/horda), longe de ameaçar (3960 HP total + reparos).
+- t5 600: h12, 0 erros. tcompat v0.41 → w15, v0.60 → w20, 0 erros.
+
 ## v7.5 — Aríetes no baú: só o bloco mirado
 - Diagnóstico: o log de "dano no baú" da v7.4 contava dano bruto em cada bloco do 3×3×3 do golpe, antes das reduções do baú (×0,6 aríete, ×0,45 inimigo) e sem contar reparos — por isso os 56k. Agora __chestDmg registra o HP realmente perdido.
 - Teste dirigido (tram.js, aríetes colados ao baú, h28, 8 aríetes, 90 s): antigo 216k bruto; novo 23,5k (−89%). Em ambos os reparadores seguram o baú — a derrota vinha de pressão acumulada.

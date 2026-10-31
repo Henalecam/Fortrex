@@ -1202,3 +1202,9 @@ function diffBestSet(w){if(state.raid)return;const k=OPTS.diff||'normal';try{con
 // v7.3 afixo FANTASMA (h16+): a cada 5 s fica 1 s translúcido e imune a todo dano
 let _ghT=0;function ghostTick(dt){_ghT-=dt;if(_ghT>0)return;_ghT=.1;for(const e of enemies){if(e.dead||e.aff!=='ghost')continue;e.ghP=(e.ghP??rnd(0,5))+.1;const on=(e.ghP%5)<1&&!e.exposed;if(on!==!!e.phased){e.phased=on;for(const im of e.vmeshes||[]){im.material.transparent=true;im.material.opacity=on?.3:1;im.material.depthWrite=!on}if(on&&Math.random()<.5)for(let k=0;k<4;k++)spawnDebris(e.pos.x,e.gy+1,e.pos.z,0xd8d8ff,1,.15)}}}
 window.__ghost=()=>{const e=makeEnemy('brute',0,CX+30,CZ);e.aff='ghost';e.stun=99;e.ghP=0;const o=[];for(let i=0;i<60;i++){window.__step(.1);const h=e.hp;dmgEnemy(e,1,false);o.push((e.phased?'P':'.')+(e.hp<h?'d':'-'))}return [o.join(''),(e.vmeshes||[]).length]};
+
+// v7.6 ÓLEO FERVENTE: o baú se defende de quem o ataca de cima (escaladores/aranhas que sobem a torre de menagem, fora do alcance dos soldados)
+let _oilAcc=0;function chestOilTick(dt){if(state.phase!=='wave')return;_oilAcc+=dt;if(_oilAcc<2)return;_oilAcc=0;let hit=0;
+  for(const e of enemies){if(e.dead||e.rival||BIG(e.type)||e.fly)continue;if(Math.hypot(e.pos.x-CHEST.x,e.pos.z-CHEST.z)>3.6)continue;if(!(e.state==='attack'&&vox[e.target]===5)&&e.gy-GY<3)continue;
+    dmgEnemy(e,e.maxhp*.07+12+state.wave*2,true);hit++;for(let k=0;k<3;k++)spawnDebris(e.pos.x+rnd(-.5,.5),e.gy+2,e.pos.z+rnd(-.5,.5),0x3a2a10,1,.2);if(!e.oilCall){e.oilCall=1;label({x:e.pos.x,y:e.gy+1.8,z:e.pos.z},'🫗 óleo fervente!','#ffb13d')}}
+  if(hit&&SFX.crunch)SFX.crunch(false)}

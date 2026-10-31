@@ -87,7 +87,7 @@ function damageVox(i,d,src='env',who=null){const m=vox[i];if(m===5&&who&&(who.ty
   if(m===5&&window.__chestDmg){const k=who&&who.type?who.type+(who.mv?':'+who.mv.k:''):src;window.__chestDmg[k]=(window.__chestDmg[k]||0)+Math.min(d,Math.max(0,hp[i]))}
   hp[i]-=d;if(hp[i]<=0){removeVox(i,src);return true}
   if(m!==12&&m!==13)damaged.add(i);paint(i);if(Math.random()<.5)SFX.crunch(m===4||m===20);return false}
-function removeVox(i,src){const m=vox[i];if(!m)return;const x=ix(i),y=iy(i),z=iz(i);
+function removeVox(i,src){const m=vox[i];if(!m)return;if(window.__rmLog&&blue[i]){const k=src+':'+m;window.__rmLog[k]=(window.__rmLog[k]||0)+1}const x=ix(i),y=iy(i),z=iz(i);
   spawnDebris(x+.5,y+.5,z+.5,MAT[m].c,m>=11&&m<=13?3:5,.45);
   if(m!==11&&src!=='dig'&&!blue[i]&&!looted[i]&&(looted[i]=1)&&Math.random()<(rown[i]?.06:m===12||m===13?.04:.15))spawnLoot(x+.5,y+.6,z+.5,'material',0,{amount:1});
   setVox(i,0);SFX.crunch(m===4);settleDirty=true;checkTurretAnchor(i);if(m===5)checkChest();
