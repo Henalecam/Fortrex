@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v7.9 — Primeira corrida natural além de h30; Sentinela validada com castelo real
+- tsavegen.js (Tranquilo, bot forte, 2700 s): h31 com 0 derrotas (h25 aos 33 min, h30 aos 44 min, h31 aos 51 min). Dano real no baú por horda tardia: escaladores 1–2k, aranhas até 1,7k, Rainha 2,1k em h30 — tudo absorvido. Salvo como 3ª fixture de compatibilidade: tests/save_v78_w31.json (394 KB).
+- Sentinela h35 com esse castelo (tlate_d.js, FX=save_v78_w31, +3000 material): DPS total ≈ 110k/s (contra 20k/s da fixture h19), 25 torres no início. Sentinela nasce com 3,17M, chega ao baú (d5) ~60 s depois, cai de 100% → 29% em 30 s e morre 94 s após nascer. Só 8 ataques (5 runas, 3 raios). Baú quebrou 2× na horda 35 (com __noLose) — h35 continua exigente, como deve.
+- gy−4: a Sentinela aparece 4 abaixo de GY desde o nascimento, inclusive junto ao baú; como a mira das torres é só horizontal (sem linha de visão), não a esconde — não é bug de jogabilidade. Mantido.
+- Vida-base 1400 (v7.8) confirmada: luta de ~1,5 min com castelo forte. Sem mudança de números nesta rodada.
+- t5 600: h11, 0 erros. tcompat v0.41 → w15, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+
 ## v7.8 — Screenshots 3D no fim de jogo; avisos no chão legíveis; Sentinela −46% de vida
 - Tela preta nos testes: com __headless o jogo pula renderer.render; trune.js agora desliga __headless só no instante do screenshot. Imagens da Sentinela em h35 com runas visíveis (rune_*.png).
 - Legibilidade: os círculos de aviso (markGround) ganharam um disco interno que se preenche até o golpe cair (contagem regressiva visual) e a runa passou de ciano claro 0x5ce0ff para azul 0x1e90ff (contraste com grama/pedra clara). Malhas e materiais dos avisos agora são liberados ao sumir.
