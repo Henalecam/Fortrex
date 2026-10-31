@@ -1191,3 +1191,7 @@ const _flasks=[];function alchTick(dt){for(let i=_flasks.length-1;i>=0;i--){cons
   for(let k=0;k<16;k++)spawnDebris(F.x+rnd(-1,1),GY+1,F.z+rnd(-1,1),F.fire?pick([0x7dff9a,0xffb13d]):pick([0x8fe3ff,0xffffff]),1,.25);SFX.shatter&&SFX.shatter(true);
   for(const e of enemies){if(e.dead||e.rival)continue;const d=Math.hypot(e.pos.x-F.x,e.pos.z-F.z);if(d>F.r)continue;dmgEnemy(e,F.dmg*(1-d/F.r*.4),true);if(F.fire)e.afire=Math.max(e.afire||0,4);else{e.slowT=Math.max(e.slowT||0,3);if(!BIG(e.type))e.stun=Math.max(e.stun||0,.8)}}}}
 window.__alch=()=>{const H=HEROES.find(h=>h.id==='alchemist');if(!(state.heroes&&state.heroes.alchemist))spawnHero(H);state.heroes.alchemist.cd=0;const k0=state.kills,d0=DMG_ACC;heroAbility('alchemist');return [k0,d0,_flasks.length]};window.__alchRes=()=>[state.kills,Math.round(DMG_ACC),enemies.filter(e=>!e.dead&&e.afire>0).length,enemies.filter(e=>!e.dead&&e.slowT>0).length];
+
+// v7.2 recorde de horda por dificuldade (neste navegador)
+function diffBest(k){try{return +(JSON.parse(localStorage.getItem('fortrex_best')||'{}')[k]||0)}catch(e){return 0}}
+function diffBestSet(w){if(state.raid)return;const k=OPTS.diff||'normal';try{const B=JSON.parse(localStorage.getItem('fortrex_best')||'{}');if((B[k]||0)<w){B[k]=w;localStorage.setItem('fortrex_best',JSON.stringify(B))}}catch(e){}}
