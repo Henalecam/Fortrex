@@ -356,3 +356,4 @@ window.__minLineup=()=>{const out=[];['rep','col','gun','sol','med','rep','col',
 window.__alive=()=>enemies.filter(e=>!e.dead&&!e.rival).map(e=>e.type+'@'+Math.round(Math.hypot(e.pos.x-CX,e.pos.z-CZ))+(e.under?'u':'')+(e.stun>0?'s':'')+'y'+Math.round(e.group.position.y-GY)+':'+e.state+(e.target>=0?'T':'')+(e.path?'P':'')+(e.fly?'F':'')).join(' ');
 window.__battlePos=()=>{const B=battle();if(!B)return null;for(let k=0;k<3;k++){const e=spawnRivalUnit(B,'guard');}const g=makeEnemy('rammer',0,B.cx+3,B.cz+B.wr+6);g.rival=B;g.rmode='guard';g.home={x:g.pos.x,z:g.pos.z};B.guards.push(g);return {x:B.cx,z:B.cz,style:B.style,name:B.name}};
 window.__champPos=()=>{const e=enemies.find(e=>e.champ&&!e.dead);return e?{x:e.pos.x,z:e.pos.z,n:e.champ,hp:Math.round(e.hp)}:null};
+newsOnOpen();
