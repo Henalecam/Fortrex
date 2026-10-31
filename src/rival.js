@@ -126,7 +126,9 @@ function conquerBy(F,R){if(!F.alive)return;F.alive=false;shake=1;toast(`${R.name
 // ───────── procedural music: soft pentatonic arpeggios + bass; faster and tenser during waves, minor at night
 let musT=0,musStep=0;const MUS_DAY=[0,2,4,7,9],MUS_NIGHT=[0,3,5,7,10];
 function musicTick(dt){if(!soundOn||!AC||window.__headless)return;musT-=dt;if(musT>0)return;const fight=state.phase==='wave';const boss=!!state.boss;musT=fight?(boss?.17:.22):.38;
-  const sc=isNight()?MUS_NIGHT:MUS_DAY;const root=boss?110:fight?131:147;const st=musStep++;const bar=(st>>3)%4,prog=[0,3,4,2][bar];
-  if(st%8===0)tone('triangle',root*Math.pow(2,sc[prog%5]/12)/2,0,fight?.5:.9,fight?.05:.035);
-  if(Math.random()<(fight?.8:.55)){const n=sc[(st*3+prog+((Math.random()*3)|0))%5]+12*((st>>2)%2);tone(fight?'square':'sine',root*Math.pow(2,n/12),0,fight?.12:.35,fight?.012:.025)}
-  if(fight&&st%4===2)nz(.05,'highpass',6000,0,.02)}
+  const sc=(isNight()||boss)?MUS_NIGHT:MUS_DAY;const root=boss?110:fight?131:147;const st=musStep++;const bar=(st>>3)%4,prog=[0,3,4,2][bar];const f=n=>root*Math.pow(2,n/12);
+  if(st%8===0)tone('triangle',f(sc[prog%5])/2,0,fight?.5:.9,fight?.05:.035);
+  if(!fight&&st%16===0){for(const k of[0,2,4])tone('sine',f(sc[(prog+k)%5]),0,2.6,.012,k*.04)}
+  const MOT=[0,2,4,2,3,1,4,0],phr=(st>>3)%8;const useMot=phr%4<2;
+  if(useMot?st%2===0:Math.random()<(fight?.8:.55)){const i=useMot?MOT[(st>>1)%8]:(st*3+prog+((Math.random()*3)|0));const n=sc[(i+prog)%5]+12*((st>>2)%2);tone(fight?'square':'sine',f(n),0,fight?.12:.35,fight?.012:.025)}
+  if(fight){if(st%4===0)tone('sine',boss?80:95,40,.16,boss?.09:.06);if(st%8===4)nz(.08,'bandpass',1800,.7,boss?.035:.025);if(st%4===2)nz(.05,'highpass',6000,0,.02);if(boss&&st%8===0)tone('sawtooth',f(sc[prog%5])/4,0,1.2,.02)}}
