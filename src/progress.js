@@ -1028,7 +1028,7 @@ function renderCodex(){const C=state.codex||{e:{},ev:{}};const all=Object.keys(E
   const nS=C.seals||0,tot=Math.floor(all.length/5);$('codexSub').innerHTML=`<div class="cxs">${Array.from({length:tot},(_,i)=>`<i class="${i<nS?'on':''}" title="Selo ${i+1}: ${(i+1)*5} inimigos descobertos — +2% de dano">${i<nS?'🏅':'○'}</i>`).join('')}<span>${nS<tot?`próximo selo em ${(nS+1)*5-seen.length} inimigo(s) novo(s)`:'Códex de caça completo!'}</span></div>Inimigos ${seen.length}/${all.length} · Eventos ${evSeen.length}/${evs.length}${C.ch?` · 👑 ${C.ch} campeões`:''}`;
   const boss=t=>BIG(t);const row=t=>{const n=C.e[t]||0;const T=ETYPES[t];return n?`<div class="cx on"><b>${T.n}</b><span>${boss(t)?'chefe · ':''}${n.toLocaleString('pt-BR')} abatido${n>1?'s':''}</span><em>vida ${Math.round(T.hp)} · dano ${Math.round(T.dmg||0)}</em></div>`:`<div class="cx"><b>???</b><span>ainda não enfrentado</span></div>`};
   const order=all.slice().sort((a,b)=>(boss(a)-boss(b))||((C.e[b]?1:0)-(C.e[a]?1:0)));
-  $('codexBody').innerHTML=`<div class="cxh">Bestiário</div><div class="cxg">${order.map(row).join('')}</div><div class="cxh">Eventos</div><div class="cxg">${evs.map(k=>C.ev[k]?`<div class="cx on"><b>${EVENTS[k].n}</b><span>${C.ev[k]}× · ${EVENTS[k].d}</span></div>`:`<div class="cx"><b>???</b><span>a partir da horda ${EVENTS[k].w}</span></div>`).join('')}</div>`}
+  $('codexBody').innerHTML=codexRebirthHtml()+`<div class="cxh">Bestiário</div><div class="cxg">${order.map(row).join('')}</div><div class="cxh">Eventos</div><div class="cxg">${evs.map(k=>C.ev[k]?`<div class="cx on"><b>${EVENTS[k].n}</b><span>${C.ev[k]}× · ${EVENTS[k].d}</span></div>`:`<div class="cx"><b>???</b><span>a partir da horda ${EVENTS[k].w}</span></div>`).join('')}</div>`}
 window.__codex=()=>{openSide('codex');return [Object.keys((state.codex||{e:{}}).e).length,Object.keys((state.codex||{ev:{}}).ev).length]};
 TIPS.push({id:'champ',c:()=>enemies.some(e=>e.champ&&!e.dead),t:'👑 Um Campeão entrou na horda: elite com nome, barra de chefe e (da horda 12) um afixo no anel interno. Derrote-o por um lendário garantido.'},
   {id:'portador',c:()=>enemies.some(e=>e.type==='portador'&&!e.dead),t:'🏮 Portador de Bruma: a névoa dele reduz o dano em quem está perto. Ele fica atrás da tropa — derrube-o primeiro.'},
@@ -1081,3 +1081,16 @@ function cheerTick(dt){for(const m of minions){if(m.hopT>0){m.hopT-=dt;m.group.p
 window.__cheer=()=>{const ms=minions.filter(m=>!m.wounded).slice(0,4);return ms.map(m=>cheer(m))};
 TIPS.push({id:'cheer',c:()=>state.wave>=3&&state.phase==='rest'&&cheerLeft()===CHEER_MAX,t:'💪 No descanso, toque num minion e use Motivar: até 3 por descanso, +20% de dano e velocidade na próxima horda.'});
 window.__card=(i)=>{openCard({m:minions[i||0]});return minions[i||0].name};
+
+// v4.4 RENASCER (prestígio leve): ao alcançar a horda 30, recomece da 1 com +5% de dano e +30 material iniciais por renascimento (até 10)
+const PRES_MAX=10;function presGet(){try{return Math.min(PRES_MAX,+localStorage.getItem('fortrex_prestige')||0)}catch(e){return state.prestige||0}}
+function presSet(n){try{localStorage.setItem('fortrex_prestige',String(n))}catch(e){}}
+const PRES_T=['','Renascido','Duas Vezes Nascido','Três Vezes Forjado','Quatro Ventos','Cinco Coroas','Seis Selos','Sete Muralhas','Oito Estrelas','Nove Luas','Eterno'];
+function applyPrestige(){for(const k of ['maxWave','marks','bless','blessOffer','cheerW','cheerN','champs','cxW','champT','raid'])delete state[k];state.maxWave=1;if(state.codex&&state.codex.seals)state.dmgMul*=Math.pow(1.02,state.codex.seals);const n=presGet();state.prestige=n;if(!n)return;state.dmgMul*=1+.05*n;state.material+=30*n;setTimeout(()=>toast(`🔁 ${PRES_T[n]}: +${5*n}% de dano e +${30*n} material para começar.`,'r4',true),1200)}
+const _newGame0=newGame;newGame=function(){_newGame0.apply(this,arguments);applyPrestige()};
+function rebirth(){if((state.maxWave||1)<30)return false;const n=Math.min(PRES_MAX,presGet()+1);presSet(n);newGame();return n}
+let _rbArm=0;
+function codexRebirthHtml(){const n=state.prestige||presGet();const ok=(state.maxWave||1)>=30;return`<div class="cxh">🔁 Renascer</div><div class="cxr">${n?`<b>${PRES_T[n]}</b> · +${5*n}% dano, +${30*n} material inicial<br>`:''}${ok?`Você chegou à horda ${state.maxWave}. Renascer recomeça da horda 1 (mundo novo) com +5% de dano e +30 material a mais por renascimento${n>=PRES_MAX?' (máximo atingido)':''}.<button class="btn sm" id="cxReb">${_rbArm>simTime?'Tem certeza? Toque de novo para renascer':'🔁 Renascer'}</button>`:`Alcance a horda 30 para poder renascer com um bônus permanente (horda máxima: ${state.maxWave||1}).`}</div>`}
+window.__rebirth=()=>{state.maxWave=Math.max(state.maxWave||1,30);return rebirth()};
+
+const _renderCodex0=renderCodex;renderCodex=function(){_renderCodex0();const b=$('cxReb');if(b)b.onclick=()=>{if(_rbArm>simTime){_rbArm=0;closeSide('codex');rebirth()}else{_rbArm=simTime+5;renderCodex()}}};
