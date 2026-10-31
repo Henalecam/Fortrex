@@ -212,6 +212,8 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v6.6 (só ferramenta de teste, sem mudança de jogo): bot melhorado — bomba no AGLOMERADO mais denso perto da muralha (peso 4 p/ chefes, ×1,5 colado no muro, exige ≥3) em vez do primeiro inimigo fora; motiva até 3 soldados em todo descanso; com window.__botPlus a Égide sobe quando o baú cai abaixo de 24 voxels (antes 18). tecon_plus 2700 s: h10 460 s, h15 973 s, h20 1574 s (26 min), h24 2446 s (41 min), 1 derrota só (h20) — antes (bot antigo, v6.4) h20 2021 s, h24 3045 s, 3 derrotas até h24. O bot novo é a base para medir h30+ na próxima rodada. Testes: t5 600 w12 sem erros; tcompat v041/v060 OK.
 
+- v6.7: CORRIDA 4800 s com o bot novo (tecon_plus): h10 ~460 s, h20 1719 s (29 min), h24 2312 s (39 min), depois PAREDE na h24–25: 5 derrotas entre 2312 e 3800 s (recuos à h23), h25 4077 s, h27 4755 s (79 min); malhas até 2167 (pico). Ajuste: termo de vida após h20 de +5%/horda → +3%/horda (h25 −9%, h30 −14%). Códex: grade vira 1 coluna em ≤360 px e nomes quebram (overflow-wrap). Testes: t5 600 w12 sem erros; tcompat v041/v060 OK. Próxima: medir de novo a faixa h20–h28 com o bot novo.
+
 ## ESTADO DO JOGO (v6.0)
 **Curva** (bot, Normal): h10 ≈ 8–9 min · h15 ≈ 16–17 min · h20 ≈ 27 min · 1ªs derrotas h21–24 · Tranquilo: h24 sem derrotas · Brutal: 1ª derrota ~h9. t5 600 estável em w12 (antes w7–w12).
 **Desempenho**: 200–1600 malhas; A* aliviado; estilhaços em repouso parados; fim de horda sem caudas longas (expostos → surtida → sangramento); inimigos longe atravessam terreno natural em vez de cavar.
