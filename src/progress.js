@@ -1040,3 +1040,32 @@ TIPS.push({id:'champ',c:()=>enemies.some(e=>e.champ&&!e.dead),t:'👑 Um Campeã
 // v4.1 SELOS DO CÓDEX: a cada 5 tipos de inimigo descobertos, um selo com bônus permanente
 function codexSeal(C){const n=Object.keys(C.e).filter(t=>!CODEX_SKIP[t]&&ETYPES[t]).length;const want=Math.floor(n/5);C.seals=C.seals||0;while(C.seals<want){C.seals++;state.dmgMul*=1.02;const g=40+C.seals*20;state.material+=g;toast(`🏅 Selo ${C.seals} do Códex: ${C.seals*5} inimigos descobertos! +2% de dano permanente e +${g} material.`,'r3',true);SFX.fanfare&&SFX.fanfare(false)}}
 window.__seal=()=>{const C=state.codex||(state.codex={e:{},ev:{},ch:0});for(const t of ['crawler','wolf','spider','slime','imp','brute','beetle','climber','sapper','ram'])C.e[t]=C.e[t]||1;codexSeal(C);openSide('codex');return [C.seals,state.dmgMul]};
+
+// v4.2 SENTINELA RÚNICA — chefe de fim de jogo (horda 35, depois a cada 20): runas que explodem, raio que corta muralhas, escudo rúnico
+ETYPES.runico={hp:2600,speed:.85,dmg:80,rate:1.4,color:0x3a4a6a,radius:2.1,n:'Sentinela Rúnica'};SCX.runico=3.0;NEWLOOK.runico=1;
+CREATURES.runico=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const st=0x4a5468,dk=0x2a3040,rn=0x5ce0ff;
+  const body=B(1.4,1.2,.9,st,0,1.35,0);B(1.55,.3,1.0,dk,0,1.95,0);B(1.2,.25,.8,dk,0,.78,0);for(const [x,y,w,h] of [[-.35,1.45,.08,.55],[.35,1.3,.08,.45],[0,1.6,.6,.07],[0,1.15,.07,.4],[-.15,1.05,.35,.07]])G(w,h,.03,rn,x,y,.46,null,1);
+  const head=B(.8,.55,.6,st,0,2.4,.05);B(.9,.12,.7,dk,0,2.72,.05);g.userData.eyes=[G(.5,.08,.04,rn,0,2.42,.37,null,1.4)];for(const s of[-1,1])B(.14,.5,.14,dk,s*.42,2.85,-.05).rotation.z=-s*.25;
+  const a1=K(.5,1.25,.5,st,-1.05,1.3,.05),a2=K(.5,1.25,.5,st,1.05,1.3,.05);for(const a of[a1,a2]){B(.62,.35,.62,dk,0,-.5,0,a);const c=box(.05*sc,.7*sc,.03*sc,rn,0,0,.26*sc,a);c.material.emissive.setHex(rn);c.material.emissiveIntensity=1}g.userData.arms=[a1,a2];
+  const orbs=[];for(let k=0;k<4;k++){const o=G(.32,.32,.32,k%2?rn:0x9fe8ff,0,3.1,0,null,.8);o.userData.k=k;orbs.push(o)}g.userData.orbs=orbs;
+  return{body,head,legs:LG([[-.4,.4,0,.48,.8],[.4,.4,0,.48,.8]],dk)}};
+const _runes=[];
+function runicTick(dt){for(let i=_runes.length-1;i>=0;i--){const R=_runes[i];R.t-=dt;if(R.t>0)continue;_runes.splice(i,1);
+  if(R.k==='rune'){const dmg=(36+state.wave*3)*R.m;explode(Math.floor(R.x),GY,Math.floor(R.z),1.6,0,{src:'enemy'});ringFx(R.x,GY+.5,R.z,R.r,0x5ce0ff);for(let dx=-3;dx<=3;dx++)for(let dz=-3;dz<=3;dz++){if(Math.hypot(dx,dz)>R.r)continue;const x=Math.floor(R.x)+dx,z=Math.floor(R.z)+dz;for(let y=GY;y<GY+5;y++)if(inb(x,y,z)&&vox[idx(x,y,z)])damageVox(idx(x,y,z),dmg,'enemy',R.e)}
+    for(const m of minions)if(!m.wounded&&Math.hypot(m.pos.x-R.x,m.pos.z-R.z)<R.r)hurtMinion(m,dmg*.6,R.e);for(const t of turrets)if(t.alive&&t.team!=='r'&&Math.hypot(t.pos.x-R.x,t.pos.z-R.z)<R.r)damageTurret(t,dmg);for(let k=0;k<8;k++)spawnDebris(R.x,GY+.6,R.z,0x5ce0ff,1,.25)}
+  if(R.k==='beam'){const e=R.e;if(e.dead)continue;const dmg=(70+state.wave*5)*R.m;const n=Math.ceil(R.len);SFX.boom&&SFX.boom(true);shake=Math.max(shake,.7);
+    for(let s=1;s<=n;s++){const x=R.x+Math.sin(R.ang)*s,z=R.z+Math.cos(R.ang)*s;for(const w of[-1,0,1]){const bx=Math.floor(x+Math.cos(R.ang)*w*.7),bz=Math.floor(z-Math.sin(R.ang)*w*.7);for(let y=GY;y<GY+9;y++)if(inb(bx,y,bz)&&vox[idx(bx,y,bz)])damageVox(idx(bx,y,bz),dmg,'enemy',e)}if(s%2===0)spawnDebris(x,GY+1.5,z,0x9fe8ff,1,.22)}
+    for(const m of minions){if(m.wounded)continue;const dx=m.pos.x-R.x,dz=m.pos.z-R.z;const along=dx*Math.sin(R.ang)+dz*Math.cos(R.ang),side=Math.abs(dx*Math.cos(R.ang)-dz*Math.sin(R.ang));if(along>0&&along<R.len&&side<1.6)hurtMinion(m,dmg*.5,e)}
+    for(const t of turrets){if(!t.alive||t.team==='r')continue;const dx=t.pos.x-R.x,dz=t.pos.z-R.z;const along=dx*Math.sin(R.ang)+dz*Math.cos(R.ang),side=Math.abs(dx*Math.cos(R.ang)-dz*Math.sin(R.ang));if(along>0&&along<R.len&&side<1.8)damageTurret(t,dmg)}
+    const L=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.1,R.len),new THREE.MeshBasicMaterial({color:0x9fe8ff,transparent:true,opacity:.85}));L.position.set(R.x+Math.sin(R.ang)*R.len/2,e.gy+e.sc*1.9,R.z+Math.cos(R.ang)*R.len/2);L.rotation.y=R.ang;scene.add(L);_ulines.push({l:L,t:.35})}}}
+const _bossAI0=bossAI;bossAI=function(e,dt){if(e.type!=='runico')return _bossAI0(e,dt);const ud=e.group.userData;
+  if(ud.orbs){const n=ud.orbs.length;ud.orbs.forEach((o,k)=>{const a=simTime*(1.2+e.ph*.4)+k/n*Math.PI*2;o.position.set(Math.cos(a)*1.15*e.sc,(3.15+Math.sin(simTime*2+k)*.15)*e.sc,Math.sin(a)*1.15*e.sc)})}
+  if(e.rShield>0&&e.shield<=0){e.rShield=0;if(e.shieldMesh)e.shieldMesh.visible=false}
+  if(e.mv)return _bossAI0(e,dt);e.rT=(e.rT??4)-dt;if(e.rT>0||state.phase!=='wave')return _bossAI0(e,dt);e.rT=Math.max(3,6.5-e.ph*1.1);
+  const opts=['rune','rune','beam'];if(e.ph>=2&&!(e.shield>0))opts.push('shield');const k=pick(opts);const mult=1+.15*e.ph;if(window.__RL)window.__RL.push(k);
+  if(k==='rune'){const tg=turrets.filter(t=>t.alive&&t.team!=='r'&&hd(t.pos,e.pos)<60);const n=3+e.ph;for(let i=0;i<n;i++){const p=tg.length&&Math.random()<.6?pick(tg).pos:{x:CHEST.x+rnd(-WR+2,WR-2),z:CHEST.z+rnd(-WR+2,WR-2)};const x=p.x+rnd(-1,1),z=p.z+rnd(-1,1);markGround(x,z,2.6,0x5ce0ff,1.5);_runes.push({k:'rune',x,z,r:2.6,t:1.5+i*.12,m:mult,e})}label({x:e.pos.x,y:e.group.position.y+e.sc*2.4,z:e.pos.z},'ᚱ runas!','#5ce0ff');return false}
+  if(k==='beam'){const ang=Math.atan2(CHEST.x-e.pos.x,CHEST.z-e.pos.z);const len=Math.min(30,Math.hypot(CHEST.x-e.pos.x,CHEST.z-e.pos.z)+6);e.group.rotation.y=ang;markLine(e.pos.x,e.pos.z,ang,len,2.4,1.2);_runes.push({k:'beam',x:e.pos.x,z:e.pos.z,ang,len,t:1.2,m:mult,e});label({x:e.pos.x,y:e.group.position.y+e.sc*2.4,z:e.pos.z},'⚡ raio rúnico!','#9fe8ff');return true}
+  if(k==='shield'){e.shield=e.maxhp*.12;e.rShield=1;if(!e.shieldMesh){const gs=e.group.scale.x||1;e.shieldMesh=new THREE.Mesh(new THREE.SphereGeometry(e.radius*1.5/gs,18,10),new THREE.MeshBasicMaterial({color:0x5ce0ff,transparent:true,opacity:.22,depthWrite:false}));e.shieldMesh.position.y=e.radius*1.2/gs;e.group.add(e.shieldMesh)}e.shieldMesh.visible=true;label({x:e.pos.x,y:e.group.position.y+e.sc*2.4,z:e.pos.z},'🛡️ escudo rúnico!','#5ce0ff');return false}
+  return _bossAI0(e,dt)};
+const _bossOfWave0=bossOfWave;bossOfWave=function(w){if(w>=35&&(w-35)%20===0)return 'runico';return _bossOfWave0(w)};
+window.__runico=()=>{const e=makeEnemy('runico',1,CX+24,CZ+8);state.boss=e;return [e.maxhp|0,e.sc]};
