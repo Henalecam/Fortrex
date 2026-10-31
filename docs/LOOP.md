@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v7.4 — Códex com ataques e afixos; corrida longa Tranquilo (70 min)
+- Códex: cada inimigo do bestiário agora descreve seu ataque (conferido contra o código: gosma se divide, diabrete regenera na lava, besouro meio-dano até perder placas, Rei da Bruma teleporta e trava torres…). Nova seção "Afixos" (6 de elite, 2 de chefe, 4 de campeão) registra o que já foi enfrentado (state.codex.af, compatível com saves antigos). Contador de selos sincroniza ao abrir (evita "próximo selo em -3").
+- Corrida Tranquilo 4200 s com bot forte (tecon_calmo3, log de dano no baú por atacante): h24 aos 30 min, h25 34 min, h28 47 min, h29 65 min. 3 derrotas (h25, h28 ×2). **Sentinela (h35) ainda não alcançada.**
+- Dano no baú por horda tardia: ram 2,8k–15k, rammer (rival) até 56k numa derrota em h28, escaladores 0,6–2,3k. Todo o resto < 400. => o gargalo do fim de jogo são aríetes; próxima rodada: escalar resistência do portão/baú contra aríetes ou limitar dano de aríete por golpe no baú após h24.
+- t5 600: h11, 0 erros. tcompat v0.41/w13 → w15 e v0.60/w19 → w20, 0 erros.
+
 ## ESTADO DO JOGO (v7.0)
 **Curva** (bot forte tecon_plus, Normal): h10 ≈ 8–9 min · h15 ≈ 16 min · h20 ≈ 25–29 min · h25 ≈ 46 min · 1ªs derrotas h18–21 · o bot estaciona em h24–27 (teto do bot). Tranquilo: h24 sem derrotas; Brutal: 1ª derrota ~h9. t5 600 estável em w11–w12.
 **Desempenho**: LOD de inimigos e rostos (−14% de malhas no h30); A* aliviado; fins de horda sem caudas (expostos → surtida → sangramento; chefes → marcha furiosa → sangramento); reino com teto de 18 rivais.
