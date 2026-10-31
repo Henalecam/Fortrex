@@ -1056,7 +1056,7 @@ function codexSeal(C){const n=Object.keys(C.e).filter(t=>!CODEX_SKIP[t]&&ETYPES[
 window.__seal=()=>{const C=state.codex||(state.codex={e:{},ev:{},ch:0});for(const t of ['crawler','wolf','spider','slime','imp','brute','beetle','climber','sapper','ram'])C.e[t]=C.e[t]||1;codexSeal(C);openSide('codex');return [C.seals,state.dmgMul]};
 
 // v4.2 SENTINELA RÚNICA — chefe de fim de jogo (horda 35, depois a cada 20): runas que explodem, raio que corta muralhas, escudo rúnico
-ETYPES.runico={hp:2600,speed:.85,dmg:80,rate:1.4,color:0x3a4a6a,radius:2.1,n:'Sentinela Rúnica'};SCX.runico=3.0;NEWLOOK.runico=1;
+ETYPES.runico={hp:1400,speed:.85,dmg:80,rate:1.4,color:0x3a4a6a,radius:2.1,n:'Sentinela Rúnica'};SCX.runico=3.0;NEWLOOK.runico=1;
 CREATURES.runico=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const st=0x4a5468,dk=0x2a3040,rn=0x5ce0ff;
   const body=B(1.4,1.2,.9,st,0,1.35,0);B(1.55,.3,1.0,dk,0,1.95,0);B(1.2,.25,.8,dk,0,.78,0);for(const [x,y,w,h] of [[-.35,1.45,.08,.55],[.35,1.3,.08,.45],[0,1.6,.6,.07],[0,1.15,.07,.4],[-.15,1.05,.35,.07]])G(w,h,.03,rn,x,y,.46,null,1);
   const head=B(.8,.55,.6,st,0,2.4,.05);B(.9,.12,.7,dk,0,2.72,.05);g.userData.eyes=[G(.5,.08,.04,rn,0,2.42,.37,null,1.4)];for(const s of[-1,1])B(.14,.5,.14,dk,s*.42,2.85,-.05).rotation.z=-s*.25;
@@ -1077,12 +1077,12 @@ const _bossAI0=bossAI;bossAI=function(e,dt){if(e.type!=='runico')return _bossAI0
   if(e.rShield>0&&e.shield<=0){e.rShield=0;if(e.shieldMesh)e.shieldMesh.visible=false}
   if(e.mv)return _bossAI0(e,dt);e.rT=(e.rT??4)-dt;if(e.rT>0||state.phase!=='wave')return _bossAI0(e,dt);e.rT=Math.max(3,6.5-e.ph*1.1);
   const opts=['rune','rune','beam'];if(e.ph>=2&&!(e.shield>0))opts.push('shield');const k=pick(opts);const mult=1+.15*e.ph;if(window.__RL)window.__RL.push(k);
-  if(k==='rune'){const tg=turrets.filter(t=>t.alive&&t.team!=='r'&&hd(t.pos,e.pos)<60);const n=3+e.ph;for(let i=0;i<n;i++){const p=tg.length&&Math.random()<.6?pick(tg).pos:{x:CHEST.x+rnd(-WR+2,WR-2),z:CHEST.z+rnd(-WR+2,WR-2)};const x=p.x+rnd(-1,1),z=p.z+rnd(-1,1);markGround(x,z,2.6,0x5ce0ff,1.5);_runes.push({k:'rune',x,z,r:2.6,t:1.5+i*.12,m:mult,e})}SFX.rune();label({x:e.pos.x,y:e.group.position.y+e.sc*2.4,z:e.pos.z},'ᚱ runas!','#5ce0ff');return false}
+  if(k==='rune'){const tg=turrets.filter(t=>t.alive&&t.team!=='r'&&hd(t.pos,e.pos)<60);const n=3+e.ph;for(let i=0;i<n;i++){const p=tg.length&&Math.random()<.6?pick(tg).pos:{x:CHEST.x+rnd(-WR+2,WR-2),z:CHEST.z+rnd(-WR+2,WR-2)};const x=p.x+rnd(-1,1),z=p.z+rnd(-1,1);markGround(x,z,2.6,0x1e90ff,1.5);_runes.push({k:'rune',x,z,r:2.6,t:1.5+i*.12,m:mult,e})}SFX.rune();label({x:e.pos.x,y:e.group.position.y+e.sc*2.4,z:e.pos.z},'ᚱ runas!','#5ce0ff');return false}
   if(k==='beam'){const ang=Math.atan2(CHEST.x-e.pos.x,CHEST.z-e.pos.z);const len=Math.min(30,Math.hypot(CHEST.x-e.pos.x,CHEST.z-e.pos.z)+6);e.group.rotation.y=ang;markLine(e.pos.x,e.pos.z,ang,len,2.4,1.2);_runes.push({k:'beam',x:e.pos.x,z:e.pos.z,ang,len,t:1.2,m:mult,e});label({x:e.pos.x,y:e.group.position.y+e.sc*2.4,z:e.pos.z},'⚡ raio rúnico!','#9fe8ff');return true}
   if(k==='shield'){e.shield=e.maxhp*.12;e.rShield=1;if(!e.shieldMesh){const gs=e.group.scale.x||1;e.shieldMesh=new THREE.Mesh(new THREE.SphereGeometry(e.radius*1.5/gs,18,10),new THREE.MeshBasicMaterial({color:0x5ce0ff,transparent:true,opacity:.22,depthWrite:false}));e.shieldMesh.position.y=e.radius*1.2/gs;e.group.add(e.shieldMesh)}e.shieldMesh.visible=true;label({x:e.pos.x,y:e.group.position.y+e.sc*2.4,z:e.pos.z},'🛡️ escudo rúnico!','#5ce0ff');return false}
   return _bossAI0(e,dt)};
 const _bossOfWave0=bossOfWave;bossOfWave=function(w){if(w>=35&&(w-35)%20===0)return 'runico';return _bossOfWave0(w)};
-const _mk0r=makeEnemy;makeEnemy=function(type,...a){const e=_mk0r(type,...a);if(type==='runico'&&window.__bossLog)window.__bossLog.push({k:'spawn',t:Math.round(simTime),hp:Math.round(e.maxhp)});return e};
+const _mk0r=makeEnemy;makeEnemy=function(type,...a){const e=_mk0r(type,...a);if(type==='runico')window.__runE=e;if(type==='runico'&&window.__bossLog)window.__bossLog.push({k:'spawn',t:Math.round(simTime),hp:Math.round(e.maxhp)});return e};
 window.__runico=()=>{const e=makeEnemy('runico',1,CX+24,CZ+8);state.boss=e;return [e.maxhp|0,e.sc]};
 
 // v4.3 MOTIVAR: no descanso, toque num minion e motive-o (até 3 por descanso) — +20% de dano e velocidade na próxima horda

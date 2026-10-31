@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v7.8 — Screenshots 3D no fim de jogo; avisos no chão legíveis; Sentinela −46% de vida
+- Tela preta nos testes: com __headless o jogo pula renderer.render; trune.js agora desliga __headless só no instante do screenshot. Imagens da Sentinela em h35 com runas visíveis (rune_*.png).
+- Legibilidade: os círculos de aviso (markGround) ganharam um disco interno que se preenche até o golpe cair (contagem regressiva visual) e a runa passou de ciano claro 0x5ce0ff para azul 0x1e90ff (contraste com grama/pedra clara). Malhas e materiais dos avisos agora são liberados ao sumir.
+- Sentinela derrotável? Defesa medida: DPS total do castelo (fixture h19 + 8000 material) em h35 ≈ 20k/s, mas esse castelo perde 20 de 23 torres durante a horda 35 — sobrou 2–4 torres e a Sentinela ficou em 100% por 4 min. Vida dela = 2600 × escala(h35 ≈ 1900×) ≈ 4,96M = ~190 escaladores = 250 s de TODO o fogo do castelo. Reduzido o vida-base 2600 → 1400 (≈2,7M sem raridade; ≈135 s de fogo total). Ainda não validado com um castelo realmente de h35 — a fixture de h19 não serve; próxima rodada precisa de um save forte de fim de jogo.
+- Observado: em h35 a Sentinela fica a ~4 blocos abaixo do nível do chão (gy−4) perto da muralha, possivelmente num fosso escavado — investigar se isso reduz a mira das torres.
+- t5 600: h12, 0 erros. tcompat v0.41 → w15, v0.60 → w20, 0 erros.
+
 ## v7.7 — Sentinela Rúnica vista pela primeira vez (teste de fim de jogo)
 - Novo harness tlate_d.js: carrega a fixture v0.60/h19, pula para hW com material extra (__lateGame), registra nascimento/morte da Sentinela (__bossLog), dano real no baú por fonte e screenshots no momento de cada runa. Interruptor de teste __noLose reconstrói o baú em vez de perder (para observar a luta).
 - Achado: castelo de h19 pulado para h33 perde 9 vezes e recua até h26 — o recuo funciona; a curva de vida cresce ~25%/horda (escala h25 ≈ 99×, h30 ≈ 344×, h35 ≈ 1050×).
