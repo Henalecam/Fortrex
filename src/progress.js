@@ -1094,3 +1094,13 @@ function codexRebirthHtml(){const n=state.prestige||presGet();const ok=(state.ma
 window.__rebirth=()=>{state.maxWave=Math.max(state.maxWave||1,30);return rebirth()};
 
 const _renderCodex0=renderCodex;renderCodex=function(){_renderCodex0();const b=$('cxReb');if(b)b.onclick=()=>{if(_rbArm>simTime){_rbArm=0;closeSide('codex');rebirth()}else{_rbArm=simTime+5;renderCodex()}}};
+
+// v4.5 COLOSSO DE RASTEJANTES: no fim de jogo (h25+), grupos de 5 rastejantes viram 1 colosso que se divide ao morrer — menos inimigos ao mesmo tempo, mesma ameaça
+ETYPES.enxame={...ETYPES.crawler,hp:ETYPES.crawler.hp*4.5,speed:ETYPES.crawler.speed*.8,dmg:ETYPES.crawler.dmg*3,radius:ETYPES.crawler.radius*1.7,n:'Colosso de Rastejantes'};SCX.enxame=1.9;NEWLOOK.enxame=1;
+CREATURES.enxame=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3),lt=shadeHex(col,.15);
+  const body=B(1.1,.7,1.2,col,0,.6,0);B(.9,.35,1.0,dk,0,1.05,-.05);const parts=[];for(const [x,y,z,s] of [[-.45,.95,.35,.42],[.4,.9,.4,.38],[0,1.25,.15,.45],[-.35,1.2,-.4,.36],[.45,1.15,-.35,.4],[0,.45,.65,.34],[-.6,.55,-.1,.32],[.62,.55,0,.33]]){const p=B(s,s*.75,s,lt,x,y,z);parts.push(p);for(const e of[-1,1]){const ey=G(.06,.06,.03,0xfff6e0,x+e*s*.18,y+s*.1,z+s*.51,null,.6)}}
+  const head=B(.55,.4,.45,lt,0,.75,.72);eyes(head,.04*sc,.2*sc,.11*sc);g.userData.blobs=parts;
+  return{body,head,legs:LG([[-.45,.12,-.4,.2,.24],[.45,.12,-.4,.2,.24],[-.45,.12,.4,.2,.24],[.45,.12,.4,.2,.24],[-.55,.12,0,.18,.22],[.55,.12,0,.18,.22]],dk)}};
+NEW_BRAINS.enxame=function(e,dt){const b=e.group.userData.blobs;if(b){const t=simTime*6+e.bob;b.forEach((p,k)=>{p.position.y+=Math.sin(t+k*1.3)*.004*e.sc})}return false};
+NEW_DEATH.enxame=function(e){for(let k=0;k<2;k++){const s=makeEnemy('crawler',e.rarity,e.pos.x+rnd(-1,1),e.pos.z+rnd(-1,1));s.viaWall=true}for(let k=0;k<10;k++)spawnDebris(e.pos.x+rnd(-1,1),e.gy+rnd(.3,1.2),e.pos.z+rnd(-1,1),ETYPES.crawler.color,1,.3);label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'o enxame se espalha!','#ffb13d')};
+function compactSwarm(list,w){const frac=Math.min(.85,.6+(w-25)*.03);const idxs=[];for(let i=0;i<list.length;i++)if(list[i]==='crawler')idxs.push(i);const groups=Math.floor(idxs.length*frac/5);if(groups<=0)return;const rm=new Set(idxs.slice(0,groups*5));let k=0;for(let i=list.length-1;i>=0;i--)if(rm.has(i))list.splice(i,1);for(let g=0;g<groups;g++)list.push('enxame')}

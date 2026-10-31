@@ -9,7 +9,7 @@ function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i
   if(w>12)for(let i=0;i<(w-12)*2;i++)list.push(pick(['crawler','climber','ram','sapper','flyer']));
   if(w>18)for(let i=0;i<(w-18)*3;i++)list.push(pick(['brute','beetle','spider','imp','wolf','knight']));
   {const k=DIFF().cnt;if(k<1){for(let i=list.length-1;i>=0;i--)if(Math.random()>k&&list[i]!=='boss')list.splice(i,1)}else{const extra=Math.round(list.length*(k-1));for(let i=0;i<extra;i++)list.push(list[(Math.random()*list.length)|0])}}
-  applyThemes(list,w);shuffle(list);if(w%25===0){list.push('mistking');if(w>=50)list.push(bossOfWave(w))}else if(w%5===0){list.push(bossOfWave(w));if(w>=25)list.push(BOSS_ROT[(w/5+3)%BOSS_ROT.length])}return list}
+  if(w>=25)compactSwarm(list,w);applyThemes(list,w);shuffle(list);if(w%25===0){list.push('mistking');if(w>=50)list.push(bossOfWave(w))}else if(w%5===0){list.push(bossOfWave(w));if(w>=25)list.push(BOSS_ROT[(w/5+3)%BOSS_ROT.length])}return list}
 const BOSS_ROT=['boss','golem','wyrm','colossus','necro','queen','titan'];function bossOfWave(w){return BOSS_ROT[(w/5-1)%BOSS_ROT.length]}
 const EVENTS={
   elite:{n:'Horda de elite',d:'Devoradores mais fortes e rápidos. Recruta garantido.',css:'r1',w:3},
