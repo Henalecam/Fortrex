@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v8.3 — Mercador da Bruma (decisões no meio do jogo)
+- Diagnóstico (tecon_plus Normal, n82): entre h8 e h22 metade das hordas não tem evento e os que existem não pedem decisão; o "cerco" ocupa 3 hordas seguidas. A única escolha recorrente era a bênção (2 opções sem custo).
+- Novo: Mercador da Bruma (h8–h22, ~30% dos descansos, no mínimo 3 hordas entre visitas) substitui a bênção por 3 opções com custo real: 🛒 arma épica (lendária a partir de h16) por 70+9×horda material; 🩸 Pacto da Bruma: +40+7×horda material agora e +25% de inimigos na próxima horda (cópias da fila); 🚪 dispensar = bênção comum aleatória. Estado salvo (state.merch, state.pact). Bot: compra se tiver 1,6× o preço, senão dispensa.
+- Teste (tmerch.js): oferta h12 = Balista Épica por 178 / pacto +124; pacto aplicado: fila 86 → ~105. Screenshots desktop (merch_1280.png) e celular (merch_390.png) — no celular os botões de escolha agora empilham (antes vazavam a tela; vale também para a bênção).
+- Curva Normal (tecon_plus 1400 s): h18 aos 1135 s (v8.2: 1121 s) — inalterada. 0 derrotas.
+- t5 600: h12, 0 erros. tcompat v0.41 → w15, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+
 ## v8.2 — Coração Rúnico rebalanceado; vida da Sentinela menos aleatória; curva curta conferida
 - Participação do Coração Rúnico (__rhDmg vs DMG_ACC, h35, fixture h31, nv1 desde o início): 8,06M de 30,9M = 26% de todo o dano, ~9 inimigos por runa — forte demais. Novo: 10% da vida máx + 40×horda (chefes 2%), +15% por nível (antes 22% + 60×horda, +25%/nv). Remedido: 4,41M de 24,8M = 17,8% (o coração subiu para nv2 no meio da corrida ao derrotar a Sentinela; o registro é antes da armadura, logo superestima um pouco).
 - Sentinela: raridade multiplicava a vida por 1+0,5×r (1,6M / 3,2M / 4,8M em h35 — com 4,8M ficou em 80% após 5 min). Agora 1+0,15×r para ela. Na corrida de validação morreu 189 s após nascer.

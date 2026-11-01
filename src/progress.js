@@ -1226,3 +1226,24 @@ function runeHeartTick(dt){if(!state.runeHeart){if(_rhMesh){scene.remove(_rhMesh
   if(_rhMesh)for(let k=0;k<4;k++)spawnDebris(_rhMesh.position.x,_rhMesh.position.y,_rhMesh.position.z,0x5ce0ff,1,.2)}
 function runeHeartGain(){state.runeHeart=Math.min(5,(state.runeHeart||0)+1);runeHeartMesh();const lv=state.runeHeart;toast(lv===1?'ᚱ Coração Rúnico! A Sentinela deixou sua relíquia: um obelisco sobre o baú que lança runas nos aglomerados de inimigos.':`ᚱ Coração Rúnico nv ${lv}: runas mais fortes e mais frequentes.`,'r4',true);SFX.fanfare&&SFX.fanfare(true)}
 window.__runeHeart=(n)=>{for(let k=0;k<(n||1);k++)runeHeartGain();return state.runeHeart};
+
+// v8.3 MERCADOR DA BRUMA (h8–h22): em ~30% dos descansos ele toma o lugar da bênção e oferece uma troca com risco
+function merchHtml(){const M=state.merch;if(!M||M.w!==state.wave||M.done)return '';const R=RARITY[M.r]||RARITY[3];const can=state.material>=M.cost;
+  return `<div class="bh">🏮 Mercador da Bruma — antes da horda ${state.wave}</div><div class="bc">`+
+  `<button data-mc="buy" ${can?'':'disabled'}><i>🛒</i><b>${TURRETS[M.t]?TURRETS[M.t].n:M.t} ${R.n}</b><span>pague ${M.cost} material e leve agora${can?'':' (falta material)'}</span></button>`+
+  `<button data-mc="pact"><i>🩸</i><b>Pacto da Bruma</b><span>receba +${M.gain} material, mas a próxima horda vem com +25% de inimigos</span></button>`+
+  `<button data-mc="no"><i>🚪</i><b>Dispensar</b><span>ganha uma bênção comum</span></button></div>`}
+function merchPick(k){const M=state.merch;if(!M||M.done||M.w!==state.wave)return;M.done=k;
+  if(k==='buy'){if(state.material<M.cost){M.done=null;return}state.material-=M.cost;state.inv.turrets.push({type:M.t,r:M.r,u:null});state.newItems=(state.newItems||0)+1;toast(`🏮 Comprado: ${TURRETS[M.t].n} ${RARITY[M.r].n}.`,'r3',true)}
+  if(k==='pact'){state.material+=M.gain;state.pact=state.wave;toast(`🩸 Pacto aceito: +${M.gain} material. A horda ${state.wave} virá maior.`,'r3',true)}
+  if(k==='no'){const ks=Object.keys(BLESS);state.bless={k:pick(ks),w:state.wave}}
+  SFX.click&&SFX.click();renderBless()}
+const _blessOffer0=blessOffer;blessOffer=function(){const w=state.wave;
+  if(w>=8&&w<=22&&!state.raid&&(state.merchLast||0)<w-2&&Math.random()<.3){state.merchLast=w;const t=randTurretType();const r=w>=16?4:3;state.merch={w,t,r,cost:Math.round(70+w*9),gain:Math.round(40+w*7)};state.blessOffer=null;renderBless();return}
+  _blessOffer0()};
+const _renderBless0=renderBless;renderBless=function(starting){const el=$('bless');const M=state.merch;
+  if(el&&M&&M.w===state.wave&&!M.done&&state.phase!=='wave'&&!state.choosing){el.hidden=false;el.className='offer';el.innerHTML=merchHtml()+forgeHtml()+previewHtml();el.querySelectorAll('button[data-mc]').forEach(b=>b.onclick=()=>merchPick(b.dataset.mc));el.querySelectorAll('button[data-fs]').forEach(b=>b.onclick=()=>forgeBuy(b.dataset.fs));return}
+  _renderBless0(starting)};
+const _startWave83=startWave;startWave=function(){const was=state.phase;_startWave83();if(was!=='wave'&&state.phase==='wave'&&state.pact===state.wave&&state.queue&&state.queue.length){const n=Math.ceil(state.queue.length*.25);for(let k=0;k<n;k++)state.queue.push(state.queue[Math.floor(Math.random()*state.queue.length)]);state.pact=0;label({x:CHEST.x,y:GY+6,z:CHEST.z},'🩸 a bruma cobra o pacto','#d9414f')}};
+const _bot83=window.__bot;window.__bot=function(){const M=state.merch;if(M&&M.w===state.wave&&!M.done&&state.phase!=='wave')merchPick(state.material>=M.cost*1.6?'buy':(window.__botPact?'pact':'no'));return _bot83.apply(this,arguments)};
+window.__merch=()=>{state.merchLast=0;const r=Math.random;Math.random=()=>0;try{blessOffer()}finally{Math.random=r}return state.merch};
