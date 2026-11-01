@@ -283,7 +283,7 @@ window.__traps=()=>({dis:state.trapsDisarmed||0,oil:state.oilHits||0,hits:Math.r
 window.__sap=n=>{state.ups.sappers=n;startWave();if(state.wave<2)scatterTraps()};window.__killAll=()=>{for(const e of enemies)e.dead=true};
 window.__minCard=()=>{const m=minions.find(m=>!m.hero)||minions[0];openCard({m})};
 window.__tier=n=>{for(let k=0;k<n;k++){const old=blue.slice();state.blockTier=(state.blockTier||0)+1;buildBlueprint();reformFrom(old)}};
-window.__cam=(d,x,z,yaw)=>{if(yaw!==undefined)cam.yaw=yaw;const i=(state.fieldTraps||[])[0];if(x!==undefined){cam.target.x=x;cam.target.z=z}else if(i!==undefined){cam.target.x=ix(i);cam.target.z=iz(i)}cam.dist=d||40};
+window.__camSet=(d,x,z,yaw,pitch)=>{if(pitch!==undefined)cam.pitch=pitch;if(yaw!==undefined)cam.yaw=yaw;const i=(state.fieldTraps||[])[0];if(x!==undefined){cam.target.x=x;cam.target.z=z}else if(i!==undefined){cam.target.x=ix(i);cam.target.z=iz(i)}cam.dist=d||40};
 window.__oil=n=>{state.ups.oil=n};
 window.__save=()=>saveGame(true);window.__load=()=>loadGame();window.__saveSize=()=>(localStorage.getItem('fortrex_save_v1')||'').length;window.__sig=()=>({w:state.wave,mat:state.material,mins:minions.length,tur:turrets.length,vox:vox.reduce((a,b)=>a+(b?1:0),0),ups:JSON.stringify(state.ups),cities:REALM.cities.length,tier:state.blockTier,heroes:Object.keys(state.heroes||{}).join()});
 window.__why=()=>({run:state.running,ph:state.phase,ch:state.choosing,b:!!battle(),q:!!state.quest,c:!!state.caravan,e:enemies.filter(e=>!e.dead).length,hq:(state.healQ||[]).length,sw:state.savedWave,w:state.wave});
@@ -330,6 +330,8 @@ let _navT=0;function navTick(dt){_navT-=dt;if(_navT>0)return;_navT=.3;navUi()}
 window.__lose=()=>{for(const i of _chestVox)if(vox[i]===5)removeVox(i,'enemy');checkChest();return [state.wave,state.maxWave,state.phase]};
 window.__nav=d=>{waveNav(d);return [state.wave,state.maxWave]};
 
+window.__spawnLook=(ts,n)=>{const out=[];for(let k=0;k<n;k++){const e=makeEnemy(ts[k%ts.length],0,CX+12+(k%15)*2.2,CZ-14+Math.floor(k/15)*2.6);e.stun=999;e.lineup=true;out.push(e)}enemyLodTick(1);return out};window.__killLook=(es)=>{for(const e of es){e.dead=true;scene.remove(e.group)}for(let i=enemies.length-1;i>=0;i--)if(enemies[i].lineup)enemies.splice(i,1);enemyLodTick(1)};
+window.__clearArea=(x0,x1,z0,z1)=>{let n=0;for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++)for(let y=GY;y<GY+24;y++){if(!inb(x,y,z))continue;const i=idx(x,y,z);if(vox[i]){setVox(i,0);n++}}return n};
 window.__lineup=()=>{const ts=(window.__lineupTypes||['crawler','wolf','spider','slime','imp','brute','beetle','climber','sapper','ram','flyer','shaman','goblin','crawler']);const out=[];ts.forEach((t,k)=>{const e=makeEnemy(t,0,CX+30+(k%7)*4.2,CZ-2+Math.floor(k/7)*6);e.stun=999;e.group.rotation.y=0;e.group.rotation.z=0;e.lineup=true;out.push(t)});return out};
 window.__lineupB=()=>{const ts=window.__lineupTypes||['boss','golem','wyrm','colossus','necro','queen','titan','mistking','arauto'];ts.forEach((t,k)=>{const e=makeEnemy(t,1,CX+22+(k%3)*13,CZ-14+Math.floor(k/3)*14);e.stun=999;e.group.rotation.y=0;e.group.rotation.z=0;e.lineup=true});return ts};
 window.__hitAll=f=>{for(const e of enemies)if(!e.dead)dmgEnemy(e,e.maxhp*f,true);return enemies.filter(e=>!e.dead).length};
