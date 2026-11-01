@@ -19,7 +19,7 @@ function spawnRivalForces(){for(const R of rivals){const types=['cannon','ballis
     for(let k=0;k<4+R.lvl*2;k++)spawnRivalUnit(R,'guard');
     if(R.city){const g=makeEnemy('general',Math.min(4,Math.floor(R.lvl/2)),R.cx+2.5,R.cz+2.5);g.maxhp*=1+R.lvl*.35;g.hp=g.maxhp;g.T={...g.T,dmg:g.T.dmg*(1+R.lvl*.15),n:`General de ${R.name}`};g.rival=R;g.rmode='guard';g.home={x:R.cx+2.5,z:R.cz+2.5};R.guards.push(g);R.general=g;showBoss(g)}}}
 function spawnRivalUnit(R,mode){const type=pick(mode==='raid'?['knight','knight','archer','rammer']:['knight','archer']);const a=rnd(0,Math.PI*2),r=mode==='raid'?rnd(1,3):rnd(5,9);
-  const hx=CX-R.cx,hz=CZ-R.cz,hl=Math.hypot(hx,hz)||1;const x=mode==='raid'?R.cx+hx/hl*(R.wr+3+rnd(0,2))+rnd(-2,2):R.cx+Math.cos(a)*r,z=mode==='raid'?R.cz+hz/hl*(R.wr+3+rnd(0,2))+rnd(-2,2):R.cz+Math.sin(a)*r;const e=makeEnemy(type,Math.min(4,Math.max(0,rollRarity(R.lvl*.05))),x,z);e.rival=R;e.rmode=mode;e.home={x,z};if(mode==='guard')R.guards.push(e);return e}
+  const hx=CX-R.cx,hz=CZ-R.cz,hl=hyp(hx,hz)||1;const x=mode==='raid'?R.cx+hx/hl*(R.wr+3+rnd(0,2))+rnd(-2,2):R.cx+Math.cos(a)*r,z=mode==='raid'?R.cz+hz/hl*(R.wr+3+rnd(0,2))+rnd(-2,2):R.cz+Math.sin(a)*r;const e=makeEnemy(type,Math.min(4,Math.max(0,rollRarity(R.lvl*.05))),x,z);e.rival=R;e.rmode=mode;e.home={x,z};if(mode==='guard')R.guards.push(e);return e}
 function rivalTick(dt){realmTick(dt);if(!rivals.length)return;
   for(const R of rivals){if(!R.alive)continue;
     R.raidT-=dt;if(R.raidT<=0){R.raidT=(R.kind==='defend'?65:85)*rnd(.8,1.2)/Math.min(2,1+R.lvl*.08);const n=Math.min(16,2+R.lvl+Math.floor(simTime/300));const foes=rivals.filter(o=>o!==R&&o.alive);
@@ -49,12 +49,12 @@ function rivalBrain(e,dt){// returns true when it handled the movement this fram
   if(e.rmode!=='guard')return false;
   let tg=null,bd=16;for(const m of minions){if(m.wounded)continue;const d=hd(m.pos,e.pos);if(d<bd){bd=d;tg=m}}
   if(!tg){let w=null,wd=14;for(const o of enemies){if(o.dead||o.rmode!=='war'||o.foe!==e.rival)continue;const d=hd(o.pos,e.pos);if(d<wd){wd=d;w=o}}if(w){if(wd<e.radius+w.radius+1){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;hurtEnemy(w,e.T.dmg*(1+e.rarity*.3),{x:w.pos.x,y:w.gy+.6,z:w.pos.z})}return true}tg={pos:w.pos}}}
-  const tx=tg?tg.pos.x:e.home.x,tz=tg?tg.pos.z:e.home.z;const dx=tx-e.pos.x,dz=tz-e.pos.z,d=Math.hypot(dx,dz);
+  const tx=tg?tg.pos.x:e.home.x,tz=tg?tg.pos.z:e.home.z;const dx=tx-e.pos.x,dz=tz-e.pos.z,d=hyp(dx,dz);
   if(tg&&d<e.radius+1.3){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;hurtMinion(tg,e.T.dmg*(1+e.rarity*.3),e)}return true}
   if(d<.8){e.vel.set(0,0,0);return true}const nx=Math.floor(e.pos.x+dx/d*1.2),nz=Math.floor(e.pos.z+dz/d*1.2);if(surfE(nx,nz)>e.gy+1.2){e.vel.set(0,0,0);e.home={x:e.pos.x,z:e.pos.z};return true}
   e.vel.set(dx/d*e.speed*.8,0,dz/d*e.speed*.8);e.pos.addScaledVector(e.vel,dt);e.group.rotation.y=Math.atan2(dx,dz);e.group.position.y=e.gy+Math.abs(Math.sin(e.bob))*.12;return true}
 // our expedition: soldiers march on a rival city, breach walls, smash turrets and the core
-function sendRaid(){const R=(state.raidTarget&&state.raidTarget.alive)?state.raidTarget:rivals.filter(r=>r.alive).sort((a,b)=>Math.hypot(a.cx-CX,a.cz-CZ)-Math.hypot(b.cx-CX,b.cz-CZ))[0];if(!R){toast('Nenhuma cidade rival de pé','r0');return}
+function sendRaid(){const R=(state.raidTarget&&state.raidTarget.alive)?state.raidTarget:rivals.filter(r=>r.alive).sort((a,b)=>hyp(a.cx-CX,a.cz-CZ)-hyp(b.cx-CX,b.cz-CZ))[0];if(!R){toast('Nenhuma cidade rival de pé','r0');return}
   const sq=minions.filter(m=>(m.role==='sol'||(m.role==='med'&&Math.random()<.5))&&m.wounded<=0);if(!sq.length){toast('Contrate soldados para atacar','r0');return}
   for(const m of sq){m.raid=R;m.path=null}toast(`${sq.length} minions marcham contra ${R.name}!`,'r2');SFX.boom(true)}
 function recallRaid(){let n=0;for(const m of minions)if(m.raid){m.raid=null;m.path=null;n++}if(n)toast(`${n} minions voltando para casa`,'r1')}
@@ -66,8 +66,8 @@ function raidSoldier(m,dt){const R=m.raid;if(!R||!R.alive){m.raid=null;return fa
   let goal;if(tt&&bd<9){goal={x:tt.pos.x,z:tt.pos.z}}else{const c=R.core.find(c=>vox[c]===21);if(c===undefined){conquer(R);return false}goal={x:ix(c)+.5,z:iz(c)+.5,i:c}}
   // long marches: leave our walls through the gate, then head for the rival's south side before breaching
   if(inside(m.pos.x,m.pos.z)){walkTo(m,GATE.x+.5,GATE.z+.5,dt,1.2);return true}
-  const dc=Math.hypot(R.cx-m.pos.x,R.cz-m.pos.z);if(dc>R.wr+5&&!(tt&&bd<9)){const ax=R.cx+(m.pos.x<R.cx-R.wr?-R.wr-3:m.pos.x>R.cx+R.wr?R.wr+3:0),az=R.cz+(m.pos.z<R.cz?-R.wr-3:R.wr+3);walkTo(m,ax,az,dt,2.5);if(Math.hypot(ax-m.pos.x,az-m.pos.z)>3)return true}
-  const d=Math.hypot(goal.x-m.pos.x,goal.z-m.pos.z);
+  const dc=hyp(R.cx-m.pos.x,R.cz-m.pos.z);if(dc>R.wr+5&&!(tt&&bd<9)){const ax=R.cx+(m.pos.x<R.cx-R.wr?-R.wr-3:m.pos.x>R.cx+R.wr?R.wr+3:0),az=R.cz+(m.pos.z<R.cz?-R.wr-3:R.wr+3);walkTo(m,ax,az,dt,2.5);if(hyp(ax-m.pos.x,az-m.pos.z)>3)return true}
+  const d=hyp(goal.x-m.pos.x,goal.z-m.pos.z);
   if(d<2.6){m.group.rotation.y=Math.atan2(goal.x-m.pos.x,goal.z-m.pos.z);if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=14*(1+m.rarity*.3)*state.bladeMul*m.st.atk*(m.rage>0?3:1);if(tt&&bd<9)damageTurret(tt,dmg);else{damageVox(goal.i,dmg,'player');rivalHit(goal.i)}m.wpn.rotation.x=-1.2;SFX.crunch(true)}m.wpn.rotation.x*=.85;return true}
   // breach: a rival wall right ahead gets smashed
   const dx=(goal.x-m.pos.x)/d,dz=(goal.z-m.pos.z)/d;const fx=Math.floor(m.pos.x+dx*1.3),fz=Math.floor(m.pos.z+dz*1.3);const sy=Math.floor(m.group.position.y);
@@ -111,7 +111,7 @@ let lifeAcc=0;function lifeTick(dt0){lifeAcc+=dt0;if(lifeAcc<.1)return;const dt=
 function warBrain(e,dt){const F=e.foe;if(!F||!F.alive){e.rmode='raid';e.foe=null;return false}
   let g=null,gd=8;for(const o of F.guards){if(o.dead)continue;const d=hd(o.pos,e.pos);if(d<gd){gd=d;g=o}}
   let tx,tz,core=-1;if(g){tx=g.pos.x;tz=g.pos.z}else{core=F.core.find(c=>vox[c]===21);if(core===undefined){conquerBy(F,e.rival);return true}tx=ix(core)+.5;tz=iz(core)+.5}
-  const dx=tx-e.pos.x,dz=tz-e.pos.z,d=Math.hypot(dx,dz)||1;e.group.rotation.y=Math.atan2(dx,dz);
+  const dx=tx-e.pos.x,dz=tz-e.pos.z,d=hyp(dx,dz)||1;e.group.rotation.y=Math.atan2(dx,dz);
   if(g&&d<e.radius+g.radius+1){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;hurtEnemy(g,e.T.dmg*(1+e.rarity*.3),{x:g.pos.x,y:g.gy+.6,z:g.pos.z})}return true}
   if(!g&&d<2.4){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;damageVox(core,e.T.dmg*(e.type==='rammer'?2:1),'env');spawnDebris(tx,GY+1,tz,0xff3d5a,3,.25);if(F.core.every(c=>vox[c]!==21))conquerBy(F,e.rival)}return true}
   const nx=Math.floor(e.pos.x+dx/d*1.1),nz=Math.floor(e.pos.z+dz/d*1.1);

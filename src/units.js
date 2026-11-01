@@ -13,7 +13,7 @@ function lineClear(sx,sz,gx,gz){const dx=gx-sx,dz=gz-sz,n=Math.ceil(Math.max(Mat
 function findPath(sx,sz,gx,gz){sx=clamp(Math.floor(sx),0,W-1);sz=clamp(Math.floor(sz),0,D-1);gx=clamp(Math.floor(gx),0,W-1);gz=clamp(Math.floor(gz),0,D-1);
   const S=sx+sz*W,G=gx+gz*W;if(S===G)return[];if(lineClear(sx,sz,gx,gz))return[G];_gen++;_tc(S);_tc(G);
   const wc=c=>{_tc(c);if(_hc[c]===-100)_hc[c]=walkCell(c%W,(c/W)|0);return _hc[c]};h2c=wc;const hs=wc(S)>-99?wc(S):surf(sx,sz);
-  _g[S]=0;const h=c=>Math.hypot(c%W-gx,((c/W)|0)-gz);_f[S]=h(S);const open=[S];let it=0;
+  _g[S]=0;const h=c=>hyp(c%W-gx,((c/W)|0)-gz);_f[S]=h(S);const open=[S];let it=0;
   while(open.length&&it++<12000){const cur=heapPop(open);if(cur===G)break;if(_closed[cur])continue;_closed[cur]=1;
     const cx=cur%W,cz=(cur/W)|0,h1=cur===S?hs:wc(cur);
     for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dz)continue;const nx=cx+dx,nz=cz+dz;if(nx<0||nz<0||nx>=W||nz>=D)continue;const ni=nx+nz*W;_tc(ni);if(_closed[ni])continue;
@@ -22,10 +22,10 @@ function findPath(sx,sz,gx,gz){sx=clamp(Math.floor(sx),0,W-1);sz=clamp(Math.floo
   if(_came[G]<0)return null;const path=[];let c=G;while(c!==S&&c>=0){path.push(c);c=_came[c]}path.reverse();return path}
 function walkTo(m,tx,tz,dt,stop){const gx=Math.floor(tx),gz=Math.floor(tz);m.pathT-=dt;
   if(!m.path||m.pathT<=0||Math.abs(m.pathGx-gx)+Math.abs(m.pathGz-gz)>(m.path.length>6?3:1)){const p=findPath(m.pos.x,m.pos.z,tx,tz);m.path=p||[];m.pathGx=gx;m.pathGz=gz;m.pf=p?0:Math.min(4,(m.pf||0)+1);m.pathT=p?(p.length>40?4:p.length>16?2.5:1.5):2.5*m.pf}
-  while(m.path.length>1){const c=m.path[0];if(Math.hypot((c%W)+.5-m.pos.x,((c/W)|0)+.5-m.pos.z)<.45)m.path.shift();else break}
+  while(m.path.length>1){const c=m.path[0];if(hyp((c%W)+.5-m.pos.x,((c/W)|0)+.5-m.pos.z)<.45)m.path.shift();else break}
   if(m.path.length>1){const c=m.path[0];walkRaw(m,(c%W)+.5,((c/W)|0)+.5,dt,.2);return false}
   return walkRaw(m,tx,tz,dt,stop)}
-function walkRaw(m,tx,tz,dt,stop){const dx=tx-m.pos.x,dz=tz-m.pos.z;const d=Math.hypot(dx,dz);if(d<=stop)return true;
+function walkRaw(m,tx,tz,dt,stop){const dx=tx-m.pos.x,dz=tz-m.pos.z;const d=hyp(dx,dz);if(d<=stop)return true;
   const wet=walkCell(Math.floor(m.pos.x),Math.floor(m.pos.z))>-99&&standY(m.pos.x,m.pos.z)%1!==0;const step=Math.min(d,m.speed*(wet?.6:1)*(cheerOn(m)?1.2:1)*dt);
   m.pos.x+=dx/d*step;m.pos.z+=dz/d*step;m.group.rotation.y=Math.atan2(dx,dz);m.bob+=dt*12;
   const ty=standY(m.pos.x,m.pos.z);m.group.position.y+=(ty-m.group.position.y)*Math.min(1,dt*10);m.legs[0].rotation.x=Math.sin(m.bob)*.6;m.legs[1].rotation.x=-Math.sin(m.bob)*.6;return false}
@@ -104,7 +104,7 @@ function rollAffix(e){const w=state.wave;const bm=state.ev==='bloodmoon';if((w<8
   const m=AFF_MAT[k]||(AFF_MAT[k]=new THREE.MeshBasicMaterial({color:AFFIX[k].c,transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false}));
   const r=new THREE.Mesh(AFF_GEO,m);r.rotation.x=-Math.PI/2;r.position.y=.1;r.scale.setScalar(Math.max(.8,e.radius/US*1.6)/e.group.scale.x||1);e.group.add(r);e.affRing=r}
 function hurtEnemy(e,d,at){if(e.dead)return;
-  if(e.type==='colossus'){let leg=null;if(at){const c=Math.cos(e.group.rotation.y),s=Math.sin(e.group.rotation.y);for(const L of e.legs){if(!L.alive)continue;const lx=e.pos.x+L.ox*c+L.oz*s,lz=e.pos.z-L.ox*s+L.oz*c;if(Math.hypot(at.x-lx,at.z-lz)<1.9&&at.y<e.gy+4.4){leg=L;break}}}
+  if(e.type==='colossus'){let leg=null;if(at){const c=Math.cos(e.group.rotation.y),s=Math.sin(e.group.rotation.y);for(const L of e.legs){if(!L.alive)continue;const lx=e.pos.x+L.ox*c+L.oz*s,lz=e.pos.z-L.ox*s+L.oz*c;if(hyp(at.x-lx,at.z-lz)<1.9&&at.y<e.gy+4.4){leg=L;break}}}
     if(leg){leg.hp-=d*1.6;e.hit=.1;leg.mesh.material.emissive.setHex(0xffffff);SFX.hurt();if(leg.hp<=0){leg.alive=false;e.group.remove(leg.mesh);spawnDebris(e.pos.x+leg.ox,e.gy+1,e.pos.z+leg.oz,0xcfd6e3,14,.5);e.stun=3;shake=Math.max(shake,.6);SFX.boom(true);
       const down=e.legs.filter(L=>!L.alive).length;toast(down>=2?'O Colosso perdeu as pernas — vai cair!':'Perna do Colosso destruída!','r3');if(down>=2)killEnemy(e)}return}
     d*=e.stun>0?1.4:.35}
@@ -114,7 +114,7 @@ function killEnemy(e){if(e.dead)return;e.dead=true;scene.remove(e.group);const t
   if(NEW_DEATH[t])NEW_DEATH[t](e);if(e.champ)champDeath(e);
   if(t==='slime'&&!e.small){for(let k=0;k<2;k++){const s=makeEnemy('slime',e.rarity,e.pos.x+rnd(-.8,.8),e.pos.z+rnd(-.8,.8));s.small=true;s.group.scale.setScalar(.6);s.maxhp*=.35;s.hp=s.maxhp;s.speed*=1.25;s.radius*=.6}}
   if(state.boss===e)hideBoss();
-  if(e.bearer){for(const o of enemies)if(!o.dead&&o!==e&&!BIG(o.type)&&Math.hypot(o.pos.x-e.pos.x,o.pos.z-e.pos.z)<10){o.stun=Math.max(o.stun||0,1.8);o.slowT=Math.max(o.slowT||0,3)}state.trophies=(state.trophies||0)+1;if(state.trophies<=15)state.dmgMul*=1.02;toast(`🏳️ Estandarte capturado (${state.trophies}): a horda ao redor entra em pânico${state.trophies<=15?' e suas armas ganham +2% de dano':''}!`,'r3');label({x:e.pos.x,y:e.gy+2.4,z:e.pos.z},'PÂNICO!','#ffcf3d')}
+  if(e.bearer){for(const o of enemies)if(!o.dead&&o!==e&&!BIG(o.type)&&hyp(o.pos.x-e.pos.x,o.pos.z-e.pos.z)<10){o.stun=Math.max(o.stun||0,1.8);o.slowT=Math.max(o.slowT||0,3)}state.trophies=(state.trophies||0)+1;if(state.trophies<=15)state.dmgMul*=1.02;toast(`🏳️ Estandarte capturado (${state.trophies}): a horda ao redor entra em pânico${state.trophies<=15?' e suas armas ganham +2% de dano':''}!`,'r3');label({x:e.pos.x,y:e.gy+2.4,z:e.pos.z},'PÂNICO!','#ffcf3d')}
   if(e.alpha){spawnLoot(e.pos.x,GY+2,e.pos.z,'treasure',Math.min(4,2+Math.floor(state.wave/12)),{});toast('🐺 O lobo alfa caiu! Deixou um tesouro raro.','r4');addFame&&addFame(20)}
   if(t==='ship'){for(let k=0;k<2;k++)spawnLoot(e.pos.x+rnd(-2,2),GY+2,e.pos.z+rnd(-2,2),'treasure',Math.min(4,2+Math.floor(state.wave/10)),{});pendingBooms.push({x:e.pos.x,y:GY+1,z:e.pos.z,r:4,dmg:60,o:{src:'env',fire:true},t:.1});toast('🏴‍☠️ Navio pirata afundado! Tesouro na praia.','r4')}
   if(t==='imp')pendingBooms.push({x:e.pos.x,y:e.gy+.5,z:e.pos.z,r:1.8,dmg:22,o:{src:'enemy',fire:true},t:.05});goalEvent('kills');if(big)goalEvent('boss');if(big&&t!=='general'){state.morale=Math.min(100,(state.morale??60)+15);grantRelic(t);if(!OPTS.noCine&&!window.__headless)state.cine={x:e.pos.x,z:e.pos.z,t:2.6,d0:(state.cine&&state.cine.d0)||cam.dist}}
@@ -156,7 +156,7 @@ function updateEnemy(e,dt){if(e.dead)return;_curE=e;e.bob+=dt*8;if(!e.stun)enemy
   if(e.type==='wolf'){e.packT=(e.packT??0)-dt;if(e.packT<=0){e.packT=1;let n=0;for(const o of enemies)if(!o.dead&&o.type==='wolf'&&Math.abs(o.pos.x-e.pos.x)<7&&Math.abs(o.pos.z-e.pos.z)<7)n++;const was=e.pack;e.pack=n>=3;if(e.pack&&!was){e.speed*=1.3;if(Math.random()<.3)label({x:e.pos.x,y:e.gy+1.6,z:e.pos.z},'Auuu!','#7d7f8f')}else if(!e.pack&&was)e.speed/=1.3}
     // wolves hunt minions caught outside the walls
     if(!e.stun){let v=null,bd=11;for(const m of minions){if(m.wounded>0||inside(m.pos.x,m.pos.z))continue;const d=hd(m.pos,e.pos);if(d<bd){bd=d;v=m}}
-      if(v){const dx=v.pos.x-e.pos.x,dz=v.pos.z-e.pos.z,d=Math.hypot(dx,dz)||1;e.group.rotation.y=Math.atan2(dx,dz);if(d<e.radius+1.2){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;hurtMinion(v,e.T.dmg*(e.pack?1.4:1),e)}return}
+      if(v){const dx=v.pos.x-e.pos.x,dz=v.pos.z-e.pos.z,d=hyp(dx,dz)||1;e.group.rotation.y=Math.atan2(dx,dz);if(d<e.radius+1.2){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;hurtMinion(v,e.T.dmg*(e.pack?1.4:1),e)}return}
         const sp=e.speed*(e.slowT>0?.4:1)*(state.ev==='blizzard'?.7:state.ev==='sandstorm'?1.12:1)*(state.climate==='pantano'&&!e.fly?.88:1);e.pos.x+=dx/d*sp*dt;e.pos.z+=dz/d*sp*dt;e.gy+=(surfE(e.pos.x,e.pos.z)-e.gy)*Math.min(1,dt*9);e.group.position.y=e.gy+Math.abs(Math.sin(e.bob+=dt*12))*.15;return}}}
   if(e.type==='mistking'){e.tpT=(e.tpT??5)-dt;e.pulseT=(e.pulseT??3)-dt;
     if(e.pulseT<=0){e.pulseT=Math.max(4,8-e.blvl*.3);for(const t of turrets)if(t.alive&&t.team!=='r'&&hd(t.pos,e.pos)<28)t.reload=Math.max(t.reload,2.5);ringFx(e.pos.x,e.gy+1,e.pos.z,14,0xb56cf2);label({x:e.pos.x,y:e.gy+e.sc*1.8,z:e.pos.z},'🌫️ Pulso da Bruma: armas atordoadas!','#b56cf2')}
@@ -171,7 +171,7 @@ function updateEnemy(e,dt){if(e.dead)return;_curE=e;e.bob+=dt*8;if(!e.stun)enemy
   if(e.fly){const tgtY=e.diveY!==undefined?e.diveY:e.alt;e.curY=(e.curY??e.alt)+(tgtY-(e.curY??e.alt))*Math.min(1,dt*3);e.group.position.y=e.curY+Math.sin(e.bob*.6)*.25;e.gy=e.curY-1;const w=e.group.userData.wings;if(w){w[0].rotation.z=Math.sin(e.bob*2.5)*.5;w[1].rotation.z=-Math.sin(e.bob*2.5)*.5}
     let tgt=null,bd=1e9;for(const t of turrets){if(!t.alive||t.team==='r')continue;const d=hd(t.pos,e.pos);if(d<bd){bd=d;tgt={p:t.pos,t}}}
     if(!tgt)for(const m of minions){if(m.wounded)continue;const d=hd(m.pos,e.pos);if(d<bd){bd=d;tgt={p:m.pos,m}}}if(!tgt)tgt={p:CHEST};
-    const dx=tgt.p.x-e.pos.x,dz=tgt.p.z-e.pos.z,d=Math.hypot(dx,dz);e.group.rotation.y=Math.atan2(dx,dz);e.diveY=d<5?(tgt.t?tgt.t.pos.y+1.2:tgt.m?tgt.m.group.position.y+1.8:GY+3):undefined;
+    const dx=tgt.p.x-e.pos.x,dz=tgt.p.z-e.pos.z,d=hyp(dx,dz);e.group.rotation.y=Math.atan2(dx,dz);e.diveY=d<5?(tgt.t?tgt.t.pos.y+1.2:tgt.m?tgt.m.group.position.y+1.8:GY+3):undefined;
     if(d<2){e.vel.set(0,0,0);e.atkT=simTime;if(e.timer<=0){e.timer=e.T.rate;const dmg=e.T.dmg*(1+e.rarity*.3);if(tgt.t){damageTurret(tgt.t,dmg);spawnDebris(tgt.t.pos.x,tgt.t.pos.y+.5,tgt.t.pos.z,0x6d6a8a,2,.2);SFX.crunch(true)}else if(tgt.m)hurtMinion(tgt.m,dmg);else{const i=CHEST_VOX().find(i=>vox[i]);if(i!==undefined)damageVox(i,dmg,'enemy',e)}}return}
     e.vel.set(dx/d*e.speed*sf,0,dz/d*e.speed*sf);e.pos.x+=e.vel.x*dt;e.pos.z+=e.vel.z*dt;return}
   if(CLIMBS(e.type)){e.group.position.y=e.gy;
@@ -189,7 +189,7 @@ function updateEnemy(e,dt){if(e.dead)return;_curE=e;e.bob+=dt*8;if(!e.stun)enemy
       else damageVox(e.target,e.T.dmg*(1+e.rarity*.2),'enemy',e);e.lunge=.25}
     if(e.lunge>0){e.lunge-=dt;e.group.position.y=e.gy+Math.sin(Math.max(0,e.lunge)/.25*Math.PI)*.3}else e.group.position.y=e.gy;return}
   // anti-stuck: no progress for 9 s → smash the ground ahead (big) or hop forward
-  if(!e.prog)e.prog={x:e.pos.x,z:e.pos.z,t:simTime};if(Math.hypot(e.pos.x-e.prog.x,e.pos.z-e.prog.z)>1.5)e.prog={x:e.pos.x,z:e.pos.z,t:simTime};
+  if(!e.prog)e.prog={x:e.pos.x,z:e.pos.z,t:simTime};if(hyp(e.pos.x-e.prog.x,e.pos.z-e.prog.z)>1.5)e.prog={x:e.pos.x,z:e.pos.z,t:simTime};
   else if(simTime-e.prog.t>9){e.prog.t=simTime;_dir.subVectors(CHEST,e.pos);_dir.y=0;_dir.normalize();const ax=e.pos.x+_dir.x*(e.radius+1),az=e.pos.z+_dir.z*(e.radius+1);
     if(BIG(e.type)){for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let y=Math.floor(e.gy);y<Math.floor(e.gy)+5;y++){const x=Math.floor(ax)+dx,z=Math.floor(az)+dz;if(inb(x,y,z)&&vox[idx(x,y,z)]&&!blue[idx(x,y,z)])damageVox(idx(x,y,z),400,'enemy',e)}shake=Math.max(shake,.5);SFX.boom(true)}
     else{e.pos.x+=_dir.x*1.6;e.pos.z+=_dir.z*1.6;e.gy+=1.5;e.state='walk'}}
@@ -200,7 +200,8 @@ function updateEnemy(e,dt){if(e.dead)return;_curE=e;e.bob+=dt*8;if(!e.stun)enemy
   if(blockedBy>=0){if(e.type==='sapper'){e.fuse=.7;e.vel.set(0,0,0);return}e.state='attack';e.target=blockedBy;e.timer=e.type==='ram'?.2:e.T.rate*.5;return}
   if(goal===CHEST&&dist<2.6){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;const i=CHEST_VOX().find(i=>vox[i]);if(i!==undefined)damageVox(i,e.T.dmg,'enemy',e)}return}
   e.vel.copy(_dir).multiplyScalar(e.speed*sf);e.pos.addScaledVector(e.vel,dt);e.group.position.y=e.gy+Math.abs(Math.sin(e.bob))*.12;e.group.rotation.y=Math.atan2(_dir.x,_dir.z);
-  for(const o of enemies){if(o===e||o.dead||o.fly)continue;const dx=e.pos.x-o.pos.x,dz=e.pos.z-o.pos.z;const d2=dx*dx+dz*dz,mn=e.radius+o.radius;if(d2<mn*mn&&d2>1e-4){const d=Math.sqrt(d2),push=(mn-d)*.5;e.pos.x+=dx/d*push;e.pos.z+=dz/d*push}}}
+  if(window.__oldSep){for(const o of enemies){if(o===e||o.dead||o.fly)continue;const dx=e.pos.x-o.pos.x,dz=e.pos.z-o.pos.z;const d2=dx*dx+dz*dz,mn=e.radius+o.radius;if(d2<mn*mn&&d2>1e-4){const d=Math.sqrt(d2),push=(mn-d)*.5;e.pos.x+=dx/d*push;e.pos.z+=dz/d*push}}}
+  else{const P=e.pos,er=e.radius;let ex=P.x,ez=P.z;for(let j=0,N=enemies.length;j<N;j++){const o=enemies[j];if(o===e||o.dead||o.fly)continue;const op=o.pos,mn=er+o.radius;const dx=ex-op.x;if(dx>=mn||dx<=-mn)continue;const dz=ez-op.z;if(dz>=mn||dz<=-mn)continue;const d2=dx*dx+dz*dz;if(d2<mn*mn&&d2>1e-4){const d=Math.sqrt(d2),push=(mn-d)*.5;ex+=dx/d*push;ez+=dz/d*push;P.x=ex;P.z=ez}}}}
 
 // ───────── minions
 const ROLES={rep:{n:'Reparador',hat:0xff8a5c,cost:15,ico:'🛠️',d:'Constrói a planta e conserta blocos e armas'},col:{n:'Coletor',hat:0x5cc08c,cost:10,ico:'🎒',d:'Busca o loot e leva ao baú'},
@@ -282,14 +283,14 @@ function supported(i){const x=ix(i),y=iy(i),z=iz(i);if(y===0||SOLIDM(vox[idx(x,y
 function cellBusy(i){const x=ix(i),y=iy(i),z=iz(i);for(const m of minions)if(Math.floor(m.pos.x)===x&&Math.floor(m.pos.z)===z&&Math.abs(m.group.position.y-y)<1.8)return true;
   for(const e of enemies)if(!e.dead&&!e.fly&&Math.abs(e.pos.x-x-.5)<e.radius+.5&&Math.abs(e.pos.z-z-.5)<e.radius+.5&&Math.abs(e.gy-y)<1.8)return true;for(const L of loot)if(!L.carried&&Math.floor(L.x)===x&&Math.floor(L.z)===z&&Math.abs(L.y-y-.5)<1)return false;return false}
 function findRepairTask(m){let best=null,bs=1e9;const mx=m.pos.x,mz=m.pos.z;
-  if(state.demol&&state.demol.size){for(const i of state.demol){if(!vox[i]||vox[i]===5||blue[i]){state.demol.delete(i);continue}if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;const s=-60-(iy(i)-GY)*5+Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:'demol',i}}}}
-  if(state.swapQ&&state.swapQ.size){for(const i of state.swapQ){const b=blue[i];if(!b||!vox[i]||vox[i]===b||vox[i]===5){state.swapQ.delete(i);continue}if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;const s=-40+(iy(i)-GY)*3+Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:'swap',i}}}}
+  if(state.demol&&state.demol.size){for(const i of state.demol){if(!vox[i]||vox[i]===5||blue[i]){state.demol.delete(i);continue}if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;const s=-60-(iy(i)-GY)*5+hyp(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:'demol',i}}}}
+  if(state.swapQ&&state.swapQ.size){for(const i of state.swapQ){const b=blue[i];if(!b||!vox[i]||vox[i]===b||vox[i]===5){state.swapQ.delete(i);continue}if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;const s=-40+(iy(i)-GY)*3+hyp(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:'swap',i}}}}
   for(const i of blueList){const b=blue[i];if(!b||vox[i]===b)continue;if(b===5&&!vox[i]&&state.phase==='wave'&&!state.rebuildChest)continue;if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;
     const cost=SPECIAL_BLOCKS.includes(b)&&!TIER_RANK[b]&&!state.prepaid.has(i)?(MAT[b].cost||3):0;if(cost>state.material)continue;
     let ti=i,kind='build';if(!supported(i)){if(iy(i)>GY+1)continue;const x=ix(i),z=iz(i);let y=1;while(y<iy(i)&&vox[idx(x,y,z)]&&!FLUID(vox[idx(x,y,z)]))y++;if(y>=iy(i))continue;ti=idx(x,y,z);kind='fill';if((m.skip.get(ti)||0)>simTime)continue}
-    const s=(b===5?-80:0)+(iy(i)-GY)*4+Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:kind,i:ti}}}
+    const s=(b===5?-80:0)+(iy(i)-GY)*4+hyp(ix(i)+.5-mx,iz(i)+.5-mz);if(s<bs){bs=s;best={k:kind,i:ti}}}
   for(const t of turrets){if(!t.alive||t.hp>=t.maxhp*.85||t.team==='r')continue;const cl=t.fixer;if(cl&&cl!==m)continue;const s=hd(t.pos,m.pos)-6;if(s<bs){bs=s;best={k:'turret',t}}}
-  for(const i of damaged){const v=vox[i];if(!v||!blue[i]||hp[i]>=maxHpOf(v)){damaged.delete(i);continue}if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;const s=Math.hypot(ix(i)+.5-mx,iz(i)+.5-mz)+5;if(s<bs){bs=s;best={k:'fix',i}}}
+  for(const i of damaged){const v=vox[i];if(!v||!blue[i]||hp[i]>=maxHpOf(v)){damaged.delete(i);continue}if((m.skip.get(i)||0)>simTime)continue;const cl=claimed.get(i);if(cl&&cl!==m)continue;const s=hyp(ix(i)+.5-mx,iz(i)+.5-mz)+5;if(s<bs){bs=s;best={k:'fix',i}}}
   if(best){if(best.i!==undefined)claimed.set(best.i,m);if(best.t)best.t.fixer=m}return best}
 function progress(m,d,dt,onStuck){if(d<m.bestD-.15){m.bestD=d;m.stuckT=0}else m.stuckT+=dt;if(m.stuckT>4){m.stuckT=0;m.bestD=1e9;onStuck();return false}return true}
 function lootOK(L,m){if(L.claimed||L.carried||L.unreach>simTime)return false;if(L.kind==='treasure'&&L.age<40)return false;const fx=Math.floor(L.x),fy=Math.floor(L.y-.5),fz=Math.floor(L.z);
@@ -300,7 +301,7 @@ function updateMinion(m,dt0){const dt=dt0*(.8+(state.morale??60)/100*.4);lookTic
   if(m.state!=='man'){const fx=Math.floor(m.pos.x),fz=Math.floor(m.pos.z),s=surf(m.pos.x,m.pos.z);if(inb(fx,s,fz)&&(vox[idx(fx,s,fz)]===8||(s>0&&vox[idx(fx,s-1,fz)]===8))){m.burn+=dt*14;if(Math.random()<dt*8)spawnFlame(m.pos.x,m.group.position.y+.3,m.pos.z,.5);if(m.burn>6){m.burn=0;hurtMinion(m,10)}}
     const wc=walkCell(fx,fz);if(wc<=-99&&!m.escT){m.escT=1}if(m.escT){m.escT-=dt;if(m.escT<=0)m.escT=0;const st=findStation(m.pos.x,m.pos.z);if(st&&hd(st,m.pos)>.3){m.pos.x+=(st.x-m.pos.x)*Math.min(1,dt*3);m.pos.z+=(st.z-m.pos.z)*Math.min(1,dt*3);m.group.position.y+=(standY(st.x,st.z)-m.group.position.y)*Math.min(1,dt*6)}}}
   if(m.wounded>0)return;
-  if(m.trait==='Covarde'&&m.role!=='sol'&&m.state!=='man'){let near=null,bd=4.5;for(const e of enemies){if(e.dead||e.fly)continue;const d=hd(e.pos,m.pos);if(d<bd){bd=d;near=e}}if(near){const dx=m.pos.x-near.pos.x,dz=m.pos.z-near.pos.z,dl=Math.hypot(dx,dz)||1;walkRaw(m,m.pos.x+dx/dl*4,m.pos.z+dz/dl*3,dt,.1);if(Math.random()<dt*.5)label(m.pos,'!','#ec5f6b');return}}
+  if(m.trait==='Covarde'&&m.role!=='sol'&&m.state!=='man'){let near=null,bd=4.5;for(const e of enemies){if(e.dead||e.fly)continue;const d=hd(e.pos,m.pos);if(d<bd){bd=d;near=e}}if(near){const dx=m.pos.x-near.pos.x,dz=m.pos.z-near.pos.z,dl=hyp(dx,dz)||1;walkRaw(m,m.pos.x+dx/dl*4,m.pos.z+dz/dl*3,dt,.1);if(Math.random()<dt*.5)label(m.pos,'!','#ec5f6b');return}}
   ({rep:updRep,col:updCol,gun:updGun,sol:updSol,med:updMed})[m.role](m,dt)}
 function idleWander(m,dt,cx,cz){if(!m.raid&&m.role!=='sol'&&state.phase!=='wave'&&isNight()){// night: rest inside the keep hall, slowly healing
     const k=(m.bob*7|0)%9,kx=CX-2+(k%3)*2,kz=CZ-2+((k/3)|0)*2;if(walkTo(m,kx,kz,dt,.6)){m.resting=true;m.hp=Math.min(m.maxhp,m.hp+dt*3);if(Math.random()<dt*.15)label({x:m.pos.x,y:m.group.position.y+2.4,z:m.pos.z},'z','#8aa0d8')}return}
@@ -310,24 +311,24 @@ function updRep(m,dt){
   const T=m.task;let tx,tz,y=GY;
   if(T.k==='turret'){if(!T.t.alive||T.t.hp>=T.t.maxhp){T.t.fixer=null;m.task=null;return}tx=T.t.pos.x;tz=T.t.pos.z}
   else{const i=T.i;if(T.k==='build'&&(vox[i]===blue[i]||!blue[i])){releaseTask(m);return}if(T.k==='fill'&&SOLIDM(vox[i])){releaseTask(m);return}if(T.k==='fix'&&(!vox[i]||hp[i]>=maxHpOf(vox[i]))){releaseTask(m);return}if(T.k==='demol'&&(!vox[i]||!state.demol||!state.demol.has(i))){releaseTask(m);return}if(T.k==='swap'&&(!state.swapQ||!state.swapQ.has(i)||!blue[i]||vox[i]===blue[i])){releaseTask(m);return}tx=ix(i)+.5;tz=iz(i)+.5;y=iy(i)}
-  const d=Math.hypot(tx-m.pos.x,tz-m.pos.z);
+  const d=hyp(tx-m.pos.x,tz-m.pos.z);
   if(m.state==='go'){if(walkTo(m,tx,tz,dt,2.4)||d<(T.k==='turret'?2.6:3.4)){m.state='work';m.timer=(T.k==='fix'?.35:.5)/(m.work*state.repMul*reformMul());m.group.rotation.y=Math.atan2(tx-m.pos.x,tz-m.pos.z)}
     else progress(m,d,dt,()=>{if(T.i!==undefined)m.skip.set(T.i,simTime+12);if(T.t)T.t.fixer=null;releaseTask(m)});return}
   m.group.position.y=standY(m.pos.x,m.pos.z)+Math.abs(Math.sin(m.timer*25))*.08;
   if(m.timer>0)return;
   if(T.k==='demol'||T.k==='swap'){const i=T.i,v=vox[i];if(v){const c=MAT[v]?MAT[v].c:0x888888;if(T.k==='demol'){setVox(i,0);state.demol.delete(i);settleDirty=true;spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,c,4,.22);SFX.crunch&&SFX.crunch(false)}else{const b=blue[i];setVox(i,b);hp[i]=maxHpOf(b);damaged.delete(i);state.swapQ.delete(i);spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,c,3,.2);sparkle(ix(i)+.5,iy(i)+.9,iz(i)+.5,MAT[b].c,2);SFX.build()}gainXP(m,1)}releaseTask(m);m.state='idle';
-    const nx=findRepairTask(m);if(nx&&nx.i!==undefined&&Math.hypot(ix(nx.i)+.5-m.pos.x,iz(nx.i)+.5-m.pos.z)<3.2){m.task=nx;m.state='work';m.timer=.5/(m.work*state.repMul*reformMul())}else if(nx){m.task=nx;m.state='go';m.bestD=1e9}return}
+    const nx=findRepairTask(m);if(nx&&nx.i!==undefined&&hyp(ix(nx.i)+.5-m.pos.x,iz(nx.i)+.5-m.pos.z)<3.2){m.task=nx;m.state='work';m.timer=.5/(m.work*state.repMul*reformMul())}else if(nx){m.task=nx;m.state='go';m.bestD=1e9}return}
   if(T.k==='fill'){const i=T.i;if(!cellBusy(i)){setVox(i,iy(i)===GY-1?13:12);settleDirty=true;SFX.build();spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[12].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';return}
   if(T.k==='build'){const i=T.i,b=blue[i];const cost=SPECIAL_BLOCKS.includes(b)&&!TIER_RANK[b]&&!state.prepaid.has(i)?(MAT[b].cost||3):0;if(cost>0&&(state.rebBud??99)<cost){m.skip&&m.skip.set(i,simTime+6);releaseTask(m);m.state='idle';return}if(!cellBusy(i)&&state.material>=cost&&supported(i)){state.material-=cost;if(cost>0)state.rebBud=(state.rebBud??99)-cost;state.prepaid.delete(i);setVox(i,b);settleDirty=true;SFX.build();gainXP(m,1);spawnDebris(ix(i)+.5,y+.5,iz(i)+.5,MAT[b].c,3,.2)}else m.skip.set(i,simTime+3);releaseTask(m);m.state='idle';
     // keep building nearby blocks without going idle
-    const nx=findRepairTask(m);if(nx&&(nx.i===undefined||Math.hypot(ix(nx.i)+.5-m.pos.x,iz(nx.i)+.5-m.pos.z)<3.2)){m.task=nx;m.state='work';m.timer=.5/(m.work*state.repMul*reformMul())}else if(nx){m.task=nx;m.state='go';m.bestD=1e9}return}
+    const nx=findRepairTask(m);if(nx&&(nx.i===undefined||hyp(ix(nx.i)+.5-m.pos.x,iz(nx.i)+.5-m.pos.z)<3.2)){m.task=nx;m.state='work';m.timer=.5/(m.work*state.repMul*reformMul())}else if(nx){m.task=nx;m.state='go';m.bestD=1e9}return}
   if(T.k==='fix'){const i=T.i;if(vox[i]){hp[i]=Math.min(maxHpOf(vox[i]),hp[i]+maxHpOf(vox[i])*.5);if(hp[i]>=maxHpOf(vox[i]))damaged.delete(i);paint(i);SFX.pop()}releaseTask(m);m.state='idle';return}
   if(T.k==='turret'){const t=T.t;t.hp=Math.min(t.maxhp,t.hp+t.maxhp*.2);sparkle(t.pos.x,t.pos.y+.5,t.pos.z,0xffcf3d,3);SFX.pop();if(t.hp>=t.maxhp){t.fixer=null;m.task=null;m.state='idle'}else m.timer=.4/(m.work*state.repMul);return}}
 function updCol(m,dt){const cap=4+m.rarity+m.st.cap+state.lootMag+(m.trait==='Mochilão'?2:0);
   if(m.bag.length<cap&&(m.state==='fetch'||m.state==='haul'))for(const L of loot){if(L.carried||(L.claimed&&L.claimed!==m)||L.kind==='treasure')continue;if(Math.abs(L.x-m.pos.x)<2&&Math.abs(L.z-m.pos.z)<2&&Math.abs(L.y-m.group.position.y)<3){if(m.task&&m.task.L===L)m.task=null;L.carried=m;L.claimed=m;L.slot=m.bag.length;m.bag.push(L);SFX.pop();if(m.bag.length>=cap)break}}
   if(m.state==='fetch'&&!m.task){m.state=m.bag.length>=cap?'haul':'idle';if(m.state==='idle'&&m.bag.length){let nx=null,bd=14;for(const o of loot){if(!lootOK(o,m))continue;const dd=hd(o,m.pos);if(dd<bd){bd=dd;nx=o}}if(nx){nx.claimed=m;m.task={L:nx};m.state='fetch';m.bestD=1e9}else m.state='haul'}}
   if(m.state==='haul'){const d=hd(m.pos,{x:CHEST.x,z:CHEST.z+2.8});if(walkTo(m,CHEST.x,CHEST.z+2.8,dt,1.3)||d<1.5){for(const L of m.bag)deposit(L,m);m.bag=[];m.state='idle';m.timer=.15}else progress(m,d,dt,()=>{m.pos.x=CHEST.x;m.pos.z=CHEST.z+2.8});return}
-  if(m.state==='fetch'){const L=m.task&&m.task.L;if(!L||!loot.includes(L)||L.carried){m.task=null;m.state=m.bag.length?'haul':'idle';return}const d=Math.hypot(L.x-m.pos.x,L.z-m.pos.z);
+  if(m.state==='fetch'){const L=m.task&&m.task.L;if(!L||!loot.includes(L)||L.carried){m.task=null;m.state=m.bag.length?'haul':'idle';return}const d=hyp(L.x-m.pos.x,L.z-m.pos.z);
     if(walkTo(m,L.x,L.z,dt,.8)||(d<1.3&&Math.abs(L.y-m.group.position.y)<3)){L.carried=m;L.slot=m.bag.length;m.bag.push(L);m.task=null;SFX.pop();
       let nx=null,bd=12;if(m.bag.length<cap)for(const o of loot){if(!lootOK(o,m))continue;const dd=hd(o,m.pos);if(dd<bd){bd=dd;nx=o}}
       if(nx){nx.claimed=m;m.task={L:nx};m.bestD=1e9}else m.state='haul'}
@@ -345,7 +346,7 @@ function updGun(m,dt){
     if(!best){m.timer=.8;return}best.gunner=m;m.turret=best;m.bestD=1e9;m.stuckT=0}
   const t=m.turret,st=t.station;if(!st){t.gunner=null;m.turret=null;return}const d=hd(st,m.pos);
   if(walkTo(m,st.x,st.z,dt,.6)||d<.8){m.state='man';SFX.pop();label(m.pos,'🎯','#ec5f6b')}else progress(m,d,dt,()=>{m.skip.set(t,simTime+15);t.gunner=null;m.turret=null})}
-function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;const RL=state.rally;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||(!e.exposed&&((RL?Math.hypot(e.pos.x-RL.x,e.pos.z-RL.z)>14:Math.hypot(e.pos.x-CX,e.pos.z-CZ)>WR+30)||(!e.fly&&e.gy>GY+3)))||(e.fly&&e.group.position.y>m.group.position.y+3.2))continue;const d=hd(e.pos,m.pos);const pri=postDist(m,e.pos.x,e.pos.z)*.6+(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+(e.exposed?-60:0)+d;if(pri<bd){bd=pri;tgt=e}}if(tgt&&tgt.exposed&&m.sortie!==tgt){m.sortie=tgt;const dd=hd(tgt.pos,m.pos);if(dd>6){const ang=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);markLine(m.pos.x,m.pos.z,ang,Math.min(dd,40),.45,1.4);label({x:m.pos.x,y:m.group.position.y+2.2,z:m.pos.z},'⚔️ surtida!','#ec5f3b')}}
+function updSol(m,dt){if(m.raid&&raidSoldier(m,dt))return;const RL=state.rally;let tgt=null,bd=1e9;for(const e of enemies){if(e.dead||(e.rival&&e.rmode==='guard')||(!e.exposed&&((RL?hyp(e.pos.x-RL.x,e.pos.z-RL.z)>14:hyp(e.pos.x-CX,e.pos.z-CZ)>WR+30)||(!e.fly&&e.gy>GY+3)))||(e.fly&&e.group.position.y>m.group.position.y+3.2))continue;const d=hd(e.pos,m.pos);const pri=postDist(m,e.pos.x,e.pos.z)*.6+(inside(e.pos.x,e.pos.z)?0:30)+(e.state==='attack'?-12:0)+(e.type==='shaman'?-10:0)+(e.exposed?-60:0)+d;if(pri<bd){bd=pri;tgt=e}}if(tgt&&tgt.exposed&&m.sortie!==tgt){m.sortie=tgt;const dd=hd(tgt.pos,m.pos);if(dd>6){const ang=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);markLine(m.pos.x,m.pos.z,ang,Math.min(dd,40),.45,1.4);label({x:m.pos.x,y:m.group.position.y+2.2,z:m.pos.z},'⚔️ surtida!','#ec5f3b')}}
   if(tgt&&(inside(tgt.pos.x,tgt.pos.z)||state.phase!=='wave'||tgt.state==='attack'||hd(tgt.pos,m.pos)<14)){const reach=tgt.radius+1.3+m.st.reach;
     if(walkTo(m,tgt.pos.x,tgt.pos.z,dt,reach)||hd(tgt.pos,m.pos)<reach+.1){m.group.rotation.y=Math.atan2(tgt.pos.x-m.pos.x,tgt.pos.z-m.pos.z);
       if(m.timer<=0){m.timer=.7/(m.work*m.st.rate);const dmg=16*(1+m.rarity*.3)*(m.trait==='Forte'?1.4:1)*state.bladeMul*m.st.atk*(m.rage>0?3:1)*(cheerOn(m)?1.2:1);tgt.lastSol=m;hurtEnemy(tgt,uniqueCrit(m,dmg,tgt),{x:tgt.pos.x,y:tgt.gy+.6,z:tgt.pos.z});
@@ -369,7 +370,7 @@ function updateShots(dt){updateMarks(dt);for(const e of enemies)if(e.aura&&!e.de
     if(hit){scene.remove(s.mesh);shots.splice(i,1);explode(p.x,p.y,p.z,2.6,s.dmg,{src:'enemy'});spawnDebris(p.x,p.y,p.z,0x9cff4a,14,.3)}}}
 const rings=[];const ringMat=new THREE.MeshBasicMaterial({color:0xffe7b0,transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false});
 function stomp(e){const r=new THREE.Mesh(new THREE.RingGeometry(.8,1.3,40),ringMat.clone());r.rotation.x=-Math.PI/2;r.position.set(e.pos.x,e.gy+.15,e.pos.z);scene.add(r);rings.push({m:r,t:0});
-  for(let dx=-8;dx<=8;dx++)for(let dz=-8;dz<=8;dz++){const d=Math.hypot(dx,dz);if(d>8)continue;const x=Math.floor(e.pos.x)+dx,z=Math.floor(e.pos.z)+dz;for(let y=GY-2;y<GY+4;y++)if(inb(x,y,z)&&vox[idx(x,y,z)])damageVox(idx(x,y,z),45*(1-d/9),'enemy',null)}
+  for(let dx=-8;dx<=8;dx++)for(let dz=-8;dz<=8;dz++){const d=hyp(dx,dz);if(d>8)continue;const x=Math.floor(e.pos.x)+dx,z=Math.floor(e.pos.z)+dz;for(let y=GY-2;y<GY+4;y++)if(inb(x,y,z)&&vox[idx(x,y,z)])damageVox(idx(x,y,z),45*(1-d/9),'enemy',null)}
   for(const m of minions)if(!m.wounded&&hd(m.pos,e.pos)<9&&m.state!=='man')hurtMinion(m,22);
   shake=Math.max(shake,1.1);SFX.boom(true);toast('O Colosso pisou!','r3')}
 function updateRings(dt){for(let i=rings.length-1;i>=0;i--){const r=rings[i];r.t+=dt;const s=1+r.t*9;r.m.scale.set(s,s,s);r.m.material.opacity=.7*(1-r.t/.6);if(r.t>.6){scene.remove(r.m);rings.splice(i,1)}}}
@@ -460,8 +461,8 @@ function decorate(type,sc,col,g,body,head){const R=Math.random;if(type!=='flyer'
   if(R()<.2)box(.95*sc,.12*sc,1.15*sc,shadeHex(col,.25),0,.88*sc,0,g)}
 
 // saboteurs: goblins that walk past your guns to disarm the sappers' field traps (they know where the triggers are)
-function goblinBrain(e,dt,sf){const L=state.fieldTraps;if(!L||!L.length)return false;if(!e.tgtT||e.tgtT<simTime||!vox[e.tgt]||vox[e.tgt]!==state.fieldTrapM.get(e.tgt)){e.tgt=-1;let bd=46;for(const i of L){if(!vox[i]||vox[i]!==state.fieldTrapM.get(i))continue;const d=Math.hypot(ix(i)+.5-e.pos.x,iz(i)+.5-e.pos.z);if(d<bd){bd=d;e.tgt=i}}e.tgtT=simTime+2}
-  if(e.tgt<0)return false;const tx=ix(e.tgt)+.5,tz=iz(e.tgt)+.5,dx=tx-e.pos.x,dz=tz-e.pos.z,d=Math.hypot(dx,dz)||1;e.group.rotation.y=Math.atan2(dx,dz);
+function goblinBrain(e,dt,sf){const L=state.fieldTraps;if(!L||!L.length)return false;if(!e.tgtT||e.tgtT<simTime||!vox[e.tgt]||vox[e.tgt]!==state.fieldTrapM.get(e.tgt)){e.tgt=-1;let bd=46;for(const i of L){if(!vox[i]||vox[i]!==state.fieldTrapM.get(i))continue;const d=hyp(ix(i)+.5-e.pos.x,iz(i)+.5-e.pos.z);if(d<bd){bd=d;e.tgt=i}}e.tgtT=simTime+2}
+  if(e.tgt<0)return false;const tx=ix(e.tgt)+.5,tz=iz(e.tgt)+.5,dx=tx-e.pos.x,dz=tz-e.pos.z,d=hyp(dx,dz)||1;e.group.rotation.y=Math.atan2(dx,dz);
   if(d<1.4){e.vel.set(0,0,0);e.disarm=(e.disarm||0)+dt;if(e.disarm>=1.1){e.disarm=0;const i=e.tgt,m=vox[i];spawnDebris(tx,GY+.6,tz,MAT[m].c,5,.3);setVox(i,0);state.trapsDisarmed=(state.trapsDisarmed||0)+1;if(Math.random()<.5)label({x:tx,y:GY+1.8,z:tz},'desarmado!','#7fae3a');e.tgt=-1}return true}
   const sp=e.speed*sf;e.pos.x+=dx/d*sp*dt;e.pos.z+=dz/d*sp*dt;e.gy+=(surfE(e.pos.x,e.pos.z)-e.gy)*Math.min(1,dt*9);e.group.position.y=e.gy+Math.abs(Math.sin(e.bob+=dt*12))*.12;return true}
 
@@ -475,3 +476,4 @@ let bossAffAcc=0;function bossAffTick(dt){bossAffAcc+=dt;if(bossAffAcc<.25)retur
   if(e.bossAff==='furioso'&&!e.enraged&&e.hp<e.maxhp*.5){e.enraged=true;e.speed*=1.5;e.T={...e.T,dmg:e.T.dmg*1.5,rate:e.T.rate*.75};if(e.aura)e.aura.material=new THREE.MeshBasicMaterial({color:0xff3a2a,transparent:true,opacity:.75,side:THREE.DoubleSide,depthWrite:false});toast(`😡 ${e.T.n} enfureceu: mais rápido e mais forte!`,'r3');shake=Math.max(shake,.4)}
   if(e.bossAff==='escudo'){if(!e.shieldMesh){e.shieldMesh=new THREE.Mesh(new THREE.SphereGeometry(e.radius*1.6/e.group.scale.x,16,10),new THREE.MeshBasicMaterial({color:0x6fb6ff,transparent:true,opacity:.22,depthWrite:false}));e.shieldMesh.position.y=e.radius*1.2/e.group.scale.x;e.group.add(e.shieldMesh)}
     if(e.shield<e.shieldMax&&simTime-(e.lastHit||0)>4){const was=e.shield;e.shield=Math.min(e.shieldMax,e.shield+e.shieldMax*.06*t);if(was<=0&&e.shield>0)e.shieldMesh.visible=true}if(e.shieldMesh)e.shieldMesh.material.opacity=e.shield>0?.12+.18*(e.shield/e.shieldMax):0}}}
+

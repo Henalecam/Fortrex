@@ -226,6 +226,18 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v9.2 — Desempenho da simulação em hordas gigantes
+Medição (tests/tperf2.js: fixture h31 → __lateGame, __freeze, tempo por tick com cronômetros por seção em simulate, perfil de CPU com custo inclusivo por função chamada). Atenção: a renderização aqui é por software (SwiftShader) — os ms de render servem só para comparação relativa; a simulação em JS é representativa.
+- h35, ~330 inimigos, antes: 25,3 ms de simulação por tick (inimigos 13,3; minions 5,9; armas 2,5). 3 940 chamadas de desenho e 2,1 M triângulos por quadro (leve: 2 427 / 1,8 M; render 445 → 171 ms).
+- h15 (castelo h31, ~20 inimigos): 9,5 ms/tick; minions 5,9 ms mesmo com poucos inimigos. Topo do perfil: fluidos 13%, pathfinding ~16% (findPath+heap+walkCell), reparadores 32% e soldados 30% do custo dos minions. Leve: render 190 → 69 ms, chamadas 1 252 → 1 198 (quase iguais — o custo real é o número de objetos).
+Mudanças (todas sem alterar a simulação — SEED=1 tecon_seed 400 s idêntica horda a horda, h1–h8, tempo, material e malhas):
+1. Math.hypot → hyp() com Math.sqrt (131 usos). Math.hypot é muito mais lento no V8. h35: 25,3 → 20,9 ms/tick (minions 5,9→3,2; armas 2,5→1,2).
+2. Separação entre inimigos (O(N²) por tick): mesmo laço e mesma ordem, mas com cópias locais da posição e rejeição barata por |dx| ou |dz| ≥ soma dos raios antes do cálculo completo (matematicamente equivalente: se |dx| ≥ r, então dx²+dz² ≥ r²). A/B no mesmo estado: 22,6→18,0; 18,7→14,1; 22,4→13,8 ms/tick. Interruptor de teste window.__oldSep mantém o laço antigo.
+3. Tentativa descartada: grade espacial para a separação. Resultado idêntico, mas 5–15% MAIS LENTA (multidão densa no muro + ordenar candidatos para manter a ordem). Revertida.
+- Total h35: 25,3 → ~14 ms/tick (−45%).
+Pendências registradas: número de chamadas de desenho (cada inimigo são ~12 malhas) é o gargalo provável em GPU de celular; reparadores/soldados procuram tarefa varrendo listas inteiras a cada tick.
+- t5 600: h12, 0 erros. tcompat v0.41 → w15, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+
 ## v9.1 — Primeiro minuto no celular com toque real
 tests/tfirst.js: emulação de toque (390×844, isMobile, p5m.html com meta viewport), gestos por CDP Input.dispatchTouchEvent: tutorial, arrasto de 1 dedo, pinça, arrasto de 2 dedos, construir arrastando, pinça durante construção, 1ª horda e descanso; mede alvos de toque < 36 px e elementos fora da largura.
 Bugs achados e corrigidos:

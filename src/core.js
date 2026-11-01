@@ -14,7 +14,8 @@ const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a};
 const $=id=>document.getElementById(id);
 const hex=c=>'#'+c.toString(16).padStart(6,'0');
-const hd=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
+function hyp(x,y,z){return z===undefined?Math.sqrt(x*x+y*y):Math.sqrt(x*x+y*y+z*z)}
+const hd=(a,b)=>hyp(a.x-b.x,a.z-b.z);
 
 // materials. cost = material the repairer spends to (re)build it
 const MAT={

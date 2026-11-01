@@ -97,17 +97,17 @@ function removeVox(i,src){const m=vox[i];if(!m)return;if(window.__rmLog&&blue[i]
 // ───────── explosions (queued so chain reactions are visible)
 const pendingBooms=[];
 function explode(cx,cy,cz,r,dmg,o={}){const src0=o.src||'env',rv=src0==='rival',src=rv?'enemy':src0,fr=src==='player';const R=Math.ceil(r);
-  for(let dy=-R;dy<=R;dy++)for(let dz=-R;dz<=R;dz++)for(let dx=-R;dx<=R;dx++){const x=Math.floor(cx)+dx,y=Math.floor(cy)+dy,z=Math.floor(cz)+dz;if(!inb(x,y,z))continue;const d=Math.hypot(dx,dy,dz);if(d>r)continue;const i=idx(x,y,z);const m=vox[i];if(!m)continue;
+  for(let dy=-R;dy<=R;dy++)for(let dz=-R;dz<=R;dz++)for(let dx=-R;dx<=R;dx++){const x=Math.floor(cx)+dx,y=Math.floor(cy)+dy,z=Math.floor(cz)+dz;if(!inb(x,y,z))continue;const d=hyp(dx,dy,dz);if(d>r)continue;const i=idx(x,y,z);const m=vox[i];if(!m)continue;
     if(FLUID(m)){if(d<r*.55&&!fluidSrc.has(i)){setVox(i,0)}continue}
     if(fr&&blue[i])continue;if(rv&&rown[i])continue;damageVox(i,dmg*(1-d/r*.55)*(m===5?.25:1),src,null);if(o.fire&&vox[i]&&isFlam(vox[i])&&Math.random()<.6)ignite(i,src)}
   // buried treasure: a player blast that digs into the ground outside the walls can unearth a chest (once per wave)
   if(fr&&r>=3&&state.digWave!==state.wave&&!inside(cx,cz)&&Math.random()<.22){let dug=0;for(let dz=-1;dz<=1;dz++)for(let dx=-1;dx<=1;dx++){const x=Math.floor(cx)+dx,z=Math.floor(cz)+dz;if(inb(x,GY-1,z)&&!vox[idx(x,GY-1,z)])dug++}
     if(dug>=3){state.digWave=state.wave;spawnLoot(cx,GY+.5,cz,'treasure',Math.max(1,lootRarity(.04+state.wave*.005)),{});label({x:cx,y:GY+2,z:cz},'💎 tesouro enterrado!','#ffcf3d')}}
   if(o.fire){const R2=Math.ceil(r+1.5);for(let k=0;k<30;k++){const x=Math.floor(cx+rnd(-R2,R2)),y=Math.floor(cy+rnd(-R2,R2)),z=Math.floor(cz+rnd(-R2,R2));if(inb(x,y,z))ignite(idx(x,y,z),src)}}
-  for(const e of enemies){if(e.dead||(rv&&e.rival))continue;const d=Math.hypot(e.pos.x-cx,e.pos.z-cz,e.group.position.y+.5-cy);if(d<r+1.2){hurtEnemy(e,dmg*1.5*(1-d/(r+1.2)),{x:e.pos.x,y:e.gy+.5,z:e.pos.z});if(o.fire)e.afire=3}}
-  if(!fr){for(const m of minions){if(m.wounded)continue;const d=Math.hypot(m.pos.x-cx,m.pos.z-cz);if(d<r+.8)hurtMinion(m,dmg*(src==='enemy'?.6:.35)*(1-d/(r+.8)))}
-    for(const t of turrets){if(!t.alive||(rv&&t.team==='r'))continue;const d=Math.hypot(t.pos.x-cx,t.pos.y-cy,t.pos.z-cz);if(d<r+.6){_turTag='explode:'+src;damageTurret(t,dmg*(src==='enemy'?.6:.3)*(1-d/(r+.6)));_turTag=null}}}
-  for(const L of loot){if(L.carried)continue;const dx=L.x-cx,dz=L.z-cz,d=Math.hypot(dx,dz);if(d<r+2){L.vx+=dx/(d||1)*5;L.vz+=dz/(d||1)*5;L.vy=6;L.rest=false}}
+  for(const e of enemies){if(e.dead||(rv&&e.rival))continue;const d=hyp(e.pos.x-cx,e.pos.z-cz,e.group.position.y+.5-cy);if(d<r+1.2){hurtEnemy(e,dmg*1.5*(1-d/(r+1.2)),{x:e.pos.x,y:e.gy+.5,z:e.pos.z});if(o.fire)e.afire=3}}
+  if(!fr){for(const m of minions){if(m.wounded)continue;const d=hyp(m.pos.x-cx,m.pos.z-cz);if(d<r+.8)hurtMinion(m,dmg*(src==='enemy'?.6:.35)*(1-d/(r+.8)))}
+    for(const t of turrets){if(!t.alive||(rv&&t.team==='r'))continue;const d=hyp(t.pos.x-cx,t.pos.y-cy,t.pos.z-cz);if(d<r+.6){_turTag='explode:'+src;damageTurret(t,dmg*(src==='enemy'?.6:.3)*(1-d/(r+.6)));_turTag=null}}}
+  for(const L of loot){if(L.carried)continue;const dx=L.x-cx,dz=L.z-cz,d=hyp(dx,dz);if(d<r+2){L.vx+=dx/(d||1)*5;L.vz+=dz/(d||1)*5;L.vy=6;L.rest=false}}
   spawnDebris(cx,cy,cz,0xff7a3c,Math.floor(12+r*7),.5);for(let k=0;k<8+r*5;k++)spawnFlame(cx+rnd(-r,r)*.6,cy+rnd(0,1),cz+rnd(-r,r)*.6,1.2);
   SFX.boom(r>3);shake=Math.max(shake,Math.min(1.5,.3+r*.18));hitstop=Math.max(hitstop,.04);settleDirty=true}
 function processBooms(dt){for(let i=pendingBooms.length-1;i>=0;i--){const b=pendingBooms[i];b.t-=dt;if(b.t<=0){pendingBooms.splice(i,1);explode(b.x,b.y,b.z,b.r,b.dmg,b.o)}}}
@@ -137,7 +137,7 @@ function tickFluids(dt){fluidAcc+=dt;if(fluidAcc<.22)return;fluidAcc=0;const lis
       if(!fed&&Math.random()<.2){if(L<=1){vox[i]=0;hp[i]=0;fluids.delete(i);markCol(x,z);touch(i)}else{hp[i]=L-1;paint(i)}}}}}
 function react(i,j){const li=vox[i]===8?i:j,wi=li===i?j:i;setVox(li,14);setVox(wi,0);const x=ix(wi)+.5,y=iy(wi)+1,z=iz(wi)+.5;steam(x,y,z);SFX.crunch(true)}
 function steam(x,y,z){for(let k=0;k<6;k++)spawnFlame(x+rnd(-.6,.6),y+rnd(0,.6),z+rnd(-.6,.6),1.1,true);for(const e of enemies)if(!e.dead&&Math.abs(e.pos.x-x)<1.8&&Math.abs(e.pos.z-z)<1.8)dmgEnemy(e,18,true);for(const m of minions)if(!m.wounded&&Math.abs(m.pos.x-x)<1.4&&Math.abs(m.pos.z-z)<1.4)hurtMinion(m,6)}
-function freezeAround(cx,cy,cz,r){let n=0;const R=Math.ceil(r);for(let dy=-R;dy<=R;dy++)for(let dz=-R;dz<=R;dz++)for(let dx=-R;dx<=R;dx++){const x=Math.floor(cx)+dx,y=Math.floor(cy)+dy,z=Math.floor(cz)+dz;if(!inb(x,y,z)||Math.hypot(dx,dy,dz)>r)continue;const i=idx(x,y,z);if(vox[i]===8){setVox(i,14);n++}else if(vox[i]===9&&!state.noIceWater){setVox(i,18);n++}if(burning.has(i)){burning.delete(i);paint(i)}}if(n){spawnDebris(cx,cy+.5,cz,0xe8f4ff,8,.3);SFX.freeze()}return n}
+function freezeAround(cx,cy,cz,r){let n=0;const R=Math.ceil(r);for(let dy=-R;dy<=R;dy++)for(let dz=-R;dz<=R;dz++)for(let dx=-R;dx<=R;dx++){const x=Math.floor(cx)+dx,y=Math.floor(cy)+dy,z=Math.floor(cz)+dz;if(!inb(x,y,z)||hyp(dx,dy,dz)>r)continue;const i=idx(x,y,z);if(vox[i]===8){setVox(i,14);n++}else if(vox[i]===9&&!state.noIceWater){setVox(i,18);n++}if(burning.has(i)){burning.delete(i);paint(i)}}if(n){spawnDebris(cx,cy+.5,cz,0xe8f4ff,8,.3);SFX.freeze()}return n}
 
 // ───────── special blocks: crystal regenerates, gold pays out
 let specAcc=0;
@@ -233,13 +233,13 @@ function genWorld(){state.biomeKey=BIOMES[state.biome]?state.biome:pick(Object.k
   computeLayout();planRivals();buildBlueprint();
   const put=(x,y,z,m)=>{if(!inb(x,y,z))return;const i=idx(x,y,z);vox[i]=m;hp[i]=FLUID(m)?4:MAT[m].hp;if(FLUID(m)){fluids.add(i);fluidSrc.add(i)}};
   const zones=cityZones();const inZone=(x,z,r)=>zones.some(([zx,zz,zr])=>Math.abs(x-zx)<zr+r&&Math.abs(z-zz)<zr+r);
-  const LAVA=[],PONDS=[];for(let k=0;k<BIOME.lava;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(2.8,6);if(!inZone(x,z,r+2))LAVA.push([x,z,r])}for(let k=0;k<BIOME.ponds;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(3,7);if(!inZone(x,z,r+2)&&!LAVA.some(([a,b,c])=>Math.hypot(a-x,b-z)<c+r+3))PONDS.push([x,z,r])}
-  const nearPool=(x,z,r)=>LAVA.some(([px,pz,pr])=>Math.hypot(x-px,z-pz)<pr+r)||PONDS.some(([px,pz,pr])=>Math.hypot(x-px,z-pz)<pr+r);
+  const LAVA=[],PONDS=[];for(let k=0;k<BIOME.lava;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(2.8,6);if(!inZone(x,z,r+2))LAVA.push([x,z,r])}for(let k=0;k<BIOME.ponds;k++){const x=rint(8,W-9),z=rint(8,D-9),r=rnd(3,7);if(!inZone(x,z,r+2)&&!LAVA.some(([a,b,c])=>hyp(a-x,b-z)<c+r+3))PONDS.push([x,z,r])}
+  const nearPool=(x,z,r)=>LAVA.some(([px,pz,pr])=>hyp(x-px,z-pz)<pr+r)||PONDS.some(([px,pz,pr])=>hyp(x-px,z-pz)<pr+r);
   const HILLS=[];for(let k=0;k<BIOME.hills;k++){const x=rint(6,W-7),z=rint(6,D-7),hr=rnd(4,9);if(inZone(x,z,hr+2)||nearPool(x,z,hr))continue;HILLS.push([x,z,hr,rint(2,5)])}
   for(let z=0;z<D;z++)for(let x=0;x<W;x++){put(x,0,z,1);for(let y=1;y<GY-1;y++)put(x,y,z,12);put(x,GY-1,z,13);
-    for(const [hx,hz,hr,hh] of HILLS){const d=Math.hypot(x-hx,z-hz);if(d<hr){const h=Math.round(hh*(1-d/hr)+.4);for(let y=0;y<h;y++){put(x,GY-1+y,z,12);put(x,GY+y,z,y===h-1&&hh>=4&&d<hr*.35?3:13)}}}
-    for(const [px,pz,pr] of LAVA){const d=Math.hypot(x-px,z-pz);if(d<pr){put(x,GY-1,z,8);put(x,GY-2,z,14);if(d<pr*.5){put(x,GY-2,z,8);put(x,GY-3,z,14)}}}
-    for(const [px,pz,pr] of PONDS){const d=Math.hypot(x-px,z-pz);if(d<pr){put(x,GY-1,z,9);if(d<pr*.6)put(x,GY-2,z,9)}}}
+    for(const [hx,hz,hr,hh] of HILLS){const d=hyp(x-hx,z-hz);if(d<hr){const h=Math.round(hh*(1-d/hr)+.4);for(let y=0;y<h;y++){put(x,GY-1+y,z,12);put(x,GY+y,z,y===h-1&&hh>=4&&d<hr*.35?3:13)}}}
+    for(const [px,pz,pr] of LAVA){const d=hyp(x-px,z-pz);if(d<pr){put(x,GY-1,z,8);put(x,GY-2,z,14);if(d<pr*.5){put(x,GY-2,z,8);put(x,GY-3,z,14)}}}
+    for(const [px,pz,pr] of PONDS){const d=hyp(x-px,z-pz);if(d<pr){put(x,GY-1,z,9);if(d<pr*.6)put(x,GY-2,z,9)}}}
   const free=(x,z,r)=>x>=2&&z>=2&&x<=W-3&&z<=D-3&&!inZone(x,z,r)&&!nearPool(x,z,1.5+r);
   const ground=(x,z)=>{let y=H-1;while(y>0&&!vox[idx(x,y,z)])y--;return y+1};
   let placed=0,tries=0;
