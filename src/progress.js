@@ -1488,3 +1488,34 @@ Object.assign(CREATURES,{
     g.userData.eyes=_eyes(G,0xffd23a,[[.16,.12,-.2,2.24,.5],[.16,.12,.2,2.24,.5]]);G(.42,.1,.03,lava,0,2.0,.5,null,1.2);
     const a1=K(.45,1.1,.45,rock,-.95,1.25,.1),a2=K(.45,1.1,.45,rock,.95,1.25,.1);for(const a of[a1,a2]){const c=box(.06*sc,.6*sc,.03*sc,lava,0,0,.24*sc,a);c.material.emissive.setHex(lava);c.material.emissiveIntensity=.9}g.userData.arms=[a1,a2];g.userData.lava=1;
     return{body,head,legs:LG([[-.35,.38,0,.42,.76],[.35,.38,0,.42,.76]],rock)}})});
+// v10.3 PERSONAGENS R8 — inimigos de evento: mímico, cristal, estilhaço, general, aríete rival
+Object.assign(OLD_CR,{mimico:CREATURES.mimico,cristal:CREATURES.cristal,shard:CREATURES.shard,general:CREATURES.general,rammer:CREATURES.rammer});
+Object.assign(CREATURES,{
+  mimico:_R4('mimico',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const gold=0xffcf3d;
+    const body=B(1.0,.6,.8,col,0,.45,0);B(1.04,.08,.84,gold,0,.74,0);B(.08,.6,.84,gold,-.48,.45,0);B(.08,.6,.84,gold,.48,.45,0);B(.22,.26,.06,gold,0,.5,.43);
+    const head=B(1.0,.34,.8,shadeHex(col,.08),0,.96,0);B(1.04,.06,.84,gold,0,1.1,0);B(.18,.12,.18,0xd9414f,-.3,1.16,0);B(.14,.12,.14,0x4fbf5a,.28,1.16,.05);
+    face(head,sc,1.0,.34,.8,{sclera:0xffe25a,slit:1,es:.18,ex:.24,ey:.06,brow:0x2a1810,mood:.45,mouth:false},[-3,-2,-1,0,1,2,3].map(k=>[.08,.16,.08,k*.13,-.24,.36,0,0,0xfff6e0]));
+    gear(g,sc,[...[-3,-2,-1,0,1,2,3].map(k=>[.08,.12,.08,k*.13+.06,.8,.36,0,0,0xfff6e0]),[.24,.06,.5,0,.77,.2,0,0,0xd9414f],[.2,.05,.2,0,.78,.5,-.4,0,0xd9414f]]);
+    return{body,head,legs:LG([[-.38,.1,-.28,.16,.22],[.38,.1,-.28,.16,.22],[-.38,.1,.28,.16,.22],[.38,.1,.28,.16,.22]],0x4a3020)}}),
+  cristal:_R4('cristal',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.25);
+    const body=B(1.0,1.05,.72,col,0,1.0,0);B(.6,.5,.05,shadeHex(col,.3),0,1.05,.37);const head=B(.74,.62,.62,shadeHex(col,.2),0,1.82,.06);
+    face(head,sc,.74,.62,.62,{sclera:0xd8fbff,pupil:0x1d6a8a,es:.16,ex:.17,ey:.04,brow:0x2a5a7a,mood:.35,mw:.3,mh:.05,my:.26,mouthC:0x1d4a6a,teeth:[]});
+    const gl=[];for(const [x,y,z,h,r] of [[-.35,1.62,-.12,.65,.3],[.3,1.7,-.15,.8,-.25],[0,1.55,-.35,.55,0],[-.55,1.2,.1,.45,.6],[.55,1.25,.05,.5,-.6],[0,2.25,0,.45,0],[-.24,2.2,-.05,.3,.4]]){const c=G(.18,h,.18,0xc8f6ff,x,y,z,null,.6);c.rotation.z=r;gl.push(c)}g.userData.glow=gl;
+    for(const s of[-1,1])B(.36,.9,.36,dk,s*.7,.95,.05);return{body,head,legs:LG([[-.26,.26,0,.32,.52],[.26,.26,0,.32,.52]],shadeHex(col,-.35))}}),
+  shard:_R4('shard',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const body=B(.56,.46,.56,col,0,.42,0);const head=B(.54,.46,.46,0xc8f6ff,0,.86,.1);
+    face(head,sc,.54,.46,.46,{sclera:0xffffff,pupil:0x1d6a8a,es:.15,ex:.13,ey:.03,brow:0x3a8aaa,mood:.4,mw:.2,mh:.05,my:.22,mouthC:0x1d4a6a,teeth:[]},[[.1,.18,.1,-.2,.28,0,0,.4,0xa8ecff],[.1,.24,.1,.08,.32,-.04,0,-.2,0xa8ecff]]);
+    const c=G(.14,.42,.14,0xc8f6ff,.15,1.0,-.15,null,.5);c.rotation.z=.4;g.userData.glow=[c];return{body,head,legs:LG([[-.17,.12,0,.14,.24],[.17,.12,0,.14,.24]],0x5ab8d8)}}),
+  general:_R4('general',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);const fc=facCol(col),st=0x5e5670,gd=0xffcf3d;
+    const body=B(.9,.95,.6,st,0,1.05,0);B(.8,.8,.06,fc,0,1.0,.31);B(.2,.2,.06,gd,0,1.15,.34);B(1.1,.3,.7,st,0,1.55,0);for(const s of[-1,1]){B(.34,.24,.54,gd,s*.6,1.64,0);B(.08,.18,.08,gd,s*.6,1.82,.15)}
+    const head=B(.66,.62,.6,0x8a93a8,0,2.0,.04);
+    face(head,sc,.66,.62,.6,{sclera:0x1d1f33,pupil:0xffd23a,es:.14,ex:.14,ey:.04,brow:null,mouth:false},[[.56,.07,.04,0,.04,.31,0,0,0x3b3f55],[.08,.34,.04,0,-.1,.31,0,0,0x3b3f55],[.4,.08,.05,0,-.22,.32,0,0,0x5a3a22]]);
+    G(.6,.2,.6,gd,0,2.4,.04,null,.55);for(let k=-1;k<=1;k++)G(.1,.24,.1,gd,k*.2,2.58,.04,null,.6);
+    const cape=K(1.0,1.3,.06,fc,0,1.0,-.36);g.userData.cape=cape;const sw=gear(g,sc,[[.1,1.3,.1,0,0,0,0,0,0xdfe6f0],[.34,.08,.1,0,-.5,0,0,0,gd],[.12,.12,.12,0,-.62,0,0,0,gd]]);sw.position.set(.62*sc,1.2*sc,.3*sc);g.userData.sabre=sw;
+    B(.06,1.6,.06,0x6b4a2a,-.35,2.0,-.35);const flag=K(.04,.4,.6,fc,-.35,2.6,-.06);g.userData.flag=flag;
+    return{body,head,legs:LG([[-.2,.3,0,.26,.6],[.2,.3,0,.26,.6]],0x2b2d4a)}}),
+  rammer:_R4('rammer',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);const fc=facCol(col);
+    const body=B(.36,.36,2.0,0x6b4a2a,0,.85,0);B(.42,.42,.3,0x5a5a6a,0,.85,1.08);for(const z of[-.6,0,.6])B(.4,.06,.06,0x3b3f55,0,.85,z);
+    const head=B(.36,.36,.2,0x5a5a6a,0,.85,1.32);face(head,sc,.36,.36,.2,{noEyes:1,brow:null,mouth:false},[[.08,.06,.03,-.08,.05,.11,0,0,0xff6a3a],[.08,.06,.03,.08,.05,.11,0,0,0xff6a3a],[.06,.2,.06,-.16,.2,0,0,.5,0xdfe6f0],[.06,.2,.06,.16,.2,0,0,-.5,0xdfe6f0]]);
+    const men=[];for(const [s,z] of [[-1,-.5],[1,.5]]){const m=K(.4,.5,.34,fc,s*.38,.88,z);
+      gear(m,sc,[[.42,.4,.4,0,.44,0,0,0,0xe8c8a8],[.46,.14,.44,0,.66,0,0,0,0x8a93a8],[.08,.09,.03,-.09,.46,.21,0,0,0x1d1f33],[.08,.09,.03,.09,.46,.21,0,0,0x1d1f33],[.12,.04,.03,-.09,.54,.21,0,-s*.3,0x3a2414],[.12,.04,.03,.09,.54,.21,0,s*.3,0x3a2414],[.16,.04,.03,0,.34,.21,0,0,0x3a1420]]);men.push(m)}g.userData.men=men;
+    return{body,head,legs:LG([[-.48,.18,-.5,.15,.36],[-.28,.18,-.5,.15,.36],[.28,.18,.5,.15,.36],[.48,.18,.5,.15,.36]],0x3b2d2a)}})});

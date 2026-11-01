@@ -226,6 +226,15 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v10.3 — Inimigos de evento no novo estilo
+- Mímico (olhos de fenda com sobrancelha, presas em cima e embaixo, língua; gemas na tampa), cristal (cabeça 0,52→0,74, rosto azul, 7 cristais), estilhaço (cabeça 0,38→0,54, rosto, 2 lascas), general (elmo 0,5→0,66 com viseira em T, olhos dourados, bigode; espada fundida no pivô), aríete rival (carregadores com cabeça, capacete e rosto; cabeça de carneiro metálica com olhos em brasa e chifres).
+- Bug antigo achado: os dentes de baixo do mímico eram filhos do corpo, que fica invisível depois de voxelizado — nunca apareciam. Agora estão no equipamento do grupo.
+- Malhas antigo→novo: mímico 25→10, cristal 14→14, estilhaço 9→8, general 15→15, aríete rival 12→13 (+1, cabeça de carneiro). Total 75→60.
+- tcompat v0.41 deu h14 numa corrida (antes sempre h15); repetido 2× → h15, h15: ruído de tempo (a corrida tem 180 s).
+- t5 600: h13, 0 erros. tcompat: v0.41 → h14/h15/h15, v0.60 → h20, v7.8/h31 → h31. tplay 1280×800: 0 problemas, 0 erros.
+- Publicação: o servidor de artefatos da sessão caiu; publicado pela ferramenta Artifact após conferir que a versão no ar é byte a byte o build v10.2 do repositório.
+- Próximo: Rei da Bruma, Arauto, Sentinela Rúnica, Portador de Bruma, Colosso de Rastejantes; conferir o colosso de perto.
+
 ## v10.2 — Chefes no novo estilo
 - Fera (boss), golem, serpe (wyrm), colosso, necromante, rainha e titã: cabeça maior (golem 0,5→0,86 de largura; titã 0,6→0,84; colosso 0,65→0,9; necro 0,55→0,72; rainha 0,55→0,72; fera 1,1→1,25), sobrancelhas/testa, chifres, dentes, viseira, crânio com dentes — via face(...,{noEyes:1}) para manter os olhos brilhantes originais (userData.eyes) e as animações (mandíbula, cauda, braços, orbe, tomo, asas).
 - Malhas antigo→novo: fera 22→17, golem 15→17, serpe 11→12, colosso 10→12, necro 10→11, rainha 21→22, titã 18→19 (total 107→110, +3%). Há 1 chefe por vez em campo (+1 a +2 draw calls) — custo irrelevante, mas registrado: não é "sem aumento".
