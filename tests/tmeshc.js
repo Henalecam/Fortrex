@@ -1,3 +1,4 @@
 const { chromium } = require('playwright');const path=require('path');
+const LT=(process.env.LT||'goblin,brute,shaman,sapper,imp,climber').split(',');
 (async()=>{for(const old of [1,0]){const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const p=await b.newPage();await p.addInitScript(o=>{window.__headless=true;if(o)window.__oldLook=1},old);await p.goto('file://'+path.join(__dirname,'three/p5.html'));await p.waitForTimeout(700);
-console.log(old?'OLD':'NEW',await p.evaluate(()=>{document.getElementById('start').click();window.__step(1);return ['goblin','brute','shaman','sapper','imp','climber'].map(t=>t+':'+window.__enemyMesh(t)[0]).join(' ')}));await b.close()}})();
+console.log(old?'OLD':'NEW',await p.evaluate((LT)=>{document.getElementById('start').click();window.__step(1);return LT.map(t=>t+':'+window.__enemyMesh(t)[0]).join(' ')},LT));await b.close()}})();

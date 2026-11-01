@@ -860,6 +860,54 @@ Object.assign(CREATURES,{
     const a1=K(.14,.8,.14,dk,-.38,.95,.25),a2=K(.14,.8,.14,dk,.38,.95,.25);a1.rotation.x=a2.rotation.x=-.9;g.userData.arms=[a1,a2];gear(a2,sc,[[.24,.06,.06,0,-.42,0,0,0,0xcfd6e3]]);
     const tail=K(.14,.14,.75,dk,0,.4,-.55);tail.rotation.x=-.3;g.userData.tail=tail;
     return{body,head,legs:LG([[-.16,.2,0,.15,.4],[.16,.2,0,.15,.4]],dk)}})});
+// v10.0 PERSONAGENS R5 — bichos no mesmo estilo: olhos grandes com sobrancelha, presas, chifres e placas; rosto/equipamento fundidos (mcache)
+Object.assign(OLD_CR,{crawler:CREATURES.crawler,wolf:CREATURES.wolf,spider:CREATURES.spider,slime:CREATURES.slime,beetle:CREATURES.beetle,flyer:CREATURES.flyer,ram:CREATURES.ram});
+Object.assign(CREATURES,{
+  crawler:_R4('crawler',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3),lt=shadeHex(col,.25);
+    const body=B(.95,.5,1.0,col,0,.45,-.12);B(.7,.08,.8,lt,0,.2,-.12);for(let k=0;k<3;k++)B(.5-k*.08,.14,.2,dk,0,.74,-.4+k*.26);
+    const head=B(.84,.62,.62,shadeHex(col,.1),0,.66,.58);const jaw=K(.72,.14,.36,dk,0,.32,.74);g.userData.jaw=jaw;
+    face(head,sc,.84,.62,.62,{sclera:0xffe25a,es:.21,ex:.2,ey:.1,brow:0x2a1838,mood:.45,mw:.52,my:.32,teeth:[[-.19,.1],[-.07,.08],[.07,.08],[.19,.1]]},
+      [[.05,.32,.05,-.2,.42,0,0,.4,dk],[.05,.32,.05,.2,.42,0,0,-.4,dk],[.1,.1,.1,-.27,.58,0,0,0,0xffe25a],[.1,.1,.1,.27,.58,0,0,0,0xffe25a],[.1,.08,.26,-.36,-.26,.32,0,.3,0xe8e0cc],[.1,.08,.26,.36,-.26,.32,0,-.3,0xe8e0cc]]);
+    return{body,head,legs:LG([[-.38,.13,-.36,.16,.26],[.38,.13,-.36,.16,.26],[-.38,.13,.28,.16,.26],[.38,.13,.28,.16,.26]],dk)}}),
+  wolf:_R4('wolf',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.32),lt=shadeHex(col,.3);
+    const body=B(.62,.56,1.3,col,0,.66,0);B(.74,.5,.52,dk,0,.86,.36);B(.42,.2,.9,lt,0,.42,0);B(.76,.12,.14,0x3b2d2a,0,.9,.62);
+    const head=K(.58,.5,.56,col,0,.96,.9);g.userData.headA=head;
+    face(head,sc,.58,.5,.56,{sclera:0xffd23a,slit:1,es:.13,ex:.14,ey:.08,brow:0x2a2a34,mood:.42,mouth:false},
+      [[.34,.22,.3,0,-.1,.36,0,0,lt],[.14,.09,.07,0,-.01,.52,0,0,0x1d1f33],[.24,.04,.04,0,-.2,.5,0,0,0x3a1420],[.05,.1,.05,-.09,-.24,.48,0,0,0xffffff],[.05,.1,.05,.09,-.24,.48,0,0,0xffffff],
+       [.14,.24,.1,-.18,.34,-.08,0,.15,dk],[.14,.24,.1,.18,.34,-.08,0,-.15,dk],[.07,.14,.04,-.18,.33,-.02,0,.15,0xd98a9a],[.07,.14,.04,.18,.33,-.02,0,-.15,0xd98a9a]]);
+    gear(g,sc,[[.08,.14,.08,-.24,.98,.62,0,.3,0xcfd6e3],[.08,.14,.08,0,1.0,.62,0,0,0xcfd6e3],[.08,.14,.08,.24,.98,.62,0,-.3,0xcfd6e3]]);
+    const tail=K(.16,.16,.7,dk,0,.88,-.95);tail.rotation.x=-.6;g.userData.tail=tail;
+    return{body,head,legs:LG([[-.2,.22,-.48,.17,.44],[.2,.22,-.48,.17,.44],[-.2,.22,.48,.17,.44],[.2,.22,.48,.17,.44]],dk)}}),
+  spider:_R4('spider',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.35);
+    const body=B(1.08,.66,1.02,col,0,.66,-.38);B(.2,.32,.02,0xd9414f,0,.76,.14);B(.34,.12,.02,0xd9414f,0,.76,.14);for(const s of[-1,1])B(.16,.16,.5,shadeHex(col,.12),s*.32,1.0,-.4);
+    const head=B(.68,.5,.54,shadeHex(col,.15),0,.56,.4);
+    face(head,sc,.68,.5,.54,{sclera:0xff4a5a,pupil:0x1d0a10,es:.15,ex:.15,ey:.04,brow:0x14121e,mood:.5,mouth:false},
+      [[.08,.08,.03,-.27,.18,.27,0,0,0xff8a9a],[.08,.08,.03,.27,.18,.27,0,0,0xff8a9a],[.07,.07,.03,-.08,.2,.27,0,0,0xff8a9a],[.07,.07,.03,.08,.2,.27,0,0,0xff8a9a],
+       [.09,.22,.09,-.1,-.26,.24,0,.35,0xe8e0cc],[.09,.22,.09,.1,-.26,.24,0,-.35,0xe8e0cc]]);
+    const legs=[];for(const s of[-1,1])for(let k=0;k<4;k++){const m=B(.95,.09,.09,dk,s*.78,.52,(k-1.5)*.26+.05);m.rotation.z=s*.55;m.rotation.y=s*(k-1.5)*.25;legs.push({mesh:m,alive:true,ox:s*.78*sc,oz:((k-1.5)*.26)*sc})}return{body,head,legs}}),
+  slime:_R4('slime',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);col=ctone(col,2);const body=B(1.15,.85,1.15,col,0,.44,0);body.material.transparent=true;body.material.opacity=.85;
+    const head=B(.86,.34,.86,shadeHex(col,.25),0,.98,0);B(.3,.3,.3,shadeHex(col,-.35),.18,.42,-.1);B(.16,.16,.16,0xffffff,-.3,.62,.3);
+    face(head,sc,.86,.34,1.18,{ey:-.3,es:.22,ex:.22,brow:0x1d4a2a,mood:.3,mw:.34,my:.22,teeth:[[.1,.09]]},[[.18,.12,.18,-.18,.24,0,0,0,shadeHex(col,.35)],[.12,.1,.12,.2,.22,.1,0,0,shadeHex(col,.35)]]);
+    g.userData.squish=1;return{body,head,legs:[]}}),
+  beetle:_R4('beetle',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.35);
+    const body=B(1.0,.5,1.15,dk,0,.45,0);const shell=B(1.14,.4,1.22,col,0,.84,-.06);void shell;B(.05,.42,1.24,0x14252a,0,.86,-.06);for(const [x,z] of[[-.3,-.3],[.28,-.05],[-.26,.25],[.3,-.4]])B(.16,.06,.16,shadeHex(col,.4),x,1.05,z);
+    const head=B(.62,.44,.46,shadeHex(col,-.4),0,.52,.74);
+    face(head,sc,.62,.44,.46,{sclera:0x9dffe0,es:.14,ex:.16,ey:.04,brow:0x081414,mood:.45,mouth:false},
+      [[.17,.5,.17,0,.32,.16,.45,0,0xe6dcb8],[.12,.22,.12,0,.6,.32,.95,0,0xe6dcb8],[.09,.09,.38,-.22,-.14,.36,0,0,0x1b2b2b],[.09,.09,.38,.22,-.14,.36,0,0,0x1b2b2b]]);
+    return{body,head,legs:LG([[-.6,.24,-.38,.5,.09,.09,.3],[.6,.24,-.38,.5,.09,.09,-.3],[-.62,.22,0,.5,.09,.09,.3],[.62,.22,0,.5,.09,.09,-.3],[-.6,.24,.38,.5,.09,.09,.3],[.6,.24,.38,.5,.09,.09,-.3]],0x1b2b2b)}}),
+  flyer:_R4('flyer',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3);
+    const body=B(.6,.55,.72,col,0,.58,0);B(.4,.32,.05,shadeHex(col,.3),0,.54,.37);B(.34,.08,.4,dk,0,.56,-.5);
+    const head=B(.6,.54,.5,col,0,.92,.42);
+    face(head,sc,.6,.54,.5,{sclera:0xffffff,pupil:0xd92a3a,es:.16,ex:.15,ey:.08,brow:0x1d2a3a,mood:.45,mouth:false},
+      [[.2,.13,.26,0,-.1,.36,0,0,0xffb13d],[.15,.06,.2,0,-.19,.33,0,0,0xe08a2a],[.06,.24,.12,0,.36,-.02,-.4,0,0xff6a4a],[.06,.18,.1,0,.32,-.16,-.6,0,0xff6a4a]]);
+    const w1=K(1.2,.06,.5,dk,-.88,.75,0),w2=K(1.2,.06,.5,dk,.88,.75,0);g.userData.wings=[w1,w2];
+    return{body,head,legs:[]}}),
+  ram:_R4('ram',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3);
+    const body=B(.95,.75,1.35,col,0,.72,-.05);B(1.02,.26,1.02,dk,0,1.15,-.1);for(let k=0;k<3;k++)B(.14,.2,.14,0xcfd6e3,0,1.34,-.45+k*.35);for(const s of[-1,1])B(.12,.5,1.0,0x6b6f80,s*.52,.8,-.05);
+    const head=B(.72,.6,.56,dk,0,.8,.86);B(.84,.52,.18,0x9aa3b8,0,.85,1.17);B(.2,.12,.12,0x5a5a6a,0,.58,1.24);
+    face(head,sc,.72,.6,1.0,{sclera:0x1d1f33,pupil:0xff6a3a,es:.15,ex:.17,ey:.1,brow:0x6b7084,mood:.35,mouth:false},
+      [[.12,.42,.12,-.42,.24,.1,0,.55,0xf1e6c8],[.12,.42,.12,.42,.24,.1,0,-.55,0xf1e6c8],[.12,.2,.12,-.6,.44,.2,0,1.2,0xf1e6c8],[.12,.2,.12,.6,.44,.2,0,-1.2,0xf1e6c8]]);
+    return{body,head,legs:LG([[-.32,.2,-.45,.24,.4],[.32,.2,-.45,.24,.4],[-.32,.2,.45,.24,.4],[.32,.2,.45,.24,.4]],shadeHex(col,-.45))}})});
 function enemyAnim(e,dt){const ud=e.group.userData;const t=simTime+e.bob*.1;
   for(let k=0;k<e.legs.length;k++){const L=e.legs[k];if(!L.alive||e.type==='spider'||e.type==='beetle')continue;L.mesh.rotation.x=Math.sin(e.bob*1.4+(k%2?Math.PI:0)+(k>1?Math.PI:0))*.45}
   if(e.type==='spider'||e.type==='beetle')for(let k=0;k<e.legs.length;k++){const L=e.legs[k];if(L.alive)L.mesh.rotation.x=Math.sin(e.bob*2+k)*.25}

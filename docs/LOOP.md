@@ -226,6 +226,14 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v10.0 — Bichos no estilo voxel caprichado
+- Mesmo método da v9.9 (face()/gear()/mcache(), chave window.__oldLook) para rastejante (antenas, presas, 3 placas nas costas), lobo (focinho claro, orelhas com interior rosado, presas, coleira cravejada), aranha (2 olhos grandes raivosos + 4 pequenos, quelíceras), geleia (cara emburrada na frente do corpo, núcleo escuro), besouro (chifre de rinoceronte, mandíbulas, manchas no casco), voador (bico de 2 partes, crista), aríete (elmo com fendas brilhantes e chifres curvos, placas laterais).
+- Malhas por inimigo antigo → novo (tmeshc.js): rastejante 11→10, lobo 16→11, aranha 18→13, geleia 8→5, besouro 12→11, voador 8→7, aríete 10→9 (total 83→66). A 1ª versão do rastejante tinha 6 pernas (12 malhas, +1) — voltou a 4.
+- 120 desses inimigos a 22 de distância, alternando antigo/novo na mesma página (tperflook.js): draw calls 968/969 → 807/808 (−17%); render 25,1/30,9 × 25,2/29,9 ms (sem diferença mensurável no SwiftShader).
+- Vitrine (tlook.js): rostos legíveis na distância normal de jogo; o voador fica acima do enquadramento da vitrine (não verificado de perto).
+- t5 600: h11, 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h31. tplay 1280×800: 0 problemas, 0 erros.
+- Próximo: cavaleiro, arqueiro, escudeiro, cavador, bombardeiro e os chefes; conferir o voador de perto.
+
 ## v9.9 — Inimigos no estilo voxel caprichado (pedido: inspiração Trove) + aterro de crateras (rejeitado)
 - Pedido do usuário: arte dos inimigos inspirada em Trove (personagens bem trabalhados). Direção, com desenhos próprios: proporção chibi (cabeça ≈ largura do corpo), rosto expressivo (esclera, pupila, brilho, sobrancelha inclinada, boca com dentes), equipamento legível, cores mais saturadas (+0,1 de saturação em ctone).
 - Refeitos: goblin (capuz, orelhas longas, cleaver + escudo), bruto (ombreiras cravejadas, presas, olhos vermelhos, clava cravejada à frente), xamã (máscara de osso com chifres, cocar de penas, cajado com orbe), sapador (capacete de mineiro com lanterna, óculos, barril), diabrete (chifres, olhos de fenda, sorriso com presas, tridente), escalador (olhos de sapo no topo, crista, gancho). Chave window.__oldLook para comparar.
