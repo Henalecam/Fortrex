@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v8.7 — Simulação determinística nos testes
+- Agendador em tempo de jogo: core.js later(seg,fn) + laterTick() no simulate (só roda com o jogo correndo). Trocados por ele os setTimeout que mexiam na simulação: rajadas escalonadas de pedras/fogo dos chefes (i×0,26 s e meteoros i×0,18 s), explosão atrasada 0,35 s, ofertas de talento (0,4/0,7/3 s), marco (0,9 s), visitante (2,5 s), oferta de construção (1,2 s). setTimeout ficou só para UI (toasts, cartas, modo foto, novidades) e para o recuo após derrota.
+- Causa que faltava: throttle() dos sons usava performance.now(); conforme o tempo real, um som tocava ou não — e tocar consome Math.random, desalinhando a semente. Com __freeze ligado o throttle usa simTime.
+- Resultado: SEED=1 duas vezes (tecon_seed 300 s) → idênticas horda a horda (h1 32 s/65 mat … h6 230 s/96 mat/8 armas). Antes divergiam já na h1.
+- Jogabilidade: SEED=1 h10 498 s, h14 809 s; SEED=2 h10 454 s, h14 789 s (base v8.6: 535±28 / 814±30). h14 dentro de ±30 s; h10 da semente 2 um pouco rápida. Agora uma mudança pode ser comparada com a mesma semente, sem ruído.
+- t5 600: h12, 0 erros. tcompat v0.41 → w15, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+
 ## v8.6 — Linha de base com sementes (medições comparáveis)
 - tests/tecon_seed.js: SEED=N troca Math.random por mulberry32 antes do jogo carregar e liga window.__freeze (o laço requestAnimationFrame não avança a simulação; só __step avança). Mesmo assim duas corridas com a mesma semente divergem já na h1 (27 vs 28 s): ainda há lógica de jogo em setTimeout (rajadas escalonadas de chefes, toasts etc.) que intercala com o __step em tempo real. Determinismo total exigiria trocar esses timers por agendamento em simTime — anotado, não feito.
 - Linha de base Normal (tecon_seed 900 s, sementes 1–4, bot forte): h8 358±30 s, h10 535±28 s, h12 663±28 s, h14 814±30 s (n=3–4). Regra prática: diferença < ~60 s (2 desvios) em h10–h14 é ruído.

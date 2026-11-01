@@ -59,7 +59,7 @@ const OPTS=(()=>{try{return JSON.parse(localStorage.getItem('fortrex_opts')||'{}
 const DIFFS={calmo:{n:'Tranquilo',ico:'🌱',hp:.72,cnt:.75,dmg:.7,sp:.95,d:'Para relaxar e construir.'},normal:{n:'Normal',ico:'⚔️',hp:1.35,cnt:1.2,dmg:1.2,sp:1,arm:0,d:'O desafio pensado para o jogo.'},brutal:{n:'Brutal',ico:'💀',hp:2.75,cnt:1.7,dmg:1.8,sp:1.12,arm:.15,d:'A bruma não perdoa: pressão desde a horda 10.'}};
 // brutal ramps in from normal over the first waves, so the run is decided by waves 8–10, not by an unlucky wave 3
 let _dfK='',_dfV=null;const DIFF=()=>{const d=DIFFS[OPTS.diff]||DIFFS.normal;if(d!==DIFFS.brutal)return d;const w=Math.min(9,Math.max(1,state.wave|0));if(w>=9)return d;const k=OPTS.diff+w;if(_dfK===k)return _dfV;const n=DIFFS.normal,f=(w-1)/8,L=(a,b)=>a+(b-a)*f;_dfK=k;_dfV={...d,hp:L(n.hp,d.hp),cnt:L(n.cnt,d.cnt),dmg:L(n.dmg,d.dmg),sp:L(n.sp,d.sp),arm:L(0,d.arm)};return _dfV};
-let simTime=0,shake=0,hitstop=0,gameSpeed=1,slowmo=0;const SPEEDS=[1,2,3,5];const MAX_MINIONS=60;
+let simTime=0,shake=0,hitstop=0,gameSpeed=1,slowmo=0;const _later=[];function later(sec,fn){_later.push({t:simTime+sec,fn})}function laterTick(){if(!_later.length)return;for(let i=0;i<_later.length;i++){const L=_later[i];if(L.t<=simTime){_later.splice(i--,1);try{L.fn()}catch(e){console.error(e)}}}}const SPEEDS=[1,2,3,5];const MAX_MINIONS=60;
 function freshState(){return{running:false,wave:1,phase:'rest',queue:[],spawnT:0,material:60,kills:0,restT:15,auto:false,
   challenge:null,fieldTraps:[],fieldTrapM:new Map(),blockTier:0,focus:null,focusT:0,focusCd:0,focusLong:false,bombCd:0,bombMode:false,bombR:4.6,
   ev:null,siege:0,boss:null,wk:0,wwound:0,choosing:false,meteorT:0,
@@ -72,7 +72,7 @@ const state=freshState();
 // ───────── sound (procedural Web Audio)
 let AC=null,soundOn=false;const sfxLast={};
 function ac(){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}
-function throttle(k,ms){const t=performance.now();if(sfxLast[k]&&t-sfxLast[k]<ms)return true;sfxLast[k]=t;return false}
+function throttle(k,ms){const t=window.__freeze?simTime*1000:performance.now();if(sfxLast[k]&&t-sfxLast[k]<ms)return true;sfxLast[k]=t;return false}
 function envl(g,t,a,d,p){g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(p,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+d)}
 let _noise=null;
 function noiseBuf(c){if(!_noise){_noise=c.createBuffer(1,(c.sampleRate*.8)|0,c.sampleRate);const d=_noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1}return _noise}

@@ -375,7 +375,7 @@ function stomp(e){const r=new THREE.Mesh(new THREE.RingGeometry(.8,1.3,40),ringM
 function updateRings(dt){for(let i=rings.length-1;i>=0;i--){const r=rings[i];r.t+=dt;const s=1+r.t*9;r.m.scale.set(s,s,s);r.m.material.opacity=.7*(1-r.t/.6);if(r.t>.6){scene.remove(r.m);rings.splice(i,1)}}}
 
 const xpNeed=l=>Math.round(18*Math.pow(l,1.45));
-function gainXP(m,n){if(!m||!minions.includes(m))return;m.xp+=n;while(m.xp>=xpNeed(m.lvl)&&m.lvl<30){m.xp-=xpNeed(m.lvl);m.lvl++;recompute(m);m.hp=m.maxhp;if(m.hero&&TALENT_LV.includes(m.lvl))setTimeout(()=>offerTalent(m),400);
+function gainXP(m,n){if(!m||!minions.includes(m))return;m.xp+=n;while(m.xp>=xpNeed(m.lvl)&&m.lvl<30){m.xp-=xpNeed(m.lvl);m.lvl++;recompute(m);m.hp=m.maxhp;if(m.hero&&TALENT_LV.includes(m.lvl))later(.4,()=>offerTalent(m));
   sparkle(m.pos.x,m.group.position.y+1.6,m.pos.z,0xffcf3d,14);ringFx(m.pos.x,m.group.position.y+.2,m.pos.z,2.4,0xffcf3d);label({x:m.pos.x,y:m.group.position.y,z:m.pos.z},`NÍVEL ${m.lvl}! ↑`,'#e0a000');SFX.loot(Math.min(4,Math.floor(m.lvl/5)));if(m.hero&&m.lvl%5===0)toast(`${m.name} chegou ao nível ${m.lvl}!`,'r3');}}
 
 // ───────── body destruction: enemies are built from chunks that break off as they take damage
