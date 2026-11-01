@@ -226,6 +226,16 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v8.9 — Rodada de QA (bugs, memória, celular, console)
+Bugs achados e corrigidos, com evidência:
+1. **Memória de vídeo sem limite** (tests/tqa_gpu.js: renderiza 150 ms a cada 60 s e lê renderer.info.memory). Antes: geometrias na GPU 333 → 1024 em 14 min enquanto objetos em cena oscilavam — o cache de caixas usava chave com 1 cm de precisão e cada inimigo tinha escala aleatória contínua (rnd(.92,1.1)), criando caixas novas sem parar (cache 1497 em 14 min). Correção: tamanhos quantizados (2,5 cm < 0,5 u; 5 cm acima) e escala aleatória em 7 degraus (.92…1.10). Depois: crescimento do cache desacelera (+325, +247, +135, +113, +125, +48 por 2 min) — limitado por tipo×degrau×peça. 
+2. **Barra do topo cortada no celular**: 360 px — relógio ia até x=379 com barra terminando em 358. Correção: em < 480 px o relógio mostra só a hora (dia no tooltip); em < 420 px padding/fonte menores e o relógio cede lugar ao 📦 do baú quando ele aparece. Medido (thud.js): 390 px último item em 367/374; 360 px em 351/358. hud_360.png.
+3. (v8.8, já corrigido) agendador later() não limpo em novo jogo/carregar.
+Verificado sem bug:
+- Salvar/carregar com Mercador aberto, Coração Rúnico nv2, Auto esperando (tsave.js): volta igual (merch, rh=2, Auto ⏸ 17 s, mesmo nº de objetos 305/305), obelisco reaparece. O "segundo save falhou" do teste era esperado: com Auto e espera já vencida, escolher o Pacto inicia a horda na hora (fase 'wave' → não salva).
+- Console em 15 min (tqa.js, semente 1) e t5 600: 0 erros de página/console (só aviso de desempenho do driver de software). Objetos em cena sobem e descem com os inimigos (pico 2558, volta a ~1500); rótulos fixos em 53; DOM estável ~416.
+- t5 600: h11, 0 erros. tcompat v0.41 → w15, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+
 ## v8.8 — Personalidade das hordas temáticas
 - Tema principal (state.themes[0], a partir de h4) dá um traço aos inimigos do seu grupo (não a chefes nem rivais): Enxame +20% de unidades do tema na fila e −20% de vida; Matilha +15% de velocidade e rótulo "🐺 uivos ao longe…" no início; Cerco +20% vida / −10% velocidade; Céu +10% velocidade / −10% vida; Guarda +0,1 de armadura. Linha âmbar no "Vem aí" com o traço (theme_1280.png, theme_390.png).
 - Revisão crítica: a 1ª versão adicionava os extras do Enxame no início da horda — o "Vem aí" mostrava um número menor que o real. Movido para waveSpec: média de 400 sorteios em h12 → 86 inimigos sem tema/demais temas, 94 com Enxame (contagem do preview = fila real).

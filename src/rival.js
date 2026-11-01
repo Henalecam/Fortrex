@@ -105,7 +105,7 @@ let lifeAcc=0;function lifeTick(dt0){lifeAcc+=dt0;if(lifeAcc<.1)return;const dt=
     natLost=later.length?keep.concat(later):keep;
     for(let t=0;t<0;t++){const i=0;const m=natBlue[i];if(!m||vox[i])continue;if(!supported(i)||cellBusy(i))continue;if(iy(i)<GY-1&&!SOLIDM(vox[i-W*D]))continue;setVox(i,m);n++;if(Math.random()<.25)spawnDebris(ix(i)+.5,iy(i)+1,iz(i)+.5,0x9fe39a,1,.15)}
     for(let t=0;t<12;t++){const x=rint(0,W-1),z=rint(0,D-1);const s=surf(x,z);if(s>0&&s<=GY&&vox[idx(x,s-1,z)]===12&&!blue[idx(x,s-1,z)]){setVox(idx(x,s-1,z),13)}}}}
-  const el=$('clock');if(el){const hrs=Math.floor(p*24),mins=Math.floor((p*24-hrs)*60/10)*10;el.textContent=`${isNight()?'🌙':'☀️'} Dia ${Math.floor((simTime/DAY_LEN)+.3)+1} · ${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}`}}
+  const el=$('clock');if(el){const hrs=Math.floor(p*24),mins=Math.floor((p*24-hrs)*60/10)*10;const dn=Math.floor((simTime/DAY_LEN)+.3)+1,hm=`${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}`;el.textContent=innerWidth<480?`${isNight()?'🌙':'☀️'}${hm}`:`${isNight()?'🌙':'☀️'} Dia ${dn} · ${hm}`;el.title=`Dia ${dn} · ${hm}`;const cs=$('chestSt');el.hidden=innerWidth<420&&cs&&!cs.hidden}}
 
 // rival vs rival: war bands march on another city, fight its guards and smash its walls and core
 function warBrain(e,dt){const F=e.foe;if(!F||!F.alive){e.rmode='raid';e.foe=null;return false}

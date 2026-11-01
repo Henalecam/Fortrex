@@ -1,6 +1,6 @@
 // ───────── entities: particles, beams, loot, equipment, turrets, projectiles
 const _e=new THREE.Euler(),_q=new THREE.Quaternion(),_p=new THREE.Vector3(),_s=new THREE.Vector3();
-const _boxGeo=new Map();function boxGeo(w,h,d){const k=(w*100|0)+'_'+(h*100|0)+'_'+(d*100|0);let g=_boxGeo.get(k);if(!g){g=new THREE.BoxGeometry(w,h,d);_boxGeo.set(k,g)}return g}
+const _boxGeo=new Map();function boxGeo(w,h,d){const q=v=>Math.max(1,Math.round(v*(v<.5?40:20)));const a=q(w),b=q(h),c=q(d);const k=(w<.5?'s':'')+a+'_'+(h<.5?'s':'')+b+'_'+(d<.5?'s':'')+c;let g=_boxGeo.get(k);if(!g){g=new THREE.BoxGeometry(a/(w<.5?40:20),b/(h<.5?40:20),c/(d<.5?40:20));_boxGeo.set(k,g)}return g}
 function box(w,h,d,color,x,y,z,parent){const m=new THREE.Mesh(boxGeo(w,h,d),new THREE.MeshLambertMaterial({color}));m.position.set(x,y,z);m.castShadow=true;parent.add(m);return m}
 function eyes(parent,y,z,w){const s=Math.min(.34,Math.max(.09,w*.62));for(const sx of[-1,1]){box(s,s*1.25,.06,0x1d1f33,sx*w,y,z+.01,parent);box(s*.38,s*.38,.03,0xffffff,sx*w+s*.18,y+s*.25,z+.05,parent)}}
 function clearGroup(g){while(g.children.length)g.remove(g.children[0])}
