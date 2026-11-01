@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v9.4 — Minions: uma otimização descartada, um LOD pequeno aceito
+- Soldados: pré-filtro por tick dos inimigos candidatos (morto, guarda, distância ao centro/bandeira, altura — com margem e incluindo os que nascem no meio do tick). Simulação idêntica (SEED=1). A/B pareado no mesmo estado (h35, ~285 inimigos), custo dos minions por tick antigo→novo: 4,96→4,07; 3,78→3,96; 6,43→6,25; 4,69→4,99 ms — sem ganho consistente (ruído). **Revertido** — não vale a complexidade. O custo dos soldados não está no filtro; próximos suspeitos: caminho (walkTo/findPath) e combate.
+- LOD de acessórios dos minions: com a câmera afastada (dist ≥ 60 Normal, ≥ 40 Leve; Alta nunca) escondem o acessório equipado e a ferramenta (a ferramenta reaparece enquanto trabalham). A/B pareado h35, câmera padrão (70): malhas de minions 874 → 745 (−15%), chamadas 2 612 → 2 506 e 2 639 → 2 483 (−4% a −6%). Capturas acc_999.png × acc_60.png na câmera padrão: sem diferença perceptível (minions têm ~10 px).
+- Ganho pequeno e honesto. O grosso das chamadas segue sendo inimigos (≈1 300) e minions (≈750); reduzir mais exigiria mesclar as peças animadas (refatoração maior).
+- SEED=1 tecon_seed 400 idêntico horda a horda. t5 600: h11, 0 erros. tcompat v0.41 → w15, v0.60 → w20, v7.8/w31 → w31, 0 erros. tplay 1280×800: 0 problemas, 0 erros.
+
 ## v9.3 — Menos chamadas de desenho; correção do número da v9.2
 - Quebra das malhas visíveis em h35 (tests/tperf2.js DRAW=1, __drawBreak): 3 653 malhas, 70% inimigos (~10 por inimigo), 24% minions, 6% resto; 3 239 projetavam sombra.
 - Sombras enxutas: inimigos comuns só projetam sombra pelo corpo (malha instanciada); chefes mantêm tudo. Projetores de sombra 3 239 → 1 411, mas chamadas totais só −4% (3 862 → 3 695): o passe de sombra já cortava a maioria pelo frustum da luz. Mantido (barato, sem efeito visual perceptível).

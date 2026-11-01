@@ -477,3 +477,4 @@ let bossAffAcc=0;function bossAffTick(dt){bossAffAcc+=dt;if(bossAffAcc<.25)retur
   if(e.bossAff==='escudo'){if(!e.shieldMesh){e.shieldMesh=new THREE.Mesh(new THREE.SphereGeometry(e.radius*1.6/e.group.scale.x,16,10),new THREE.MeshBasicMaterial({color:0x6fb6ff,transparent:true,opacity:.22,depthWrite:false}));e.shieldMesh.position.y=e.radius*1.2/e.group.scale.x;e.group.add(e.shieldMesh)}
     if(e.shield<e.shieldMax&&simTime-(e.lastHit||0)>4){const was=e.shield;e.shield=Math.min(e.shieldMax,e.shield+e.shieldMax*.06*t);if(was<=0&&e.shield>0)e.shieldMesh.visible=true}if(e.shieldMesh)e.shieldMesh.material.opacity=e.shield>0?.12+.18*(e.shield/e.shieldMax):0}}}
 
+
