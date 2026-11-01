@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v10.2 — Chefes no novo estilo
+- Fera (boss), golem, serpe (wyrm), colosso, necromante, rainha e titã: cabeça maior (golem 0,5→0,86 de largura; titã 0,6→0,84; colosso 0,65→0,9; necro 0,55→0,72; rainha 0,55→0,72; fera 1,1→1,25), sobrancelhas/testa, chifres, dentes, viseira, crânio com dentes — via face(...,{noEyes:1}) para manter os olhos brilhantes originais (userData.eyes) e as animações (mandíbula, cauda, braços, orbe, tomo, asas).
+- Malhas antigo→novo: fera 22→17, golem 15→17, serpe 11→12, colosso 10→12, necro 10→11, rainha 21→22, titã 18→19 (total 107→110, +3%). Há 1 chefe por vez em campo (+1 a +2 draw calls) — custo irrelevante, mas registrado: não é "sem aumento".
+- Vitrine: chefes são altos demais para a câmera da vitrine (alvo no chão); foi preciso d=50 e pitch 0,12 para ver as cabeças do golem e do titã. Colosso ainda corta no topo — não verificado de perto.
+- t5 600: h11, 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h31. tplay 1280×800: 0 problemas, 0 erros.
+- Próximo: inimigos de evento (mímico, cristal, estilhaço, general, aríete rival) e o Rei da Bruma/Arauto/Sentinela; conferir o colosso de perto.
+
 ## v10.1 — Soldados e especialistas no novo estilo; voador refeito
 - Refeitos com face()/gear()/mcache(): cavaleiro (elmo com viseira em T e olhos brilhando, pluma da facção, ombreiras, escudo e espada com guarda dourada), arqueiro (capuz da facção, aljava com penas, arco), escudeiro (bigode, elmo com nasal, escudo-torre com faixa, lança), cavador (capacete de mineiro com lanterna, óculos, focinho rosado, dentões), bombardeiro (gorro de aviador com abas, óculos, cachecol, bomba com rótulo), pirata (bicorne com caveira, tapa-olho, barba, sabre, papagaio com olhos).
 - Armas animadas (sabre, arco, escudo, papagaio, bomba) viraram 1 malha fundida cada, posicionada no pivô — antes eram peça + filhos. 1ª versão: cavaleiro 9→11 malhas (+2) e bombardeiro +1; corrigido. Final antigo→novo: cavaleiro 9→9, arqueiro 12→9, escudeiro 11→9, cavador 17→11, bombardeiro 9→9, pirata 11→9.
