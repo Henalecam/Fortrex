@@ -164,7 +164,7 @@ function simulate(dt){simTime+=dt;
     hudAcc+=dt;if(hudAcc>.25){hudAcc=0;updateHud()}}
   for(const k of fuses)k.material.emissiveIntensity=.4+Math.sin(simTime*20)*.4;
   updateDebris(dt);updateLoot(dt);updateFlames(dt);updateBeams(dt);updatePlan(dt)}
-function frame(now){requestAnimationFrame(frame);let dt=Math.min(.05,(now-last)/1000);last=now;const rdt=dt;if(hitstop>0){hitstop-=dt;dt*=.08}if(slowmo>0){slowmo-=rdt;dt*=.3}
+function frame(now){requestAnimationFrame(frame);if(window.__freeze){last=now;return}let dt=Math.min(.05,(now-last)/1000);last=now;const rdt=dt;if(hitstop>0){hitstop-=dt;dt*=.08}if(slowmo>0){slowmo-=rdt;dt*=.3}
   const pan=24*rdt*(cam.dist/70);const sy=Math.sin(cam.yaw),cy=Math.cos(cam.yaw);
   if(keys.w||keys.arrowup){cam.target.x-=sy*pan;cam.target.z-=cy*pan}if(keys.s||keys.arrowdown){cam.target.x+=sy*pan;cam.target.z+=cy*pan}
   if(keys.a||keys.arrowleft){cam.target.x-=cy*pan;cam.target.z+=sy*pan}if(keys.d||keys.arrowright){cam.target.x+=cy*pan;cam.target.z-=sy*pan}

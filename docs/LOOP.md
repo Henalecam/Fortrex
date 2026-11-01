@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v8.6 — Linha de base com sementes (medições comparáveis)
+- tests/tecon_seed.js: SEED=N troca Math.random por mulberry32 antes do jogo carregar e liga window.__freeze (o laço requestAnimationFrame não avança a simulação; só __step avança). Mesmo assim duas corridas com a mesma semente divergem já na h1 (27 vs 28 s): ainda há lógica de jogo em setTimeout (rajadas escalonadas de chefes, toasts etc.) que intercala com o __step em tempo real. Determinismo total exigiria trocar esses timers por agendamento em simTime — anotado, não feito.
+- Linha de base Normal (tecon_seed 900 s, sementes 1–4, bot forte): h8 358±30 s, h10 535±28 s, h12 663±28 s, h14 814±30 s (n=3–4). Regra prática: diferença < ~60 s (2 desvios) em h10–h14 é ruído.
+- Hordas mais longas em h8–h16: semente 3 h10 151 s (cauda 84 s, Bruto a 30 do centro); semente 4 h13 173 s (cauda 82 s, Titã a 29, evento elite). Ambas terminam pelos mecanismos de cauda (exposto → sangramento; chefe furioso → sangramento). Sem problema claro — nada ajustado.
+- t5 600: h11, 0 erros. tcompat v0.41 → w14, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+
 ## v8.5 — Auto espera a escolha
 - Com Auto ligado, quando o descanso acaba e ainda há bênção ou Mercador sem resposta, o jogo segura até 20 s (botão "Auto ⏸ Ns" em âmbar); depois dispensa o Mercador e pega a 1ª bênção, com rótulo curto. Teste thold.js: 20→13 s de espera visíveis, depois horda começa com merch="no" e bênção "alcance". Screenshot hold.png.
 - Bug achado no screenshot: o botão principal mostrava "Próxima em -7s" (contagem negativa) durante a espera — agora mostra "Chamar horda".
