@@ -175,7 +175,7 @@ function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRiva
   let tgt=null,bd=1e9;
   if(state.focus&&!state.focus.dead&&state.focusT>0){const d=hd(state.focus.pos,t.pos);if(d<range*1.3&&!(LOB(t.type)&&state.focus.fly))tgt=state.focus}
   if(!tgt)for(const e of enemies){if(e.dead||e.under||(e.rival&&e.rmode==='guard'&&hd(e.pos,t.pos)>range*.8))continue;if(LOB(t.type)&&(e.fly||hd(e.pos,t.pos)<t.T.minRange))continue;let d=hd(e.pos,t.pos);if(d>range)continue;
-    if(t.type==='ballista'&&e.fly)d-=10;if(e.type==='shaman')d-=4;if(e.type==='sapper')d-=3;if(d<bd){bd=d;tgt=e}}
+    if(t.type==='ballista'&&e.fly)d-=10;if(e.type==='shaman')d-=4;if(e.type==='sapper')d-=3;if(e.boss2&&hd(e.pos,CHEST)<9)d-=14;if(d<bd){bd=d;tgt=e}}
   if(!tgt)return;const aim=enemyAim(tgt);const dx=aim.x-t.pos.x,dz=aim.z-t.pos.z;t.yaw=Math.atan2(dx,dz);
   let dy=t.yaw-t.group.rotation.y;while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;t.group.rotation.y+=dy*Math.min(1,dt*7);
   t.pivot.rotation.x+=(0-t.pivot.rotation.x)*Math.min(1,dt*5);

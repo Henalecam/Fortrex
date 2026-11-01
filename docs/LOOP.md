@@ -226,6 +226,14 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v8.0 — Coração Rúnico (recompensa de fim de jogo)
+- Nova relíquia: derrotar a Sentinela Rúnica deixa o Coração Rúnico (state.runeHeart, nv máx 5, salvo junto com o estado). Obelisco de cristal azul com anéis girando e feixe de luz flutua sobre a torre de menagem. A cada max(3,5; 8−nv) s marca o maior aglomerado (amostra de 40, raio 3,2) com aviso que se preenche e explode 1,1 s depois: 22% da vida máx + 60×horda (chefes: 3%), ×(1+0,25×(nv−1)); nv3 = 2 alvos, nv5 = 3 (alvos ≥ 6 blocos entre si, mira adiantada pela velocidade).
+- Teste dirigido (trh.js, nv3, 40 rastejantes h18): 37 de 40 abatidos em ~30 s; média de ~2 inimigos por runa. Screenshot rh_0.png mostra o obelisco visível sobre o castelo.
+- Luta natural h35 (fixture h31 + 3000): 3 corridas. (a) v7.9: Sentinela morreu em 94 s. (b) com afixo Escudo de chefe: escudo de 714k regenerando absorvia 85% e as 27 torres caíram em ~50 s → invencível. (c) sem Escudo: torres 23 → 1 em 30 s, Sentinela em 94% após 4 min. Conclusão: o castelo de h31 pulado direto para h35 (sem as 4 hordas de upgrades) não segura a horda inteira — as torres caem para a tropa, não para as runas.
+- Ajustes: Sentinela não recebe mais o afixo Escudo (já tem o escudo rúnico próprio); runas causam metade do dano em torres; torres priorizam chefes a < 9 do baú (d −14 na escolha de alvo).
+- t5 600: h12, 0 erros. tcompat v0.41 → w15, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+- Próximo: registrar QUEM destrói as torres em h33–35 (log por atacante em damageTurret) e equilibrar.
+
 ## v7.9 — Primeira corrida natural além de h30; Sentinela validada com castelo real
 - tsavegen.js (Tranquilo, bot forte, 2700 s): h31 com 0 derrotas (h25 aos 33 min, h30 aos 44 min, h31 aos 51 min). Dano real no baú por horda tardia: escaladores 1–2k, aranhas até 1,7k, Rainha 2,1k em h30 — tudo absorvido. Salvo como 3ª fixture de compatibilidade: tests/save_v78_w31.json (394 KB).
 - Sentinela h35 com esse castelo (tlate_d.js, FX=save_v78_w31, +3000 material): DPS total ≈ 110k/s (contra 20k/s da fixture h19), 25 torres no início. Sentinela nasce com 3,17M, chega ao baú (d5) ~60 s depois, cai de 100% → 29% em 30 s e morre 94 s após nascer. Só 8 ataques (5 runas, 3 raios). Baú quebrou 2× na horda 35 (com __noLose) — h35 continua exigente, como deve.
