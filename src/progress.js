@@ -1167,7 +1167,7 @@ function forgeBuy(slot){if(!forgeOpen())return false;const c=forgeCost();if(stat
 window.__forge=(s)=>{state.wave=Math.max(10,state.wave);if(state.wave%3!==1)state.wave+= (4-state.wave%3)%3;state.material+=999;return forgeBuy(s||'arma')};
 
 // v6.0 TUTORIAL DE 30 S na tela inicial (opcional)
-const TUT=[['🧱','Construa e deixe os minions trabalharem','Toque em 🧱 Construir e arraste para erguer muros (− / = muda a altura). Os reparadores constroem, reconstroem e trocam blocos pelo melhor material sozinhos. Coletores buscam o loot; artilheiros operam as armas.'],
+const TUT=[['🧱','Construa e deixe os minions trabalharem','Toque em 🧱 Construir e arraste para erguer muros (botões − e + mudam a altura). Os reparadores constroem, reconstroem e trocam blocos pelo melhor material sozinhos. Coletores buscam o loot; artilheiros operam as armas.'],
  ['⚔️','Chame a horda','“Chamar horda” solta os Devoradores. Eles querem o baú no centro. Armas nas torres, soldados no pátio e armadilhas fora dos muros. Se o baú cair você só recua uma horda — dá para navegar com ‹ › no topo.'],
  ['✨','Use o descanso','Entre hordas: escolha uma bênção, veja a prévia da próxima horda, motive minions (toque num deles), gaste material em ⬆️ Upgrades e equipe o que caiu no 🎒 Arsenal. A cada 5 hordas vem um chefe; a cada 10, um marco.']];
 (()=>{let k=0;const b=$('tutBtn'),T=$('tut');if(!b||!T)return;const show=()=>{const [i,t,d]=TUT[k];$('tutCard').innerHTML=`<i>${i}</i><b>${k+1}. ${t}</b><span>${d}</span>`;$('tutDots').textContent=TUT.map((_,j)=>j===k?'●':'○').join('');$('tutNext').textContent=k<TUT.length-1?'Próximo':'Jogar!'};

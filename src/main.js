@@ -79,18 +79,19 @@ function newGame(){_later.length=0;for(const e of enemies)scene.remove(e.group);
   toast('Fortaleza acordada. Abra Construir para editar a base.','r1');updateHud()}
 
 // ───────── input
-let dragging=false,moved=0,lx=0,ly=0,pinch=0,downBtn=0,lastHover=0;
+let dragging=false,moved=0,lx=0,ly=0,pinch=0,downBtn=0,lastHover=0,mtouch=false,mtEnd=0,tmx=0,tmy=0;
 canvas.addEventListener('pointerdown',e=>{dragging=true;moved=0;downBtn=e.button;lx=e.clientX;ly=e.clientY;canvas.setPointerCapture(e.pointerId);if(state.build.on&&e.button===0&&!e.shiftKey&&(state.build.tool==='place'))craftDown(e.clientX,e.clientY)});
 canvas.addEventListener('pointermove',e=>{const now=performance.now();if(now-lastHover>45&&state.running){lastHover=now;hoverAt(e.clientX,e.clientY)}
-  if(!dragging)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);if(moved<6)return;if(CRAFT.a!==null){craftMove(e.clientX,e.clientY);return}
+  if(!dragging||mtouch)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);if(moved<6)return;if(CRAFT.a!==null){craftMove(e.clientX,e.clientY);return}
   if(e.buttons===2||e.buttons===4||e.shiftKey){const s=cam.dist*.0016,sy=Math.sin(cam.yaw),cy=Math.cos(cam.yaw);cam.target.x=clamp(cam.target.x-(dx*cy-dy*sy)*s,0,W);cam.target.z=clamp(cam.target.z-(-dx*sy-dy*cy)*s,0,D)}
   else{cam.yaw-=dx*.006;cam.pitch=clamp(cam.pitch+dy*.005,.35,1.4)}});
-canvas.addEventListener('pointerup',e=>{dragging=false;if(CRAFT.a!==null){const was=moved>=6;craftUp(was);if(was)return}if(moved<6)clickAt(e.clientX,e.clientY,downBtn===2)});
+canvas.addEventListener('pointerup',e=>{dragging=false;if(mtouch||mtEnd>performance.now()){CRAFT.a=null;CRAFT.cells=[];gInst.count=0;return}if(CRAFT.a!==null){const was=moved>=6;craftUp(was);if(was)return}if(moved<6)clickAt(e.clientX,e.clientY,downBtn===2)});
 canvas.addEventListener('pointerleave',()=>{$('tip').style.display='none'});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('wheel',e=>{e.preventDefault();cam.dist=clamp(cam.dist*(1+Math.sign(e.deltaY)*.08),14,200)},{passive:false});
-canvas.addEventListener('touchstart',e=>{if(e.touches.length===2)pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)},{passive:true});
-canvas.addEventListener('touchmove',e=>{if(e.touches.length===2){const p=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);cam.dist=clamp(cam.dist*(pinch/p),14,130);pinch=p;moved=99}},{passive:true});
+canvas.addEventListener('touchstart',e=>{if(e.touches.length>=2){mtouch=true;CRAFT.a=null;CRAFT.cells=[];gInst.count=0;pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);tmx=(e.touches[0].clientX+e.touches[1].clientX)/2;tmy=(e.touches[0].clientY+e.touches[1].clientY)/2}},{passive:true});
+canvas.addEventListener('touchend',e=>{if(mtouch&&e.touches.length<2){mtouch=false;mtEnd=performance.now()+250;dragging=false}},{passive:true});
+canvas.addEventListener('touchmove',e=>{if(e.touches.length===2){const p=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);cam.dist=clamp(cam.dist*(pinch/p),14,130);pinch=p;moved=99;const mx=(e.touches[0].clientX+e.touches[1].clientX)/2,my=(e.touches[0].clientY+e.touches[1].clientY)/2,dx=mx-tmx,dy=my-tmy;tmx=mx;tmy=my;const s=cam.dist*.0022,sy=Math.sin(cam.yaw),cy=Math.cos(cam.yaw);cam.target.x=clamp(cam.target.x-(dx*cy-dy*sy)*s,0,W);cam.target.z=clamp(cam.target.z-(-dx*sy-dy*cy)*s,0,D)}},{passive:true});
 function clickAt(cx,cy,right){if(!state.running)return;
   if(state.rallyMode){const ray=rayFrom(cx,cy);const h=voxRay(ray.origin,ray.direction,true);if(h){setRally(ix(h.i)+.5,iz(h.i)+.5)}state.rallyMode=false;$('bRally').classList.remove('armed');return}
   if(state.bombMode){const ray=rayFrom(cx,cy);const h=voxRay(ray.origin,ray.direction,true);let px,pz;if(h){px=ix(h.i)+.5;pz=iz(h.i)+.5}else if(ray.direction.y<-1e-4){const t=(GY-ray.origin.y)/ray.direction.y;px=ray.origin.x+ray.direction.x*t;pz=ray.origin.z+ray.direction.z*t}
@@ -364,3 +365,4 @@ window.__alive=()=>enemies.filter(e=>!e.dead&&!e.rival).map(e=>e.type+'@'+Math.r
 window.__battlePos=()=>{const B=battle();if(!B)return null;for(let k=0;k<3;k++){const e=spawnRivalUnit(B,'guard');}const g=makeEnemy('rammer',0,B.cx+3,B.cz+B.wr+6);g.rival=B;g.rmode='guard';g.home={x:g.pos.x,z:g.pos.z};B.guards.push(g);return {x:B.cx,z:B.cz,style:B.style,name:B.name}};
 window.__champPos=()=>{const e=enemies.find(e=>e.champ&&!e.dead);return e?{x:e.pos.x,z:e.pos.z,n:e.champ,hp:Math.round(e.hp)}:null};
 newsOnOpen();
+window.__cam=()=>({x:+cam.target.x.toFixed(2),z:+cam.target.z.toFixed(2),d:+cam.dist.toFixed(2),yaw:+cam.yaw.toFixed(3),p:+cam.pitch.toFixed(3),cy:+camera.position.y.toFixed(1),ty:+cam.target.y.toFixed(1)});

@@ -226,6 +226,18 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v9.1 — Primeiro minuto no celular com toque real
+tests/tfirst.js: emulação de toque (390×844, isMobile, p5m.html com meta viewport), gestos por CDP Input.dispatchTouchEvent: tutorial, arrasto de 1 dedo, pinça, arrasto de 2 dedos, construir arrastando, pinça durante construção, 1ª horda e descanso; mede alvos de toque < 36 px e elementos fora da largura.
+Bugs achados e corrigidos:
+1. **Não dava para mover a câmera no celular**: mover o alvo só existia com botão direito/meio ou Shift; com toque, 1 dedo gira e 2 dedos só davam zoom. Agora 2 dedos dão zoom E deslocam a câmera pelo ponto médio. Medido: alvo (96,96) → (105.7,95.2) com o arrasto de 2 dedos; giro (yaw) inalterado durante gestos de 2 dedos.
+2. **Pinça durante a construção podia criar uma fileira**: o 1º dedo iniciava o arrasto de construção. Agora um 2º dedo cancela a fileira e o toque seguinte (250 ms) não vira clique. Medido depois: pinça em modo construção 5621 → 5621 plantas (o caso antes do ajuste não foi medido — o risco veio da leitura do código); arrastar com 1 dedo ainda constrói (5601 → 5621, 20 blocos).
+3. **Alvos de toque pequenos**: na tela inicial "Acordar a Fortaleza" tinha 27 px de altura, dificuldades 27 px, Como jogar 25 px; no jogo Reino/Automação 25 px, fechar dica 28×32, ‹ › 30×30. Em telas de toque agora ≥ 36–40 px. Depois: lista de alvos pequenos vazia na tela inicial, no jogo e no descanso.
+4. **Tutorial falava de teclas** ("− / = muda a altura") — agora "botões − e + mudam a altura".
+5. **Dica cobrindo o painel Construir no celular** (first_390_3build_b.png: dica sobre as linhas Gelo/Cristal) — dicas somem enquanto um painel está aberto em telas ≤ 760 px.
+6. **Rótulos de dano fora da tela** continuavam sendo posicionados (x = 12 690 px etc.) — agora são escondidos quando o ponto está fora da vista ou atrás da câmera (menos trabalho de layout).
+Falso alarme investigado: tela branca nas capturas depois de construir era a fileira de 20 plantas que o teste pôs no telhado da torre, colada na câmera com zoom 35 — não é bug.
+- t5 600: h12, 0 erros. tcompat v0.41 → w14, v0.60 → w20, v7.8/w31 → w31, 0 erros. tfirst 390×844: 0 problemas, 0 erros.
+
 ## v9.0 — QA de interação real (cliques como um jogador)
 tests/tplay.js clica de verdade (page.mouse.click no centro de cada botão, após conferir com elementFromPoint que nada o cobre), abre/fecha cada painel, abre pares de painéis, compra na loja, constrói, chama horda, muda velocidade, usa bomba, escolhe bênção e no fim varre todos os botões visíveis procurando os cobertos. tests/tover.js mede elementos que passam da largura do celular com emulação de toque.
 Bugs achados e corrigidos:
