@@ -3,5 +3,5 @@ const { chromium } = require('playwright');const path=require('path');
  await page.addInitScript(()=>{window.__headless=true;if(location.hash==='#old')window.__oldLook=1;try{localStorage.setItem('fortrex_tips','{"start":1,"auto":1,"shop":1,"build":1,"wave":1,"realm":1,"ward":1,"sappers":1,"bomb":1,"mason":1,"save":1}')}catch(e){}});await page.goto('file://'+path.join(__dirname,'three/p5.html')+(process.env.OLD?'#old':''));await page.waitForTimeout(700);
  const LT=(process.env.LT||'crawler,wolf,spider,slime,imp,brute,beetle,climber,sapper,goblin,shaman,flyer').split(',');
  const cam=(process.env.CAM||'17,138,97,0,.5').split(',').map(Number);
- console.log(await page.evaluate((LT)=>{document.getElementById('start').click();window.__step(1);window.__clearArea(118,168,84,130);window.__lineupTypes=LT;const r=window.__lineup();window.__step(.02);return r},LT));
+ console.log(await page.evaluate((LT)=>{document.getElementById('start').click();window.__step(1);window.__clearArea(118,168,84,130);window.__lineupTypes=LT;window.__lineupGround=1;const r=window.__lineup();return r},LT));
  await page.evaluate((c)=>{window.__camSet(c[0],c[1],c[2],c[3],c[4]);window.__headless=false},cam);await page.waitForTimeout(500);await page.screenshot({path:process.env.OUT||'look.png',timeout:120000});console.log(errs);await browser.close()})();
