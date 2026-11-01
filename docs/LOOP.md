@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v8.2 — Coração Rúnico rebalanceado; vida da Sentinela menos aleatória; curva curta conferida
+- Participação do Coração Rúnico (__rhDmg vs DMG_ACC, h35, fixture h31, nv1 desde o início): 8,06M de 30,9M = 26% de todo o dano, ~9 inimigos por runa — forte demais. Novo: 10% da vida máx + 40×horda (chefes 2%), +15% por nível (antes 22% + 60×horda, +25%/nv). Remedido: 4,41M de 24,8M = 17,8% (o coração subiu para nv2 no meio da corrida ao derrotar a Sentinela; o registro é antes da armadura, logo superestima um pouco).
+- Sentinela: raridade multiplicava a vida por 1+0,5×r (1,6M / 3,2M / 4,8M em h35 — com 4,8M ficou em 80% após 5 min). Agora 1+0,15×r para ela. Na corrida de validação morreu 189 s após nascer.
+- Curva curta depois das mudanças de fim de jogo: Normal (tecon_plus 1800 s) h22 aos 28,6 min, 0 derrotas (v7.5: h22 aos 34,6 min) — um pouco mais rápido, aceitável. Brutal (tecon_brutal2 1800 s) h17 aos 29 min, 1 derrota (v6.x: h19 aos 45 min) — no ritmo.
+- t5 600: h13, 0 erros. tcompat v0.41 → w14, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+
 ## v8.1 — Quem derruba as torres; armas de torres desabadas voltam ao arsenal
 - Novo log __turDmg (dano real em armas por atacante + "ANCHOR:x" = arma perdida porque o bloco de apoio caiu). Em h35 (fixture h31): voadores lideram o dano direto (~21–25k em 2 min, 5–10× o 2º lugar), MAS a queda em massa vinha de desabamento: numa corrida h34→h35, 18 armas caíram de uma vez quando um aríete rival derrubou a base de torres (ANCHOR:rammer) e +8 por rastejantes (ANCHOR:crawler) — 25 → 1 torre em ~60 s.
 - Mudanças: (1) arma sobre bloco de apoio destruído volta para o arsenal (state.inv.turrets) com rótulo "🏗 torre caiu → arsenal"; a automação a recoloca quando os reparadores refazem a torre. Armas de rivais continuam sendo destruídas. (2) Voadores: bônus contra armas 1,5× → 1,2×, e 0,6× quando mais de 3 golpes atingem a mesma arma no mesmo segundo.
