@@ -1252,3 +1252,16 @@ window.__merch=()=>{state.merchLast=0;const r=Math.random;Math.random=()=>0;try{
 function choicePending(){if(state.phase==='wave'||state.raid)return false;const M=state.merch;return !!(state.blessOffer||(M&&M.w===state.wave&&!M.done))}
 function choiceAutoResolve(){const M=state.merch;if(M&&M.w===state.wave&&!M.done){merchPick('no');label({x:CHEST.x,y:GY+6,z:CHEST.z},'🏮 mercador dispensado','#ffd27a')}if(state.blessOffer){blessPick(state.blessOffer[0]);label({x:CHEST.x,y:GY+5,z:CHEST.z},'✨ bênção escolhida','#ffd27a')}}
 let _holdUi=false;function autoHoldUi(on){const b=$('auto');if(!b)return;if(on){const left=Math.max(0,Math.ceil(20-(state.holdT||0)));b.textContent=`Auto ⏸ ${left}s`;b.title='Esperando sua escolha (bênção / Mercador)';b.classList.add('hold');_holdUi=true}else if(_holdUi){b.textContent='Auto';b.title='Hordas automáticas';b.classList.remove('hold');_holdUi=false}}
+
+// v8.8 PERSONALIDADE DOS TEMAS: o tema principal da horda dá um traço aos seus inimigos (mostrado no "Vem aí")
+const THEME_MOD={enxame:{d:'mais numerosos, −20% de vida',on(e){e.maxhp*=.8;e.hp=e.maxhp},extra:.2},
+  matilha:{d:'+15% de velocidade, chegam uivando',on(e){e.speed*=1.15}},
+  cerco:{d:'+20% de vida, −10% de velocidade',on(e){e.maxhp*=1.2;e.hp=e.maxhp;e.speed*=.9}},
+  ceu:{d:'voam mais rápido (+10%), −10% de vida',on(e){e.speed*=1.1;e.maxhp*=.9;e.hp=e.maxhp}},
+  guarda:{d:'+10% de armadura',on(e){e.armor=Math.min(.7,(e.armor||0)+.1)}}};
+function themeMain(){if(window.__noTM)return null;const k=state.themes&&state.themes[0];const T=k&&THEMES.find(x=>x.k===k);return T&&THEME_MOD[k]&&state.wave>=4?T:null}
+const _mk88=makeEnemy;makeEnemy=function(type,...a){const e=_mk88(type,...a);if(state.phase==='wave'&&!state.raid&&!e.rival&&!BIG(type)){const T=themeMain();if(T&&T.t.includes(type))THEME_MOD[T.k].on(e)}return e};
+const _prev88=previewHtml;previewHtml=function(){const h=_prev88();const T=themeMain();if(!h||!T)return h;return h.replace('</div>',`<span class="nth">${T.ico} ${T.n}: ${THEME_MOD[T.k].d}</span></div>`)};
+const _ws88=waveSpec;waveSpec=function(w){const L=_ws88(w);const T=themeMain();if(T&&THEME_MOD[T.k].extra){const sm=L.filter(t=>T.t.includes(t));const n=Math.round(sm.length*THEME_MOD[T.k].extra);for(let k=0;k<n&&sm.length;k++)L.push(sm[Math.floor(Math.random()*sm.length)])}return L};
+const _sw88=startWave;startWave=function(){const was=state.phase;_sw88();if(was!=='wave'&&state.phase==='wave'){const T=themeMain();if(T&&T.k==='matilha'){label({x:CHEST.x,y:GY+7,z:CHEST.z},'🐺 uivos ao longe…','#c8c8e0');SFX.champ&&SFX.champ()}}};
+window.__wspec=w=>{const L=waveSpec(w);return [L.length,(state.themes||[]).join('+')]};
