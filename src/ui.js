@@ -19,7 +19,7 @@ function updateHud(){$('wave').textContent=state.wave;$('mat').textContent=Math.
   if(state.card)renderCard()}
 
 // ── side panels
-function openSide(id){for(const p of ['arsenal','shop','codex'])if(p!==id&&id!=='buildPanel')$(p).style.display='none';const el=$(id);const open=el.style.display!=='flex';el.style.display=open?'flex':'none';
+function openSide(id){{const h=$('hire');if(h)h.style.display='none'}for(const p of ['arsenal','shop','codex'])if(p!==id&&id!=='buildPanel')$(p).style.display='none';const el=$(id);const open=el.style.display!=='flex';el.style.display=open?'flex':'none';
   if(id==='buildPanel'){state.build.on=open;if(!open)ghost.visible=false;if(open)renderBuild()}if(id==='arsenal'&&open){state.newItems=0;renderArsenal()}if(id==='shop'&&open)renderShop();if(id==='codex'&&open)renderCodex();updateHud()}
 function closeSide(id){$(id).style.display='none';if(id==='buildPanel'){state.build.on=false;ghost.visible=false}updateHud()}
 function refreshPanels(){if($('arsenal').style.display==='flex')renderArsenal();if(state.build.on)renderBuild();if($('shop').style.display==='flex')renderShop()}
