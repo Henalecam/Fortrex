@@ -1186,7 +1186,7 @@ let _elodT=0;function enemyLodTick(dt){_elodT-=dt;if(_elodT>0)return;_elodT=.4;c
 
 // v7.0 QUALIDADE (Leve / Normal / Alta): resolução, sombras, distância de detalhe dos inimigos e dos rostos
 function qual(){return OPTS.q||(OPTS.lowGfx?'leve':'normal')}
-const QUAL={leve:{dpr:1,lod:26,face:30,sh:false,n:'Leve'},normal:{dpr:1.5,lod:38,face:46,sh:true,n:'Normal'},alta:{dpr:2,lod:64,face:80,sh:true,n:'Alta'}};
+const QUAL={leve:{dpr:1,lod:20,face:30,sh:false,n:'Leve'},normal:{dpr:1.5,lod:30,face:46,sh:true,n:'Normal'},alta:{dpr:2,lod:64,face:80,sh:true,n:'Alta'}};
 function applyQual(){const Q=QUAL[qual()];window.__lodK=window.__lodKTest||Q.lod;window.__faceD=Q.face;try{renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,Q.dpr));renderer.shadowMap.enabled=Q.sh;if(sun)sun.castShadow=Q.sh;resize()}catch(e){}}
 function qualUi(){const b=$('optLow');if(!b)return;const Q=QUAL[qual()];b.classList.toggle('on',qual()!=='normal');const t=b.querySelector('b'),d=b.querySelector('span');if(t)t.textContent='Qualidade: '+Q.n;if(d)d.textContent=qual()==='leve'?'Sem sombras, resolução menor e menos detalhe de longe. Bem mais rápido no celular. Toque para trocar.':qual()==='alta'?'Resolução cheia e detalhes até mais longe. Pede mais da placa de vídeo. Toque para trocar.':'Equilíbrio entre beleza e desempenho. Toque para trocar.'}
 setTimeout(applyQual,0);
@@ -1265,3 +1265,6 @@ const _prev88=previewHtml;previewHtml=function(){const h=_prev88();const T=theme
 const _ws88=waveSpec;waveSpec=function(w){const L=_ws88(w);const T=themeMain();if(T&&THEME_MOD[T.k].extra){const sm=L.filter(t=>T.t.includes(t));const n=Math.round(sm.length*THEME_MOD[T.k].extra);for(let k=0;k<n&&sm.length;k++)L.push(sm[Math.floor(Math.random()*sm.length)])}return L};
 const _sw88=startWave;startWave=function(){const was=state.phase;_sw88();if(was!=='wave'&&state.phase==='wave'){const T=themeMain();if(T&&T.k==='matilha'){label({x:CHEST.x,y:GY+7,z:CHEST.z},'🐺 uivos ao longe…','#c8c8e0');SFX.champ&&SFX.champ()}}};
 window.__wspec=w=>{const L=waveSpec(w);return [L.length,(state.themes||[]).join('+')]};
+
+// v9.3 SOMBRAS ENXUTAS: em inimigos comuns só o corpo (malha instanciada) projeta sombra; cabeça, pernas, olhos e asas não — o passe de sombras era ~45% das chamadas de desenho em h35
+const _mk93=makeEnemy;makeEnemy=function(type,...a){const e=_mk93(type,...a);if(!window.__fullShadow&&!BIG(type)){const keep=new Set(e.vmeshes||[]);e.group.traverse(o=>{if(o.isMesh&&!keep.has(o))o.castShadow=false})}return e};

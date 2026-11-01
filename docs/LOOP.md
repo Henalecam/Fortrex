@@ -226,6 +226,14 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v9.3 — Menos chamadas de desenho; correção do número da v9.2
+- Quebra das malhas visíveis em h35 (tests/tperf2.js DRAW=1, __drawBreak): 3 653 malhas, 70% inimigos (~10 por inimigo), 24% minions, 6% resto; 3 239 projetavam sombra.
+- Sombras enxutas: inimigos comuns só projetam sombra pelo corpo (malha instanciada); chefes mantêm tudo. Projetores de sombra 3 239 → 1 411, mas chamadas totais só −4% (3 862 → 3 695): o passe de sombra já cortava a maioria pelo frustum da luz. Mantido (barato, sem efeito visual perceptível).
+- LOD de inimigos: a distância para simplificar (esconder pernas/cabeça/olhos e manter o corpo) era alta demais — na câmera padrão quase nunca ativava. Normal 38 → 30, Leve 26 → 20 (Alta mantém 64). Comparação na câmera padrão (lodl_38.png vs lodl_24.png): inimigos têm ~20 px na tela e a diferença não é perceptível; de perto (zoom) nada muda porque a distância é em unidades do mundo.
+- Resultado h35 1280×800: chamadas Normal 3 940 → 2 512 (−36%), Leve 2 427 → 1 881 (−22%); malhas de inimigos 2 569 → 1 318. SEED=1 tecon_seed 400 idêntico horda a horda (h1–h8: tempo, material, malhas).
+- **Correção da v9.2**: o "−45%" vinha de medições em momentos diferentes da horda. A/B pareado no MESMO estado (h35, ~300 inimigos), ligando/desligando as duas otimizações (window.__setOldHyp + window.__oldSep): antigo 30,9 / 21,8 / 24,0 / 22,8 ms por tick → novo 19,9 / 19,1 / 20,1 / 21,9 — ganho de 4% a 36%, mediana ~14%. Texto da novidade 9.2 corrigido para "cerca de 15%".
+- t5 600: h11, 0 erros. tcompat v0.41 → w14, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+
 ## v9.2 — Desempenho da simulação em hordas gigantes
 Medição (tests/tperf2.js: fixture h31 → __lateGame, __freeze, tempo por tick com cronômetros por seção em simulate, perfil de CPU com custo inclusivo por função chamada). Atenção: a renderização aqui é por software (SwiftShader) — os ms de render servem só para comparação relativa; a simulação em JS é representativa.
 - h35, ~330 inimigos, antes: 25,3 ms de simulação por tick (inimigos 13,3; minions 5,9; armas 2,5). 3 940 chamadas de desenho e 2,1 M triângulos por quadro (leve: 2 427 / 1,8 M; render 445 → 171 ms).
