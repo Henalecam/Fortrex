@@ -1240,10 +1240,15 @@ function merchPick(k){const M=state.merch;if(!M||M.done||M.w!==state.wave)return
   SFX.click&&SFX.click();renderBless()}
 const _blessOffer0=blessOffer;blessOffer=function(){const w=state.wave;
   if(w>=8&&w<=22&&!state.raid&&(state.merchLast||0)<w-2&&Math.random()<(window.__merchP||.3)){state.merchLast=w;const t=randTurretType();const r=w>=16?4:3;state.merch={w,t,r,cost:Math.round(50+w*7),gain:Math.round(40+w*7)};state.blessOffer=null;renderBless();if(window.__botPlus){const M=state.merch;merchPick(state.material>=M.cost*1.6?'buy':(window.__botPact?'pact':'no'))}return}
-  _blessOffer0()};
+  _blessOffer0();if(window.__botPlus&&state.blessOffer)blessPick(state.blessOffer[0])};
 const _renderBless0=renderBless;renderBless=function(starting){const el=$('bless');const M=state.merch;
   if(el&&M&&M.w===state.wave&&!M.done&&state.phase!=='wave'&&!state.choosing){el.hidden=false;el.className='offer';el.innerHTML=merchHtml()+forgeHtml()+previewHtml();el.querySelectorAll('button[data-mc]').forEach(b=>b.onclick=()=>merchPick(b.dataset.mc));el.querySelectorAll('button[data-fs]').forEach(b=>b.onclick=()=>forgeBuy(b.dataset.fs));return}
   _renderBless0(starting)};
 const _startWave83=startWave;startWave=function(){const was=state.phase;_startWave83();if(was!=='wave'&&state.phase==='wave'&&state.pact===state.wave&&state.queue&&state.queue.length){const n=Math.ceil(state.queue.length*.25);for(let k=0;k<n;k++)state.queue.push(state.queue[Math.floor(Math.random()*state.queue.length)]);state.pact=0;label({x:CHEST.x,y:GY+6,z:CHEST.z},'🩸 a bruma cobra o pacto','#d9414f')}};
 const _bot83=window.__bot;window.__bot=function(){const M=state.merch;if(M&&M.w===state.wave&&!M.done&&state.phase!=='wave')merchPick(state.material>=M.cost*1.6?'buy':(window.__botPact?'pact':'no'));return _bot83.apply(this,arguments)};
 window.__merch=()=>{state.merchLast=0;const r=Math.random;Math.random=()=>0;try{blessOffer()}finally{Math.random=r}return state.merch};
+
+// v8.5 Auto espera a escolha: com bênção ou Mercador sem resposta, o descanso automático segura até 20 s antes de decidir sozinho
+function choicePending(){if(state.phase==='wave'||state.raid)return false;const M=state.merch;return !!(state.blessOffer||(M&&M.w===state.wave&&!M.done))}
+function choiceAutoResolve(){const M=state.merch;if(M&&M.w===state.wave&&!M.done){merchPick('no');label({x:CHEST.x,y:GY+6,z:CHEST.z},'🏮 mercador dispensado','#ffd27a')}if(state.blessOffer){blessPick(state.blessOffer[0]);label({x:CHEST.x,y:GY+5,z:CHEST.z},'✨ bênção escolhida','#ffd27a')}}
+let _holdUi=false;function autoHoldUi(on){const b=$('auto');if(!b)return;if(on){const left=Math.max(0,Math.ceil(20-(state.holdT||0)));b.textContent=`Auto ⏸ ${left}s`;b.title='Esperando sua escolha (bênção / Mercador)';b.classList.add('hold');_holdUi=true}else if(_holdUi){b.textContent='Auto';b.title='Hordas automáticas';b.classList.remove('hold');_holdUi=false}}

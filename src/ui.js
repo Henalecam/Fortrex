@@ -9,7 +9,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 
 function updateHud(){$('wave').textContent=state.wave;$('mat').textContent=Math.floor(state.material);const w=minions.filter(m=>m.wounded>0).length;$('mcount').textContent=minions.length;$('wounded').textContent=w?`· ${w} ferido${w>1?'s':''}`:'';
   $('alive').textContent=enemies.filter(e=>!e.dead&&!(e.rival&&e.rmode==='guard')).length+(state.queue?state.queue.length:0);
-  $('next').textContent=state.phase==='rest'?(state.choosing?'Escolha a recompensa':(state.auto?`Próxima em ${Math.ceil(state.restT)}s`:'Chamar horda')+(rushBonus()>0?` ⚡+${rushBonus()}`:'')):'Horda em andamento';
+  $('next').textContent=state.phase==='rest'?(state.choosing?'Escolha a recompensa':(state.auto?(state.restT<=0?'Chamar horda':`Próxima em ${Math.ceil(state.restT)}s`):'Chamar horda')+(rushBonus()>0?` ⚡+${rushBonus()}`:'')):'Horda em andamento';
   $('next').disabled=state.phase!=='rest'||state.choosing;$('auto').classList.toggle('on',state.auto);
   $('focusCd').textContent=state.focusCd>0?Math.ceil(state.focusCd)+'s':'pronto';$('focus').classList.toggle('on',state.focusT>0);
   $('bombCd').textContent=state.bombCd>0?Math.ceil(state.bombCd)+'s':'25';$('bomb').classList.toggle('armed',state.bombMode);
