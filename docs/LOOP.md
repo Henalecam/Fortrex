@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v8.4 — Pacto medido; Cerco mais curto; arma do Mercador mais barata
+- Log por horda ganhou "mc" (escolha no Mercador). Primeira medição falhou: com Auto ligado a horda começava antes do bot escolher (mc="?") — o bot agora decide no momento da oferta (só em teste, __botPlus); __merchP força o Mercador a cada 3 hordas.
+- Normal 1400 s com Mercador a cada 3 hordas: dispensando sempre → h19 aos 1370 s, 0 derrotas, material médio ~135; aceitando sempre o Pacto (h8, h11, h14, h17) → h19 aos 1436 s (+5% de tempo pelas hordas maiores), 0 derrotas, picos de material 227–253 logo após o pacto. O pacto troca tempo/risco por material — nem dominante nem ruinoso. Mantido.
+- A compra nunca aconteceu: 70+9×horda (178 em h12) ficava acima do material típico (~100–150). Novo preço 50+7×horda (134 em h12).
+- Cerco: 3 hordas sem descanso → 2, e não volta antes de 8 hordas (antes ocupava 3 de cada ~20 hordas, 2× por corrida, o triplo de qualquer outro evento). Recompensa épica mantida.
+- t5 600: h12, 0 erros. tcompat v0.41 → w15, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+
 ## v8.3 — Mercador da Bruma (decisões no meio do jogo)
 - Diagnóstico (tecon_plus Normal, n82): entre h8 e h22 metade das hordas não tem evento e os que existem não pedem decisão; o "cerco" ocupa 3 hordas seguidas. A única escolha recorrente era a bênção (2 opções sem custo).
 - Novo: Mercador da Bruma (h8–h22, ~30% dos descansos, no mínimo 3 hordas entre visitas) substitui a bênção por 3 opções com custo real: 🛒 arma épica (lendária a partir de h16) por 70+9×horda material; 🩸 Pacto da Bruma: +40+7×horda material agora e +25% de inimigos na próxima horda (cópias da fila); 🚪 dispensar = bênção comum aleatória. Estado salvo (state.merch, state.pact). Bot: compra se tiver 1,6× o preço, senão dispensa.
