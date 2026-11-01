@@ -133,7 +133,7 @@ function dropTable(e){const t=e.type,r=e.rarity,big=BIG(t);const at=(kind,rr,dat
 const _dir=new THREE.Vector3();
 function enemyWallAt(e,cx,cz){if(!inb(cx,0,cz))return -1;const s=surfE(cx,cz);if(s<=e.gy+1.2)return -1;const y0=Math.max(0,Math.floor(e.gy+.01));const far=Math.max(Math.abs(cx-CX),Math.abs(cz-CZ))>WR+20;for(let y=y0;y<Math.min(H,y0+4);y++){const i=idx(cx,y,cz);if(SOLIDM(vox[i])){if(far&&natBlue&&natBlue[i]&&!blue[i]&&vox[i]!==1&&(iy(i)>=GY||BIG(e.type))){removeVox(i,'enemy');if(Math.random()<.3)spawnDebris(cx+.5,y+.5,cz+.5,MAT[12].c,2,.25);state.natCarve=(state.natCarve||0)+1;continue}return i}}return -1}
 function nearMinion(e,reach,dyMax=2.4){for(const m of minions){if(m.wounded)continue;if(hd(m.pos,e.pos)<e.radius+reach&&Math.abs(m.group.position.y-e.group.position.y)<dyMax)return m}return null}
-function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(!e.stun)enemyAnim(e,dt);if(e.aff==='regen'&&e.hp<e.maxhp&&simTime-(e.lastHit||0)>2.5)e.hp=Math.min(e.maxhp,e.hp+e.maxhp*.04*dt);if(e.affRing)e.affRing.rotation.z+=dt*2;
+function updateEnemy(e,dt){if(e.dead)return;_curE=e;e.bob+=dt*8;if(!e.stun)enemyAnim(e,dt);if(e.aff==='regen'&&e.hp<e.maxhp&&simTime-(e.lastHit||0)>2.5)e.hp=Math.min(e.maxhp,e.hp+e.maxhp*.04*dt);if(e.affRing)e.affRing.rotation.z+=dt*2;
   if(e.hit>0){e.hit-=dt;if(e.hit<=0)for(const p of e.parts)p.material.emissive.setHex(e.afire>0?0x7a2a00:(p.userData.em||0))}
   const fx=Math.floor(e.pos.x),fz=Math.floor(e.pos.z);
   if(!e.fly){const tg=CLIMBS(e.type)?topY(e.pos.x,e.pos.z):surfE(e.pos.x,e.pos.z);e.gy+=(tg-e.gy)*Math.min(1,dt*(tg<e.gy?5:9));
@@ -176,7 +176,7 @@ function updateEnemy(e,dt){if(e.dead)return;e.bob+=dt*8;if(!e.stun)enemyAnim(e,d
     e.vel.set(dx/d*e.speed*sf,0,dz/d*e.speed*sf);e.pos.x+=e.vel.x*dt;e.pos.z+=e.vel.z*dt;return}
   if(CLIMBS(e.type)){e.group.position.y=e.gy;
     let tt=null;for(const t of turrets)if(t.alive&&hd(t.pos,e.pos)<2.2&&Math.abs(t.pos.y-e.gy)<2.4){tt=t;break}
-    const victim=nearMinion(e,1.3);if(tt||victim){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;if(victim)hurtMinion(victim,e.T.dmg);else damageTurret(tt,e.T.dmg*1.5)}return}
+    const victim=nearMinion(e,1.3);if(tt||victim){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;if(victim)hurtMinion(victim,e.T.dmg);else{const n=tt._fly=(tt._flyT===Math.floor(simTime)?tt._fly:0)+1;tt._flyT=Math.floor(simTime);damageTurret(tt,e.T.dmg*(n>3?.6:1.2))}}return}
     _dir.subVectors(CHEST,e.pos);_dir.y=0;const dist=_dir.length();_dir.normalize();
     if(dist<2.6){e.vel.set(0,0,0);if(e.timer<=0){e.timer=e.T.rate;const i=CHEST_VOX().find(i=>vox[i]);if(i!==undefined)damageVox(i,e.T.dmg,'enemy',e)}return}
     const sp=(e.gy>GY+.5?e.speed*.55:e.speed)*sf;e.vel.copy(_dir).multiplyScalar(sp);e.pos.addScaledVector(e.vel,dt);e.group.rotation.y=Math.atan2(_dir.x,_dir.z);e.group.position.y=e.gy;return}

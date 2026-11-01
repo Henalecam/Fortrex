@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v8.1 — Quem derruba as torres; armas de torres desabadas voltam ao arsenal
+- Novo log __turDmg (dano real em armas por atacante + "ANCHOR:x" = arma perdida porque o bloco de apoio caiu). Em h35 (fixture h31): voadores lideram o dano direto (~21–25k em 2 min, 5–10× o 2º lugar), MAS a queda em massa vinha de desabamento: numa corrida h34→h35, 18 armas caíram de uma vez quando um aríete rival derrubou a base de torres (ANCHOR:rammer) e +8 por rastejantes (ANCHOR:crawler) — 25 → 1 torre em ~60 s.
+- Mudanças: (1) arma sobre bloco de apoio destruído volta para o arsenal (state.inv.turrets) com rótulo "🏗 torre caiu → arsenal"; a automação a recoloca quando os reparadores refazem a torre. Armas de rivais continuam sendo destruídas. (2) Voadores: bônus contra armas 1,5× → 1,2×, e 0,6× quando mais de 3 golpes atingem a mesma arma no mesmo segundo.
+- Validação h35 (tlate_d 420 35 3000, fixture h31): torres 27 → 21 (mínimo) → 26 (recolocadas); Sentinela (1,59M) morre 116 s após nascer; 0 quebras de baú; Coração Rúnico obtido em jogo natural: 33 runas, 247 acertos (~7,5 inimigos por runa) em ~210 s.
+- Jogo natural h32 (fixture h31, sem pular): vencida sem derrota, ~520 s de horda. h34→h35 antes da correção: 0 torres na chegada da Sentinela.
+- t5 600: h11, 0 erros. tcompat v0.41 → w15, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+
 ## v8.0 — Coração Rúnico (recompensa de fim de jogo)
 - Nova relíquia: derrotar a Sentinela Rúnica deixa o Coração Rúnico (state.runeHeart, nv máx 5, salvo junto com o estado). Obelisco de cristal azul com anéis girando e feixe de luz flutua sobre a torre de menagem. A cada max(3,5; 8−nv) s marca o maior aglomerado (amostra de 40, raio 3,2) com aviso que se preenche e explode 1,1 s depois: 22% da vida máx + 60×horda (chefes: 3%), ×(1+0,25×(nv−1)); nv3 = 2 alvos, nv5 = 3 (alvos ≥ 6 blocos entre si, mira adiantada pela velocidade).
 - Teste dirigido (trh.js, nv3, 40 rastejantes h18): 37 de 40 abatidos em ~30 s; média de ~2 inimigos por runa. Screenshot rh_0.png mostra o obelisco visível sobre o castelo.

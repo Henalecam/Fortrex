@@ -163,8 +163,9 @@ function makeTurret(type,anchor,r=0,u=null){const T=TURRETS[type];const g=new TH
 function killTurret(t,drop){if(!t.alive)return;t.alive=false;scene.remove(t.group);spawnDebris(t.pos.x,t.pos.y+.3,t.pos.z,0x6d6a8a,8,.45);
   if(t.gunner){const g=t.gunner;t.gunner=null;g.turret=null;if(g.state==='man'){g.state='idle';if(t.station){g.pos.x=t.station.x;g.pos.z=t.station.z}g.group.position.y=standY(g.pos.x,g.pos.z)}}
   if(drop){const L=spawnLoot(t.pos.x,t.pos.y+.4,t.pos.z,'turret',t.r,{type:t.type,u:t.u});if(L)L.prio=true;toast(`${t.T.n} caiu! Um coletor vai buscá-la.`,'r0')}}
-function damageTurret(t,d){if(!t.alive)return;t.hp-=d;t.hit=.1;if(t.hp<=0)killTurret(t,true)}
-function checkTurretAnchor(i){const t=turretAt(i);if(t)killTurret(t,true)}
+let _curE=null,_turTag=null;function damageTurret(t,d){if(!t.alive)return;if(window.__turDmg&&t.team!=='r'){const k=_turTag||(_curE&&_curE.type?_curE.type+(_curE.aff?'+'+_curE.aff:''):'?');window.__turDmg[k]=(window.__turDmg[k]||0)+Math.min(d,Math.max(0,t.hp))}t.hp-=d;t.hit=.1;if(t.hp<=0)killTurret(t,true)}
+function checkTurretAnchor(i){const t=turretAt(i);if(t){if(window.__turDmg&&t.team!=='r'){const k='ANCHOR:'+(_turTag||(_curE&&_curE.type)||'?');window.__turDmg[k]=(window.__turDmg[k]||0)+1000}
+  if(t.team!=='r'&&state.inv&&state.inv.turrets){killTurret(t,false);state.inv.turrets.push({type:t.type,r:t.r,u:t.u||null});label({x:t.pos.x,y:t.pos.y+1.2,z:t.pos.z},'🏗 torre caiu → arsenal','#ffd27a');state.turFell=(state.turFell||0)+1;return}killTurret(t,true)}}
 const turretRange=t=>t.T.range*(state.rangeMul||1)*(blessOn('alcance')?1.15:1)*(state.ups.farol&&Math.hypot(t.pos.x-CX,t.pos.z-(CZ-12))<24?1.15:1)*(1+t.r*.08)*(t.gunner&&t.gunner.state==='man'?1.1:1)*(state.ev==='mist'?((state.expStage||0)>=6||state.rangeMul>1||state.ups.farol?.92:.72):state.ev==='sandstorm'?((state.expStage||0)>=6?.88:.65):state.ev==='rain'?.9:1);
 function enemyAim(e){return new THREE.Vector3(e.pos.x,e.fly?e.group.position.y+.5:e.gy+(e.type==='colossus'?2.2:.9),e.pos.z)}
 function updateTurret(t,dt){if(!t.alive)return;if(t.team==='r')return updateRivalTurret(t,dt);const man=t.gunner&&t.gunner.state==='man';const g=t.gunner;

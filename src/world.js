@@ -106,7 +106,7 @@ function explode(cx,cy,cz,r,dmg,o={}){const src0=o.src||'env',rv=src0==='rival',
   if(o.fire){const R2=Math.ceil(r+1.5);for(let k=0;k<30;k++){const x=Math.floor(cx+rnd(-R2,R2)),y=Math.floor(cy+rnd(-R2,R2)),z=Math.floor(cz+rnd(-R2,R2));if(inb(x,y,z))ignite(idx(x,y,z),src)}}
   for(const e of enemies){if(e.dead||(rv&&e.rival))continue;const d=Math.hypot(e.pos.x-cx,e.pos.z-cz,e.group.position.y+.5-cy);if(d<r+1.2){hurtEnemy(e,dmg*1.5*(1-d/(r+1.2)),{x:e.pos.x,y:e.gy+.5,z:e.pos.z});if(o.fire)e.afire=3}}
   if(!fr){for(const m of minions){if(m.wounded)continue;const d=Math.hypot(m.pos.x-cx,m.pos.z-cz);if(d<r+.8)hurtMinion(m,dmg*(src==='enemy'?.6:.35)*(1-d/(r+.8)))}
-    for(const t of turrets){if(!t.alive||(rv&&t.team==='r'))continue;const d=Math.hypot(t.pos.x-cx,t.pos.y-cy,t.pos.z-cz);if(d<r+.6)damageTurret(t,dmg*(src==='enemy'?.6:.3)*(1-d/(r+.6)))}}
+    for(const t of turrets){if(!t.alive||(rv&&t.team==='r'))continue;const d=Math.hypot(t.pos.x-cx,t.pos.y-cy,t.pos.z-cz);if(d<r+.6){_turTag='explode:'+src;damageTurret(t,dmg*(src==='enemy'?.6:.3)*(1-d/(r+.6)));_turTag=null}}}
   for(const L of loot){if(L.carried)continue;const dx=L.x-cx,dz=L.z-cz,d=Math.hypot(dx,dz);if(d<r+2){L.vx+=dx/(d||1)*5;L.vz+=dz/(d||1)*5;L.vy=6;L.rest=false}}
   spawnDebris(cx,cy,cz,0xff7a3c,Math.floor(12+r*7),.5);for(let k=0;k<8+r*5;k++)spawnFlame(cx+rnd(-r,r)*.6,cy+rnd(0,1),cz+rnd(-r,r)*.6,1.2);
   SFX.boom(r>3);shake=Math.max(shake,Math.min(1.5,.3+r*.18));hitstop=Math.max(hitstop,.04);settleDirty=true}
