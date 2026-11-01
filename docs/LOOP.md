@@ -226,6 +226,14 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v10.4 — Chefes finais no novo estilo; colosso conferido
+- Rei da Bruma (cabeça 0,55→0,72, capuz, sobrancelhas, boca brilhante com dentes pálidos, coroa maior), Arauto do Abismo (cabeça 0,6→0,8, rosto com olhos violeta, presas e 2 pares de chifres), Sentinela Rúnica (cabeça 0,8→0,96, testa de pedra, boca e colunas rúnicas, chifres maiores), Portador de Bruma (cabeça 0,55→0,7, capuz em 3 peças, olhos brilhantes maiores, rugas), Colosso de Rastejantes (cabeça 0,55→0,72, cara enfezada; 16 olhinhos brilhantes viraram 1 malha fundida).
+- Malhas antigo→novo: Rei 18→19, Arauto 9→10, Sentinela 23→24, Portador 11→12, Colosso de Rastejantes 30→12 (total 91→77). Os quatro primeiros são chefes únicos (+1 draw call cada).
+- Colosso conferido de perto (d=75, pitch 0,35): elmo com viseira em T e olhos vermelhos legíveis.
+- Spawn dos 5 na vitrine: 0 erros de página.
+- t5 600: h13, 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h30, repetido 2× → h31, h31 (ruído conhecido de 180 s). tplay 1280×800: 0 problemas, 0 erros.
+- Com isso todos os inimigos têm o visual novo. Próximo: avaliar os minions (heróis, reparadores) lado a lado com os inimigos — o contraste de estilo agora pode estar invertido — e voltar ao equilíbrio de jogo.
+
 ## v10.3 — Inimigos de evento no novo estilo
 - Mímico (olhos de fenda com sobrancelha, presas em cima e embaixo, língua; gemas na tampa), cristal (cabeça 0,52→0,74, rosto azul, 7 cristais), estilhaço (cabeça 0,38→0,54, rosto, 2 lascas), general (elmo 0,5→0,66 com viseira em T, olhos dourados, bigode; espada fundida no pivô), aríete rival (carregadores com cabeça, capacete e rosto; cabeça de carneiro metálica com olhos em brasa e chifres).
 - Bug antigo achado: os dentes de baixo do mímico eram filhos do corpo, que fica invisível depois de voxelizado — nunca apareciam. Agora estão no equipamento do grupo.

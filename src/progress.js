@@ -664,10 +664,11 @@ const NEW_DEATH={cristal(e){for(let k=0;k<2;k++){const s=makeEnemy('shard',e.rar
 
 // v1.6 RAIDS: opcional no descanso, três estágios de inimigos insanos e o Arauto do Abismo
 ETYPES.arauto={hp:5200,speed:1.2,dmg:95,rate:1.2,color:0x2a1438,radius:2.1,n:'Arauto do Abismo'};SCX.arauto=2.6;
-CREATURES.arauto=function(sc,col,g){const body=box(1.2*sc,1.1*sc,.8*sc,col,0,1.25*sc,0,g);const head=box(.6*sc,.55*sc,.55*sc,0x3d1f52,0,2.05*sc,.05*sc,g);
+CREATURES.arauto=function(sc,col,g){const O=window.__oldLook;const body=box(1.2*sc,1.1*sc,.8*sc,col,0,1.25*sc,0,g);const head=O?box(.6*sc,.55*sc,.55*sc,0x3d1f52,0,2.05*sc,.05*sc,g):box(.8*sc,.72*sc,.7*sc,0x3d1f52,0,2.14*sc,.06*sc,g);
+  if(!O){face(head,sc,.8,.72,.7,{sclera:0x14081e,pupil:0xd890ff,es:.18,ex:.18,ey:.06,brow:0x1a0a26,mood:.45,mw:.5,mh:.08,my:.26,mouthC:0x14081e,teeth:[[-.18,.12],[-.06,.09],[.06,.09],[.18,.12]]},[[.14,.5,.14,-.42,.42,-.08,0,.5,0x1a0a26],[.14,.5,.14,.42,.42,-.08,0,-.5,0x1a0a26],[.1,.24,.1,-.6,.7,-.08,0,.9,0xc86cff],[.1,.24,.1,.6,.7,-.08,0,-.9,0xc86cff]])}
   box(1.6*sc,.35*sc,.9*sc,0x4b2a66,0,1.75*sc,0,g);for(const s of[-1,1]){box(.35*sc,1.0*sc,.35*sc,col,s*.85*sc,1.2*sc,.05*sc,g);box(.42*sc,.3*sc,.42*sc,0x7a3aa8,s*.85*sc,.62*sc,.05*sc,g);const w=box(1.1*sc,.08*sc,.7*sc,0x1a0a26,s*1.3*sc,1.9*sc,-.4*sc,g);w.rotation.z=s*.35}
   const orb=box(.3*sc,.3*sc,.3*sc,0xc86cff,0,1.35*sc,.42*sc,g);orb.material.emissive.setHex(0xa040ff);orb.material.emissiveIntensity=1;
-  const cr=box(.5*sc,.18*sc,.5*sc,0xc86cff,0,2.42*sc,.05*sc,g);cr.material.emissive.setHex(0xa040ff);cr.material.emissiveIntensity=.8;
+  const cr=box(.5*sc,.18*sc,.5*sc,0xc86cff,0,(O?2.42:2.6)*sc,.05*sc,g);cr.material.emissive.setHex(0xa040ff);cr.material.emissiveIntensity=.8;
   return{body,head,legs:_L(g,sc,0x1a0a26,[[-.32,.36,0,.36,.72],[.32,.36,0,.36,.72]])}};
 BOSS_ADD.arauto='cavaleiro';
 const RAID_EVERY=4;
@@ -1026,7 +1027,7 @@ Object.assign(CREATURES,{
     return{body,head,legs:LG([[-.35,.38,0,.42,.76],[.35,.38,0,.42,.76]],rock)}},
   mistking(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const cloak=0x1a1430;
     const body=B(1.0,1.4,.75,cloak,0,.85,0);B(1.3,.25,.9,0x2a1f45,0,1.5,0);B(.15,1.1,.04,0xb56cf2,0,.85,.39);
-    const head=B(.55,.55,.5,0x2a1f45,0,1.85,.05);g.userData.eyes=_eyes(G,0xff4af0,[[.12,.07,-.13,1.88,.31],[.12,.07,.13,1.88,.31]]);for(let k=-2;k<=2;k++)G(.1,.28+(k%2?0:.18),.1,0xb56cf2,k*.13,2.25,.05,null,.9);
+    const head=window.__oldLook?B(.55,.55,.5,0x2a1f45,0,1.85,.05):B(.72,.68,.62,0x2a1f45,0,1.9,.06);if(window.__oldLook){g.userData.eyes=_eyes(G,0xff4af0,[[.12,.07,-.13,1.88,.31],[.12,.07,.13,1.88,.31]]);for(let k=-2;k<=2;k++)G(.1,.28+(k%2?0:.18),.1,0xb56cf2,k*.13,2.25,.05,null,.9)}else{B(.86,.34,.76,cloak,0,2.18,-.04);B(.9,.5,.2,cloak,0,1.92,-.32);face(head,sc,.72,.68,.62,{noEyes:1,brow:null,mouth:false},[[.26,.06,.05,-.16,.14,.32,0,.4,0x0d0a1a],[.26,.06,.05,.16,.14,.32,0,-.4,0x0d0a1a],[.34,.05,.03,0,-.18,.32,0,0,0xff4af0],...[-2,-1,0,1,2].map(k=>[.05,.08,.03,k*.08,-.22,.33,0,0,0xd8c8ff])]);g.userData.eyes=_eyes(G,0xff4af0,[[.15,.09,-.16,1.96,.38],[.15,.09,.16,1.96,.38]]);for(let k=-2;k<=2;k++)G(.11,.3+(k%2?0:.2),.11,0xb56cf2,k*.16,2.46,.05,null,.9)}
     const tend=[];for(const s of[-1,1])for(let k=0;k<2;k++){const t=K(.14,.8,.14,0x2a1f45,s*(.35+k*.25),.25,-.25+k*.3);tend.push(t)}g.userData.tend=tend;
     K(.1,2.2,.1,0x3b2a50,.75,1.1,.3);G(.32,.32,.32,0xb56cf2,.75,2.3,.3,null,1);g.userData.float=1;
     return{body,head,legs:[]}}});
@@ -1108,8 +1109,8 @@ window.__mark=(w)=>{if(state.marks)state.marks=state.marks.filter(x=>x!==w);mile
 ETYPES.portador={hp:620,speed:1.2,dmg:18,rate:1.5,color:0x5a5470,radius:.8,n:'Portador de Bruma'};SCX.portador=1.25;NEWLOOK.portador=1;
 CREATURES.portador=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3);
   const body=B(.8,1.1,.6,col,0,.95,0);B(.95,.25,.7,dk,0,.42,0);B(.7,.5,.12,shadeHex(col,.15),0,1.1,.3);
-  const head=B(.55,.5,.5,dk,0,1.72,0);const face=B(.36,.28,.06,0x1a1626,0,1.68,.25);for(const s of[-1,1]){const ey=B(.07,.05,.03,0xbfe8ff,s*.08,1.7,.29);ey.material.emissive.setHex(0x9fd8ff);ey.material.emissiveIntensity=1}
-  B(.62,.18,.58,dk,0,2.0,-.02);B(.3,.2,.3,dk,0,2.15,-.12);
+  const O=window.__oldLook;const head=O?B(.55,.5,.5,dk,0,1.72,0):B(.7,.62,.6,dk,0,1.76,0);const fc_=O?B(.36,.28,.06,0x1a1626,0,1.68,.25):B(.5,.38,.06,0x1a1626,0,1.72,.31);void fc_;for(const s of[-1,1]){const ey=O?B(.07,.05,.03,0xbfe8ff,s*.08,1.7,.29):G(.1,.07,.03,0xbfe8ff,s*.11,1.75,.35,null,1);if(O){ey.material.emissive.setHex(0x9fd8ff);ey.material.emissiveIntensity=1}}
+  if(O){B(.62,.18,.58,dk,0,2.0,-.02);B(.3,.2,.3,dk,0,2.15,-.12)}else{B(.8,.2,.74,dk,0,2.1,-.02);B(.38,.24,.38,dk,0,2.28,-.14);B(.84,.5,.16,dk,0,1.86,-.3);face(head,sc,.7,.62,.6,{noEyes:1,brow:null,mouth:false},[[.2,.05,.04,-.11,.1,.36,0,.35,0x2a2640],[.2,.05,.04,.11,.1,.36,0,-.35,0x2a2640],[.06,.18,.03,-.2,-.06,.35,0,0,0x2a2640],[.06,.18,.03,.2,-.06,.35,0,0,0x2a2640]])}
   const pole=K(.08,2.2,.08,0x4a3a2a,.55,1.2,.15);const lan=B(.26,.3,.26,0xcfd8ff,.55,2.35,.15);lan.material.emissive.setHex(0x9fb8ff);lan.material.emissiveIntensity=.9;B(.32,.06,.32,0x2b2d4a,.55,2.52,.15);
   g.userData.lantern=lan;g.userData.pole=pole;
   const dome=new THREE.Mesh(new THREE.SphereGeometry(6.2/1,18,10),new THREE.MeshBasicMaterial({color:0xb8b0d8,transparent:true,opacity:.13,depthWrite:false}));dome.scale.setScalar(1/Math.max(.5,g.scale.x||1));dome.position.y=.5;g.add(dome);g.userData.dome=dome;
@@ -1173,7 +1174,7 @@ window.__seal=()=>{const C=state.codex||(state.codex={e:{},ev:{},ch:0});for(cons
 ETYPES.runico={hp:1400,speed:.85,dmg:80,rate:1.4,color:0x3a4a6a,radius:2.1,n:'Sentinela Rúnica'};SCX.runico=3.0;NEWLOOK.runico=1;
 CREATURES.runico=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const st=0x4a5468,dk=0x2a3040,rn=0x5ce0ff;
   const body=B(1.4,1.2,.9,st,0,1.35,0);B(1.55,.3,1.0,dk,0,1.95,0);B(1.2,.25,.8,dk,0,.78,0);for(const [x,y,w,h] of [[-.35,1.45,.08,.55],[.35,1.3,.08,.45],[0,1.6,.6,.07],[0,1.15,.07,.4],[-.15,1.05,.35,.07]])G(w,h,.03,rn,x,y,.46,null,1);
-  const head=B(.8,.55,.6,st,0,2.4,.05);B(.9,.12,.7,dk,0,2.72,.05);g.userData.eyes=[G(.5,.08,.04,rn,0,2.42,.37,null,1.4)];for(const s of[-1,1])B(.14,.5,.14,dk,s*.42,2.85,-.05).rotation.z=-s*.25;
+  const O=window.__oldLook;const head=O?B(.8,.55,.6,st,0,2.4,.05):B(.96,.72,.74,st,0,2.46,.06);if(O){B(.9,.12,.7,dk,0,2.72,.05);g.userData.eyes=[G(.5,.08,.04,rn,0,2.42,.37,null,1.4)];for(const s of[-1,1])B(.14,.5,.14,dk,s*.42,2.85,-.05).rotation.z=-s*.25}else{B(1.06,.14,.84,dk,0,2.86,.06);g.userData.eyes=[G(.62,.1,.04,rn,0,2.5,.44,null,1.4)];for(const s of[-1,1])B(.16,.6,.16,dk,s*.5,3.04,-.05).rotation.z=-s*.25;face(head,sc,.96,.72,.74,{noEyes:1,brow:null,mouth:false},[[.4,.12,.1,-.24,.18,.38,0,.22,dk],[.4,.12,.1,.24,.18,.38,0,-.22,dk],[.06,.2,.03,-.2,-.2,.38,0,0,rn],[.06,.2,.03,.2,-.2,.38,0,0,rn],[.3,.05,.03,0,-.24,.38,0,0,rn],[.1,.3,.06,0,.0,.39,0,0,dk]])}
   const a1=K(.5,1.25,.5,st,-1.05,1.3,.05),a2=K(.5,1.25,.5,st,1.05,1.3,.05);for(const a of[a1,a2]){B(.62,.35,.62,dk,0,-.5,0,a);const c=box(.05*sc,.7*sc,.03*sc,rn,0,0,.26*sc,a);c.material.emissive.setHex(rn);c.material.emissiveIntensity=1}g.userData.arms=[a1,a2];
   const orbs=[];for(let k=0;k<4;k++){const o=G(.32,.32,.32,k%2?rn:0x9fe8ff,0,3.1,0,null,.8);o.userData.k=k;orbs.push(o)}g.userData.orbs=orbs;
   return{body,head,legs:LG([[-.4,.4,0,.48,.8],[.4,.4,0,.48,.8]],dk)}};
@@ -1227,8 +1228,8 @@ const _renderCodex0=renderCodex;renderCodex=function(){_renderCodex0();const b=$
 // v4.5 COLOSSO DE RASTEJANTES: no fim de jogo (h25+), grupos de 5 rastejantes viram 1 colosso que se divide ao morrer — menos inimigos ao mesmo tempo, mesma ameaça
 ETYPES.enxame={...ETYPES.crawler,hp:ETYPES.crawler.hp*4.5,speed:ETYPES.crawler.speed*.8,dmg:ETYPES.crawler.dmg*3,radius:ETYPES.crawler.radius*1.7,n:'Colosso de Rastejantes'};SCX.enxame=1.9;NEWLOOK.enxame=1;
 CREATURES.enxame=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3),lt=shadeHex(col,.15);
-  const body=B(1.1,.7,1.2,col,0,.6,0);B(.9,.35,1.0,dk,0,1.05,-.05);const parts=[];for(const [x,y,z,s] of [[-.45,.95,.35,.42],[.4,.9,.4,.38],[0,1.25,.15,.45],[-.35,1.2,-.4,.36],[.45,1.15,-.35,.4],[0,.45,.65,.34],[-.6,.55,-.1,.32],[.62,.55,0,.33]]){const p=B(s,s*.75,s,lt,x,y,z);parts.push(p);for(const e of[-1,1]){const ey=G(.06,.06,.03,0xfff6e0,x+e*s*.18,y+s*.1,z+s*.51,null,.6)}}
-  const head=B(.55,.4,.45,lt,0,.75,.72);eyes(head,.04*sc,.2*sc,.11*sc);g.userData.blobs=parts;
+  const body=B(1.1,.7,1.2,col,0,.6,0);B(.9,.35,1.0,dk,0,1.05,-.05);const O=window.__oldLook;const parts=[],ge=[];for(const [x,y,z,s] of [[-.45,.95,.35,.42],[.4,.9,.4,.38],[0,1.25,.15,.45],[-.35,1.2,-.4,.36],[.45,1.15,-.35,.4],[0,.45,.65,.34],[-.6,.55,-.1,.32],[.62,.55,0,.33]]){const p=B(s,s*.75,s,lt,x,y,z);parts.push(p);for(const e of[-1,1]){if(O)G(.06,.06,.03,0xfff6e0,x+e*s*.18,y+s*.1,z+s*.51,null,.6);else{ge.push([.09,.1,.03,x+e*s*.18,y+s*.1,z+s*.51,0,0,0xfff6e0],[.045,.06,.02,x+e*s*.16,y+s*.08,z+s*.53,0,0,0x1d1f33])}}}if(ge.length)gear(g,sc,ge);
+  const head=O?B(.55,.4,.45,lt,0,.75,.72):B(.72,.52,.5,lt,0,.78,.74);if(O)eyes(head,.04*sc,.2*sc,.11*sc);else face(head,sc,.72,.52,.5,{sclera:0xffe25a,es:.17,ex:.17,ey:.06,brow:shadeHex(col,-.45),mood:.45,mw:.4,my:.3,teeth:[[-.12,.1],[0,.08],[.12,.1]]});g.userData.blobs=parts;
   return{body,head,legs:LG([[-.45,.12,-.4,.2,.24],[.45,.12,-.4,.2,.24],[-.45,.12,.4,.2,.24],[.45,.12,.4,.2,.24],[-.55,.12,0,.18,.22],[.55,.12,0,.18,.22]],dk)}};
 NEW_BRAINS.enxame=function(e,dt){const b=e.group.userData.blobs;if(b){const t=simTime*6+e.bob;b.forEach((p,k)=>{p.position.y+=Math.sin(t+k*1.3)*.004*e.sc})}return false};
 NEW_DEATH.enxame=function(e){for(let k=0;k<2;k++){const s=makeEnemy('crawler',e.rarity,e.pos.x+rnd(-1,1),e.pos.z+rnd(-1,1));s.viaWall=true}for(let k=0;k<10;k++)spawnDebris(e.pos.x+rnd(-1,1),e.gy+rnd(.3,1.2),e.pos.z+rnd(-1,1),ETYPES.crawler.color,1,.3);label({x:e.pos.x,y:e.gy+2,z:e.pos.z},'o enxame se espalha!','#ffb13d')};
