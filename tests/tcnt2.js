@@ -1,0 +1,6 @@
+const { chromium } = require('playwright');const path=require('path');const fs=require('fs');
+(async()=>{const W=+(process.argv[2]||30);const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await browser.newPage();const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ const fx=fs.readFileSync('/home/claude/fortrex/tests/save_v060_w19.json','utf8');
+ await page.addInitScript(s=>{window.__headless=true;localStorage.setItem('fortrex_save_v1',s)},fx);await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ const r=await page.evaluate((W)=>{document.getElementById('continue').click();window.__step(1);const S=window.__st();S.wave=W;S.maxWave=W;document.getElementById('next').click();const n0=S.queue.length;const T=[];let peak=0;for(let i=0;i<9;i++){const t0=performance.now();window.__bot();window.__step(10);T.push(Math.round(performance.now()-t0));const a=window.__alive().split(' ').filter(Boolean).length;peak=Math.max(peak,a);if(S.phase!=='wave')break}const h={};for(const x of window.__alive().split(' ').filter(Boolean)){const t=x.split('@')[0];h[t]=(h[t]||0)+1}return {W,n0,peak,sum:T.reduce((a,b)=>a+b,0),ms:window.__meshStats(),draw:window.__drawCount()}},W);
+ console.log(JSON.stringify(r),errs.slice(0,2));await browser.close()})();

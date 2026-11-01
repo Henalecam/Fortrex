@@ -1,0 +1,5 @@
+const { chromium } = require('playwright');const path=require('path');const fs=require('fs');
+(async()=>{const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const p=await b.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+ const fx=fs.readFileSync('/home/claude/fortrex/tests/save_v060_w19.json','utf8');await p.addInitScript(s=>{window.__headless=true;localStorage.setItem('fortrex_save_v1',s)},fx);await p.goto('file://'+path.join(__dirname,'three/p5.html'),{timeout:120000});await p.waitForTimeout(700);
+ for(const K of [38,1e9]){console.log(K,JSON.stringify(await p.evaluate((K)=>{window.__lodK=K;if(!window.__started){document.getElementById('continue').click();window.__step(1);const S=window.__st();S.wave=30;S.maxWave=30;document.getElementById('next').click();window.__step(25);window.__started=1}window.__step(1);const t0=performance.now();for(let i=0;i<5;i++)window.__step(.2);return {draw:window.__drawCount(),ms:window.__meshStats(),t:Math.round(performance.now()-t0)}},K)))}
+ console.log(errs);await b.close()})();

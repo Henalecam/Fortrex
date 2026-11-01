@@ -1,0 +1,7 @@
+const { chromium } = require('playwright');const path=require('path');
+(async()=>{const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const ctx=await browser.newContext({viewport:{width:1280,height:800}});const errs=[];
+ let page=await ctx.newPage();page.on('pageerror',e=>errs.push(e.message));await page.addInitScript(()=>{window.__headless=true});await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ const v=await page.evaluate(()=>{document.getElementById('start').click();window.__step(2);const v=window.__vein();window.__step(5);window.__save();return v});console.log(JSON.stringify(v),await page.evaluate(()=>JSON.stringify(window.__veinN())));
+ await page.close();page=await ctx.newPage();page.on('pageerror',e=>errs.push(e.message));await page.addInitScript(()=>{window.__headless=true;try{localStorage.setItem('fortrex_tips','{"start":1,"auto":1,"shop":1,"build":1,"mason":1}')}catch(e){}});await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ console.log(await page.evaluate(()=>{document.getElementById('continue').click();window.__step(3);return JSON.stringify(window.__veinN())}));
+ await page.evaluate(v=>{window.__cam(24,v.x,v.z);window.__headless=false},v);await page.waitForTimeout(2500);await page.screenshot({path:'vein2.png',timeout:120000});console.log(errs);await browser.close()})();

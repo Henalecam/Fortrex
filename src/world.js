@@ -77,7 +77,7 @@ function setVox(i,m){const old=vox[i];if(SOLIDM(old)&&!SOLIDM(m)){removedQ.push(
 function setFluid(i,m,lv,src){if(SOLIDM(vox[i]))return;vox[i]=m;hp[i]=lv;fluids.add(i);if(src)fluidSrc.add(i);burning.delete(i);markCol(ix(i),iz(i));touch(i)}
 
 // src: 'enemy' | 'player' | 'env'. Player damage never touches the fortress (blue) — no friendly fire.
-function damageVox(i,d,src='env',who=null){const m=vox[i];if(m===5&&who&&(who.type==='ram'||who.type==='rammer'))state.ramHit=(state.ramHit||0)+1;if(src==='enemy'&&blessOn('muralha'))d*=.75;if(!m||m===1||FLUID(m))return false;if(src!=='player'&&iy(i)<GY&&Math.max(Math.abs(ix(i)-CX),Math.abs(iz(i)-CZ))<=WR+48){if(who&&who.pos&&!who.fly&&!who.dead){who.gy=Math.max(who.gy,iy(i)+1);who.group.position.y=who.gy;who.target=-1;who.state='walk';who.path=null}return false}if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
+function damageVox(i,d,src='env',who=null){const m=vox[i];if(src==='player'&&m&&!window.__oldGround&&!blue[i]&&!rown[i]&&iy(i)<=GY&&Math.max(Math.abs(ix(i)-CX),Math.abs(iz(i)-CZ))<=WR+6)return false;if(m===5&&who&&(who.type==='ram'||who.type==='rammer'))state.ramHit=(state.ramHit||0)+1;if(src==='enemy'&&blessOn('muralha'))d*=.75;if(!m||m===1||FLUID(m))return false;if(src!=='player'&&iy(i)<GY&&Math.max(Math.abs(ix(i)-CX),Math.abs(iz(i)-CZ))<=WR+48){if(who&&who.pos&&!who.fly&&!who.dead){who.gy=Math.max(who.gy,iy(i)+1);who.group.position.y=who.gy;who.target=-1;who.state='walk';who.path=null}return false}if(m===5&&window.__chestLog)window.__chestLog.push((who?who.type:src)+':'+Math.round(d));
   if(blue[i]){if(src==='player')return false;if(src==='env')d*=.4;if(state.wardT>0)d*=.08}
   if(m===5&&who&&who.type&&state.contract)state.contract.hit=1;if(m===5&&who&&CLIMBS(who.type))state.climbHitChest=true;
   if(m===5&&src==='enemy')d*=who&&(who.type==='ram'||who.type==='rammer')?.6:1.5;
@@ -87,7 +87,7 @@ function damageVox(i,d,src='env',who=null){const m=vox[i];if(m===5&&who&&(who.ty
   if(m===5&&window.__chestDmg){const k=who&&who.type?who.type+(who.mv?':'+who.mv.k:''):src;window.__chestDmg[k]=(window.__chestDmg[k]||0)+Math.min(d,Math.max(0,hp[i]))}
   hp[i]-=d;if(hp[i]<=0){removeVox(i,src);return true}
   if(m!==12&&m!==13)damaged.add(i);paint(i);if(Math.random()<.5)SFX.crunch(m===4||m===20);return false}
-function removeVox(i,src){const m=vox[i];if(!m)return;if(window.__rmLog&&blue[i]){const k=src+':'+m;window.__rmLog[k]=(window.__rmLog[k]||0)+1}const x=ix(i),y=iy(i),z=iz(i);
+function removeVox(i,src){const m=vox[i];if(!m)return;if(window.__setLog){(window.__rmPass=window.__rmPass||[]).push(src+':'+m+':y'+(iy(i)-GY)+(_curE&&src==='enemy'?':'+_curE.type:''))}if(window.__rmLog&&blue[i]){const k=src+':'+m;window.__rmLog[k]=(window.__rmLog[k]||0)+1}const x=ix(i),y=iy(i),z=iz(i);
   spawnDebris(x+.5,y+.5,z+.5,MAT[m].c,m>=11&&m<=13?3:5,.45);
   if(m!==11&&src!=='dig'&&!blue[i]&&!looted[i]&&(looted[i]=1)&&Math.random()<(rown[i]?.06:m===12||m===13?.04:.15))spawnLoot(x+.5,y+.6,z+.5,'material',0,{amount:1});
   setVox(i,0);SFX.crunch(m===4);settleDirty=true;checkTurretAnchor(i);if(m===5)checkChest();
@@ -149,17 +149,18 @@ function tickSpecials(dt){specAcc+=dt;if(specAcc<1)return;specAcc=0;let gold=0;
 const removedQ=[];const _seenS=new Int32Array(N);let settlePass=0;
 // local settle: only components touching removed voxels are checked (greedy downward DFS)
 function settle(){const _tt0=_turTag;_turTag='settle';try{return _settle0()}finally{_turTag=_tt0}}
-function _settle0(){settleDirty=false;if(!removedQ.length)return;settlePass++;const starts=[];
+function _settle0(){settleDirty=false;if(!removedQ.length){window.__rmPass=[];return}settlePass++;const starts=[];
   for(const i of removedQ){const x=ix(i),y=iy(i),z=iz(i);for(const [dx,dy,dz] of NB6){const nx=x+dx,ny=y+dy,nz=z+dz;if(inb(nx,ny,nz)){const j=idx(nx,ny,nz);if(SOLIDM(vox[j]))starts.push(j)}}}
   removedQ.length=0;let fell=0;const chestSet=new Set(_chestVox);
   for(const s of starts){if(_seenS[s]===settlePass||!SOLIDM(vox[s]))continue;const comp=[s],st=[s];_seenS[s]=settlePass;let grounded=false;
     while(st.length){const c=st.pop();const x=ix(c),y=iy(c),z=iz(c);if(y===0||chestSet.has(c)){grounded=true;break}if(comp.length>14000){grounded=true;break}
       for(let k=NB6.length-1;k>=0;k--){const [dx,dy,dz]=NB6[(k+3)%6];const nx=x+dx,ny=y+dy,nz=z+dz;if(!inb(nx,ny,nz))continue;const j=idx(nx,ny,nz);if(_seenS[j]===settlePass||!SOLIDM(vox[j]))continue;_seenS[j]=settlePass;comp.push(j);st.push(j)}}
     if(grounded)continue;
+    if(window.__setLog&&comp.length>=8){let ymin=99,ymax=-99,tu=0,overFl=0,bl=0;for(const i of comp){const y=iy(i)-GY;ymin=Math.min(ymin,y);ymax=Math.max(ymax,y);if(turretAt(i))tu++;if(blue[i])bl++;const below=iy(i)>0?vox[idx(ix(i),iy(i)-1,iz(i))]:1;if(FLUID(below))overFl++}const cx=comp.reduce((a,i)=>a+ix(i),0)/comp.length-CX,cz=comp.reduce((a,i)=>a+iz(i),0)/comp.length-CZ;window.__setLog.push({rm:(window.__rmPass||[]).slice(-6),t:Math.round(simTime),n:comp.length,tu,bl,ymin,ymax,overFl,c:[Math.round(cx),Math.round(cz)],who:_turTag==='settle'&&_curE?_curE.type:'?'})}
     for(const i of comp){const m=vox[i];if(!m)continue;spawnDebris(ix(i)+.5,iy(i)+.5,iz(i)+.5,MAT[m].c,1,.95);if(!blue[i]&&!looted[i]&&(looted[i]=1)&&Math.random()<(rown[i]?.05:m>=12&&m<=13?.04:.18))spawnLoot(ix(i)+.5,iy(i)+.6,iz(i)+.5,'material',0,{amount:1});
       const wasBarrel=m===10;vox[i]=0;hp[i]=0;burning.delete(i);damaged.delete(i);specials.delete(i);markCol(ix(i),iz(i));fell++;checkTurretAnchor(i);if(rown[i])rivalHit(i);if(wasBarrel)pendingBooms.push({x:ix(i)+.5,y:iy(i)+.5,z:iz(i)+.5,r:2.5,dmg:90,o:{fire:true,src:'env'},t:.3})}
     for(const i of comp)touch(i)}
-  if(fell>0){SFX.boom(fell>20);shake=Math.min(1.2,shake+.3+fell*.02);checkChest()}}
+  window.__rmPass=[];if(fell>0){SFX.boom(fell>20);shake=Math.min(1.2,shake+.3+fell*.02);checkChest()}}
 
 // ───────── voxel ray (Amanatides–Woo DDA)
 function voxRay(o,d,withFluid=false){let t0=0,t1=500;const lo=[0,0,0],hi=[W,H,D],O=[o.x,o.y,o.z],Dd=[d.x,d.y,d.z];

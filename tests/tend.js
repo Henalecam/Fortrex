@@ -1,0 +1,6 @@
+const { chromium } = require('playwright');const path=require('path');const fs=require('fs');
+(async()=>{const W=+process.argv[2];const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await browser.newPage();const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ const fx=fs.readFileSync('/home/claude/fortrex/tests/save_v060_w19.json','utf8');
+ await page.addInitScript(s=>{window.__headless=true;localStorage.setItem('fortrex_save_v1',s)},fx);await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ const r=await page.evaluate((W)=>{document.getElementById('continue').click();window.__step(1);const S=window.__st();S.wave=W;S.maxWave=W;document.getElementById('next').click();const n0=S.queue.length;const boss=S.queue.filter(t=>['boss','golem','wyrm','colossus','necro','queen','titan','mistking','runico'].includes(t));let t=0,lost=false;for(;t<400;t+=5){window.__bot();window.__step(5);if(S.phase!=='wave')break}const bs=window.__bossSt&&window.__bossSt();return {W,n0,boss,t,endW:S.wave,phase:S.phase,bossLeft:bs,losses:S.losses||0}},W);
+ console.log(JSON.stringify(r),errs.slice(0,2));await browser.close()})();

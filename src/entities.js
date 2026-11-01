@@ -223,7 +223,7 @@ function impact(p,pos,e,cell){if(window.__bossHit&&window.__runE&&!window.__runE
   if(p.kind==='ice'){if(e){hurtEnemy(e,p.dmg*(e.type==='titan'?2.5:1),pos);e.slowT=Math.max(e.slowT,3+p.r*.5)}freezeAround(pos.x,pos.y,pos.z,2.2+p.r*.25);for(const o of enemies){if(o.dead||o===e)continue;if(o.pos.distanceTo(pos)<2.6)o.slowT=Math.max(o.slowT,1.5)}spawnDebris(pos.x,pos.y,pos.z,0xd8f3ff,4,.2);return}
   if(e){hurtEnemy(e,p.dmg,pos);credit();if(fire&&!e.fly&&Math.random()<.35*state.greek)e.afire=Math.max(e.afire,3);
     if(p.kind==='ball'){for(const o of enemies){if(o.dead||o===e)continue;if(o.pos.distanceTo(pos)<2.4)hurtEnemy(o,p.dmg*.45,pos)}spawnDebris(pos.x,pos.y,pos.z,0xff8a5c,4,.25)}}
-  else if(cell!==undefined){damageVox(cell,p.dmg*.5,'player');spawnDebris(pos.x,pos.y,pos.z,0x8bbf9d,3,.3)}
+  else if(cell!==undefined){if(!window.__oldGround&&!blue[cell]&&!rown[cell]&&iy(cell)<=GY&&Math.max(Math.abs(ix(cell)-CX),Math.abs(iz(cell)-CZ))<=WR+6){for(const o of enemies){if(o.dead||o.fly)continue;if(o.pos.distanceTo(pos)<1.9)hurtEnemy(o,p.dmg*.6,pos)}}damageVox(cell,p.dmg*.5,'player');spawnDebris(pos.x,pos.y,pos.z,0x8bbf9d,3,.3)}
   if(p.kind==='ball'&&state.explosive>0)explode(pos.x,pos.y,pos.z,1.2+state.explosive*.55,p.dmg*.5,{src:'player',fire})}
 
 // v1.8 revelação de item épico/lendário: carta deslizante, sem bloquear o jogo

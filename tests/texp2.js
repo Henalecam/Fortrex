@@ -1,0 +1,8 @@
+const { chromium } = require('playwright');const path=require('path');
+(async()=>{const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await browser.newPage({viewport:{width:1280,height:800}});const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ await page.addInitScript(()=>{window.__headless=true});await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ await page.evaluate(()=>{document.getElementById('start').click();document.getElementById('auto').click();for(let t=0;t<120;t+=10){window.__bot();window.__step(10)}});
+ // wait for rest
+ for(let k=0;k<100;k++){if(await page.evaluate(()=>{window.__step(.5);return window.__why().ph==='rest'}))break}
+ await page.evaluate(()=>{document.getElementById('bRealm').click()});await page.waitForTimeout(300);await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{window.__headless=false});await page.waitForTimeout(1500);await page.screenshot({path:'exp.png',timeout:120000});await page.evaluate(()=>{window.__headless=true});
+ const r=await page.evaluate(()=>{const b=document.getElementById('expGo');if(!b)return 'nobutton';b.click();const w0=window.__dbg().wave;const a=JSON.stringify(window.__exp());document.getElementById('realmClose').click();const log=[];let lastW=w0;for(let t=0;t<300;t+=2){window.__step(2);if(window.__why().ph==='rest'&&window.__dbg().wave===lastW)document.getElementById('next').click();const w=window.__dbg().wave;if(w!==lastW){log.push('w'+w+':'+JSON.stringify(window.__exp())+' mat='+window.__dbg().mat);lastW=w}if(w>=w0+3)break}return 'w0='+w0+' '+a+' | '+log.join(' | ')});console.log(r);console.log(errs);await browser.close()})();

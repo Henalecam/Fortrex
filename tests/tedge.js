@@ -1,0 +1,7 @@
+const { chromium } = require('playwright');const path=require('path');
+(async()=>{const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await browser.newPage({viewport:{width:1280,height:800}});const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ await page.addInitScript(()=>{window.__headless=true;window.__revealHold=true;try{localStorage.setItem('fortrex_tips','{"start":1,"auto":1,"shop":1,"build":1,"wave":1,"realm":1,"ward":1,"sappers":1,"bomb":1,"mason":1,"save":1,"minions":1}')}catch(e){}});await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ await page.evaluate(()=>{document.getElementById('start').click();window.__step(2);const S=window.__st();S.wave=6;S.maxWave=6;document.getElementById('next').click();window.__step(10);window.__cam(16,96,96);window.__edgeShow=true;window.__step(.5)});
+ await page.evaluate(()=>{window.__headless=false});await page.waitForTimeout(1500);
+ console.log(await page.evaluate(()=>[document.getElementById('edge').hidden,document.querySelectorAll('.edgeA').length,[...document.querySelectorAll('.edgeA')].map(d=>d.style.transform+'|'+d.firstChild.style.transform+'|'+getComputedStyle(d.firstChild).transform+'|'+getComputedStyle(d.firstChild).borderLeftWidth+'|'+getComputedStyle(d.firstChild).display).filter(s=>!s.startsWith('|')).join(' ; ')]));
+ await page.screenshot({path:'edge.png',timeout:120000});console.log(errs);await browser.close()})();

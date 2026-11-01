@@ -1,0 +1,8 @@
+const { chromium } = require('playwright');const path=require('path');
+(async()=>{const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await browser.newPage({viewport:{width:1280,height:800}});const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ await page.addInitScript(()=>{window.__headless=true;window.__lineupTypes=['runico'];try{localStorage.setItem('fortrex_tips','{"start":1,"auto":1,"shop":1,"build":1,"wave":1,"realm":1,"ward":1,"sappers":1,"bomb":1,"mason":1,"save":1,"minions":1}')}catch(e){}});await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ console.log(await page.evaluate(()=>{document.getElementById('start').click();window.__step(1);window.__lineupB();window.__step(.3);return 1}));
+ await page.evaluate(()=>{window.__cam(40,118,82,0.6);window.__headless=false});await page.waitForTimeout(700);await page.screenshot({path:'run_line.png',timeout:120000});
+ // AI test in a live wave
+ console.log(await page.evaluate(()=>{window.__headless=true;const S=window.__st();S.wave=2;S.maxWave=2;document.getElementById('next').click();window.__step(1);const r=window.__runico();const log=[];window.__RL=[];for(let i=0;i<120;i++){window.__step(.25);const b=window.__bossSt&&window.__bossSt();if(b&&b.mv)log.push(b.mv)}window.__hitBoss(.5);for(let i=0;i<10;i++)window.__step(1);return JSON.stringify([r,window.__RL,log.slice(0,8),window.__bossSt(),S.phase])}));
+ const p=await page.evaluate(()=>window.__bpos());await page.evaluate((p)=>{window.__cam(40,p.x,p.z);window.__headless=false},p);await page.waitForTimeout(900);await page.screenshot({path:'run_fight.png',timeout:120000});console.log(errs);await browser.close()})();

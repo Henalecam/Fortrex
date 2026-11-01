@@ -1,0 +1,6 @@
+const { chromium } = require('playwright');const path=require('path');
+(async()=>{const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await browser.newPage({viewport:{width:1280,height:800}});const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ await page.addInitScript(()=>{window.__headless=true;try{localStorage.setItem('fortrex_tips','{"start":1,"auto":1,"shop":1,"build":1,"wave":1,"realm":1,"ward":1,"sappers":1,"bomb":1,"mason":1}')}catch(e){}});await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ console.log(await page.evaluate(()=>{document.getElementById('start').click();window.__step(2);const p0=window.__pathN();window.__farol();window.__step(30);const p=p0+' || '+window.__pathN();window.__mod('none');state=0;return p}).catch(e=>e.message));
+ console.log(await page.evaluate(()=>{window.__step(1);window.__ward&&0;window.__xbow(5);window.__step(10);return window.__pathN()}));
+ await page.evaluate(()=>{window.__cam(55,96,90,Math.PI);window.__headless=false});await page.waitForTimeout(1600);await page.screenshot({path:'fx.png',timeout:120000});console.log(errs);await browser.close()})();

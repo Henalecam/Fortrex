@@ -1,0 +1,10 @@
+const { chromium } = require('playwright');const path=require('path');
+(async()=>{const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await browser.newPage({viewport:{width:1280,height:800}});const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ await page.addInitScript(()=>{window.__headless=true;window.__revealHold=true});await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ const shot=async(n)=>{await page.evaluate(()=>{window.__headless=false});await page.waitForTimeout(600);await page.screenshot({path:'new_'+n+'.png',timeout:120000});await page.evaluate(()=>{window.__headless=true})};
+ await shot('0title');
+ await page.evaluate(()=>{document.getElementById('start').click();window.__step(2)});await shot('1start');
+ await page.evaluate(()=>{document.getElementById('next').click();window.__step(12)});await shot('2wave');
+ await page.evaluate(()=>{for(let i=0;i<8;i++)window.__step(5)});await shot('3mid');
+ await page.evaluate(()=>{for(let i=0;i<12;i++)window.__step(5)});await shot('4after');
+ console.log(errs);await browser.close()})();

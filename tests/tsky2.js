@@ -1,0 +1,5 @@
+const { chromium } = require('playwright');const path=require('path');
+(async()=>{const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await browser.newPage();const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ await page.addInitScript(()=>{window.__headless=true;window.__chestLog=[]});await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ console.log(await page.evaluate(()=>{document.getElementById('start').click();document.getElementById('auto').click();let g=0;while(window.__dbg().wave<9&&g++<200){window.__bot();window.__step(5)}
+   const out=[];for(const ev of ['skies','skies']){let h=0;while(window.__why().ph!=='rest'&&h++<200)window.__step(1);window.__forceEv=ev;const w0=window.__dbg().wave;const c0=window.__chestLog.length;let k=0;while(window.__dbg().wave===w0&&k++<400){window.__bot();window.__step(1)}out.push(`w${w0} ${ev} chest=${window.__dbg().chest} chestHits=${window.__chestLog.length-c0} t=${k}s`)}return out.join(' | ')}));console.log(errs);await browser.close()})();

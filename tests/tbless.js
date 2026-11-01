@@ -1,0 +1,8 @@
+const { chromium } = require('playwright');const path=require('path');
+(async()=>{const vp=(process.argv[2]||'1280x800').split('x').map(Number);const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await browser.newPage({viewport:{width:vp[0],height:vp[1]}});const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ await page.addInitScript(()=>{window.__headless=true;window.__revealHold=true;try{localStorage.setItem('fortrex_tips','{"start":1,"auto":1,"shop":1,"build":1,"wave":1,"realm":1,"ward":1,"sappers":1,"bomb":1,"mason":1,"save":1,"minions":1}')}catch(e){}});await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ console.log(await page.evaluate(()=>{document.getElementById('start').click();window.__step(2);const S=window.__st();S.wave=9;S.maxWave=9;document.getElementById('next').click();for(let i=0;i<40&&S.phase==='wave';i++)window.__step(5);return S.phase+' w'+S.wave+' offer '+JSON.stringify(S.blessOffer)}));
+ await page.evaluate(()=>{window.__headless=false});await page.waitForTimeout(700);await page.screenshot({path:'bless_offer_'+vp[0]+'.png',timeout:120000});
+ await page.click('#bless button',{force:true});await page.waitForTimeout(300);
+ console.log(await page.evaluate(()=>{const S=window.__st();document.getElementById('next').click();window.__step(3);return JSON.stringify(S.bless)+' '+document.getElementById('bless').textContent}));
+ await page.waitForTimeout(500);await page.screenshot({path:'bless_chip_'+vp[0]+'.png',timeout:120000});console.log(errs);await browser.close()})();

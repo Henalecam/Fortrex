@@ -1,0 +1,2 @@
+const { chromium } = require('playwright');const path=require('path');
+(async()=>{const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});for(const [w,h] of [[360,640],[390,844]]){const page=await browser.newPage({viewport:{width:w,height:h},hasTouch:true,isMobile:true});await page.goto('file://'+path.join(__dirname,'three/p5m.html'));await page.waitForTimeout(1500);await page.screenshot({path:'title_'+w+'.png'});await page.close()}await browser.close()})();

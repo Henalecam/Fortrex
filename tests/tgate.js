@@ -1,0 +1,5 @@
+const { chromium } = require('playwright');const path=require('path');
+(async()=>{const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await browser.newPage({viewport:{width:390,height:844}});const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ await page.addInitScript(()=>{window.__headless=true;try{localStorage.setItem('fortrex_tips','{"start":1,"auto":1,"shop":1,"build":1,"wave":1}')}catch(e){}});await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ console.log(await page.evaluate(()=>{document.getElementById('start').click();window.__step(2);const a=window.__gate();document.getElementById('next').click();for(let k=0;k<6;k++){window.__bot();window.__step(10)}const b=window.__gate();window.__step(20);return a+' '+b+' '+JSON.stringify(window.__dbg()).slice(0,60)}));
+ await page.evaluate(()=>{window.__gate();window.__headless=false});await page.waitForTimeout(1200);await page.screenshot({path:'gate.png',timeout:120000});console.log(errs);await browser.close()})();
