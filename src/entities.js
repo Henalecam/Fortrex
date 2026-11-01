@@ -218,7 +218,7 @@ function updateProjectiles(dt){for(let i=projectiles.length-1;i>=0;i--){const p=
       if(p.kind==='shell'&&p.vel.y<0){for(const e of enemies){if(e.dead||e.fly)continue;if(hd(e.pos,pos)<e.radius+.6&&Math.abs(pos.y-e.gy-.5)<1.1){impact(p,pos,e);done=true;break}}}
       if(pos.y<-2||p.life<=0||pos.x<-4||pos.z<-4||pos.x>W+4||pos.z>D+4)done=true}
     if(done){scene.remove(p.mesh);projectiles.splice(i,1)}}}
-function impact(p,pos,e,cell){const fire=state.greek>0;if(e)setTimeout(()=>{},0);const credit=()=>{if(e&&e.dead&&p.t&&p.t.gunner)gainXP(p.t.gunner,4+e.maxhp/15)};
+function impact(p,pos,e,cell){if(window.__bossHit&&window.__runE&&!window.__runE.dead){const B=window.__runE,H=window.__bossHit;const k=(p.t&&p.t.type)||p.kind||'?';if(e===B)H['hit:'+k]=(H['hit:'+k]||0)+1;else if(hyp(pos.x-B.pos.x,pos.z-B.pos.z)<B.radius+3)H[(e?'other:':'terrain:')+k]=(H[(e?'other:':'terrain:')+k]||0)+1}const fire=state.greek>0;if(e)setTimeout(()=>{},0);const credit=()=>{if(e&&e.dead&&p.t&&p.t.gunner)gainXP(p.t.gunner,4+e.maxhp/15)};
   if(p.kind==='shell'){explode(pos.x,pos.y,pos.z,3+state.explosive*.35+p.r*.2+(p.cat?1.9:0),p.dmg,{src:'player',fire:fire||p.cat});if(p.cat)shake=Math.max(shake,.4);return}
   if(p.kind==='ice'){if(e){hurtEnemy(e,p.dmg*(e.type==='titan'?2.5:1),pos);e.slowT=Math.max(e.slowT,3+p.r*.5)}freezeAround(pos.x,pos.y,pos.z,2.2+p.r*.25);for(const o of enemies){if(o.dead||o===e)continue;if(o.pos.distanceTo(pos)<2.6)o.slowT=Math.max(o.slowT,1.5)}spawnDebris(pos.x,pos.y,pos.z,0xd8f3ff,4,.2);return}
   if(e){hurtEnemy(e,p.dmg,pos);credit();if(fire&&!e.fly&&Math.random()<.35*state.greek)e.afire=Math.max(e.afire,3);

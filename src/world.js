@@ -148,7 +148,8 @@ function tickSpecials(dt){specAcc+=dt;if(specAcc<1)return;specAcc=0;let gold=0;
 // ───────── structural settle: anything not connected to bedrock falls
 const removedQ=[];const _seenS=new Int32Array(N);let settlePass=0;
 // local settle: only components touching removed voxels are checked (greedy downward DFS)
-function settle(){settleDirty=false;if(!removedQ.length)return;settlePass++;const starts=[];
+function settle(){const _tt0=_turTag;_turTag='settle';try{return _settle0()}finally{_turTag=_tt0}}
+function _settle0(){settleDirty=false;if(!removedQ.length)return;settlePass++;const starts=[];
   for(const i of removedQ){const x=ix(i),y=iy(i),z=iz(i);for(const [dx,dy,dz] of NB6){const nx=x+dx,ny=y+dy,nz=z+dz;if(inb(nx,ny,nz)){const j=idx(nx,ny,nz);if(SOLIDM(vox[j]))starts.push(j)}}}
   removedQ.length=0;let fell=0;const chestSet=new Set(_chestVox);
   for(const s of starts){if(_seenS[s]===settlePass||!SOLIDM(vox[s]))continue;const comp=[s],st=[s];_seenS[s]=settlePass;let grounded=false;

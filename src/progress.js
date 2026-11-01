@@ -1082,7 +1082,7 @@ const _bossAI0=bossAI;bossAI=function(e,dt){if(e.type!=='runico')return _bossAI0
   if(k==='shield'){e.shield=e.maxhp*.12;e.rShield=1;if(!e.shieldMesh){const gs=e.group.scale.x||1;e.shieldMesh=new THREE.Mesh(new THREE.SphereGeometry(e.radius*1.5/gs,18,10),new THREE.MeshBasicMaterial({color:0x5ce0ff,transparent:true,opacity:.22,depthWrite:false}));e.shieldMesh.position.y=e.radius*1.2/gs;e.group.add(e.shieldMesh)}e.shieldMesh.visible=true;label({x:e.pos.x,y:e.group.position.y+e.sc*2.4,z:e.pos.z},'🛡️ escudo rúnico!','#5ce0ff');return false}
   return _bossAI0(e,dt)};
 const _bossOfWave0=bossOfWave;bossOfWave=function(w){if(w>=35&&(w-35)%20===0)return 'runico';return _bossOfWave0(w)};
-const _mk0r=makeEnemy;makeEnemy=function(type,...a){const e=_mk0r(type,...a);if(type==='runico'){const r=e.rarity||0;const k=(1+r*.15)/(1+r*.5);e.maxhp*=k;e.hp=e.maxhp;window.__runE=e}if(type==='runico'&&window.__bossLog)window.__bossLog.push({k:'spawn',t:Math.round(simTime),hp:Math.round(e.maxhp)});return e};
+const _mk0r=makeEnemy;makeEnemy=function(type,...a){const e=_mk0r(type,...a);if(type==='runico'){e._born=simTime;const r=e.rarity||0;const k=(1+r*.15)/(1+r*.5);e.maxhp*=k;e.hp=e.maxhp;window.__runE=e}if(type==='runico'&&window.__bossLog)window.__bossLog.push({k:'spawn',t:Math.round(simTime),hp:Math.round(e.maxhp)});return e};
 window.__runico=()=>{const e=makeEnemy('runico',1,CX+24,CZ+8);state.boss=e;return [e.maxhp|0,e.sc]};
 
 // v4.3 MOTIVAR: no descanso, toque num minion e motive-o (até 3 por descanso) — +20% de dano e velocidade na próxima horda
@@ -1268,3 +1268,6 @@ window.__wspec=w=>{const L=waveSpec(w);return [L.length,(state.themes||[]).join(
 
 // v9.3 SOMBRAS ENXUTAS: em inimigos comuns só o corpo (malha instanciada) projeta sombra; cabeça, pernas, olhos e asas não — o passe de sombras era ~45% das chamadas de desenho em h35
 const _mk93=makeEnemy;makeEnemy=function(type,...a){const e=_mk93(type,...a);if(!window.__fullShadow&&!BIG(type)){const keep=new Set(e.vmeshes||[]);e.group.traverse(o=>{if(o.isMesh&&!keep.has(o))o.castShadow=false})}return e};
+
+// v9.7 SENTINELA COM FIM: as runas do corpo racham com o tempo em campo — a cada 60 s depois do 1º minuto ela recebe +50% de dano (até ×3). A luta deixa de se arrastar sem fim contra castelos que só a seguram.
+const _dmg97=dmgEnemy;dmgEnemy=function(e,d,...a){if(e&&e.type==='runico'&&!e.dead&&!window.__oldSent){const t=simTime-(e._born??(e._born=simTime));const k=Math.min(4,Math.max(0,Math.floor((t-60)/60)+1));if(k!==(e._crack||0)){e._crack=k;if(k>0){label({x:e.pos.x,y:e.gy+e.sc*2.6,z:e.pos.z},`ᚱ runas rachando! dano ×${(1+.5*k).toFixed(1)}`,'#9fe8ff');shake=Math.max(shake,.5);if(e.group.userData.eyes)for(const o of e.group.userData.eyes)o.scale.setScalar(1+.25*k)}}if(k>0)d*=1+.5*k}return _dmg97(e,d,...a)};

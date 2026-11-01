@@ -226,6 +226,14 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v9.7 — Sentinela com fim; causa nº 1 de perda de armas é desabamento
+- Por que a Sentinela se arrastava (v9.6: 72% após ~6 min): NÃO era mira — contador de impactos perto dela (window.__bossHit): 1 426 balas de canhão e 257 de morteiro ACERTARAM, só 1 caiu no terreno. Ela chega ao baú (~6 blocos) ~2 min após nascer, a prioridade "chefe perto do baú" dispara (até 22 armas no alcance). O problema é vida 1,6–2,1 M contra armadura ~52% de h35 — castelo segura, mas não mata.
+- Mudança: depois de 60 s em campo, as runas do corpo racham: +50% de dano recebido por minuto (×1,5 → ×3,0 no máximo), com rótulo "ᚱ runas rachando! dano ×N" e olhos maiores.
+- 3 corridas h35 (fixture h31, tlate_d 420 35 3000), 0 quebras do baú em todas: (b) morreu 271 s após nascer; (c) morreu 243 s após nascer (1,82 M); (a) não morreu — o castelo perdeu TODAS as 27 armas antes de ela chegar.
+- Novo rótulo de origem: perdas por desabamento estrutural agora aparecem como "ANCHOR:settle". Na corrida (c): 13 armas perdidas por desabamento, 6 por aríete rival. Desabamento é a maior causa de perda de armas no fim de jogo e as armas devolvidas ao arsenal só voltam quando a torre é refeita — próxima rodada.
+- Economia com a reconstrução da v9.6 (tecon_calmo3 2 400 s, Tranquilo): h28 aos 2 387 s, 0 derrotas (v7.9: h28 aos 2 441 s) — sem crise de material.
+- t5 600: h12, 0 erros. tcompat v0.41 → w15, v0.60 → w20, v7.8/w31 → w31, 0 erros.
+
 ## v9.6 — Reparadores: duas causas do castelo que nunca se reconstruía
 Instrumentação (window.__repLog: construiu / falhou-ocupado / falhou-material / sem orçamento / travou-a-caminho por altura; window.__hiStats: andares da torre) em tests/trebuild.js (fixture h31, só descanso, Auto desligado, 2–4 min).
 1. **Andando até o que não podem pagar**: findRepairTask escolhia blocos especiais checando só o material, mas na hora de construir exigia o ORÇAMENTO de reconstrução (rebBud). Com orçamento 0, cada reparador caminhava até um bloco especial, desistia, esperava 6 s e repetia: 4 367 desistências por orçamento em 2 min e só 130 blocos construídos depois do orçamento zerar. Agora a escolha já pula especiais que o orçamento não cobre.
