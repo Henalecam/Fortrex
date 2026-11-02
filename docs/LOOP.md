@@ -226,6 +226,15 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v10.6 — Mais dois acoplamentos arte→simulação (sons, carapaça do besouro)
+- Rastreio de cada chamada a Math.random com a pilha (trng2.js: visual antigo × novo, mesma semente, sequência completa de pontos de chamada).
+- 1º ponto de divergência: o ruído dos efeitos sonoros (nz em core.js, via SFX.crunch) usava o gerador da simulação. Todos os SFX agora usam o gerador da arte. Depois disso: 6,5 milhões de chamadas idênticas em 300 s.
+- 2º: a carapaça do besouro (dano ×0,5) durava enquanto e.lost < 35% de e.chunks.length — dependia da quantidade de pedaços do modelo. Agora dura enquanto a vida > 65% (estimativa do equivalente antigo: os pedaços caem ~ fração^0,85 × 0,83, e 35% de pedaços ≈ 36% da vida). Chave window.__oldShell para o comportamento antigo.
+- Ainda resta divergência: depois da correção do besouro a 1ª diferença aparece em ~302 mil chamadas, num rótulo de dano (rnd dentro de dmgEnemy com colunas diferentes). Não achei a causa nesta rodada; o efeito agregado já tinha sido medido como nulo na v10.5 (h13: 647 × 641 s em 6 sementes).
+- Também ficou para a v10.7 a melhoria de jogabilidade pedida nesta rodada (o rastreio consumiu a rodada).
+- Ferramentas: trng.js (contagem por ponto), trng2.js (sequência completa até 24 M chamadas).
+- t5 600: h11, 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h30, h30, h31 (fim por tempo: h30 aparece em ~metade das corridas desde a v9.8). tplay 1280×800: 0 problemas, 0 erros.
+
 ## v10.5 — A troca de arte deixou o jogo mais difícil; achado e corrigido
 - Minions × inimigos novos (tside.js, pátio): minions já são chibi com rosto desde a v2.6 e combinam — sem mudança. (Câmera dentro do castelo é difícil de enquadrar; a comparação é visual e fraca.)
 - Equilíbrio, tecon 900 s, sementes 1–6, mesmo build com window.__oldLook ligado/desligado: início da h13 em média 655,5 s (visual antigo) × 700,2 s (novo) — 5 de 6 sementes mais lentas. Suspeito.

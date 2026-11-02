@@ -1,0 +1,7 @@
+const { chromium } = require('playwright');const path=require('path');
+(async()=>{const secs=+(process.argv[2]||420);const b=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await b.newPage();
+ await page.addInitScript(sd=>{window.__headless=true;window.__botPlus=true;if(location.hash==='#old')window.__oldLook=1;window.__freeze=true;let a=sd>>>0;const R=function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};window.__rc={};window.__rk=[];window.__rs=new Uint16Array(2.4e7);window.__rn=0;window.__rngOn=false;Math.random=function(){if(window.__rngOn&&window.__rn<2.4e7){const s=(new Error().stack||'').split('\n').slice(2,9).map(x=>x.replace(/^\s*at \S+ /,'').replace(/[()]/g,'')).join('|');let id=window.__rc[s];if(id===undefined){id=window.__rc[s]=window.__rk.length;window.__rk.push(s)}window.__rs[window.__rn++]=id}return R()}},1);
+ await page.goto('file://'+path.join(__dirname,'three/p5econ.html')+(process.env.OLDLOOK?'#old':''));await page.waitForTimeout(700);
+ await page.evaluate(()=>{document.getElementById('start').click();document.getElementById('auto').click();window.__rngOn=true});
+ for(let t=0;t<secs;t+=60){await page.evaluate(()=>{for(let k=0;k<6;k++){window.__bot();window.__step(10)}})}
+ require('fs').writeFileSync(process.env.OUT,await page.evaluate(()=>JSON.stringify({k:window.__rk,s:Array.from(window.__rs.subarray(0,window.__rn))})));await b.close()})();

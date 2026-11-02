@@ -1524,3 +1524,4 @@ Object.assign(CREATURES,{
 // v10.5: efeitos puramente visuais (detritos, chamas, lascas de inimigo) usam o gerador da arte, não o da simulação
 function _withArt(fn){return function(){const r=Math.random;Math.random=_artRnd;try{return fn.apply(this,arguments)}finally{Math.random=r}}}
 spawnDebris=_withArt(spawnDebris);spawnFlame=_withArt(spawnFlame);voxBurst=_withArt(voxBurst);detachChunk=_withArt(detachChunk);
+for(const k of Object.keys(SFX))if(typeof SFX[k]==='function')SFX[k]=_withArt(SFX[k]);// sons também são cosméticos
