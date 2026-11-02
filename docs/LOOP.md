@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v11.0 — Placar do ladrão no Códex
+- Escolha entre as opções da rodada pelo custo/risco: (c) recompensa visível — só exibição, sem efeito na simulação (toast e Códex não usam sorteio; renderCodex/NEW_DEATH envoltos). Por isso não houve A/B de ritmo; a sequência de sorteios não muda.
+- Códex: "💰 Caçada ao ladrão: X derrubados de Y vistos" + título (primeira captura / 🥇 Caçador de tesouros ≥5 / 🏆 Terror dos ladrões ≥10); aviso grande ao 1º, 5º e 10º abate. state.thiefSeen/thiefKills já iam no save (o save grava o state inteiro menos SAVE_SKIP).
+- Observação: o ladrão já aparecia no Bestiário com contagem de abates (é um ETYPE com nome); o placar acrescenta "vistos" e os títulos.
+- t5 600: h11, 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h30, repetido → h31. tplay 1280×800: 0 problemas, 0 erros.
+- Opções (a) decisões no descanso e (b) segundo evento continuam abertas.
+
 ## v10.9 — Ladrão mais visível e mais frequente
 - Seta de borda do ladrão: triângulo 17→28 px, selo 💰 de 18 px com brilho e pulso (escala 1→1,25). Conferido em 1280×800 e em 390×844 (p5m.html com viewport, toque): visível nos dois; no celular fica logo acima da coluna de botões da esquerda, sem cobrir nenhum.
 - Peso do ladrão no sorteio de eventos 1 → 2. Sementes 7–12 pareadas contra o sorteio sem ladrão: 7 ladrões em 6 corridas (antes 3 em 12); h13 +18,2 s (dp 45,8), 0 derrotas — dentro do limite de ±20 s, mas no limite: não aumentar mais sem rever o ritmo.
