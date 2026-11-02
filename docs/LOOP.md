@@ -226,6 +226,14 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v10.7 — Evento novo: Ladrão de tesouro
+- Conteúdo novo em vez de rebalancear (a rotação de temas foi rejeitada 2×). Evento 'ladrao' (horda ≥ 5, entra no sorteio normal de eventos com peso 1): um duende (arte nova: capuz, máscara vermelha, olhos amarelos, saco de ouro com moedas brilhantes) corre num círculo de raio WR+14 em volta da ilha por 30 s, sem atacar. Derrubado: 12 + 2×horda de material e um item de raridade ≥ Raro (caem fora da muralha — os coletores precisam buscar). Não derrubado: foge (também foge se a horda acabar). Não segura o fim da horda.
+- Decisão do jogador: gastar a bomba (25 material) ou um poder de herói no ladrão. As armas de longo alcance às vezes o pegam sozinhas (teste forçado: 1 de 2 derrubado pelas armas).
+- Ritmo, sementes 7–12 pareadas (window.__noThief = sorteio antigo): h13 643 → 660 s (dentro do limite de ±20 s), 0 derrotas nos dois. O evento saiu 3 vezes em 6 corridas de 900 s (~1 a cada 25 hordas elegíveis).
+- Bug evitado: o primeiro build quebrou a página ("Cannot access 'EVENTS' before initialization") porque o código estava em progress.js, carregado antes de main.js; movido para o fim de main.js.
+- Também nesta versão (sem efeito): experimento de rotação de temas atrás de window.__thRot.
+- t5 600: h12, 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h31. tplay 1280×800: 0 problemas, 0 erros.
+
 ## v10.7 (não publicada) — Variedade de temas: rejeitada pelos números
 - Dado: da h6 em diante, 74% das hordas vizinhas compartilhavam um tema (37/50) e 9 vezes o par inteiro se repetia (ex.: cerco+matilha duas vezes seguidas). Com 5 temas e 2 por horda, sorteio puro dá ~70%.
 - Tentativa 1 (rotação: a horda seguinte não usa nenhum tema da anterior): repetição 37/50 → 0/48. Ritmo (h13, 900 s): sementes 1–6 641 → 690 s; sementes 7–12 pareadas com o comportamento antigo 643 → 695 s, e uma semente não chegou à h13. 0 derrotas.
