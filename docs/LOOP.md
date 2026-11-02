@@ -226,6 +226,16 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v10.8 — Ladrão de tesouro: a decisão passa a existir
+- Medição com o evento forçado em toda horda elegível (tthief2.js, 900 s, sementes 1–2): as armas e soldados derrubaram o ladrão 17 de 17 vezes sem ação do jogador — a "decisão" não existia.
+- Tentativas, taxa de abate sem bomba do jogador (4 sementes, ~32 ladrões cada): raio WR+18 / 22 s → 69%; WR+21 / 18 s → 72% (raio não importa); tiros automáticos a 35% → 61%; a 20% → 44% (mas vida 800–1 700 = a bomba de 170 não matava); vida fixa 150 + 8×horda e automáticos a 4% → 65%; a 2,5% → 66%.
+- Atribuição de dano (pilha de chamadas): depois da redução, quem mais matava era a BOMBA DO BOT de teste (updateBombs) — o bot jogava bomba no "inimigo fora da muralha", ou seja, simulava um jogador. Bot passou a ignorar o ladrão; também reduzidos: projéteis/explosões de armas (processBooms), cachorro (dogTick) e fogo/ambiente (updateEnemy). Resultado: 14/32 = 44% sem ação do jogador (meta 30–50%).
+- Bomba mirada 1,35 s à frente no círculo (tbombthief.js): derrubou o ladrão logo após o lançamento em 5 de 6 tentativas.
+- Feedback: seta de borda dourada com 💰 e rótulo "💰 ladrão!" ao surgir (screenshot: a seta é pequena; dá para melhorar).
+- Ritmo, 12 sementes pareadas (window.__noThief): diferença na h13 +16,8 s (dp 49,8) — dentro do limite. O ladrão saiu só 3 vezes em 12 corridas; a maior parte da diferença vem de sementes SEM ladrão, porque a presença do evento no sorteio muda a sequência de eventos (caos, não efeito do ladrão).
+- t5 600: h12, 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h31. tplay 1280×800: 0 problemas, 0 erros.
+- Ressalva: a redução de dano usa a pilha de chamadas (new Error().stack) em cada golpe no ladrão — só 1 inimigo por vez, custo desprezível, mas é frágil se as funções forem renomeadas.
+
 ## v10.7 — Evento novo: Ladrão de tesouro
 - Conteúdo novo em vez de rebalancear (a rotação de temas foi rejeitada 2×). Evento 'ladrao' (horda ≥ 5, entra no sorteio normal de eventos com peso 1): um duende (arte nova: capuz, máscara vermelha, olhos amarelos, saco de ouro com moedas brilhantes) corre num círculo de raio WR+14 em volta da ilha por 30 s, sem atacar. Derrubado: 12 + 2×horda de material e um item de raridade ≥ Raro (caem fora da muralha — os coletores precisam buscar). Não derrubado: foge (também foge se a horda acabar). Não segura o fim da horda.
 - Decisão do jogador: gastar a bomba (25 material) ou um poder de herói no ladrão. As armas de longo alcance às vezes o pegam sozinhas (teste forçado: 1 de 2 derrubado pelas armas).
