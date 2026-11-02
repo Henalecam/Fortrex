@@ -226,6 +226,11 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v10.9 — Ladrão mais visível e mais frequente
+- Seta de borda do ladrão: triângulo 17→28 px, selo 💰 de 18 px com brilho e pulso (escala 1→1,25). Conferido em 1280×800 e em 390×844 (p5m.html com viewport, toque): visível nos dois; no celular fica logo acima da coluna de botões da esquerda, sem cobrir nenhum.
+- Peso do ladrão no sorteio de eventos 1 → 2. Sementes 7–12 pareadas contra o sorteio sem ladrão: 7 ladrões em 6 corridas (antes 3 em 12); h13 +18,2 s (dp 45,8), 0 derrotas — dentro do limite de ±20 s, mas no limite: não aumentar mais sem rever o ritmo.
+- t5 600: h13, 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h31. tplay 1280×800: 0 problemas, 0 erros.
+
 ## v10.8 — Ladrão de tesouro: a decisão passa a existir
 - Medição com o evento forçado em toda horda elegível (tthief2.js, 900 s, sementes 1–2): as armas e soldados derrubaram o ladrão 17 de 17 vezes sem ação do jogador — a "decisão" não existia.
 - Tentativas, taxa de abate sem bomba do jogador (4 sementes, ~32 ladrões cada): raio WR+18 / 22 s → 69%; WR+21 / 18 s → 72% (raio não importa); tiros automáticos a 35% → 61%; a 20% → 44% (mas vida 800–1 700 = a bomba de 170 não matava); vida fixa 150 + 8×horda e automáticos a 4% → 65%; a 2,5% → 66%.
