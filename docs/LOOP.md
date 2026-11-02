@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v10.7 (não publicada) — Variedade de temas: rejeitada pelos números
+- Dado: da h6 em diante, 74% das hordas vizinhas compartilhavam um tema (37/50) e 9 vezes o par inteiro se repetia (ex.: cerco+matilha duas vezes seguidas). Com 5 temas e 2 por horda, sorteio puro dá ~70%.
+- Tentativa 1 (rotação: a horda seguinte não usa nenhum tema da anterior): repetição 37/50 → 0/48. Ritmo (h13, 900 s): sementes 1–6 641 → 690 s; sementes 7–12 pareadas com o comportamento antigo 643 → 695 s, e uma semente não chegou à h13. 0 derrotas.
+- Tentativa 2 (suave: só o tema principal e o par inteiro não se repetem): par igual 8 → 0, principal repetido 10 → 0, mas h13 643 → 718 s e de novo uma semente sem h13.
+- As duas versões deixam o jogo ~8–12% mais lento de forma consistente; a causa não está clara (a frequência de cada tema não muda). Pela regra da rodada (ritmo h13 ~640–660 s), revertido: código atrás de window.__thRot, desligado. O jogo publicado não muda — sem publicação nem mudança de GAME_VERSION.
+- Hipótese: repetir o tema deixa a automação (construção/upgrade) "acertar" a defesa contra o mesmo tipo em hordas seguidas; trocar sempre obriga a se espalhar. Teste: dano recebido por tema com e sem rotação.
+
 ## v10.6 — Mais dois acoplamentos arte→simulação (sons, carapaça do besouro)
 - Rastreio de cada chamada a Math.random com a pilha (trng2.js: visual antigo × novo, mesma semente, sequência completa de pontos de chamada).
 - 1º ponto de divergência: o ruído dos efeitos sonoros (nz em core.js, via SFX.crunch) usava o gerador da simulação. Todos os SFX agora usam o gerador da arte. Depois disso: 6,5 milhões de chamadas idênticas em 300 s.

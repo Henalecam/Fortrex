@@ -1,7 +1,13 @@
 // ───────── main: waves, events, game flow, input, loop
 const THEMES=[{k:'enxame',ico:'🐜',n:'Enxame',t:['crawler','imp','spider','slime'],w:1},{k:'matilha',ico:'🐺',n:'Matilha',t:['wolf','goblin','climber'],w:2},{k:'cerco',ico:'🪨',n:'Cerco',t:['ram','brute','sapper','cavador'],w:3},{k:'ceu',ico:'🦅',n:'Céu',t:['flyer','bombardeiro'],w:6},{k:'guarda',ico:'🛡️',n:'Guarda',t:['escudeiro','cavaleiro','beetle','cristal'],w:6}];
 const T_UNLOCK={crawler:1,ram:1,imp:4,spider:4,slime:5,wolf:2,goblin:9,climber:3,brute:7,sapper:4,cavador:8,flyer:6,bombardeiro:9,escudeiro:6,cavaleiro:10,beetle:9,cristal:12};
-function pickThemes(w){const ok=THEMES.filter(T=>T.w<=w);const a=pick(ok);const rest=ok.filter(T=>T!==a);return w>=5&&rest.length?[a,pick(rest)]:[a]}
+// v10.7 (experimento, DESLIGADO — window.__thRot): tema principal e par não se repetem. Medido: deixa as hordas ~10% mais lentas em 12 sementes; causa não entendida
+function pickThemes(w){const ok=THEMES.filter(T=>T.w<=w);const need=w>=5?2:1;
+  if(!window.__thRot){const a=pick(ok);const rest=ok.filter(T=>T!==a);return need>1&&rest.length?[a,pick(rest)]:[a]}
+  const prev=(state.thByW&&state.thByW[w-1])||[];let r;
+  for(let t=0;t<12;t++){const mainOk=ok.filter(T=>T.k!==prev[0]);const a=pick(mainOk.length?mainOk:ok);const rest=ok.filter(T=>T!==a);r=need>1&&rest.length?[a,pick(rest)]:[a];
+    const same=prev.length===r.length&&r.every(T=>prev.includes(T.k));if(!same)break}
+  state.thByW=state.thByW||{};state.thByW[w]=r.map(T=>T.k);for(const k of Object.keys(state.thByW))if(+k<w-2)delete state.thByW[k];return r}
 function applyThemes(list,w){const th=pickThemes(w);state.themes=th.map(T=>T.k);const pool=th.flatMap(T=>T.t.filter(t=>(T_UNLOCK[t]||1)<=w));if(!pool.length)return list;for(let i=0;i<list.length;i++)if(list[i]==='crawler'&&Math.random()<.55)list[i]=pick(pool);return list}
 function waveSpec(w){const list=[];const extra=(t,from,k)=>{if(w>=from)for(let i=0;i<Math.floor((w-from+2)*k);i++)list.push(t)};extra('wolf',2,.5);extra('imp',4,.6);if((state.fieldTraps||[]).length>=6)extra('goblin',9,.25);extra('spider',4,.45);extra('slime',5,.35);extra('brute',7,.3);extra('beetle',9,.3);extra('escudeiro',6,.25);extra('cavador',8,.2);extra('bombardeiro',9,.18);extra('cavaleiro',10,.22);extra('cristal',12,.12);extra('portador',16,.25);if(w>=7&&Math.random()<.45)list.push('mimico');if(w>=15&&Math.random()<.4)list.push('mimico');const n=-Math.floor(list.length*.5)+6+Math.floor(w*2.6+(w>10?(w-10)*1.6:0)+(w>15?(w-15)*1.6:0)+(w>18?(w-18)*2:0)+(state.rank||0)*2);for(let i=0;i<n;i++)list.push('crawler');for(let i=0;i<Math.floor((w-1)/2+(w>12?(w-12)/2:0));i++)list.push('ram');
   if(w>=3)for(let i=0;i<Math.floor((w-1)/2);i++)list.push('climber');if(w>=4)for(let i=0;i<Math.floor(w/3);i++)list.push('sapper');
