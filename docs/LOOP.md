@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v11.2 — Muralha firme: o valor dela não é ritmo
+- Reanálise das 30 corridas da v11.1 (bênção fixa, 6 sementes × 900 s), agora pelo dano estrutural (SETSUM do __setLog): armas perdidas em desabamentos — Muralha 20 · Olhos de águia 30 · Colheita 37 · Fúria 38 · Vigor 48; blocos desabados — Muralha 7 428 (média das outras 7 673). Nenhuma corrida teve dano no baú.
+- Leitura: Muralha é a pior para limpar a horda (h13 677 s) mas a melhor para preservar armas (~metade das perdas). É uma escolha real, só estava mal descrita. Mudança só de texto: "blocos sofrem −25% de dano — menos torres desabam e menos armas se perdem". Sem efeito na simulação; sem A/B de ritmo.
+- Ressalva: 6 corridas por bênção; a contagem de armas perdidas por corrida varia muito (não calculei dp por bênção).
+- t5 600: 0 erros. tcompat: v0.41 → h14, h14, h15, h15, h15 (180 s; mudança só de texto, então é ruído de tempo), v0.60 → h20, v7.8/h31 → h31. tplay 1280×800: 0 problemas, 0 erros.
+
 ## v11.1 — Bênçãos medidas uma a uma; Olhos de águia reforçada
 - Bot preso a uma bênção fixa (window.__fixBless) a cada descanso, 6 sementes × 900 s por bênção. Início da h13 (média): Colheita 639,3 · Fúria 656 · Vigor 658 · Muralha 677 · Olhos de águia 691,3. 0 derrotas em todas.
 - Conclusões: (1) a Fúria NÃO é a melhor — a Colheita (+40% material) vence pelo efeito acumulado na economia; (2) Olhos de águia (+15% só de alcance) era a mais fraca e, nas hordas de Céu, a pior (66 s por horda contra 51–55 das outras) — o "🎯" da tentativa anterior recomendava justamente a pior; (3) por tema principal, as amostras (4–17 hordas por célula) são pequenas e ruidosas demais para uma recomendação honesta por tema — não mostrar "🎯".
