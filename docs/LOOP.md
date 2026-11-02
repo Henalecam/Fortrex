@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v11.1 — Bênçãos medidas uma a uma; Olhos de águia reforçada
+- Bot preso a uma bênção fixa (window.__fixBless) a cada descanso, 6 sementes × 900 s por bênção. Início da h13 (média): Colheita 639,3 · Fúria 656 · Vigor 658 · Muralha 677 · Olhos de águia 691,3. 0 derrotas em todas.
+- Conclusões: (1) a Fúria NÃO é a melhor — a Colheita (+40% material) vence pelo efeito acumulado na economia; (2) Olhos de águia (+15% só de alcance) era a mais fraca e, nas hordas de Céu, a pior (66 s por horda contra 51–55 das outras) — o "🎯" da tentativa anterior recomendava justamente a pior; (3) por tema principal, as amostras (4–17 hordas por célula) são pequenas e ruidosas demais para uma recomendação honesta por tema — não mostrar "🎯".
+- Mudança: Olhos de águia ganha +12% de cadência das armas (entities.js, junto do multiplicador de aurora). Fixa: h13 691,3 → 660,7 (na faixa de Fúria/Vigor). Jogo normal (bot pega a 1ª da oferta aleatória), sementes 7–12 pareadas com window.__oldAlc: +2,8 s (dp 59,8), 0 derrotas — neutro, como esperado (só ~1 em 5 descansos).
+- Muralha (677) fica um pouco atrás; não mexido nesta rodada.
+- t5 600: h12, 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h31. tplay 1280×800: 0 problemas, 0 erros.
+
 ## v11.1 (não publicada) — Bênção "do tema": rejeitada
 - Ideia: no descanso, a oferta sempre traria a bênção que combina com o tema principal da próxima horda (Céu→Olhos de águia, Cerco→Muralha firme, Guarda→Fúria, Enxame→Colheita, Matilha→Vigor), marcada "🎯 boa contra…".
 - A/B pareado, sementes 7–12, bot escolhendo a 1ª da oferta (= a do tema no novo): h13 +38,7 s (dp 58,9; 4 de 6 mais lentas), 0 derrotas. Fora do limite de ±20 s.

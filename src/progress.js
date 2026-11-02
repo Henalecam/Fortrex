@@ -1134,7 +1134,7 @@ function edgeTick(dt){_edgeT-=dt;if(_edgeT>0)return;_edgeT=.2;const box=$('edge'
     d.style.transform=`translate(${W2+c*t-15}px,${H2-s*t-15}px)`;d.firstChild.style.transform=`rotate(${-B.a}rad)`;d.lastChild.textContent=B.n>1?B.n:'';d.classList.toggle('big',!!B.big);d.classList.toggle('gold',!!B.gold);if(B.gold)d.lastChild.textContent='💰';d.classList.toggle('ram',!B.big&&B.ram>=Math.max(2,B.n*.3));d.title=B.ram?`${B.ram} aríete(s)`:''})}
 
 // v3.9 BÊNÇÃOS: no descanso (horda 4+) escolha 1 de 2 bênçãos que valem só para a próxima horda
-const BLESS={furia:{ico:'🔥',n:'Fúria',d:'+20% de dano das armas'},muralha:{ico:'🧱',n:'Muralha firme',d:'blocos sofrem −25% de dano'},colheita:{ico:'🌾',n:'Colheita',d:'+40% de material dos abates'},alcance:{ico:'🔭',n:'Olhos de águia',d:'+15% de alcance das armas'},vigor:{ico:'💚',n:'Vigor',d:'minions recuperam vida durante a horda'}};
+const BLESS={furia:{ico:'🔥',n:'Fúria',d:'+20% de dano das armas'},muralha:{ico:'🧱',n:'Muralha firme',d:'blocos sofrem −25% de dano'},colheita:{ico:'🌾',n:'Colheita',d:'+40% de material dos abates'},alcance:{ico:'🔭',n:'Olhos de águia',d:'+15% de alcance e +12% de cadência das armas'},vigor:{ico:'💚',n:'Vigor',d:'minions recuperam vida durante a horda'}};
 function blessOn(k){const B=state.bless;return !!B&&B.k===k&&B.w===state.wave&&state.phase==='wave'}
 function blessOffer(){if(state.wave<4||state.raid){state.blessOffer=null;renderBless();return}const ks=Object.keys(BLESS);const a=pick(ks);let b=pick(ks);while(b===a)b=pick(ks);state.blessOffer=[a,b];renderBless()}
 function blessPick(k){if(!state.blessOffer||!state.blessOffer.includes(k))return;state.bless={k,w:state.wave};state.blessOffer=null;SFX.bless();renderBless()}
