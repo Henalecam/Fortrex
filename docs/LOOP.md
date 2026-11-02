@@ -226,6 +226,11 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## Pausa do loop (após v11.3)
+- Rodada v11.4 começou pela opção (a) "momentos mortos no meio do jogo": o descanso só corre sozinho com Auto ligado (state.restT=15 s, até +20 s esperando escolha); sem Auto, o jogador decide quando chamar a horda — não há espera forçada. Sem dado que justifique mudança.
+- As últimas rodadas tiveram retorno decrescente (3 experimentos rejeitados pelo ritmo, ajustes pequenos aprovados). Loop pausado aguardando direção do usuário em vez de seguir agendando rodadas automáticas.
+- Ideias prontas para retomar: segundo evento curto com escolha (ex.: totem inimigo que acelera a horda até ser destruído); recomendação de bênção por tema com amostra maior (≥ 30 hordas por célula); entender por que a rotação de temas atrasa as hordas (window.__thRot).
+
 ## v11.3 — Primeira sessão no celular revisada; rótulos presos à tela
 - tfirst.js (390×844, toque): tela inicial, tutorial, início, pinça, pan de 2 dedos, construir arrastando, horda e descanso — sem erros de página. Achados: (1) rótulo flutuante passando da borda direita no descanso ("lab:374-392" num viewport de 390); (2) "camHome tap fail" — o botão de recentrar fica escondido abaixo de 430 px de largura por CSS proposital; falha do teste, não do jogo.
 - Correção (1): updateLabels prende o centro do rótulo entre meia largura + 4 px e a borda (largura medida uma vez por rótulo). Só interface; sem efeito na simulação.
