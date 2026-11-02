@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v11.1 (não publicada) — Bênção "do tema": rejeitada
+- Ideia: no descanso, a oferta sempre traria a bênção que combina com o tema principal da próxima horda (Céu→Olhos de águia, Cerco→Muralha firme, Guarda→Fúria, Enxame→Colheita, Matilha→Vigor), marcada "🎯 boa contra…".
+- A/B pareado, sementes 7–12, bot escolhendo a 1ª da oferta (= a do tema no novo): h13 +38,7 s (dp 58,9; 4 de 6 mais lentas), 0 derrotas. Fora do limite de ±20 s.
+- Leitura: para limpar a horda, Fúria (+20% de dano) vence; as "temáticas" defensivas/econômicas (Muralha, Colheita, Vigor, Alcance) limpam mais devagar. O "🎯" estaria recomendando a escolha pior para o ritmo — enganoso. Desligado (window.__blessBias); jogo publicado sem mudança.
+- Se voltar: a recomendação teria de ser medida por tema (qual bênção realmente encurta cada tipo de horda) antes de ser mostrada.
+
 ## v11.0 — Placar do ladrão no Códex
 - Escolha entre as opções da rodada pelo custo/risco: (c) recompensa visível — só exibição, sem efeito na simulação (toast e Códex não usam sorteio; renderCodex/NEW_DEATH envoltos). Por isso não houve A/B de ritmo; a sequência de sorteios não muda.
 - Códex: "💰 Caçada ao ladrão: X derrubados de Y vistos" + título (primeira captura / 🥇 Caçador de tesouros ≥5 / 🏆 Terror dos ladrões ≥10); aviso grande ao 1º, 5º e 10º abate. state.thiefSeen/thiefKills já iam no save (o save grava o state inteiro menos SAVE_SKIP).

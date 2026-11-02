@@ -1355,7 +1355,7 @@ function merchPick(k){const M=state.merch;if(!M||M.done||M.w!==state.wave)return
   SFX.click&&SFX.click();renderBless()}
 const _blessOffer0=blessOffer;blessOffer=function(){const w=state.wave;
   if(w>=8&&w<=22&&!state.raid&&(state.merchLast||0)<w-2&&Math.random()<(window.__merchP||.3)){state.merchLast=w;const t=randTurretType();const r=w>=16?4:3;state.merch={w,t,r,cost:Math.round(50+w*7),gain:Math.round(40+w*7)};state.blessOffer=null;renderBless();if(window.__botPlus){const M=state.merch;merchPick(state.material>=M.cost*1.6?'buy':(window.__botPact?'pact':'no'))}return}
-  _blessOffer0();if(window.__botPlus&&state.blessOffer)blessPick(state.blessOffer[0])};
+  _blessOffer0();if(typeof blessBias==='function')blessBias();if(window.__botPlus&&state.blessOffer)blessPick(state.blessOffer[0])};
 const _renderBless0=renderBless;renderBless=function(starting){const el=$('bless');const M=state.merch;
   if(el&&M&&M.w===state.wave&&!M.done&&state.phase!=='wave'&&!state.choosing){el.hidden=false;el.className='offer';el.innerHTML=merchHtml()+forgeHtml()+previewHtml();el.querySelectorAll('button[data-mc]').forEach(b=>b.onclick=()=>merchPick(b.dataset.mc));el.querySelectorAll('button[data-fs]').forEach(b=>b.onclick=()=>forgeBuy(b.dataset.fs));return}
   _renderBless0(starting)};
