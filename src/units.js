@@ -59,9 +59,11 @@ const ETYPES={
 const CLIMBS=t=>t==='climber'||t==='spider';
 const BIG=t=>t==='runico'||t==='arauto'||t==='boss'||t==='colossus'||t==='queen'||t==='titan'||t==='general'||t==='golem'||t==='wyrm'||t==='necro'||t==='mistking';
 let DMG_ACC=0;const enemies=[];const fuses=[];
+// v10.5: a arte dos inimigos usa um gerador próprio — variações cosméticas não mudam mais a sorte da simulação
+let _artS=0x9e3779b9;function _artRnd(){_artS|=0;_artS=_artS+0x6D2B79F5|0;let t=Math.imul(_artS^_artS>>>15,1|_artS);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}
 function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group();const col=new THREE.Color(T.color).lerp(new THREE.Color(RARITY[rarity].c),rarity?.35:0).getHex();
   const sc=US*(type==='colossus'?4:type==='titan'?3.2:type==='queen'?2.4:type==='boss'?2.6:type==='general'?2.1:type==='ship'?2.6:type==='pirate'?1.05:type==='mistking'?3.4:type==='golem'?3.7:type==='wyrm'?2.9:type==='necro'?2.7:type==='ram'?1.35:type==='flyer'?.8:type==='brute'?1.5:type==='imp'?.7:type==='slime'?1.15:type==='beetle'?1.2:(SCX[type]||1))*(BIG(type)?1.12:1.32*(.92+Math.floor(Math.random()*7)*.03));
-  let body,head,legs=[];if(CREATURES[type]){({body,head,legs}=CREATURES[type](sc,col,g))}else{
+  let body,head,legs=[];if(CREATURES[type]){const _mr=Math.random;Math.random=_artRnd;try{({body,head,legs}=CREATURES[type](sc,col,g))}finally{Math.random=_mr}}else{
   body=box(.9*sc,.7*sc,1.1*sc,col,0,.5*sc,0,g);head=box(.7*sc,.6*sc,.6*sc,col,0,.6*sc,.75*sc,g);eyes(head,.08*sc,.32*sc,.17*sc);
   for(const sx of [-1,1])for(const sz of [-1,1]){const lg=box(.22*sc,.4*sc,.22*sc,type==='colossus'?0xcfd6e3:0x2b2d4a,sx*.35*sc,.2*sc,sz*.35*sc,g);legs.push({mesh:lg,hp:150,alive:true,ox:sx*.35*sc,oz:sz*.35*sc})}}
   if(!BIG(type)&&!CREATURES[type])decorate(type,sc,col,g,body,head);
@@ -90,7 +92,10 @@ function makeEnemy(type,rarity,x,z){const T=ETYPES[type];const g=new THREE.Group
   if(DIFF().dmg!==1)e.T={...T,dmg:T.dmg*DIFF().dmg};
   rollAffix(e);if(BIG(type)&&type!=='ship'&&type!=='general'&&type!=='runico'&&state.wave>=15&&Math.random()<.6){e.bossAff=pick(['furioso','escudo']);if(e.bossAff==='escudo'){e.shieldMax=e.maxhp*.3;e.shield=e.shieldMax}}if(state.vein&&state.phase==='wave'&&!BIG(type)&&!CLIMBS(type)&&type!=='goblin'&&type!=='flyer'&&type!=='ship'&&Math.random()<.15)e.veinRaid=true;
   if(BIG(type)&&type!=='ship'&&type!=='general'){e.boss2=true;e.ph=1;e.mvT=rnd(3,5)}
-  setupChunks(e,body,head);
+  {const _mr=Math.random;Math.random=_artRnd;try{setupChunks(e,body,head)}finally{Math.random=_mr}}
+  if(window.__spawnN)window.__spawnN[type]=(window.__spawnN[type]||0)+1;
+  // v10.5: perder pernas depende só do dano sofrido (limiar sorteado por perna), não de quantas peças o modelo tem
+  if(type!=='colossus'&&!window.__oldLegs)for(const L of e.legs)L.th=(window.__legLo??.6)+Math.random()*(window.__legSpan??1);
   e.gy=CLIMBS(type)?topY(x,z):surfE(x,z);g.position.y=e.fly?e.alt:e.gy;g.userData.enemy=e;
   if(BIG(type)){showBoss(e);const ring=new THREE.Mesh(new THREE.RingGeometry(e.radius*1.15,e.radius*1.45,32),new THREE.MeshBasicMaterial({color:RARITY[Math.max(2,rarity)].c,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.08;g.add(ring);e.aura=ring}enemies.push(e);return e}
 function fmtDmg(d){d=Math.round(d);return (d>=1e6?(d/1e6).toFixed(d>=1e7?0:1)+'M':d>=1e4?(d/1e3).toFixed(d>=1e5?0:1)+'k':String(d)).replace('.',',')}
@@ -414,18 +419,19 @@ function setupChunks(e,body,head){const g=e.group,big=BIG(e.type);e.vmeshes=[];i
   {const cap=big?760:(e.rarity>=1||e.rival?320:230);if(cells.length>cap){const inn=cells.filter(c=>!c.sh),sh=cells.filter(c=>c.sh);cells=sh.concat(inn.slice(0,Math.max(0,cap-sh.length)));if(cells.length>cap*1.25)cells=cells.filter((c,i)=>!c.sh||i%Math.ceil(cells.length/(cap*1.25))===0||c.key>1.9)}}
   const bv=vinst(e,cells,g,body);if(bv.length){body.visible=false;for(const m of done)g.remove(m);e.parts[0]=bv[0].im}
   let hv=[];if(head&&head!==body&&head.geometry.parameters){const hc=vcells(head,vs*.85,big?260:80,true,null,true);hc.forEach(c=>c.pos.sub(head.position).applyQuaternion(_vq.copy(head.quaternion).invert()));hv=vinst(e,hc,head,head);if(hv.length){hv[0].im.position.set(0,0,0);head.material.colorWrite=false;head.material.depthWrite=false;head.castShadow=false;e.headVox=hv[0].im;e.parts.push(hv[0].im)}}
-  const skip=new Set([body,...e.vmeshes]);if(e.type==='colossus')for(const L of e.legs)skip.add(L.mesh);
+  const skip=new Set([body,...e.vmeshes]);if(e.type==='colossus'||!window.__oldLegs)for(const L of e.legs)skip.add(L.mesh);
   const extras=g.children.filter(c=>!skip.has(c)&&c.isMesh&&c!==head).map(m=>({m,key:rnd(.9,2.2)}));
   const vox=[...bv,...hv.map(h=>({...h,key:h.key*.6}))];
   const all=[...extras,...vox.map(v=>({m:v,key:v.key})),{m:head,key:.5}].filter(c=>c.m).sort((a,b)=>b.key-a.key);e.chunks=all.map(c=>c.m);e.lost=0;e.keepN=Math.max(3,Math.ceil(vox.length*.22))}
 function voxBurst(e,max){let n=0;for(let i=e.lost;i<e.chunks.length&&n<max;i++){const c=e.chunks[i];if(c&&c.im){c.im.getMatrixAt(c.n,_vm);_vp.setFromMatrixPosition(_vm);c.im.localToWorld(_vp);c.im.getColorAt(c.n,_vc);spawnDebris(_vp.x,_vp.y,_vp.z,_vc.getHex(),1,clamp(c.s*e.group.scale.x*1.1,.1,.6));n++}}}
 function chipEnemy(e,d){const frac=clamp(1-e.hp/e.maxhp,0,1);const lim=e.chunks.length-e.keepN;const tgt=Math.min(lim,Math.floor(Math.pow(frac,.85)*lim*1.04));let n=0;
-  while(e.lost<tgt&&n++<(e.chunks.length>120?26:14)){const m=e.chunks[e.lost++];detachChunk(e,m)}}
+  while(e.lost<tgt&&n++<(e.chunks.length>120?26:14)){const m=e.chunks[e.lost++];detachChunk(e,m)}
+  if(e.type!=='colossus')for(const L of e.legs)if(L.alive&&L.th!==undefined&&frac>=L.th&&L.mesh.parent)detachChunk(e,L.mesh)}
 function detachChunk(e,m){if(m&&m.im){if(!m.im.parent)return;m.im.getMatrixAt(m.n,_vm);_vp.setFromMatrixPosition(_vm);m.im.localToWorld(_vp);m.im.getColorAt(m.n,_vc);_vm.makeScale(0,0,0);m.im.setMatrixAt(m.n,_vm);m.im.instanceMatrix.needsUpdate=true;spawnDebris(_vp.x,_vp.y,_vp.z,_vc.getHex(),1,clamp(m.s*e.group.scale.x*1.15,.1,.7));if(BIG(e.type)&&Math.random()<.04){shake=Math.max(shake,.2);SFX.crunch(true)}return}
   if(!m.parent)return;m.getWorldPosition(_cv);const gp=m.geometry.parameters||{width:.3,height:.3,depth:.3};const s=Math.max(gp.width*m.scale.x,gp.height*m.scale.y,gp.depth*m.scale.z);const col=m.material.colorWrite===false?e.T.color:m.material.color.getHex();m.parent.remove(m);
   const big=BIG(e.type);spawnDebris(_cv.x,_cv.y,_cv.z,col,big?4:2,clamp(s*.55,.12,big?.9:.4));if(big&&Math.random()<.35){shake=Math.max(shake,.25);SFX.crunch(true)}
-  const leg=e.legs.find(L=>L.mesh===m);if(leg&&e.type!=='colossus'){leg.alive=false;e.speed*=.82;if(Math.random()<.5)label({x:e.pos.x,y:e.group.position.y+e.sc,z:e.pos.z},'manco!','#ec5f6b')}
-  if(e.parts[1]===m){e.T={...e.T,dmg:e.T.dmg*.8};if(big)toast(`${e.T.n}: cabeça rachada! Ataques mais fracos.`,'r2')}}
+  const leg=e.legs.find(L=>L.mesh===m);if(leg&&e.type!=='colossus'){leg.alive=false;e.speed*=.82;if(window.__mancoN)window.__mancoN[e.type]=(window.__mancoN[e.type]||0)+1;if(Math.random()<.5)label({x:e.pos.x,y:e.group.position.y+e.sc,z:e.pos.z},'manco!','#ec5f6b')}
+  if(e.parts[1]===m){if(window.__crackN)window.__crackN[e.type]=(window.__crackN[e.type]||0)+1;e.T={...e.T,dmg:e.T.dmg*.8};if(big)toast(`${e.T.n}: cabeça rachada! Ataques mais fracos.`,'r2')}}
 
 // boss projectiles: boulders and fireballs lobbed onto the base (explode with 'enemy' source)
 const marks=[];const _MK_DISC=new THREE.CircleGeometry(1,28);function markGround(x,z,r,color,t){const m=new THREE.Mesh(new THREE.RingGeometry(r*.78,r,28),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false}));m.rotation.x=-Math.PI/2;const y=Math.min(topY(x,z),GY+12);m.position.set(x,y+.06,z);scene.add(m);

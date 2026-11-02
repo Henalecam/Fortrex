@@ -226,6 +226,19 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v10.5 — A troca de arte deixou o jogo mais difícil; achado e corrigido
+- Minions × inimigos novos (tside.js, pátio): minions já são chibi com rosto desde a v2.6 e combinam — sem mudança. (Câmera dentro do castelo é difícil de enquadrar; a comparação é visual e fraca.)
+- Equilíbrio, tecon 900 s, sementes 1–6, mesmo build com window.__oldLook ligado/desligado: início da h13 em média 655,5 s (visual antigo) × 700,2 s (novo) — 5 de 6 sementes mais lentas. Suspeito.
+- Investigação:
+  1. A arte consumia o gerador aleatório da simulação (ctone/pick/rnd nos modelos, chaves dos pedaços, detritos) → partidas divergiam já na h2. Agora modelos, setupChunks, detritos, chamas, voxBurst e detachChunk usam um gerador próprio (_artRnd). Com a mesma semente, antigo × novo ficaram idênticos até a h6.
+  2. Causa de jogo: "manco" (perder perna = −18% de velocidade) dependia da ordem dos pedaços do modelo. Modelos novos têm menos pedaços soltos → pernas caíam bem menos. Perdas de perna por inimigo gerado (semente 1–2, 600 s), antigo → v10.4: rastejante 1,0 → 0,42; lobo 0,65 → 0,36; aranha 1,5 → 0,8; arqueiro 0,6 → 0,2.
+- Correção: pernas saem da lista de pedaços; cada perna tem um limiar de dano sorteado na simulação (0,6 + U(0,1) da vida perdida). Calibrado contra o antigo: rastejante 0,85 (antes 1,0), lobo 0,8 (0,65), aranha 1,5 (1,5), besouro 1,25 (1,25), cavaleiro 0,53 (0,58), arqueiro 0,43 (0,6), aríete 1,18 (0,82), escalador 0,42 (0,2).
+- Tentativa intermediária sem a correção do gerador mostrou que só a perna não bastava (h13 em 691,7 s) — o resto era divergência de sorte.
+- Resultado final, 6 sementes, antigo × novo no mesmo build: h10 em 444,5 × 437,3 s; h13 em 647,2 × 641,3 s; 0 derrotas nos dois. A diferença sumiu.
+- "Cabeça rachada" (outro efeito ligado a pedaços) não aconteceu nenhuma vez em 600 s nos dois visuais — não mexido.
+- Ainda há uma pequena divergência a partir da h6 com a mesma semente (fonte não achada).
+- t5 600: h12, 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h30, repetido 3× → h31, h30, h31 (a fixture h31 termina em h30 ou h31 conforme o tempo da horda dentro de 180 s; já aparecia antes da troca de arte, ex.: v9.8). tplay 1280×800: 0 problemas, 0 erros.
+
 ## v10.4 — Chefes finais no novo estilo; colosso conferido
 - Rei da Bruma (cabeça 0,55→0,72, capuz, sobrancelhas, boca brilhante com dentes pálidos, coroa maior), Arauto do Abismo (cabeça 0,6→0,8, rosto com olhos violeta, presas e 2 pares de chifres), Sentinela Rúnica (cabeça 0,8→0,96, testa de pedra, boca e colunas rúnicas, chifres maiores), Portador de Bruma (cabeça 0,55→0,7, capuz em 3 peças, olhos brilhantes maiores, rugas), Colosso de Rastejantes (cabeça 0,55→0,72, cara enfezada; 16 olhinhos brilhantes viraram 1 malha fundida).
 - Malhas antigo→novo: Rei 18→19, Arauto 9→10, Sentinela 23→24, Portador 11→12, Colosso de Rastejantes 30→12 (total 91→77). Os quatro primeiros são chefes únicos (+1 draw call cada).

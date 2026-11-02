@@ -1520,3 +1520,7 @@ Object.assign(CREATURES,{
     const men=[];for(const [s,z] of [[-1,-.5],[1,.5]]){const m=K(.4,.5,.34,fc,s*.38,.88,z);
       gear(m,sc,[[.42,.4,.4,0,.44,0,0,0,0xe8c8a8],[.46,.14,.44,0,.66,0,0,0,0x8a93a8],[.08,.09,.03,-.09,.46,.21,0,0,0x1d1f33],[.08,.09,.03,.09,.46,.21,0,0,0x1d1f33],[.12,.04,.03,-.09,.54,.21,0,-s*.3,0x3a2414],[.12,.04,.03,.09,.54,.21,0,s*.3,0x3a2414],[.16,.04,.03,0,.34,.21,0,0,0x3a1420]]);men.push(m)}g.userData.men=men;
     return{body,head,legs:LG([[-.48,.18,-.5,.15,.36],[-.28,.18,-.5,.15,.36],[.28,.18,.5,.15,.36],[.48,.18,.5,.15,.36]],0x3b2d2a)}})});
+
+// v10.5: efeitos puramente visuais (detritos, chamas, lascas de inimigo) usam o gerador da arte, não o da simulação
+function _withArt(fn){return function(){const r=Math.random;Math.random=_artRnd;try{return fn.apply(this,arguments)}finally{Math.random=r}}}
+spawnDebris=_withArt(spawnDebris);spawnFlame=_withArt(spawnFlame);voxBurst=_withArt(voxBurst);detachChunk=_withArt(detachChunk);
