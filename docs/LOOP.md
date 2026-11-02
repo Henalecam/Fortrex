@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v11.3 — Primeira sessão no celular revisada; rótulos presos à tela
+- tfirst.js (390×844, toque): tela inicial, tutorial, início, pinça, pan de 2 dedos, construir arrastando, horda e descanso — sem erros de página. Achados: (1) rótulo flutuante passando da borda direita no descanso ("lab:374-392" num viewport de 390); (2) "camHome tap fail" — o botão de recentrar fica escondido abaixo de 430 px de largura por CSS proposital; falha do teste, não do jogo.
+- Correção (1): updateLabels prende o centro do rótulo entre meia largura + 4 px e a borda (largura medida uma vez por rótulo). Só interface; sem efeito na simulação.
+- Meio de jogo (opção a) e segundo evento (opção b) não avaliados nesta rodada.
+- tfirst 390×844 depois: overflow [] nos dois pontos, 0 erros. t5 600: 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h30, repetido → h31. tplay 1280×800: 0 problemas, 0 erros.
+
 ## v11.2 — Muralha firme: o valor dela não é ritmo
 - Reanálise das 30 corridas da v11.1 (bênção fixa, 6 sementes × 900 s), agora pelo dano estrutural (SETSUM do __setLog): armas perdidas em desabamentos — Muralha 20 · Olhos de águia 30 · Colheita 37 · Fúria 38 · Vigor 48; blocos desabados — Muralha 7 428 (média das outras 7 673). Nenhuma corrida teve dano no baú.
 - Leitura: Muralha é a pior para limpar a horda (h13 677 s) mas a melhor para preservar armas (~metade das perdas). É uma escolha real, só estava mal descrita. Mudança só de texto: "blocos sofrem −25% de dano — menos torres desabam e menos armas se perdem". Sem efeito na simulação; sem A/B de ritmo.
