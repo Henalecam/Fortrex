@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v11.5 (não publicada) — Recarga da bomba por acerto múltiplo: sem efeito mensurável
+- Ideia (b): se a bomba atinge ≥ 6 inimigos, a recarga cai (nh−3 s, até 9 s), com rótulo "💣 N atingidos · recarga −X s".
+- Medido (tsrc2.js, sementes 1–2, 900 s): o bot jogou 34 e 38 bombas, atingindo em média 2,4 e 1,4 inimigos; só 3 e 1 bombas passaram de 6. Fatia da bomba 1,9% / 1,8% (igual à v11.4). O bot mira mal (alvo = maior grupo no momento do clique; a bomba leva ~1,3 s para cair), então o teste não mede o que um jogador humano faria. Sem dado que sustente a mudança → desligada (window.__bombRefund).
+- Heróis (opção a): os poderes já escalam com a horda (w = horda × multiplicador de nível); a fatia baixa (0–11%) depende de quais heróis o bot recrutou. Não mexido.
+- Lição: "agência do jogador" não se mede bem com o bot atual; antes de novas mudanças nesse eixo, o bot precisaria mirar a bomba com antecipação (como em tbombthief.js).
+
 ## v11.4 — Totem de guerra rejeitado; a bomba do jogador volta a importar
 - Retomado a pedido do usuário. Evento "Totem de guerra" (totem parado perto da muralha que acelera em 25% a horda num raio de 12): com o evento forçado, as defesas o derrubaram em 0–2 s (vida 150+25×h), 1–13 s (1 500+150×h), 1–24 s (2 500+500×h) e ainda 2–12 s com 4 000+900×h (16 600 de vida na h14 caindo em 2 s). Dano no totem: projéteis das armas e soldados (que saem para bater). Um efeito de horda que some em segundos não muda nada → desligado (window.__totemOn), arte e código mantidos.
 - O achado mais útil veio daí: atribuição de TODO o dano aos inimigos (900 s, sementes 1–2, bot que usa a bomba sempre que pode): armas 55–64%, soldados 22–32%, outros ~11%, heróis 0–11%, **bomba 0,6–1,4%**. A ferramenta ativa do jogador quase não pesa no meio do jogo (dano fixo de 170).

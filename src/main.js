@@ -72,7 +72,7 @@ function updateBombs(dt){for(let i=bombs.length-1;i>=0;i--){const b=bombs[i];b.v
     const p=b.mesh.position;if(p.y<=topY(p.x,p.z)+.3||p.y<GY-2){scene.remove(b.mesh);bombs.splice(i,1);const gy=Math.min(topY(p.x,p.z),GY);
       if(b.meteor){explode(p.x,gy+.2,p.z,3.4,85,{fire:true,src:'env'});spawnLoot(p.x,gy+1.5,p.z,'material',0,{amount:4});if(Math.random()<.35){const rr=Math.max(1,lootRarity(.1+state.luck));const [k,d]=lootPick('any',rr);spawnLoot(p.x,gy+1.5,p.z,k,rr,d)}}
       else if(b.enemy){explode(p.x,gy+.2,p.z,b.r,b.dmg,{fire:!!b.fire,src:'enemy'});shake=Math.max(shake,.35)}
-      else explode(p.x,gy+.2,p.z,state.bombR,170*(window.__oldBomb?1:1+state.wave*.12),{fire:true,src:'player'})}}}
+      else {let nh=0;if(window.__bombRefund)for(const e of enemies)if(!e.dead&&!e.rival&&hyp(e.pos.x-p.x,e.pos.z-p.z)<state.bombR)nh++;explode(p.x,gy+.2,p.z,state.bombR,170*(window.__oldBomb?1:1+state.wave*.12),{fire:true,src:'player'});if(nh>=6){const cut=Math.min(9,nh-3);state.bombCd=Math.max(0,(state.bombCd||0)-cut);label({x:p.x,y:gy+3,z:p.z},`💣 ${nh} atingidos · recarga −${cut} s`,'#ffb13d');if(window.__bombLog)window.__bombLog.push(nh)}else if(window.__bombLog)window.__bombLog.push(nh)}}}}
 
 // ───────── new game
 function newGame(){_later.length=0;for(const e of enemies)scene.remove(e.group);enemies.length=0;for(const m of minions)scene.remove(m.group);minions.length=0;for(const L of loot)scene.remove(L.g);loot.length=0;
