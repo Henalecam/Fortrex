@@ -72,7 +72,7 @@ function updateBombs(dt){for(let i=bombs.length-1;i>=0;i--){const b=bombs[i];b.v
     const p=b.mesh.position;if(p.y<=topY(p.x,p.z)+.3||p.y<GY-2){scene.remove(b.mesh);bombs.splice(i,1);const gy=Math.min(topY(p.x,p.z),GY);
       if(b.meteor){explode(p.x,gy+.2,p.z,3.4,85,{fire:true,src:'env'});spawnLoot(p.x,gy+1.5,p.z,'material',0,{amount:4});if(Math.random()<.35){const rr=Math.max(1,lootRarity(.1+state.luck));const [k,d]=lootPick('any',rr);spawnLoot(p.x,gy+1.5,p.z,k,rr,d)}}
       else if(b.enemy){explode(p.x,gy+.2,p.z,b.r,b.dmg,{fire:!!b.fire,src:'enemy'});shake=Math.max(shake,.35)}
-      else explode(p.x,gy+.2,p.z,state.bombR,170,{fire:true,src:'player'})}}}
+      else explode(p.x,gy+.2,p.z,state.bombR,170*(window.__oldBomb?1:1+state.wave*.12),{fire:true,src:'player'})}}}
 
 // ───────── new game
 function newGame(){_later.length=0;for(const e of enemies)scene.remove(e.group);enemies.length=0;for(const m of minions)scene.remove(m.group);minions.length=0;for(const L of loot)scene.remove(L.g);loot.length=0;
@@ -158,7 +158,7 @@ function resize(){renderer.setSize(innerWidth,innerHeight,false);camera.aspect=i
 window.addEventListener('resize',resize);resize();
 function simulate(dt){simTime+=dt;
   if(state.running&&dt>0){
-    if(state.phase==='wave'){spawnFromQueue(dt);if(state.ev==='meteor')meteorTick(dt);if(state.ev==='storm')stormTick(dt);if(!state.queue.length&&enemies.every(e=>e.dead||e.rival||e.thief))endWave()}
+    if(state.phase==='wave'){spawnFromQueue(dt);if(state.ev==='meteor')meteorTick(dt);if(state.ev==='storm')stormTick(dt);if(!state.queue.length&&enemies.every(e=>e.dead||e.rival||e.thief||e.totem))endWave()}
     else if(state.auto&&!state.choosing){state.restT-=dt;if(state.restT<=0){if(choicePending()&&(state.holdT=(state.holdT||0)+dt)<20){autoHoldUi(true)}else{if(choicePending())choiceAutoResolve();state.holdT=0;autoHoldUi(false);startWave()}}}
     const _p=window.__simProf;let _t=_p?performance.now():0;const _mk=k=>{if(_p){const t=performance.now();_p[k]=(_p[k]||0)+t-_t;_t=t}};for(const e of enemies)updateEnemy(e,dt);_mk('enemies');for(let i=enemies.length-1;i>=0;i--)if(enemies[i].dead)enemies.splice(i,1);
     _mk('pre');for(const m of minions)if(!m.away)updateMinion(m,dt);_mk('minions');for(const t of turrets)updateTurret(t,dt);_mk('turrets');for(let i=turrets.length-1;i>=0;i--)if(!turrets[i].alive)turrets.splice(i,1);
@@ -191,7 +191,7 @@ window.__dbg=()=>({wave:state.wave,mat:Math.floor(state.material),chest:chestAli
 genWorld();placeCamera();requestAnimationFrame(frame);
 // bot used by the headless test to exercise build/arsenal paths like a player would
 window.__bot=()=>{const out=[];if(typeof forgeOpen==='function'&&forgeOpen()&&state.material>forgeCost()*2)forgeBuy(pick(['arma','armadura','acessorio']));if(state.blessOffer&&state.phase!=='wave')blessPick(state.blessOffer[0]);{const B=enemies.find(e=>e.bearer&&!e.dead);if(B&&state.focus!==B){state.focus=B;state.focusT=8;out.push('focus-bearer')}}if(state.phase==='wave'&&state.wave>=8&&(state.wardCd||0)<=0&&chestAlive()<(window.__botPlus?24:18)){wardUp();out.push('ward')}for(const H of HEROES){const S=state.heroes&&state.heroes[H.id];if(S&&S.cd<=0&&enemies.filter(e=>!e.dead&&hyp(e.pos.x-S.m.pos.x,e.pos.z-S.m.pos.z)<(H.id==='archer'?40:8)).length>=4){heroAbility(H.id);out.push('hero')}}state.autoBuild=true;state.autoUp=true;state.autoSell=true;if(state.merchant){renderMerch();const k=state.merchant.offers.findIndex(o=>!o.sold&&o.price<state.material*.5);if(k>=0){const b=document.querySelector(`[data-buy="${k}"]`);if(b){b.click();out.push('buy')}}}{const B=battle();if(B&&!minions.some(m=>m.raid)&&battleOdds(B.lvl).p>.45){sendRaid();out.push('raid')}if(!state.quest&&REALM.pois.length){const P=REALM.pois.find(q=>questOdds(q).p>.6);if(P&&acceptPoi(P))out.push('poi')}}
-  if(state.phase==='wave'&&state.bombCd<=0&&state.material>60){const al=enemies.filter(e=>!e.dead&&!e.fly&&!e.rival);let best=null,bs=0;for(const e of al){const dC=hyp(e.pos.x-CX,e.pos.z-CZ);if(dC>WR+14)continue;let s=0;for(const o of al)if(Math.abs(o.pos.x-e.pos.x)<3.5&&Math.abs(o.pos.z-e.pos.z)<3.5)s+=BIG(o.type)?4:1;s*=dC<WR+3?1.5:1;if(s>bs){bs=s;best=e}}if(!best)best=al.find(e=>!inside(e.pos.x,e.pos.z));if(best&&!best.thief&&(bs>=3||!inside(best.pos.x,best.pos.z))){dropBomb(best.pos.x,best.pos.z);out.push('bomb')}}
+  if(state.phase==='wave'&&state.bombCd<=0&&state.material>60){const al=enemies.filter(e=>!e.dead&&!e.fly&&!e.rival);let best=null,bs=0;for(const e of al){const dC=hyp(e.pos.x-CX,e.pos.z-CZ);if(dC>WR+14)continue;let s=0;for(const o of al)if(Math.abs(o.pos.x-e.pos.x)<3.5&&Math.abs(o.pos.z-e.pos.z)<3.5)s+=BIG(o.type)?4:1;s*=dC<WR+3?1.5:1;if(s>bs){bs=s;best=e}}if(!best)best=al.find(e=>!inside(e.pos.x,e.pos.z));if(best&&!best.thief&&!best.totem&&(bs>=3||!inside(best.pos.x,best.pos.z))){dropBomb(best.pos.x,best.pos.z);out.push('bomb')}}
   if(state.phase!=='wave'&&typeof cheer==='function'&&cheerLeft()>0){for(const m of minions.filter(m=>m.role==='sol'&&!m.wounded&&m.cheerW!==state.wave).slice(0,cheerLeft()))cheer(m)}
   for(const L of loot)if(L.kind==='treasure'&&!L.carried){openTreasure(L);out.push('open');break}
   return out.join(' ')};
@@ -416,3 +416,26 @@ window.__thiefLead=(t)=>{const e=enemies.find(o=>o.thief&&!o.dead);if(!e||e.ang=
 const BLESS_MATCH={ceu:'alcance',cerco:'muralha',guarda:'furia',enxame:'colheita',matilha:'vigor'};
 function blessBias(){state.blessMatch=null;if(window.__fixBless&&state.blessOffer){state.blessOffer[0]=window.__fixBless;return}if(!window.__blessBias||!state.blessOffer)return;try{nextPreview()}catch(e){}const k=state.themes&&state.themes[0];const m=BLESS_MATCH[k];if(!m)return;const O=state.blessOffer;if(!O.includes(m))O[1]=O[0],O[0]=m;else if(O[1]===m){O[1]=O[0];O[0]=m}state.blessMatch={k:m,th:k}}
 {const _rb=renderBless;renderBless=function(){_rb.apply(this,arguments);const M=state.blessMatch,el=$('bless');if(!M||!el||!state.blessOffer)return;const T=THEMES.find(t=>t.k===M.th);const b=el.querySelector(`button[data-k="${M.k}"]`);if(b&&T&&!b.querySelector('.bm'))b.insertAdjacentHTML('beforeend',`<span class="bm" style="grid-column:2;font-size:11px;color:#2e7d4f;font-weight:700">🎯 boa contra ${T.ico} ${T.n}</span>`)}}
+
+// v11.4 EVENTO "Totem de guerra": um totem inimigo finca-se perto da muralha; enquanto estiver de pé, os tambores aceleram a horda em volta (+25% de velocidade num raio de 12).
+// Decisão: derrubar o totem (armas, bomba, heróis) ou segurar a horda acelerada. Derrubado, larga material.
+if(window.__totemOn)EVENTS.totem={n:'Totem de guerra',d:'Um totem inimigo surge perto da muralha e seus tambores aceleram a horda em volta (+25%). Derrube-o e ele larga material.',css:'r2',w:7};
+ETYPES.totem={hp:300,speed:0,dmg:0,rate:9,color:0x6b3a2a,radius:1.1,n:'Totem de guerra'};SCX.totem=1.2;NEWLOOK.totem=1;
+CREATURES.totem=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);const wood=0x6b3a2a,dk=0x3e2418,red=0xd9414f,bone=0xeae2cf;
+  const body=B(.7,1.0,.7,wood,0,.5,0);B(.9,.18,.9,dk,0,.08,0);
+  const head=B(.8,.7,.76,shadeHex(wood,.12),0,1.38,0);B(.84,.62,.72,shadeHex(wood,-.05),0,2.05,0);
+  face(head,sc,.8,.7,.76,{noEyes:1,brow:null,mouth:false},[[.2,.12,.04,-.18,.08,.39,0,0,0x1d1f33],[.2,.12,.04,.18,.08,.39,0,0,0x1d1f33],[.3,.08,.05,-.18,.2,.4,0,-.35,dk],[.3,.08,.05,.18,.2,.4,0,.35,dk],[.5,.12,.05,0,-.2,.39,0,0,0x2a1410],...[-2,-1,0,1,2].map(k=>[.06,.1,.04,k*.1,-.17,.42,0,0,bone]),
+    [.18,.1,.04,-.18,.75,.37,0,0,0x1d1f33],[.18,.1,.04,.18,.75,.37,0,0,0x1d1f33],[.4,.08,.05,0,.56,.38,0,0,0x2a1410],[.12,.5,.12,-.5,1.05,0,0,.5,bone],[.12,.5,.12,.5,1.05,0,0,-.5,bone],[.5,.06,.5,0,1.02,0,0,0,red]]);
+  g.userData.eyes=_eyes(G,0xff5a3a,[[.12,.08,-.18,1.46,.4],[.12,.08,.18,1.46,.4]]);
+  const drum=gear(g,sc,[[.5,.4,.5,0,0,0,0,0,red],[.54,.06,.54,0,.2,0,0,0,bone],[.54,.06,.54,0,-.2,0,0,0,bone]]);drum.position.set(.7*sc,.6*sc,.2*sc);g.userData.drum=drum;
+  K(.05,.9,.05,dk,-.55,1.9,-.2);K(.04,.3,.4,red,-.55,2.2,0);
+  return{body,head,legs:[]}};
+CX_DESC.totem='não anda nem ataca: acelera em 25% os inimigos num raio de 12 enquanto estiver de pé';
+NEW_BRAINS.totem=function(e,dt){e.vel&&e.vel.set(0,0,0);e.group.position.set(e.pos.x,e.gy,e.pos.z);e.pulse=(e.pulse||0)-dt;const ud=e.group.userData;if(ud.drum)ud.drum.scale.y=1+Math.max(0,Math.sin(simTime*9))*.15;
+  if(e.pulse<=0){e.pulse=.5;if(!window.__oldTotem)for(const o of enemies){if(o.dead||o===e||o.rival||o.fly)continue;if(Math.abs(o.pos.x-e.pos.x)<12&&Math.abs(o.pos.z-e.pos.z)<12&&hyp(o.pos.x-e.pos.x,o.pos.z-e.pos.z)<12)o.totemBuff=simTime+.7}
+    if(!e.mk||simTime-e.mk>3){e.mk=simTime;markGround(e.pos.x,e.pos.z,12,0xd9414f,3)}}return true};
+NEW_DEATH.totem=function(e){const amt=10+state.wave;spawnLoot(e.pos.x,e.gy+1.5,e.pos.z,'material',0,{amount:amt});for(let i=0;i<18;i++)spawnDebris(e.pos.x+rnd(-1,1),e.gy+rnd(.5,2.5),e.pos.z+rnd(-1,1),0x6b3a2a,1,.25);label({x:e.pos.x,y:e.gy+3,z:e.pos.z},'o totem caiu! +'+amt,'#ffcf3d');toast('🪵 Totem de guerra derrubado: os tambores silenciaram.','r2');state.totemKills=(state.totemKills||0)+1;if(window.__toLog)window.__toLog.push({w:state.wave,r:'kill',t:Math.round(simTime-e.born0),mx:Math.round(e.maxhp),hp:Math.round(e.hp)})};
+{const _sw=startWave;startWave=function(){_sw.apply(this,arguments);if(state.phase==='wave'&&state.ev==='totem'){const a=Math.atan2(GATE.z-CZ,GATE.x-CX)+(Math.random()-.5)*1.2,R=WR+(window.__toR??10);const x=CX+Math.cos(a)*R,z=CZ+Math.sin(a)*R;const e=makeEnemy('totem',1,x,z);e.totem=1;e.maxhp=e.hp=(window.__toHp??4000)+state.wave*(window.__toHpW??900);e.born0=simTime;e.pos.x=x;e.pos.z=z;e.gy=standY(x,z);label({x,y:e.gy+3.4,z},'🥁 totem de guerra!','#d9414f');if(window.__toLog)window.__toLog.push({w:state.wave,r:'spawn'})}}}
+{const _ew=endWave;endWave=function(){for(const e of enemies)if(e.totem&&!e.dead){e.dead=true;scene.remove(e.group);if(window.__toLog)window.__toLog.push({w:state.wave,r:'left'})}return _ew.apply(this,arguments)}}
+{const _de2=dmgEnemy;dmgEnemy=function(e,d){if(e&&e.totem&&window.__toSrc){const k=(new Error().stack||'').split('\n').slice(2,5).map(x=>(x.match(/at (\S+)/)||[])[1]).join('<');window.__toSrc[k]=(window.__toSrc[k]||0)+d}return _de2.apply(this,arguments)}}
+{const _de3=dmgEnemy;dmgEnemy=function(e,d){if(window.__allSrc&&e&&!e.dead){const st=new Error().stack||'';const k=/updateBombs/.test(st)?'bomba':/heroTick|heroAbility/.test(st)?'heroi':/updSol/.test(st)?'soldado':/updateTurret|updateProjectiles|processBooms|crossbowTick/.test(st)?'armas':'outro';window.__allSrc[k]=(window.__allSrc[k]||0)+Math.min(d,e.hp)}return _de3.apply(this,arguments)}}
