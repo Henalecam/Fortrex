@@ -226,6 +226,15 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v11.5 — Asas articuladas (pedido do usuário: "não quero que seja apenas um retângulo se movendo")
+- Antes: cada asa era UMA caixa achatada girando em torno do próprio centro (rotation.z = sen) — de longe parecia uma hélice/placa.
+- Agora (upgradeWings, fim de main.js, depois do makeEnemy): a caixa antiga sai e entra uma asa com pivô no OMBRO → segmento interno (osso de ataque, pulso, membrana em 3 faixas que afinam, inclinada 0,28 rad para ser vista de frente) → pivô no PULSO → segmento externo (dedos/costelas em leque para morcego e dragão; lona com varetas para o bombardeiro; garra na ponta). Animação: ombro = A·sen(φ); mão = 0,9A·sen(φ−1,0) (atraso — a ponta chicoteia); varredura para trás na subida (rotation.y) e balanço do corpo no ritmo. Rainha: 4 asas de inseto translúcidas (material próprio, transparente) com zumbido em fases diferentes.
+- Estilos: voador 13 Hz-ish/amplitude 0,75; diabrete 16/0,7; bombardeiro 9/0,4; serpe 5/0,6. Chave window.__oldWings.
+- Custo: +2 malhas por inimigo alado (2 pivôs × 2 segmentos fundidos): voador 7 → 9, diabrete 12 → 14, serpe 12 → 14, rainha 22 → 22–23 (contagens com tmeshc.js). Somem no LOD distante como antes.
+- Determinismo: a criação das asas roda com o gerador da arte (_artRnd) — o three.js gasta Math.random para criar ids de objetos, e asas novas mudariam a sorte da simulação.
+- Verificação: quadros ao vivo (twing.js: inimigo imortal e parado longe do castelo, câmera próxima) para voador, diabrete, bombardeiro, serpe e rainha; GIF do voador.
+- t5 600: 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h30, repetido → h31. tplay 1280×800: 0 problemas, 0 erros.
+
 ## v11.5 (não publicada) — Recarga da bomba por acerto múltiplo: sem efeito mensurável
 - Ideia (b): se a bomba atinge ≥ 6 inimigos, a recarga cai (nh−3 s, até 9 s), com rótulo "💣 N atingidos · recarga −X s".
 - Medido (tsrc2.js, sementes 1–2, 900 s): o bot jogou 34 e 38 bombas, atingindo em média 2,4 e 1,4 inimigos; só 3 e 1 bombas passaram de 6. Fatia da bomba 1,9% / 1,8% (igual à v11.4). O bot mira mal (alvo = maior grupo no momento do clique; a bomba leva ~1,3 s para cair), então o teste não mede o que um jogador humano faria. Sem dado que sustente a mudança → desligada (window.__bombRefund).

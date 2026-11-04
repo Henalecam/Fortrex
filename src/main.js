@@ -439,3 +439,34 @@ NEW_DEATH.totem=function(e){const amt=10+state.wave;spawnLoot(e.pos.x,e.gy+1.5,e
 {const _ew=endWave;endWave=function(){for(const e of enemies)if(e.totem&&!e.dead){e.dead=true;scene.remove(e.group);if(window.__toLog)window.__toLog.push({w:state.wave,r:'left'})}return _ew.apply(this,arguments)}}
 {const _de2=dmgEnemy;dmgEnemy=function(e,d){if(e&&e.totem&&window.__toSrc){const k=(new Error().stack||'').split('\n').slice(2,5).map(x=>(x.match(/at (\S+)/)||[])[1]).join('<');window.__toSrc[k]=(window.__toSrc[k]||0)+d}return _de2.apply(this,arguments)}}
 {const _de3=dmgEnemy;dmgEnemy=function(e,d){if(window.__allSrc&&e&&!e.dead){const st=new Error().stack||'';const k=/updateBombs/.test(st)?'bomba':/heroTick|heroAbility/.test(st)?'heroi':/updSol/.test(st)?'soldado':/updateTurret|updateProjectiles|processBooms|crossbowTick/.test(st)?'armas':'outro';window.__allSrc[k]=(window.__allSrc[k]||0)+Math.min(d,e.hp)}return _de3.apply(this,arguments)}}
+
+// v11.6 ASAS ARTICULADAS: cada asa tem ombro → braço → mão (2 segmentos com pivô), ossos/dedos e membrana em faixas que afinam;
+// o bater de asas tem atraso entre os segmentos (a ponta "chicoteia"), a asa varre para trás na subida e o corpo balança no ritmo.
+const _mgT=new THREE.MeshLambertMaterial({vertexColors:true,transparent:true,opacity:.55,depthWrite:false,side:THREE.DoubleSide});
+function wingMesh(parent,sc,parts,glass){const P=parts.map(p=>[p[0]*sc,p[1]*sc,p[2]*sc,p[3]*sc,p[4]*sc,p[5]*sc,p[6]||0,p[7]||0,p[8]||0,p[9]]);const m=mcache(P,parent);if(glass&&m)m.material=_mgT;return m}
+const WING_STYLE={
+  flyer:{L1:.55,L2:.75,C:.55,mem:null,bone:null,kind:'bat',f:13,a:.75},
+  imp:{L1:.3,L2:.4,C:.32,mem:null,bone:0x2b2d4a,kind:'bat',f:16,a:.7},
+  bombardeiro:{L1:.65,L2:.7,C:.55,mem:0xd8cfae,bone:0x8a5a33,kind:'canvas',f:9,a:.4},
+  wyrm:{L1:.85,L2:1.05,C:.85,mem:null,bone:null,kind:'bat',f:5,a:.6},
+};
+function buildWing(sc,st,side,mem,bone){const piv=new THREE.Group(),out=new THREE.Group();const{L1,L2,C}=st;const P=[],Q=[];
+  // braço: osso da borda de ataque + membrana em 3 faixas
+  P.push([L1,.08,.08,L1/2,0,C*.45,0,0,0,bone]);for(let i=0;i<3;i++){const ch=C*(1-.1*i);P.push([L1/3+.02,.03,ch,(i+.5)*L1/3,-.06,C*.45-ch/2,.28,0,0,mem])}
+  P.push([.12,.12,.12,L1,0,C*.45,0,0,0,bone]);// "pulso"
+  if(st.kind==='bat'){Q.push([L2,.06,.06,L2/2,0,C*.42,0,0,0,bone]);for(const [a,len] of[[.45,.95],[.9,.85],[1.3,.7]]){const l=L2*len;Q.push([l,.04,.04,Math.cos(a)*l/2,0,C*.42-Math.sin(a)*l/2,0,a,0,bone])}
+    for(let i=0;i<4;i++){const ch=C*(.85-.17*i);Q.push([L2/4+.02,.025,ch,(i+.5)*L2/4,-.06,C*.42-ch/2,.28,0,0,mem])}Q.push([.08,.1,.08,L2,.02,C*.42,0,0,.5,0xe8e0cc])}
+  else{Q.push([L2,.06,.06,L2/2,0,C*.42,0,0,0,bone]);for(let i=0;i<4;i++){const ch=C*(.9-.14*i);Q.push([L2/4+.02,.03,ch,(i+.5)*L2/4,-.06,C*.42-ch/2,.28,0,0,mem])}for(let k=0;k<3;k++)Q.push([.04,.05,C*.7,L2*(.25+k*.3),.03,C*.42-C*.35,0,0,0,bone])}
+  wingMesh(piv,sc,P);wingMesh(out,sc,Q);out.position.set(L1*sc,0,0);piv.add(out);piv.scale.x=side;return{piv,out}}
+function upgradeWings(e){if(window.__oldWings)return;const g=e.group,ud=g.userData;const st=WING_STYLE[e.type];
+  if(st&&ud.wings&&ud.wings.length===2){const col=new THREE.Color(ud.wings[0].material.color.getHex()).getHex();const mem=st.mem??col,bone=st.bone??shadeHex(col,-.35);const F=[];
+    ud.wings.forEach((w,k)=>{const side=w.position.x<0?-1:1;const half=(w.geometry.parameters.width||1)/2;const wg=buildWing(e.sc,st,side,mem,bone);wg.piv.position.set(w.position.x-side*half,w.position.y,w.position.z);g.remove(w);g.add(wg.piv);F.push({...wg,side})});
+    ud.wingF={F,f:st.f,a:st.a};delete ud.wings}
+  if(ud.wings4&&!window.__oldWings){const F=[];ud.wings4.forEach((w,k)=>{const side=w.position.x<0?-1:1;const half=(w.geometry.parameters.width||1)/2;const piv=new THREE.Group();const L=half*2/e.sc,C=(w.geometry.parameters.depth||.5)/e.sc;
+      wingMesh(piv,e.sc,[[L*.5,.02,C*.7,L*.25,0,0,0,0,0,0xe8d8ff],[L*.4,.02,C,L*.65,0,-.02,0,0,0,0xe8d8ff],[L*.15,.02,C*.6,L*.95,0,-.04,0,0,0,0xd9c8ff],[L,.03,.03,L/2,.01,C*.45,0,0,0,0x9a7ad8],[L*.8,.025,.025,L*.45,.01,0,0,-.15,0,0xb59ae8]],true);
+      piv.scale.x=side;piv.position.set(w.position.x-side*half,w.position.y,w.position.z);g.remove(w);g.add(piv);F.push({piv,side,k})});ud.wing4F=F;delete ud.wings4}}
+{const _mk116=makeEnemy;makeEnemy=function(type,...a){const e=_mk116(type,...a);{const _r=Math.random;Math.random=_artRnd;try{upgradeWings(e)}catch(err){}finally{Math.random=_r}}return e}}
+{const _an116=enemyAnim;enemyAnim=function(e,dt){_an116(e,dt);const ud=e.group.userData;const t=simTime+e.bob*.1;
+  if(ud.wingF){const W=ud.wingF;const ph=t*W.f;const s=Math.sin(ph),c=Math.cos(ph);for(const w of W.F){w.piv.rotation.z=w.side*(W.a*s+.1);w.out.rotation.z=w.side*(W.a*.9*Math.sin(ph-1.0)-.05);w.piv.rotation.y=-w.side*(.18*c);w.out.rotation.y=-w.side*Math.max(0,-s)*.35}
+    if(e.fly){const o=Math.sin(ph+.6)*.12*e.sc*.4;e.group.position.y+=o-(e.wingO||0);e.wingO=o}}
+  if(ud.wing4F)for(const w of ud.wing4F){const ph=t*22+w.k*1.6;w.piv.rotation.z=w.side*(.35*Math.sin(ph)+.15);w.piv.rotation.y=-w.side*(w.k%2?.35:-.1)}}}
