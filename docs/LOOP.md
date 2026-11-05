@@ -226,6 +226,14 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v11.6 — Inimigo novo: Tecelão
+- Aranha tecelã (arte nova: abdômen K com padrão de teia em seda, rosto com 2 olhos grandes + 2 pequenos e quelíceras de seda, 8 pernas) no tema Enxame, horda ≥ 10 (T_UNLOCK; chave window.__noWeaver).
+- Comportamento: a cada 5,5 s, se houver arma do jogador a ≤ 22 blocos sem teia, para por 0,8 s (abdômen sobe), lança um arco de fios e enreda a arma por 8 s: cadência × 0,35 e casulo translúcido com fios cruzados na arma. Rótulo "🕸 arma enredada! toque para soltar". Tocar/clicar na arma rasga a teia (state.webFreed). Códex: CX_DESC.
+- Medido, 12 sementes pareadas (900 s; o bot NUNCA rasga teias — pior caso): h13 +3,2 s (dp 38,3), 0 derrotas. Teias por corrida 1–35 (média ~16), tecelões gerados 3–17.
+- Malhas extras (casulo) criadas com o gerador da arte (_artRnd) para não mexer na sorte da simulação.
+- Screenshot em jogo: canhão da torre de canto enredado, tecelões ao pé da muralha.
+- t5 600: 0 erros. tcompat: v0.41 → h15, v0.60 → h20, v7.8/h31 → h31. tplay 1280×800: 0 problemas, 0 erros.
+
 ## v11.5 — Asas articuladas (pedido do usuário: "não quero que seja apenas um retângulo se movendo")
 - Antes: cada asa era UMA caixa achatada girando em torno do próprio centro (rotation.z = sen) — de longe parecia uma hélice/placa.
 - Agora (upgradeWings, fim de main.js, depois do makeEnemy): a caixa antiga sai e entra uma asa com pivô no OMBRO → segmento interno (osso de ataque, pulso, membrana em 3 faixas que afinam, inclinada 0,28 rad para ser vista de frente) → pivô no PULSO → segmento externo (dedos/costelas em leque para morcego e dragão; lona com varetas para o bombardeiro; garra na ponta). Animação: ombro = A·sen(φ); mão = 0,9A·sen(φ−1,0) (atraso — a ponta chicoteia); varredura para trás na subida (rotation.y) e balanço do corpo no ritmo. Rainha: 4 asas de inseto translúcidas (material próprio, transparente) com zumbido em fases diferentes.

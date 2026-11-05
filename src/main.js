@@ -109,7 +109,7 @@ function clickAt(cx,cy,right){if(!state.running)return;
   if(u.enemy){const e=u.enemy;if(state.focusCd<=0){state.focus=e;state.focusT=state.focusLong?8:5;state.focusCd=state.focusLong?10:14;toast(`Fogo Concentrado no ${e.T.n}!`,'r2');label({x:e.pos.x,y:e.gy,z:e.pos.z},'🔥 ALVO','#ec5f6b');updateHud()}else toast('Fogo Concentrado recarregando','r0');return}
   if(u.loot){const L=u.loot;if(L.kind==='treasure')openTreasure(L);else{L.prio=!L.prio;if(L.prio){label({x:L.x,y:L.y-1,z:L.z},'📌','#ff8a5c');if(L.claimed){L.claimed.task=null;L.claimed.state=L.claimed.bag.length?'haul':'idle';L.claimed=null}}}SFX.pop();return}
   if(u.minion){cardSlot=null;openCard({m:u.minion});return}
-  if(u.turret){openCard({t:u.turret})}}
+  if(u.turret){if(u.turret.webT>simTime){u.turret.webT=0;label({x:u.turret.pos.x,y:u.turret.pos.y+2,z:u.turret.pos.z},'teia rasgada!','#e8e0ff');SFX.pop();state.webFreed=(state.webFreed||0)+1;return}openCard({t:u.turret})}}
 window.addEventListener('keydown',e=>{{const H=HEROES.find(h=>h.key===e.key.toUpperCase());if(H&&!state.build.on){heroAbility(H.id);return}}if(e.key==='h'||e.key==='H'){cam.target.set(CX,GY+1.5,CZ);return}if((e.key==='c'||e.key==='C')&&!state.build.on&&!e.ctrlKey&&!e.metaKey){openSide('codex');return}if(e.key==='m'||e.key==='M'){REALM.open?closeRealm():openRealm();return}if(e.key==='Escape'&&REALM.open){closeRealm();return}if(e.target.tagName==='INPUT')return;const k=e.key.toLowerCase();
   if(k===' '&&state.running&&state.phase==='rest'&&!state.choosing){e.preventDefault();startWave()}
   else if(k==='b'&&state.running)openSide('buildPanel');else if(k==='i'&&state.running)openSide('arsenal');else if(k==='u'&&state.running)openSide('shop');
@@ -470,3 +470,24 @@ function upgradeWings(e){if(window.__oldWings)return;const g=e.group,ud=g.userDa
   if(ud.wingF){const W=ud.wingF;const ph=t*W.f;const s=Math.sin(ph),c=Math.cos(ph);for(const w of W.F){w.piv.rotation.z=w.side*(W.a*s+.1);w.out.rotation.z=w.side*(W.a*.9*Math.sin(ph-1.0)-.05);w.piv.rotation.y=-w.side*(.18*c);w.out.rotation.y=-w.side*Math.max(0,-s)*.35}
     if(e.fly){const o=Math.sin(ph+.6)*.12*e.sc*.4;e.group.position.y+=o-(e.wingO||0);e.wingO=o}}
   if(ud.wing4F)for(const w of ud.wing4F){const ph=t*22+w.k*1.6;w.piv.rotation.z=w.side*(.35*Math.sin(ph)+.15);w.piv.rotation.y=-w.side*(w.k%2?.35:-.1)}}}
+
+// v11.6 INIMIGO "Tecelão" (tema Enxame, horda ≥ 10): aranha tecelã que para, ergue o abdômen e lança teia numa arma a até 22 blocos.
+// Arma enredada atira a 35% por 8 s. Decisão: tocar/clicar na arma rasga a teia na hora; ou matar o tecelão primeiro (Fogo Concentrado).
+ETYPES.tecelao={hp:240,speed:1.7,dmg:8,rate:2,color:0x6a4a9a,radius:.7,n:'Tecelão'};SCX.tecelao=1.15;NEWLOOK.tecelao=1;T_UNLOCK.tecelao=window.__noWeaver?999:10;
+{const T=THEMES.find(t=>t.k==='enxame');if(T&&!T.t.includes('tecelao'))T.t.push('tecelao')}
+CREATURES.tecelao=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.35),silk=0xeee8ff;
+  const body=B(.6,.42,.6,col,0,.55,.1);const abd=K(.85,.75,.9,shadeHex(col,.08),0,.85,-.55);gear(abd,sc,[[.5,.04,.03,0,.25,.46,0,0,silk],[.5,.04,.03,0,-.15,.46,0,0,silk],[.04,.44,.03,.25,.05,.46,0,0,silk],[.04,.44,.03,-.25,.05,.46,0,0,silk],[.6,.03,.03,0,.05,.465,0,.785,silk],[.6,.03,.03,0,.05,.465,0,-.785,silk],[.12,.12,.12,0,-.1,-.5,0,0,silk]]);g.userData.abd=abd;
+  const head=B(.62,.48,.5,shadeHex(col,.18),0,.62,.52);
+  face(head,sc,.62,.48,.5,{sclera:0xd7c2ff,pupil:0x2a1440,es:.14,ex:.14,ey:.04,brow:0x2a1440,mood:.45,mouth:false},[[.07,.07,.03,-.25,.17,.25,0,0,0xd7c2ff],[.07,.07,.03,.25,.17,.25,0,0,0xd7c2ff],[.08,.2,.08,-.1,-.24,.22,0,.3,silk],[.08,.2,.08,.1,-.24,.22,0,-.3,silk]]);
+  const legs=[];for(const s of[-1,1])for(let k=0;k<4;k++){const m=B(.9,.08,.08,dk,s*.72,.55,(k-1.5)*.24+.1);m.rotation.z=s*.6;m.rotation.y=s*(k-1.5)*.28;legs.push({mesh:m,alive:true,ox:s*.72*sc,oz:((k-1.5)*.24)*sc})}
+  return{body,head,legs}};
+CX_DESC.tecelao='lança teia numa arma (35% de cadência por 8 s); toque na arma para rasgar a teia';
+const _webL=[];
+function webCocoon(t,on){if(on&&!t.webM){const r=Math.random;Math.random=_artRnd;try{t.webM=mcache([[1.1,.9,1.1,0,1.1,0,0,0,0,0xeee8ff],[1.3,.08,.08,0,1.4,0,0,.6,0,0xffffff],[1.3,.08,.08,0,1.0,0,0,-.6,0,0xffffff],[.08,1.2,.08,.5,1.1,.5,0,0,0,0xffffff],[.08,1.2,.08,-.5,1.1,-.5,0,0,0,0xffffff]],t.group);t.webM.material=_mgT}finally{Math.random=r}}if(t.webM)t.webM.visible=!!on}
+NEW_BRAINS.tecelao=function(e,dt){const ud=e.group.userData;if(e.cast>0){e.cast-=dt;if(ud.abd)ud.abd.rotation.x=-.6*Math.min(1,e.cast/.4);e.vel&&e.vel.set(0,0,0);return true}if(ud.abd)ud.abd.rotation.x=Math.sin(simTime*3+e.bob)*.08;
+  e.webCd=(e.webCd??(2+Math.random()*2))-dt;if(e.webCd>0)return false;let best=null,bd=22;for(const t of turrets){if(!t.alive||t.team==='r'||t.webT>simTime)continue;const d=hd(t.pos,e.pos);if(d<bd){bd=d;best=t}}
+  if(!best){e.webCd=1;return false}e.webCd=5.5;e.cast=.8;best.webT=simTime+8;webCocoon(best,true);state.webs=(state.webs||0)+1;if(window.__webLog)window.__webLog.push(state.wave);
+  {const r=Math.random;Math.random=_artRnd;try{for(let k=0;k<10;k++){const f=k/10;spawnDebris(e.pos.x+(best.pos.x-e.pos.x)*f,e.gy+1.2+(best.pos.y+1-e.gy-1.2)*f+Math.sin(f*3.14)*1.5,e.pos.z+(best.pos.z-e.pos.z)*f,0xeee8ff,1,.14)}}finally{Math.random=r}}
+  label({x:best.pos.x,y:best.pos.y+2.2,z:best.pos.z},'🕸 arma enredada! toque para soltar','#d7c2ff');return true};
+{const _tt=updateTurret;updateTurret=function(t,dt){if(t.webM&&!(t.webT>simTime))webCocoon(t,false);return _tt.apply(this,arguments)}}
+window.__webbed=()=>turrets.filter(t=>t.alive&&t.webT>simTime).map(t=>[t.pos.x,t.pos.z]);
