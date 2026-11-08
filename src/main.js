@@ -483,11 +483,21 @@ CREATURES.tecelao=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);c
   return{body,head,legs}};
 CX_DESC.tecelao='lança teia numa arma (35% de cadência por 8 s); toque na arma para rasgar a teia';
 const _webL=[];
-function webCocoon(t,on){if(on&&!t.webM){const r=Math.random;Math.random=_artRnd;try{t.webM=mcache([[1.1,.9,1.1,0,1.1,0,0,0,0,0xeee8ff],[1.3,.08,.08,0,1.4,0,0,.6,0,0xffffff],[1.3,.08,.08,0,1.0,0,0,-.6,0,0xffffff],[.08,1.2,.08,.5,1.1,.5,0,0,0,0xffffff],[.08,1.2,.08,-.5,1.1,-.5,0,0,0,0xffffff]],t.group);t.webM.material=_mgT}finally{Math.random=r}}if(t.webM)t.webM.visible=!!on}
+function webCocoon(t,on){if(on&&!t.webM){const r=Math.random;Math.random=_artRnd;try{t.webM=mcache(window.__oldWeb?[[1.1,.9,1.1,0,1.1,0,0,0,0,0xeee8ff],[1.3,.08,.08,0,1.4,0,0,.6,0,0xffffff],[1.3,.08,.08,0,1.0,0,0,-.6,0,0xffffff],[.08,1.2,.08,.5,1.1,.5,0,0,0,0xffffff],[.08,1.2,.08,-.5,1.1,-.5,0,0,0,0xffffff]]:[[1.15,.95,1.15,0,1.1,0,0,0,0,0xc8b4ff],[1.45,.11,.11,0,1.45,0,0,.6,0,0x6a3fc0],[1.45,.11,.11,0,.95,0,0,-.6,0,0x6a3fc0],[.11,1.3,.11,.55,1.1,.55,0,0,0,0x6a3fc0],[.11,1.3,.11,-.55,1.1,-.55,0,0,0,0x6a3fc0],[.11,1.3,.11,.55,1.1,-.55,0,0,0,0x6a3fc0],[.11,1.3,.11,-.55,1.1,.55,0,0,0,0x6a3fc0]],t.group);t.webM.material=_mgT}finally{Math.random=r}}if(t.webM)t.webM.visible=!!on}
 NEW_BRAINS.tecelao=function(e,dt){const ud=e.group.userData;if(e.cast>0){e.cast-=dt;if(ud.abd)ud.abd.rotation.x=-.6*Math.min(1,e.cast/.4);e.vel&&e.vel.set(0,0,0);return true}if(ud.abd)ud.abd.rotation.x=Math.sin(simTime*3+e.bob)*.08;
   e.webCd=(e.webCd??(2+Math.random()*2))-dt;if(e.webCd>0)return false;let best=null,bd=22;for(const t of turrets){if(!t.alive||t.team==='r'||t.webT>simTime)continue;const d=hd(t.pos,e.pos);if(d<bd){bd=d;best=t}}
   if(!best){e.webCd=1;return false}e.webCd=5.5;e.cast=.8;best.webT=simTime+8;webCocoon(best,true);state.webs=(state.webs||0)+1;if(window.__webLog)window.__webLog.push(state.wave);
   {const r=Math.random;Math.random=_artRnd;try{for(let k=0;k<10;k++){const f=k/10;spawnDebris(e.pos.x+(best.pos.x-e.pos.x)*f,e.gy+1.2+(best.pos.y+1-e.gy-1.2)*f+Math.sin(f*3.14)*1.5,e.pos.z+(best.pos.z-e.pos.z)*f,0xeee8ff,1,.14)}}finally{Math.random=r}}
   label({x:best.pos.x,y:best.pos.y+2.2,z:best.pos.z},'🕸 arma enredada! toque para soltar','#d7c2ff');return true};
-{const _tt=updateTurret;updateTurret=function(t,dt){if(t.webM&&!(t.webT>simTime))webCocoon(t,false);return _tt.apply(this,arguments)}}
+{const _tt=updateTurret;updateTurret=function(t,dt){if(t.webM&&!(t.webT>simTime))webCocoon(t,false);else if(t.webM&&!window.__oldWeb){const k=1+.06*Math.sin(performance.now()*.006);t.webM.scale.set(k,1,k)}return _tt.apply(this,arguments)}}
 window.__webbed=()=>turrets.filter(t=>t.alive&&t.webT>simTime).map(t=>[t.pos.x,t.pos.z]);
+window.__webbedScr=()=>turrets.filter(t=>t.alive&&t.webT>simTime).map(t=>{const v=new THREE.Vector3(t.pos.x,t.pos.y+1,t.pos.z).project(camera);const c=renderer.domElement.getBoundingClientRect();return [c.left+(v.x+1)/2*c.width,c.top+(1-v.y)/2*c.height]});
+// v11.7 golpe corpo a corpo: inclina para trás antes do golpe e avança no impacto; braços articulados acompanham (só arte)
+{const NOP={ram:1,rammer:1,ship:1,sapper:1};const _ea=enemyAnim;enemyAnim=function(e,dt){_ea.apply(this,arguments);if(window.__oldStrike||e.dead||NOP[e.type])return;const ud=e.group.userData,G=e.group;
+  if(e.lunge>0)e._atkL=simTime;const R=e.T.rate||1;const atk=e.stun<=0&&((simTime-(e.atkT??-99)<.3)||(simTime-(e._atkL??-99)<R+.15));
+  if(!atk){if(e._sw){e._sw=0;G.rotation.x=0}return}
+  if(G.rotation.order!=='YXZ')G.rotation.order='YXZ';
+  const since=Math.max(0,R-(e.timer||0)),left=Math.max(0,e.timer||0);let p,a;
+  if(since<.2){const k=since/.2;p=.4*(1-k)*(1-k);a=-2.5+k*k*2.3}else if(left<.45){const k=1-left/.45,s=k*(2-k);p=-.25*s;a=-.2-2.3*s}else{p=0;a=-.2}
+  G.rotation.x=p*(BIG(e.type)?.5:1);e._sw=1;
+  if(ud.arms&&e.type!=='brute'){ud.arms[0].rotation.x=a;ud.arms[1].rotation.x=a*.85-.05}}}
