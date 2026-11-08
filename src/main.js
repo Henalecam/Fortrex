@@ -533,3 +533,7 @@ setInterval(()=>{if(window.__oldTopFit)return;const T=$('top');if(!T)return;cons
   if(bb)bb.style.setProperty('top',(b+8)+'px','important');{const g=$('goals');if(g&&!window.__oldGoalsFit)g.style.setProperty('top',(b+8)+'px','important')}if(bl)bl.style.setProperty('top',(b+(bossOn?(bb.getBoundingClientRect().height||30)+16:8))+'px','important')},300);
 // v12.2 dicas de iniciante não aparecem para quem carrega um save já avançado (horda ≥ 6)
 {const _lg=loadGame;loadGame=function(){const r=_lg.apply(this,arguments);if(r&&!window.__oldVetTips&&state.wave>=6){let ch=0;for(const k of ['start','wave','auto','shop','build','save','rush','bomb'])if(!TIPS_SEEN[k]){TIPS_SEEN[k]=1;ch=1}if(ch)try{localStorage.setItem('fortrex_tips',JSON.stringify(TIPS_SEEN))}catch(e){}}return r}}
+// v12.4 medição: moral no fim de cada horda (só com window.__morLog)
+{const _mt=moraleTick;let _ph=null,_mn=100;moraleTick=function(dt){_mt.apply(this,arguments);if(!window.__morLog)return;if(state.phase==='wave')_mn=Math.min(_mn,state.morale);if(_ph==='wave'&&state.phase!=='wave'){window.__morLog.push([state.wave,Math.round(state.morale),Math.round(_mn),Math.round(state.waveT||0)]);_mn=100}_ph=state.phase}}
+// v12.4 (rejeitado) combo ×25 → +4 de moral: só com window.__comboMor
+{const _ac=addCombo;addCombo=function(e){_ac.apply(this,arguments);if(!window.__comboMor||!e||state.combo<25||state.combo%25)return;const m0=state.morale??60;if(m0>=100)return;state.morale=Math.min(100,m0+4);state.comboMor=(state.comboMor||0)+1}}
