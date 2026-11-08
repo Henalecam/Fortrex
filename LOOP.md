@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v12.1 — Setas de borda clicáveis
+- Olhei uma horda tardia de verdade (fixture h31, tlate.js): 280–296 inimigos vivos, a câmera padrão fica no centro (lava/praça) e quase toda a briga está FORA da tela — só as setas vermelhas da borda (2, 7, 9, 10, 23…) mostram onde. Elas não faziam nada ao toque.
+- Agora: tocar/clicar numa seta move a câmera (suave, 0,38 s) até o inimigo **mais perto do castelo** naquela direção (centroide foi testado antes e caía em área vazia — rejeitado). Área de toque +8 px em volta. Só câmera, sem efeito na simulação (semente 1 h13 conferida). Chave `__oldEdge`; gancho `__edgeTgts()`; teste tedge.js (W H; 390×844 usa toque).
+- Achado e corrigido no celular: as setas da esquerda ficavam em x≈52, encostadas na barra lateral de botões (x 12–56) → toques errados. Margem no celular 52 → 72.
+- Crítica: as setas se movem a cada 0,2 s (transição), então um toque pode errar se o grupo mudar de setor — aceitável. Dica inicial "Seus minions trabalham sozinhos" ainda aparece em save antigo de h31 (ruído para veterano) — candidato.
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h30; tplay 1280×800 → 0 issues, 0 erros. Toque no celular: câmera 135,113 → 67,83 (alvo 67,83).
+
 ## v12.0 — Mira da bomba (interface)
 - Motivação (rodada anterior): bombas pegam ~1,8 inimigo; a queda/mira não é o problema, e sim soltar em grupo pequeno. O jogador não tinha NENHUM retorno antes de clicar (o modo bomba era "clique em algum lugar").
 - Novo: no modo bomba, durante a horda: anel dourado pulsante no maior grupo terrestre (recalculado a cada 250 ms, só aparece com ≥ 2) com etiqueta "💣 N"; com mouse, um anel laranja segue o cursor com "💣 N" ou "—". Anéis com o raio real (state.bombR, então upgrades e bênçãos aparecem), sem teste de profundidade, criados com _artRnd; laço próprio de requestAnimationFrame → sem efeito na simulação. Chave `__oldAim`. Gancho `__bombAimHud()`.

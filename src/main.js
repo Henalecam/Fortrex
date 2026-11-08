@@ -524,3 +524,7 @@ window.__webStats=()=>[state.webs||0,state.webCut||0,state.webFreed||0];
   if(best&&best[2]>=2){place(R2,L2,best[0],best[1],best[2],'💣 '+best[2]);const k=1+.06*Math.sin(performance.now()*.008);R2.scale.multiplyScalar(k)}else{R2.visible=false;L2.style.display='none'}
   if(hx!==null){const n=cnt(hx,hz);place(R1,L1,hx,hz,n,n?'💣 '+n:'—')}else{R1.visible=false;L1.style.display='none'}};requestAnimationFrame(tick);
  window.__bombAimHud=()=>({best,hov:hx===null?null:[hx,hz]});}
+// v12.1 setas de borda clicáveis: tocar numa seta leva a câmera até aquele grupo (só câmera)
+let _ejA=null;function edgeJump(d){if(window.__oldEdge||!d._tgt)return;const [x,z]=d._tgt;const x0=cam.target.x,z0=cam.target.z,t0=performance.now(),T=380;_ejA={x,z};const step=()=>{if(_ejA&&(_ejA.x!==x||_ejA.z!==z))return;const k=Math.min(1,(performance.now()-t0)/T),q=k*k*(3-2*k);cam.target.x=clamp(x0+(x-x0)*q,0,W);cam.target.z=clamp(z0+(z-z0)*q,0,D);if(k<1)requestAnimationFrame(step);else _ejA=null};requestAnimationFrame(step);SFX.pop&&SFX.pop()}
+{const _et=edgeTick;edgeTick=function(dt){_et.apply(this,arguments);if(window.__oldEdge)return;for(const d of _edge)if(!d.classList.contains('tap'))d.classList.add('tap')}}
+window.__edgeTgts=()=>_edge.filter(d=>d.style.display!=='none').map(d=>{const r=d.getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2,d._tgt,d.lastChild.textContent]});
