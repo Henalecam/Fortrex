@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v11.9 — Soldados cortam teia
+- Regra: soldado (não ferido, não fora) a ≤ 3 blocos na horizontal e ≤ 4 na vertical de uma arma enredada fica 1,5 s e rasga a teia (state.webCut, rótulo "✂ teia cortada"). Sem Math.random. Chave `__noWebAuto`. Códex do Tecelão atualizado.
+- A/B pareado, 12 sementes × 900 s (tecon_wc.js, #noauto = controle): h13 **−3,9 s** (dp 28,8) → dentro do gate de ±20 s; 0 erros; ondas alcançadas em 900 s: 176 vs 170 no total.
+- Teias: 119 no total com a regra, 47 cortadas por soldados (~40%); o resto continua dependendo do toque do jogador → o Tecelão segue relevante, só deixa de ser castigo puro nas armas guarnecidas.
+- Crítica: o efeito no ritmo é pequeno e dentro do ruído (dp 29); aprovado pelo lado de "faz sentido no mundo" (soldados ao lado da arma não ficariam olhando), não por ganho medido.
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros.
+
 ## v11.8 — Armas com golpe de verdade
 - Crítica da v11.7 confirmada: os humanoides comuns não tinham braço articulado, e o sabre do Cavaleiro/Pirata **girava sem parar** (−0,4 ± 0,6 rad a 6 rad/s) mesmo só andando — o "só balançam" era isso.
 - Em vez de rigar braços (mudaria o visual parado), usei os pivôs que já existem: `userData.sabre` (Cavaleiro, Pirata), `userData.shield` (Escudeiro) e um pivô novo `userData.weap` para o porrete do Goblin (mesmas peças, mesmos centros → visual parado idêntico).

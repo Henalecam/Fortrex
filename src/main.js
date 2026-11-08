@@ -481,7 +481,7 @@ CREATURES.tecelao=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);c
   face(head,sc,.62,.48,.5,{sclera:0xd7c2ff,pupil:0x2a1440,es:.14,ex:.14,ey:.04,brow:0x2a1440,mood:.45,mouth:false},[[.07,.07,.03,-.25,.17,.25,0,0,0xd7c2ff],[.07,.07,.03,.25,.17,.25,0,0,0xd7c2ff],[.08,.2,.08,-.1,-.24,.22,0,.3,silk],[.08,.2,.08,.1,-.24,.22,0,-.3,silk]]);
   const legs=[];for(const s of[-1,1])for(let k=0;k<4;k++){const m=B(.9,.08,.08,dk,s*.72,.55,(k-1.5)*.24+.1);m.rotation.z=s*.6;m.rotation.y=s*(k-1.5)*.28;legs.push({mesh:m,alive:true,ox:s*.72*sc,oz:((k-1.5)*.24)*sc})}
   return{body,head,legs}};
-CX_DESC.tecelao='lança teia numa arma (35% de cadência por 8 s); toque na arma para rasgar a teia';
+CX_DESC.tecelao='lança teia numa arma (35% de cadência por 8 s); toque na arma para rasgar a teia — soldados perto da arma também cortam';
 const _webL=[];
 function webCocoon(t,on){if(on&&!t.webM){const r=Math.random;Math.random=_artRnd;try{t.webM=mcache(window.__oldWeb?[[1.1,.9,1.1,0,1.1,0,0,0,0,0xeee8ff],[1.3,.08,.08,0,1.4,0,0,.6,0,0xffffff],[1.3,.08,.08,0,1.0,0,0,-.6,0,0xffffff],[.08,1.2,.08,.5,1.1,.5,0,0,0,0xffffff],[.08,1.2,.08,-.5,1.1,-.5,0,0,0,0xffffff]]:[[1.15,.95,1.15,0,1.1,0,0,0,0,0xc8b4ff],[1.45,.11,.11,0,1.45,0,0,.6,0,0x6a3fc0],[1.45,.11,.11,0,.95,0,0,-.6,0,0x6a3fc0],[.11,1.3,.11,.55,1.1,.55,0,0,0,0x6a3fc0],[.11,1.3,.11,-.55,1.1,-.55,0,0,0,0x6a3fc0],[.11,1.3,.11,.55,1.1,-.55,0,0,0,0x6a3fc0],[.11,1.3,.11,-.55,1.1,.55,0,0,0,0x6a3fc0]],t.group);t.webM.material=_mgT}finally{Math.random=r}}if(t.webM)t.webM.visible=!!on}
 NEW_BRAINS.tecelao=function(e,dt){const ud=e.group.userData;if(e.cast>0){e.cast-=dt;if(ud.abd)ud.abd.rotation.x=-.6*Math.min(1,e.cast/.4);e.vel&&e.vel.set(0,0,0);return true}if(ud.abd)ud.abd.rotation.x=Math.sin(simTime*3+e.bob)*.08;
@@ -504,3 +504,7 @@ window.__webbedScr=()=>turrets.filter(t=>t.alive&&t.webT>simTime).map(t=>{const 
   if(!window.__oldWeap){const w=ud.sabre||ud.weap;if(w)w.rotation.x=since<.2?-2.2+(since/.2)*2.9:a*.9;if(ud.shield)ud.shield.position.z=(.44+(since<.2?.35*(1-since/.2):left<.45?-.12*(1-left/.45):0))*e.sc}}}
 // v11.8 arma em repouso: sabre/lança param de girar sem parar quando o inimigo só anda
 {const _eb=enemyAnim;enemyAnim=function(e,dt){_eb.apply(this,arguments);if(window.__oldWeap||e._sw)return;const ud=e.group.userData,w=ud.sabre||ud.weap;if(w)w.rotation.x=-.25+Math.sin(e.bob*1.4)*.18}}
+// v11.9 soldados cortam teia: soldado a ≤3 blocos de uma arma enredada rasga a teia em 1,5 s
+{const _tw=updateTurret;updateTurret=function(t,dt){if(!window.__noWebAuto&&t.alive&&t.webT>simTime){let near=false;for(const m of minions){if(m.away||m.state==='wounded'||m.wounded>0)continue;const dx=m.pos.x-t.pos.x,dz=m.pos.z-t.pos.z,dy=(m.pos.y??t.pos.y)-t.pos.y;if(dx*dx+dz*dz<9&&Math.abs(dy)<4){near=true;break}}
+  if(near){t.webCut=(t.webCut||0)+dt;if(t.webCut>=1.5){t.webT=0;t.webCut=0;state.webCut=(state.webCut||0)+1;label({x:t.pos.x,y:t.pos.y+2,z:t.pos.z},'✂ teia cortada','#e8e0ff')}}else t.webCut=0}return _tw.apply(this,arguments)}}
+window.__webStats=()=>[state.webs||0,state.webCut||0,state.webFreed||0];
