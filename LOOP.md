@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v12.0 — Mira da bomba (interface)
+- Motivação (rodada anterior): bombas pegam ~1,8 inimigo; a queda/mira não é o problema, e sim soltar em grupo pequeno. O jogador não tinha NENHUM retorno antes de clicar (o modo bomba era "clique em algum lugar").
+- Novo: no modo bomba, durante a horda: anel dourado pulsante no maior grupo terrestre (recalculado a cada 250 ms, só aparece com ≥ 2) com etiqueta "💣 N"; com mouse, um anel laranja segue o cursor com "💣 N" ou "—". Anéis com o raio real (state.bombR, então upgrades e bênçãos aparecem), sem teste de profundidade, criados com _artRnd; laço próprio de requestAnimationFrame → sem efeito na simulação. Chave `__oldAim`. Gancho `__bombAimHud()`.
+- Verificação: tbaim.js 1280×800 e 390×844 — grupo de 6 contado como 5 no raio, cursor vazio mostra "—"; sem sobreposição com a interface. Semente 1 do tecon_bl2: h13 = 649, idêntico ao controle (sem desvio de simulação).
+- Crítica: no celular não há "pairar", então lá só o anel do melhor grupo ajuda (toque nele). As cores laranja/dourado são parecidas — se confundir, trocar o cursor para branco.
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros.
+
 ## v12.0 (rejeitada, não publicada) — Mira da bomba
 - Hipótese: a bomba demora ~0,93 s para cair (de GY+26, vy −14, g 30), e o alvo já saiu do raio quando ela chega; o bot "mira mal".
 - Medição nova (`window.__bombAim`): inimigos no raio na hora de soltar vs no impacto. 12 sementes × 900 s, 3 braços:

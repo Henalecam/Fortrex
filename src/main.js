@@ -511,3 +511,16 @@ window.__webStats=()=>[state.webs||0,state.webCut||0,state.webFreed||0];
 // v12.0 medição de bomba: inimigos no raio ao soltar vs no impacto (só com window.__bombAim)
 {const _db=dropBomb;dropBomb=function(x,z){if(window.__bombAim){let n=0;for(const e of enemies)if(!e.dead&&!e.rival&&hyp(e.pos.x-x,e.pos.z-z)<state.bombR)n++;window.__bombAim.push([n])}return _db.apply(this,arguments)};
  const _ex=explode;explode=function(x,y,z,r,d,o){if(window.__bombAim&&o&&o.src==='player'&&o.fire&&r===state.bombR){let n=0;for(const e of enemies)if(!e.dead&&!e.rival&&hyp(e.pos.x-x,e.pos.z-z)<r)n++;const L=window.__bombAim;for(let i=L.length-1;i>=0;i--)if(L[i].length===1){L[i].push(n);break}}return _ex.apply(this,arguments)}}
+// v12.0 mira da bomba: no modo bomba, anel no chão sob o cursor com quantos inimigos estão no raio, e anel dourado no maior grupo (só interface)
+{let R1=null,R2=null,L1=null,L2=null,hx=null,hz=null;const mk=c=>{const r=Math.random;Math.random=_artRnd;try{const m=new THREE.Mesh(new THREE.RingGeometry(.86,1,48),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.85,depthTest:false,side:THREE.DoubleSide}));m.rotation.x=-Math.PI/2;m.renderOrder=999;m.visible=false;scene.add(m);return m}finally{Math.random=r}};
+ const lab=cls=>{const e=document.createElement('div');e.className='bombAim '+cls;e.style.display='none';document.body.appendChild(e);return e};
+ const cnt=(x,z)=>{let n=0;for(const e of enemies)if(!e.dead&&!e.rival&&!e.fly&&hyp(e.pos.x-x,e.pos.z-z)<state.bombR)n++;return n};
+ const ground=(cx,cy)=>{const ray=rayFrom(cx,cy);const h=voxRay(ray.origin,ray.direction,true);if(h)return[ix(h.i)+.5,iz(h.i)+.5];if(ray.direction.y<-1e-4){const t=(GY-ray.origin.y)/ray.direction.y;return[ray.origin.x+ray.direction.x*t,ray.origin.z+ray.direction.z*t]}return null};
+ const place=(R,L,x,z,n,txt)=>{const y=Math.min(topY(x,z),GY)+.35;R.position.set(x,y,z);R.scale.set(state.bombR,state.bombR,1);R.visible=true;const v=new THREE.Vector3(x,y+1.2,z).project(camera);if(v.z>1){L.style.display='none';return}L.textContent=txt;L.style.display='';L.style.left=((v.x+1)/2*innerWidth)+'px';L.style.top=((1-v.y)/2*innerHeight)+'px'};
+ canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'&&state.bombMode){const g=ground(e.clientX,e.clientY);if(g){hx=g[0];hz=g[1]}}});
+ let tAcc=0,best=null;const tick=()=>{requestAnimationFrame(tick);const on=state.bombMode&&!window.__oldAim&&state.phase==='wave';if(!R1){if(!on)return;R1=mk(0xffb13d);R2=mk(0xffe27a);L1=lab('hov');L2=lab('best')}
+  if(!on){R1.visible=R2.visible=false;L1.style.display=L2.style.display='none';hx=null;return}
+  if(performance.now()-tAcc>250){tAcc=performance.now();best=null;let bs=0;for(const e of enemies){if(e.dead||e.rival||e.fly)continue;const n=cnt(e.pos.x,e.pos.z);if(n>bs){bs=n;best=[e.pos.x,e.pos.z,n]}}}
+  if(best&&best[2]>=2){place(R2,L2,best[0],best[1],best[2],'💣 '+best[2]);const k=1+.06*Math.sin(performance.now()*.008);R2.scale.multiplyScalar(k)}else{R2.visible=false;L2.style.display='none'}
+  if(hx!==null){const n=cnt(hx,hz);place(R1,L1,hx,hz,n,n?'💣 '+n:'—')}else{R1.visible=false;L1.style.display='none'}};requestAnimationFrame(tick);
+ window.__bombAimHud=()=>({best,hov:hx===null?null:[hx,hz]});}

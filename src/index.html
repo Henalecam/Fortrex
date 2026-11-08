@@ -35,6 +35,9 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 .toast.r1{color:#3c9a68}.toast.r2{color:var(--r2)}.toast.r3{color:var(--r3)}.toast.r4{color:#c98410;background:#fff6e2}
 @keyframes toast{0%{opacity:0;transform:translateY(-8px)}10%,80%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px)}}
 #labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.bombAim{position:fixed;transform:translate(-50%,-100%);font-family:var(--display);font-weight:800;font-size:15px;pointer-events:none;z-index:6;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.bombAim.hov{background:#2b2d4aee;color:#ffb13d}
+.bombAim.best{background:#ffe27aee;color:#2b2d4a}
 .lab{position:absolute;left:0;top:0;transform:translate(-50%,-100%);font-family:var(--display);font-weight:700;font-size:13px;pointer-events:none;text-shadow:0 1px 0 #fff,0 0 6px #fff;animation:lab 1.2s forwards;white-space:nowrap}
 @keyframes lab{0%{opacity:0}15%{opacity:1}100%{opacity:0;margin-top:-28px}}
 #bossbar{position:absolute;left:50%;transform:translateX(-50%);top:calc(96px + env(safe-area-inset-top,0px));width:min(420px,70vw);pointer-events:none;display:none}
