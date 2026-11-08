@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v12.2 — HUD do celular na horda tardia
+- Olhada crítica em 390×844 na fixture h31 (tlate.js, agora com W/H/N): a barra superior tinha 3 linhas e a ORDEM estava errada — os chips 🔨 obra / 🌋 clima / 📜 contrato (sem `order`) vinham ANTES dos números principais (horda, material, minions, inimigos). A barra do chefe ficava fixa em 100 px e caía em cima da 3ª linha; a bênção (152 px) e as setas de borda (topo 72 px) também não sabiam da altura real da barra.
+- Correções (só interface): no celular esses chips vão para a última linha, menores (11 px), clima com reticências; um ajuste a cada 300 ms mede o fim da barra superior e posiciona a barra do chefe (+8 px), a bênção (abaixo do chefe se houver) e o limite de cima das setas de borda. Chave `__oldTopFit`.
+- Dicas de iniciante (minions, foco, automação, upgrades, construir, salvar, ímpeto, bomba) não aparecem mais para quem carrega save com horda ≥ 6 (antes um veterano de v7.8 via "Seus minions trabalham sozinhos" na horda 31). Dicas situacionais (anéis de elite etc.) continuam. Chave `__oldVetTips`.
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros; tfirst 390×844 → 0 issues, sem transbordo.
+- Crítica: ainda são 3 linhas no celular com muitos chips; juntar obra/contrato num chip só seria o próximo passo. No desktop a bênção subiu de 152 para ~105 px (abaixo da barra) — conferido sem sobreposição.
+
 ## v12.1 — Setas de borda clicáveis
 - Olhei uma horda tardia de verdade (fixture h31, tlate.js): 280–296 inimigos vivos, a câmera padrão fica no centro (lava/praça) e quase toda a briga está FORA da tela — só as setas vermelhas da borda (2, 7, 9, 10, 23…) mostram onde. Elas não faziam nada ao toque.
 - Agora: tocar/clicar numa seta move a câmera (suave, 0,38 s) até o inimigo **mais perto do castelo** naquela direção (centroide foi testado antes e caía em área vazia — rejeitado). Área de toque +8 px em volta. Só câmera, sem efeito na simulação (semente 1 h13 conferida). Chave `__oldEdge`; gancho `__edgeTgts()`; teste tedge.js (W H; 390×844 usa toque).
