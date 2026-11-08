@@ -226,6 +226,16 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v12.0 (rejeitada, não publicada) — Mira da bomba
+- Hipótese: a bomba demora ~0,93 s para cair (de GY+26, vy −14, g 30), e o alvo já saiu do raio quando ela chega; o bot "mira mal".
+- Medição nova (`window.__bombAim`): inimigos no raio na hora de soltar vs no impacto. 12 sementes × 900 s, 3 braços:
+  - base: 433 bombas, 2,04 no raio ao soltar → **1,76 no impacto** (perda de só 14% na queda); 176 ondas no total.
+  - `__bombFast` (cai de GY+14, vy −20, ~0,5 s; mudança de jogo): 1,97 → 1,86; h13 +5,8 s (dp 86,7); 170 ondas.
+  - `__bombLead` (bot antecipa vel×0,93 s): 1,84 → 1,69 (pior: os inimigos param nas muralhas e mudam de rumo); h13 −9,3 s (dp 68,7); 172 ondas.
+- Conclusão crítica: o problema **não é a mira nem o tempo de queda**, e sim que o bot solta a bomba em grupos pequenos (limiar bs ≥ 3, com chefe valendo 4) → ~1,8 inimigo por bomba. Nenhum braço ajuda: as duas chaves ficam desligadas por padrão (só medição). Qualquer mudança na bomba desalinha as sementes (dp 70–87 contra ~29 normal), então efeitos < 20 s não são medíveis assim.
+- Próximo teste possível: limiar do bot (esperar grupo ≥ 5) — muda o bot e não o jogo, então só vale para medir o teto real do dano de bomba.
+- t5 600 com as chaves no código: 0 erros.
+
 ## v11.9 — Soldados cortam teia
 - Regra: soldado (não ferido, não fora) a ≤ 3 blocos na horizontal e ≤ 4 na vertical de uma arma enredada fica 1,5 s e rasga a teia (state.webCut, rótulo "✂ teia cortada"). Sem Math.random. Chave `__noWebAuto`. Códex do Tecelão atualizado.
 - A/B pareado, 12 sementes × 900 s (tecon_wc.js, #noauto = controle): h13 **−3,9 s** (dp 28,8) → dentro do gate de ±20 s; 0 erros; ondas alcançadas em 900 s: 176 vs 170 no total.
