@@ -518,7 +518,7 @@ window.__webStats=()=>[state.webs||0,state.webCut||0,state.webFreed||0];
  const ground=(cx,cy)=>{const ray=rayFrom(cx,cy);const h=voxRay(ray.origin,ray.direction,true);if(h)return[ix(h.i)+.5,iz(h.i)+.5];if(ray.direction.y<-1e-4){const t=(GY-ray.origin.y)/ray.direction.y;return[ray.origin.x+ray.direction.x*t,ray.origin.z+ray.direction.z*t]}return null};
  const place=(R,L,x,z,n,txt)=>{const y=Math.min(topY(x,z),GY)+.35;R.position.set(x,y,z);R.scale.set(state.bombR,state.bombR,1);R.visible=true;const v=new THREE.Vector3(x,y+1.2,z).project(camera);if(v.z>1){L.style.display='none';return}L.textContent=txt;L.style.display='';L.style.left=((v.x+1)/2*innerWidth)+'px';L.style.top=((1-v.y)/2*innerHeight)+'px'};
  canvas.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'&&state.bombMode){const g=ground(e.clientX,e.clientY);if(g){hx=g[0];hz=g[1]}}});
- let tAcc=0,best=null;const tick=()=>{requestAnimationFrame(tick);const on=state.bombMode&&!window.__oldAim&&state.phase==='wave';if(!R1){if(!on)return;R1=mk(0xffb13d);R2=mk(0xffe27a);L1=lab('hov');L2=lab('best')}
+ let tAcc=0,best=null;const tick=()=>{requestAnimationFrame(tick);const on=state.bombMode&&!window.__oldAim&&state.phase==='wave';if(!R1){if(!on)return;R1=mk(window.__oldAimCol?0xffb13d:0xffffff);R2=mk(0xffe27a);L1=lab('hov');L2=lab('best')}
   if(!on){R1.visible=R2.visible=false;L1.style.display=L2.style.display='none';hx=null;return}
   if(performance.now()-tAcc>250){tAcc=performance.now();best=null;let bs=0;for(const e of enemies){if(e.dead||e.rival||e.fly)continue;const n=cnt(e.pos.x,e.pos.z);if(n>bs){bs=n;best=[e.pos.x,e.pos.z,n]}}}
   if(best&&best[2]>=2){place(R2,L2,best[0],best[1],best[2],'💣 '+best[2]);const k=1+.06*Math.sin(performance.now()*.008);R2.scale.multiplyScalar(k)}else{R2.visible=false;L2.style.display='none'}
@@ -530,6 +530,6 @@ let _ejA=null;function edgeJump(d){if(window.__oldEdge||!d._tgt)return;const [x,
 window.__edgeTgts=()=>_edge.filter(d=>d.style.display!=='none').map(d=>{const r=d.getBoundingClientRect();return [r.left+r.width/2,r.top+r.height/2,d._tgt,d.lastChild.textContent]});
 // v12.2 HUD: barra do chefe e chip de bênção ficam sempre logo abaixo da barra superior (que muda de altura com os chips)
 setInterval(()=>{if(window.__oldTopFit)return;const T=$('top');if(!T)return;const b=Math.round(T.getBoundingClientRect().bottom);window.__topB=b;const bb=$('bossbar'),bl=$('bless');const bossOn=bb&&bb.style.display==='block';
-  if(bb)bb.style.setProperty('top',(b+8)+'px','important');if(bl)bl.style.setProperty('top',(b+(bossOn?(bb.getBoundingClientRect().height||30)+16:8))+'px','important')},300);
+  if(bb)bb.style.setProperty('top',(b+8)+'px','important');{const g=$('goals');if(g&&!window.__oldGoalsFit)g.style.setProperty('top',(b+8)+'px','important')}if(bl)bl.style.setProperty('top',(b+(bossOn?(bb.getBoundingClientRect().height||30)+16:8))+'px','important')},300);
 // v12.2 dicas de iniciante não aparecem para quem carrega um save já avançado (horda ≥ 6)
 {const _lg=loadGame;loadGame=function(){const r=_lg.apply(this,arguments);if(r&&!window.__oldVetTips&&state.wave>=6){let ch=0;for(const k of ['start','wave','auto','shop','build','save','rush','bomb'])if(!TIPS_SEEN[k]){TIPS_SEEN[k]=1;ch=1}if(ch)try{localStorage.setItem('fortrex_tips',JSON.stringify(TIPS_SEEN))}catch(e){}}return r}}

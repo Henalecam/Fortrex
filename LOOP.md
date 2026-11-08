@@ -226,6 +226,11 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v12.3 — Botões escondidos no desktop médio + cor da mira
+- Bug real achado com tchips.js em 1280×800, horda 31: com muitos chips a barra superior quebra em 2 linhas (largura < ~1400), e o painel de renome (#goals, fixo em 64 px com !important) cobria **⚙️ Automação** e **🗺️ Fortalezas** (y 54–85) — dava para ver só "4/5" atrás do painel. Agora o painel segue a altura real da barra (mesmo ajuste de 300 ms da v12.2; chave `__oldGoalsFit`). Conferido: painel em 93 px, botões livres.
+- Mira da bomba: anel do cursor e etiqueta agora brancos (antes laranja, quase igual ao dourado do melhor grupo). Chave `__oldAimCol`.
+- Só interface → sem gate de ritmo. Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros.
+
 ## v12.2 — HUD do celular na horda tardia
 - Olhada crítica em 390×844 na fixture h31 (tlate.js, agora com W/H/N): a barra superior tinha 3 linhas e a ORDEM estava errada — os chips 🔨 obra / 🌋 clima / 📜 contrato (sem `order`) vinham ANTES dos números principais (horda, material, minions, inimigos). A barra do chefe ficava fixa em 100 px e caía em cima da 3ª linha; a bênção (152 px) e as setas de borda (topo 72 px) também não sabiam da altura real da barra.
 - Correções (só interface): no celular esses chips vão para a última linha, menores (11 px), clima com reticências; um ajuste a cada 300 ms mede o fim da barra superior e posiciona a barra do chefe (+8 px), a bênção (abaixo do chefe se houver) e o limite de cima das setas de borda. Chave `__oldTopFit`.
