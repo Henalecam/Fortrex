@@ -820,7 +820,7 @@ Object.assign(CREATURES,{
     const head=B(.7,.58,.58,col,0,1.0,.04);for(const s of[-1,1]){B(.34,.14,.08,col,s*.48,1.08,0).rotation.z=s*.42;B(.2,.07,.09,dk,s*.5,1.09,.01).rotation.z=s*.42}
     B(.14,.14,.14,dk,0,.97,.37);B(.76,.14,.64,hood,0,1.32,.01);B(.12,.24,.08,hood,-.2,1.2,-.34).rotation.z=.5;
     face(head,sc,.7,.58,.58,{sclera:0xffe27a,brow:0x2a3a18,teeth:[[-.1,.09],[.12,.08]],ey:.06});
-    gear(g,sc,[[.07,.34,.07,.36,.4,.2,.45,0,0x5a3a20],[.05,.26,.2,.36,.64,.34,.45,0,0xd3d6e0]]);
+    {const wp=gear(g,sc,[[.07,.34,.07,0,-.05,0,.45,0,0x5a3a20],[.05,.26,.2,0,.19,.14,.45,0,0xd3d6e0]]);wp.position.set(.36*sc,.45*sc,.2*sc);g.userData.weap=wp}
     B(.07,.36,.36,0x8a6a45,-.38,.5,.1);B(.08,.12,.12,0xbdb6d6,-.42,.5,.1);
     return{body,head,legs:LG([[-.13,.15,0,.15,.3],[.13,.15,0,.15,.3]],0x3b2d2a)}}),
   brute:_R4('brute',(sc,col,g)=>{const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.25),lt=shadeHex(col,.2);

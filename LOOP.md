@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v11.8 — Armas com golpe de verdade
+- Crítica da v11.7 confirmada: os humanoides comuns não tinham braço articulado, e o sabre do Cavaleiro/Pirata **girava sem parar** (−0,4 ± 0,6 rad a 6 rad/s) mesmo só andando — o "só balançam" era isso.
+- Em vez de rigar braços (mudaria o visual parado), usei os pivôs que já existem: `userData.sabre` (Cavaleiro, Pirata), `userData.shield` (Escudeiro) e um pivô novo `userData.weap` para o porrete do Goblin (mesmas peças, mesmos centros → visual parado idêntico).
+- Ataque: arma sobe até −2,2 rad antes do golpe e corta até +0,7 no impacto; escudo recua 0,12 e dá um empurrão de 0,35 para a frente. Andando: arma em guarda (−0,25 ± 0,18 no ritmo do passo). Chave `__oldWeap`.
+- Quadros com tstrike.js (D=7): o porrete do Goblin alterna horizontal ↔ para baixo e o sabre do Cavaleiro aparece erguido no quadro do golpe. Câmera do teste ainda sofre oclusão em D≥11 — enquadramento é limitação do teste, não do jogo.
+- Só arte → sem gate de ritmo. Testes: t5 600 → 0 erros (68 s); tcompat h15 / h20 / h30 (h31↔h30 é o ruído conhecido); tplay 1280×800 → 0 issues, 0 erros.
+
 ## v11.7 — Tecelão no celular + golpes com peso
 - Checagem crítica do Tecelão em 390×844 (twebm.js, toque real via touchscreen): toque na arma enredada solta a teia (enredadas 1→0), rótulo "teia rasgada!" aparece (13px, dentro da tela). **Problema achado:** o casulo branco translúcido sumia contra a pedra clara do castelo (quadro webm_0 antigo). Corrigido: casulo lavanda + 6 fios roxos escuros (0x6a3fc0) + pulso leve de escala. Chave `__oldWeb`.
 - Golpe corpo a corpo: antes o ataque era só um pulinho em y (e os braços continuavam balançando como se andassem). Agora, enquanto ataca: inclinação para trás (−0,25 rad) nos 0,45 s antes do golpe, avanço (+0,4 rad, metade nos chefes) no impacto decaindo em 0,2 s; quem tem braços articulados (Escalador, Golem, Titã) ergue até −2,5 rad e desce. Usa e.timer/e.lunge/e.atkT, só arte (rotation.order YXZ no grupo, nada de Math.random). Chave `__oldStrike`. Fora: aríete, navio, sapador, bruto (já tem golpe próprio).

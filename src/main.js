@@ -500,4 +500,7 @@ window.__webbedScr=()=>turrets.filter(t=>t.alive&&t.webT>simTime).map(t=>{const 
   const since=Math.max(0,R-(e.timer||0)),left=Math.max(0,e.timer||0);let p,a;
   if(since<.2){const k=since/.2;p=.4*(1-k)*(1-k);a=-2.5+k*k*2.3}else if(left<.45){const k=1-left/.45,s=k*(2-k);p=-.25*s;a=-.2-2.3*s}else{p=0;a=-.2}
   G.rotation.x=p*(BIG(e.type)?.5:1);e._sw=1;
-  if(ud.arms&&e.type!=='brute'){ud.arms[0].rotation.x=a;ud.arms[1].rotation.x=a*.85-.05}}}
+  if(ud.arms&&e.type!=='brute'){ud.arms[0].rotation.x=a;ud.arms[1].rotation.x=a*.85-.05}
+  if(!window.__oldWeap){const w=ud.sabre||ud.weap;if(w)w.rotation.x=since<.2?-2.2+(since/.2)*2.9:a*.9;if(ud.shield)ud.shield.position.z=(.44+(since<.2?.35*(1-since/.2):left<.45?-.12*(1-left/.45):0))*e.sc}}}
+// v11.8 arma em repouso: sabre/lança param de girar sem parar quando o inimigo só anda
+{const _eb=enemyAnim;enemyAnim=function(e,dt){_eb.apply(this,arguments);if(window.__oldWeap||e._sw)return;const ud=e.group.userData,w=ud.sabre||ud.weap;if(w)w.rotation.x=-.25+Math.sin(e.bob*1.4)*.18}}
