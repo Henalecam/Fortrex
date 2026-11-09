@@ -780,3 +780,5 @@ function herdLineAt(x,z){const ox0=x-CX,oz0=z-CZ;const d=Math.max(WR+4,hyp(ox0,o
 {const _ht=herdTick;herdTick=function(dt){const H=HERD.on;const r=_ht.apply(this,arguments);if(H&&!HERD.on&&H.lure){const lg=window.__herdLog;if(lg&&lg.length)lg[lg.length-1].lure=1}return r}}
 EVENTS.debandada.d='Uma manada de javalis selvagens cruza a ilha numa faixa marcada e atropela os Devoradores no caminho. Toque a 📯 Isca para chamar a manada até ela!';
 window.__nearLure=(r)=>{const L=LURE.on;if(!L)return -1;let n=0;for(const e of enemies)if(!e.dead&&!e.rival&&!e.fly&&!BIG(e.type)&&hyp(e.pos.x-L.x,e.pos.z-L.z)<(r||4))n++;return n};
+// v14.6 setas de borda não cobrem a etiqueta/barra do chefe: com chefe em campo, o limite de cima das setas desce para baixo da barra (só visual)
+setInterval(()=>{if(window.__oldEdgeBoss){window.__edgeTopB=0;return}let b=window.__topB||0;const bb=$('bossbar');if(bb&&bb.style.display==='block'){const r=bb.getBoundingClientRect();if(r.height>0)b=Math.max(b,Math.round(r.bottom)+2)}window.__edgeTopB=b},300);

@@ -903,3 +903,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Conferido em 1280×800 e 390×844 (w19, Titã de lava).
 - Só CSS: verificação de identidade seeds 1/2 = 665/759 (iguais à v14.4).
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v14.6 — 🎯 Setas de borda abaixo da barra do chefe (PUBLICADO)
+- No celular as setas vermelhas de inimigos fora da tela ficavam por cima da etiqueta/barra do chefe. Agora, com chefe em campo, o limite de cima das setas desce para baixo da barra (window.__edgeTopB; __oldEdgeBoss desliga).
+- Medido em 390×844 (w19): barra do chefe y 123–162; setas em 169–387 (antes chegavam a ~100).
+- Só visual: verificação de identidade seeds 1/2 = 665/759.
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
