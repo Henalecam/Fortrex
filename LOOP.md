@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v12.8 — Dicas no alto da tela no celular
+- Conferência do item (a) da rodada: o botão 📯 Isca aparece no celular com o dock cheio (h31: coluna da direita com Reunir, Portão, Égide, Bomba, Isca e 4 heróis, x 338–378, tudo na tela) — ok. Mas a dica (#ftip, embaixo, largura 100vw−24) cobria as **duas colunas de botões** (esquerda 12–52, direita 338–378) por ~90 px de altura: enquanto a dica está na tela, Isca/Bomba/heróis/Construir ficam parcialmente atrás dela.
+- Agora, no celular (≤ 760 px), a dica aparece no alto, logo abaixo da barra superior / bênção / barra do chefe (posição medida pelo mesmo ajuste de 300 ms). Desktop sem mudança. Chave `__oldTip`.
+- Crítica: no alto ela cobre um pedaço do mapa perto da borda de cima, onde costuma haver menos ação do que nos botões; os docks ficam livres. Sem efeito na simulação.
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros; tfirst 390×844 → 0 issues (tutorial dentro da tela).
+- Também visto: em h31 o material fica perto de 0 (o bot gasta tudo), então Isca/Bomba raramente estão pagáveis no fim de jogo com o bot — isso é do bot, não necessariamente do jogador; não mexi.
+
 ## v12.7 — Armas de arco miram na Isca
 - Sinergia proposta na v12.6: depois de 1,5 s de isca, morteiros e catapultas com a isca no alcance passam a mirar no inimigo atraído mais perto dela (≤ 3 blocos), usando o mesmo caminho do Fogo Concentrado, sem mexer no foco do jogador (restaurado depois do tiro). Chave `__noLureLob`. Medição `__lureEx` (explosões a ≤ 4 da isca e inimigos no raio).
 - Conferência de controle antes do lote: semente 1 H=nolob = h13 647 (igual à referência com isca).
