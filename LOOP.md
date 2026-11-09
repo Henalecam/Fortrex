@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.7b (rejeitada, não publicada) — Rio de lava do Titã
+- 2ª tentativa de golpe próprio de chefe, agora num chefe terrestre (o Titã de lava): faixa vermelha no chão à frente dele (1,6 s), depois o chão vira lava (2–3 de largura) do Titã até perto da muralha, com chamas.
+- Teste visual (tlava.js, 3 ângulos de câmera, incluindo de cima): o Titã é enorme (escala 3,2) e quando o golpe dispara ele já está quase colado na muralha — a faixa fica curta (7–13 células) e **escondida sob o próprio corpo dele**; de cima dá para ver só um pedaço de lava ao lado. Afastar o início da linha (raio + 1,5) e exigir distância maior fez o golpe quase nunca disparar.
+- Rejeitado antes do A/B, pelo mesmo critério da Serpe (o jogador não enxerga). Desligado (só com `window.__lavaRiverOn`); semente 1 = 656.
+- Lição das duas tentativas: golpe de chefe precisa de aviso que fique à vista na câmera padrão — fora do corpo do chefe e fora das estruturas — e de alcance que faça sentido enquanto ele ainda está longe. Próxima tentativa nesse tema só com o desenho do aviso resolvido primeiro (ex.: marcador flutuante acima do alvo, como a mira da bomba).
+
 ## v13.7 (rejeitada, não publicada) — Sopro de fogo da Serpe
 - Achado: os chefes compartilham o mesmo repertório (pancada, investida, chuva de pedras, invocação; só o Arauto tem golpes próprios) — a "Serpe de Fogo" nem usa fogo. Tentativa: Sopro de fogo telegrafado (faixa vermelha 1,3 s, depois incendeia blocos inflamáveis na linha e fere armas/minions nela).
 - Teste visual (tbreath.js, Serpe forçada): a Serpe voa direto para o centro e sopra de cima da cidadela — a faixa de aviso fica **escondida sob as torres**, e a linha atravessa pedra (0 blocos incendiados, 0 armas e 0 minions atingidos). Nos dois quadros não se vê nem o aviso nem o fogo.

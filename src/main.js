@@ -699,3 +699,11 @@ function breathFire(e,B){const sx=Math.sin(B.ang),cz=Math.cos(B.ang),dmg=(34+sta
   for(const t of turrets)if(t.alive&&t.team!=='r'&&near(t.pos.x,t.pos.z)){_turTag='wyrm:breath';damageTurret(t,dmg*1.1);_turTag=null;hitT++}
   for(const m of minions)if(!m.wounded&&!m.away&&near(m.pos.x,m.pos.z)){hurtMinion(m,dmg*.8,e);hitM++}
   shake=Math.max(shake,.5);SFX.boom&&SFX.boom(false);if(window.__breathLog)window.__breathLog.push([state.wave,ign,hitT,hitM])}
+// v13.7 Titã de lava ganha golpe próprio: Rio de lava — risca uma faixa vermelha no chão do lado de fora da muralha (1,6 s) e o chão vira lava nessa linha (queima quem passa, minions e inimigos; pode ser apagada com água/gelo)
+{const _bp=bossMovePick;bossMovePick=function(e){if(e.type==='titan'&&window.__lavaRiverOn&&!e.lavaR){const dC=hyp(CHEST.x-e.pos.x,CHEST.z-e.pos.z);if(dC>WR+5&&dC<60&&Math.random()<.45){const ang=Math.atan2(CHEST.x-e.pos.x,CHEST.z-e.pos.z);const off=(e.radius||2)+1.5,sx0=e.pos.x+Math.sin(ang)*off,sz0=e.pos.z+Math.cos(ang)*off;const len=Math.max(4,dC-off-(WR+1));e.lavaR={t:1.6,ang,len,x:sx0,z:sz0};markLine(sx0,sz0,ang,len,3.4,1.6);label({x:e.pos.x,y:e.group.position.y+e.sc*2.2,z:e.pos.z},'🌋 rio de lava!','#ff6a3a');state.lavaRivers=(state.lavaRivers||0)+1;return 'lavaRiver'}}return _bp.apply(this,arguments)}}
+{const _ba=bossAI;bossAI=function(e,dt){const L=e.lavaR;if(L){L.t-=dt;if(L.t>0){e.group.rotation.x=-.12;return true}e.group.rotation.x=0;e.lavaR=null;lavaRiver(L);return true}return _ba.apply(this,arguments)}}
+function lavaRiver(L){const sx=Math.sin(L.ang),cz=Math.cos(L.ang);let n=0;const seen=new Set();
+  for(let s=1;s<=L.len;s+=.5){const x=L.x+sx*s,z=L.z+cz*s;for(const o of[-1.1,0,1.1]){const px=Math.floor(x+cz*o),pz=Math.floor(z-sx*o);if(px<2||pz<2||px>=W-2||pz>=D-2)continue;if(hyp(px+.5-CX,pz+.5-CZ)<WR+2)continue;const j=idx(px,GY-1,pz);if(seen.has(j))continue;seen.add(j);
+    if(blue[j]||rown[j]||vox[j]===5||vox[j]===8||FLUID(vox[j]))continue;const above=idx(px,GY,pz);if(vox[above]&&SOLIDM(vox[above]))continue;setVox(j,0);setFluid(j,8,2,false);n++;if(n%3===0)spawnFlame(px+.5,GY+.3,pz+.5,1.2)}}
+  shake=Math.max(shake,.4);SFX.boom&&SFX.boom(false);if(window.__lavaLog)window.__lavaLog.push([state.wave,n])}
+window.__WR=()=>WR;
