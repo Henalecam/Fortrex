@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.5 (rejeitada, não publicada) — Parede de escudos
+- Objetivo: devolver desafio contra os combos de área (Isca + bomba/arco, Derrubar) de forma que peça decisão: inimigos a ≤ 3 de um Escudeiro vivo levam metade do dano das explosões do jogador (desabamento não conta) → derrubar o Escudeiro primeiro (Fogo Concentrado) vira escolha. Rótulo "🛡 parede de escudos". 
+- A/B 12 sementes × 900 s (tecon_sw.js, H=nosw; controle = 656): 292 golpes reduzidos no total (~24 por corrida; 3–98), h13 **−4,2 s (dp 27,8)**, hordas 173 vs 171. **Não trouxe desafio mensurável** — Escudeiros raramente estão no meio dos grupos explodidos.
+- Rejeitado; fica desligado (só com `window.__shieldWallOn`). Semente 1 = 656.
+- Aprendizado: para reequilibrar, o contrapeso precisa atingir o que de fato acelera o jogo — o Derrubar (−17 s) — ou o ritmo geral; um modificador raro não aparece no número.
+
 ## v13.4 — Derrubar no celular: ícone, mira e dica
 - Conferência no celular 390×844 (tdock.js, h31): a coluna da direita cabe com 10 botões (Reunir, Portão, Égide, Bomba, Isca, Derrubar e 4 heróis; y 319–764). Achados:
   1. **Derrubar usava 🪓, o mesmo ícone da Fúria do herói Thor**, um embaixo do outro → trocado para ⛏️ (botão, rótulo e dica).

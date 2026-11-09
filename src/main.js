@@ -669,3 +669,8 @@ TIPS.push({id:'fell',c:()=>state.wave>=5&&state.phase==='wave'&&!window.__noFell
 
 // v13.4 com o painel de bênçãos aberto no celular, a dica espera (não cobre o painel nem os botões)
 {const _tt=tipTick;tipTick=function(dt){if(document.body.classList.contains('tipHold'))return;return _tt.apply(this,arguments)}}
+// v13.5 Parede de escudos: inimigos a ≤ 3 de um Escudeiro vivo levam metade do dano de explosões do jogador (bomba, morteiro, catapulta, barril, desabamento não conta). Derrube o Escudeiro primeiro (Fogo Concentrado) para o combo funcionar
+let _blastP=0,_swT=0;
+{const _ex=explode;explode=function(x,y,z,r,d,o){const p=o&&o.src==='player';if(p)_blastP++;try{return _ex.apply(this,arguments)}finally{if(p)_blastP--}}}
+{const _de=dmgEnemy;dmgEnemy=function(e,d){if(_blastP>0&&window.__shieldWallOn&&e&&!e.dead&&e.type!=='escudeiro'&&!BIG(e.type)){for(const o of enemies){if(o.type!=='escudeiro'||o.dead||o.rival)continue;if(Math.abs(o.pos.x-e.pos.x)<3&&Math.abs(o.pos.z-e.pos.z)<3&&hyp(o.pos.x-e.pos.x,o.pos.z-e.pos.z)<3){arguments[1]=d*.5;state.shieldSaves=(state.shieldSaves||0)+1;if(simTime-_swT>4){_swT=simTime;label({x:o.pos.x,y:o.gy+2.4,z:o.pos.z},'🛡 parede de escudos','#4f6aa8')}break}}}return _de.apply(this,arguments)}}
+if(window.__shieldWallOn)CX_DESC.escudeiro=(CX_DESC.escudeiro?CX_DESC.escudeiro+'; ':'')+'protege quem está a até 3 blocos: metade do dano de explosões';
