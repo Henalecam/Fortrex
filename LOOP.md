@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.8 — Avisos de perigo sempre à vista
+- Base para golpes de chefe (lição das v13.7/13.7b): os avisos existentes — anel vermelho da pancada e faixa da investida (`markGround`/`markLine`) — eram desenhados no chão e somem atrás de torres/muralhas. Agora o material desses avisos desenha por cima de tudo (sem teste de profundidade, ordem 990) e um "⚠" vermelho pulsante flutua acima do centro do aviso enquanto ele dura (some junto com o aviso, então acompanha a velocidade do jogo). Chave `__oldDanger`. Só visual.
+- Verificação (tslam.js, Colosso forçado): a faixa da investida aparece atravessando a muralha e o ⚠ fica no meio dela. Um bug encontrado no caminho: na 1ª versão o ⚠ durava tempo real fixo e, com o jogo rodando rápido, sobravam vários ⚠ velhos na tela — corrigido para sumir quando o aviso termina.
+- Reavaliado com isso o Sopro da Serpe (__breathOn): a faixa continua pálida demais quando ela sopra de cima da cidadela — segue desligado.
+- Testes: semente 1 h13 = 656; t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros.
+- Crítica: a faixa rosa é translúcida e, sobre muralha branca, ainda é discreta; o ⚠ é o que realmente chama atenção.
+
 ## v13.7 — Destaques da horda
 - Depois de duas tentativas de golpe de chefe rejeitadas por visibilidade, a mudança desta rodada é de recompensa: o resumo de fim de horda (que só dizia combo, estilhaçados, feridos, itens) ganha uma linha "⭐" com os melhores momentos da horda — melhor bomba (×N no raio, se ≥ 2), soterrados por desabamento, iscas usadas, derrubadas, teias cortadas pelos soldados. Só aparece o que aconteceu. Chave `__oldHL`. Só interface (contadores por horda em `state.wHL`, sem sorteio).
 - Achado no screenshot (tearly.js, h11): o selo da bênção ("💚 Vigor · próxima horda") ficava **em cima do texto do resumo**. Agora o ajuste de 300 ms põe o selo logo abaixo do resumo quando ele está aberto (chave `__oldRepFit`).
