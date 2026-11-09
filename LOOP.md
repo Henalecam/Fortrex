@@ -897,3 +897,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Teste forçado (w19, isca no melhor amontoado aos 20 s): passagem pela isca 6, 7, 0, 6, 7, 7, 8 (média 5,9) vs primeira passagem automática 3, 4, 1, 1, 4, 3, 5 (média 3,0). Isca aos 3 s (poucos inimigos juntos): ~3 — o ganho depende de haver multidão na isca.
 - A/B 12 seeds vs v14.3: idêntico (0,0 s) — o bot nunca usou a isca durante uma Debandada; o efeito é só do jogador. Controle seed 1 = 665 ✓.
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v14.5 — 👑 Nome do chefe legível (PUBLICADO)
+- O nome do chefe (cor da raridade, ex. laranja Lendário #ffb13d) ficava sobre o cenário com sombra branca — quase ilegível sobre neve. Agora fica numa etiqueta escura (rgba(35,37,56,.84)), com reticências se for longo. Contraste estimado na etiqueta: 4,5 (Épico roxo) a 9 (Lendário laranja).
+- Conferido em 1280×800 e 390×844 (w19, Titã de lava).
+- Só CSS: verificação de identidade seeds 1/2 = 665/759 (iguais à v14.4).
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.

@@ -53,7 +53,7 @@ body.tipHold #ftip{display:none!important}
 .lab{position:absolute;left:0;top:0;transform:translate(-50%,-100%);font-family:var(--display);font-weight:700;font-size:13px;pointer-events:none;text-shadow:0 1px 0 #fff,0 0 6px #fff;animation:lab 1.2s forwards;white-space:nowrap}
 @keyframes lab{0%{opacity:0}15%{opacity:1}100%{opacity:0;margin-top:-28px}}
 #bossbar{position:absolute;left:50%;transform:translateX(-50%);top:calc(96px + env(safe-area-inset-top,0px));width:min(420px,70vw);pointer-events:none;display:none}
-#bossbar .nm{font-family:var(--display);font-weight:700;font-size:14px;text-align:center;margin-bottom:4px;text-shadow:0 1px 0 #fff}
+#bossbar .nm{font-family:var(--display);font-weight:700;font-size:14px;text-align:center;margin:0 auto 4px;display:table;max-width:100%;padding:2px 11px;border-radius:999px;background:rgba(35,37,56,.84);box-shadow:0 2px 6px rgba(20,22,40,.25);text-shadow:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #bossbar .tr{height:12px;border-radius:999px;background:rgba(43,45,74,.15);overflow:hidden;border:1px solid var(--line)}
 #bossbar .fl{height:100%;background:linear-gradient(90deg,#b56cf2,#ec5f6b);border-radius:999px;transition:width .15s}
 #event{display:none}
