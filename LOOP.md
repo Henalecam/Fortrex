@@ -226,6 +226,15 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v14.0 (medição, nada publicado) — As 3 vantagens de começo estão equilibradas?
+- Gancho novo `window.__forcePerk` ('mat'/'rec'/'bal'; o sorteio continua sendo feito para não mudar a sorte). Cada vantagem forçada em 12 sementes × 900 s contra "sem vantagem" (tecon_perk.js H=fp_X / H=noperk):
+  - 🧱 Pedreira: h13 **−13,9 s** (dp 79,7), 173 hordas
+  - 👥 Voluntários: h13 **+4,0 s** (dp 68,7), 172 hordas
+  - 🏹 Balista: h13 **−15,4 s** (dp 68,0), 175 hordas
+  - sem vantagem: 171 hordas
+- Conclusão crítica: com 12 sementes cada, as três ficam dentro de ~1 erro padrão (~20 s) uma da outra — a impressão da v13.9 (Balista −33 s, Pedreira +42 s) era amostra pequena (2–6 corridas por vantagem). **Não mexo no equilíbrio**; os Voluntários talvez sejam um pouco mais fracos, mas não dá para afirmar.
+- Nada publicado (só o gancho de teste mudou).
+
 ## v13.9 — Escolha seu começo
 - Olhada no começo do jogo (tfirst.js 390×844): nos primeiros 2 minutos o jogador só vê o tutorial, arrasta blocos e chama a horda — nenhuma decisão. Agora toda partida nova abre com "Escolha seu começo" (1 de 3): 🧱 Pedreira (+45 material), 👥 Voluntários (2 soldados chegam no portão), 🏹 Balista de presente (balista Rara pronta para instalar). Se o jogador chamar a horda sem escolher, ganha a Pedreira. Enquanto o cartão está aberto, a dica espera. Chave `__noPerk`; `state.startPerk`. O bot (modo sem tela) sorteia.
 - A/B 12 sementes × 900 s (tecon_perk.js, H=noperk; controle = 656): h13 **−12,0 s (dp 80,3)**, hordas 173 vs 171. Por vantagem (amostra pequena): Balista 6 corridas −33 s, Voluntários 4 −7,5 s, Pedreira 2 +42 s — a Balista parece a mais forte; observar.
