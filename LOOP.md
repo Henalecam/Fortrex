@@ -226,6 +226,16 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.2 — Avisos com calma + registro 🔔
+- Meta da rodada: ≤ 4 avisos por horda nas primeiras hordas sem perder informação. Medição (ttips.js, mesmo roteiro): v13.1 = 58 em 7 hordas (até 20 numa horda); boa parte vinha marcada como importante (r3/r4 ou forçada), então só "uma vez por partida" não bastava.
+- Mudanças (só interface):
+  - Mais categorias só na 1ª vez: fases de chefe, "+N item para construir", traço de recruta, reconstrução automática, habilidade automática de herói, marcha de minions, envio de aliados, recordes (as da v13.1 também entram aqui para não irem ao registro).
+  - Limite: no máximo 2 avisos na tela a cada 15 s; o excesso vai para o registro **🔔 N** (botão no centro, acima da barra de baixo; toque abre a lista dos 20 últimos com a horda; toque fecha). Sempre aparecem: início de horda/chefe ("Horda N: …"), eventos ("Emboscada: …"), contrato da horda, e avisos de perigo forçados (r3, ex.: "Recuo: horda perdida").
+  - Chave `__oldToasts2`; contador `__bellN`; janela `__tWin`.
+- Resultado: **112 (v13.0) → 58 (v13.1) → 27 em 6 hordas** (máx 8 na horda 6, que teve conquista de fortaleza + aliança + contratos); média ~4,5/horda. Primeiras versões: janela de 6 s dava 32; sem as exceções o "Horda 5: Devorador…" e o contrato da horda iam para o registro — corrigido.
+- Testes: semente 1 h13 = 656 (sem efeito na simulação); t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros; tfirst 390×844 → 0 issues.
+- Crítica: o limite é por ordem de chegada, então um aviso médio pode tomar a vaga de outro melhor dentro da janela (vai para o 🔔, não se perde). Conquistas (r4 forçadas) também podem ir para o 🔔 em momentos cheios.
+
 ## v13.2 (rejeitada, não publicada) — Inimigo "Farejador"
 - Ideia: inimigo de Matilha (h ≥ 8) que interage com a Isca — imune a ela e, se houver isca a ≤ 25, corre até lá e a destrói (contra-jogo). Arte própria (cão marrom de focinho comprido, orelhas caídas, coleira vermelha, rabo animado); conferida em fila com lobo e goblin.
 - A/B 12 sementes × 900 s (tecon_snif.js, H=nosnif; controle conferido = 656): 84 farejadores gerados, 93 iscas do bot, mas só **3 iscas destruídas** — a interação quase nunca acontece (isca e farejador raramente coincidem). h13 **+17,6 s** (dp 49,5), perto do limite do gate; hordas 168 vs 168.
