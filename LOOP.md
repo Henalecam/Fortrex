@@ -883,3 +883,10 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Primeira versão acertava pouco (0 e 4 em w19); com faixa em vários raios + raio de colisão 2,2: 4 e 6 (10 por evento) em w19.
 - A/B h13 vs v14.1 (12 seeds, sem perk; controle seed 1 no braço sem debandada = 747 ✓): +14.3 s (sd ~50). O evento apareceu em 3/12 runs (w6, w7, w11; 2–10 atropelados por evento), então quase toda a diferença é deslocamento de RNG no sorteio de eventos (seed 7 +118 e seed 10 +50 sem debandada; seed 10 passou dos 900 s e foi refeito com 1300 s → 832). 0 derrotas.
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues; therd (w19 forçado) 3 + 9 atropelados.
+
+## v14.3 — 💡 Dicas não cobrem o combate (PUBLICADO)
+- Problema: com save avançado num aparelho novo, as dicas de combate (anéis de elite, Códex, etc.) pulavam no meio da horda e no celular cobriam o topo da tela (visto em todas as capturas com a fixture w19).
+- Correção: (1) ao carregar save com horda ≥10, 11 dicas básicas de combate contam como vistas; (2) da horda 6 em diante, qualquer dica nova espera o descanso (__oldTipWave desliga).
+- Conferido: 390×844 no meio da horda w19 sem dica; no descanso a dica aparece (ftip display flex).
+- A/B: tipTick não roda headless, então a simulação não muda — seeds 1 e 2 deram 665/759, idênticas à v14.2.
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
