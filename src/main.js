@@ -622,3 +622,6 @@ ACH.push({id:'crush3',ico:'🧱',n:'Soterrados',d:'Esmague 3 inimigos num só de
  {id:'lurebomb',ico:'📯',n:'Isca perfeita',d:'Acerte 6 inimigos com uma bomba na Isca',c:()=>(state.lureBombBest||0)>=6},
  {id:'feast5',ico:'🍖',n:'Anfitrião',d:'Dê 5 banquetes numa partida',c:()=>(state.feasts||0)>=5},
  {id:'webcut',ico:'✂️',n:'Tesoura afiada',d:'Seus soldados cortam 10 teias de Tecelão',c:()=>(state.webCut||0)>=10});
+// v13.1 menos avisos: mensagens rotineiras (minion ferido/voltou, recruta chegou, arma caiu/pronta, construção/upgrade automáticos) aparecem só na 1ª vez da partida
+{const QUIET=[[/ ferido$/,'hurt'],[/ voltou!$/,'back'],[/pronta para instalar/,'ready'],[/caiu! Um coletor/,'fell'],[/, [^,]+ [A-Zá-ú][a-zá-ú]+, chegou!$|chegou!$/,'arrive'],[/^Construção auto/,'abuild'],[/^Upgrade auto/,'aup']];const seen=new Set();
+ const _t=toast;toast=function(txt,cls,force){if(!window.__oldToasts&&!force){const s=String(txt);for(const [re,k] of QUIET)if(re.test(s)){if(seen.has(k)){window.__quietN=(window.__quietN||0)+1;return}seen.add(k);break}}return _t.apply(this,arguments)}}
