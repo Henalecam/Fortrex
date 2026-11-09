@@ -876,3 +876,10 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Correção: o CSS da v14.0 (linha verde .hl.wi) tinha ido para o index.html gerado e não para src/index.html — agora está no template.
 - A/B h13 vs v14.0: 10/12 seeds idênticas; 2 diferem pelo não-determinismo raro conhecido (−54, +6). vs pré-14.0: +1.7 s (sd 85.4). 0 derrotas.
 - Testes: t5 600 sem erros; tcompat 14/20/31 (w13 → 14, ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v14.2 — 🐗 Evento Debandada (PUBLICADO)
+- Evento novo (w≥5, entra no sorteio normal de eventos): aos 9 s e 24 s da horda, 7 javalis (escala 1,45) cruzam a ilha numa faixa tangente à muralha escolhida entre 4 raios × 16 ângulos pela maior contagem de inimigos. Aviso: linha de perigo + ⚠ + rótulo + trompa 2,5 s antes. Dano 30+6×horda, empurrão e atordoamento 0,8 s; não toca chefes nem voadores; não fere blocos. Destaque no relatório; Estrondo com ≥5 atropelados.
+- Mobile 390×844: marcador 🛡️ da v14.1 cabe na barra de status (conferido).
+- Primeira versão acertava pouco (0 e 4 em w19); com faixa em vários raios + raio de colisão 2,2: 4 e 6 (10 por evento) em w19.
+- A/B h13 vs v14.1 (12 seeds, sem perk; controle seed 1 no braço sem debandada = 747 ✓): +14.3 s (sd ~50). O evento apareceu em 3/12 runs (w6, w7, w11; 2–10 atropelados por evento), então quase toda a diferença é deslocamento de RNG no sorteio de eventos (seed 7 +118 e seed 10 +50 sem debandada; seed 10 passou dos 900 s e foi refeito com 1300 s → 832). 0 derrotas.
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues; therd (w19 forçado) 3 + 9 atropelados.
