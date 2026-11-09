@@ -870,3 +870,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Medição: blocos azuis perdidos por horda (bot, seed 1): [0,0,12,162,418,92,409,99,129,337,302,271,249,64,101] — "zero perdido" nunca acontece depois da w2, então a regra virou limite 30+6×horda.
 - Bônus: 6+1,5×horda material + linha verde no relatório ("só N blocos perdidos", sequência). Dispara em ~20–25% das hordas do bot (mais quando o jogador defende bem).
 - A/B h13 (novo − velho, 12 seeds, sem perk): +5.7 s (sd 89.0) — dentro de ±20 s; 0 derrotas. Controle seed 1 = 656 ✓.
+
+## v14.1 — 🛡️ Contador da Muralha de pé (PUBLICADO)
+- Marcador na barra do topo durante a horda: "🛡️ perdidos/limite"; laranja acima de 70% do limite, apagado e riscado quando o bônus se perde. Só visual.
+- Correção: o CSS da v14.0 (linha verde .hl.wi) tinha ido para o index.html gerado e não para src/index.html — agora está no template.
+- A/B h13 vs v14.0: 10/12 seeds idênticas; 2 diferem pelo não-determinismo raro conhecido (−54, +6). vs pré-14.0: +1.7 s (sd 85.4). 0 derrotas.
+- Testes: t5 600 sem erros; tcompat 14/20/31 (w13 → 14, ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
