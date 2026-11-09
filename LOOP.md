@@ -909,3 +909,10 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Medido em 390×844 (w19): barra do chefe y 123–162; setas em 169–387 (antes chegavam a ~100).
 - Só visual: verificação de identidade seeds 1/2 = 665/759.
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v14.7 — 🎁 Presente do ferreiro (PUBLICADO)
+- Torres raras quase nunca eram instaladas antes da w13 (censo v14.0: 0/12 runs com sunray/chain/catapult/frost no começo). Favorecê-las no sorteio piorou h13 em +30 s (rejeitado). Agora, na primeira vez que gelo (w10), correntes (w11), catapulta (w12) e raio-sol (w15) desbloqueiam, uma unidade (Incomum) vai direto para a mochila — soma, não troca um sorteio. Linha azul no relatório.
+- Censo no fim das runs (12 seeds): toda run tem ≥2 tipos raros instalados (ex.: seed 5: chain 2, catapult 3, sunray 2).
+- A/B h13 vs v14.6 (12 seeds, sem perk, teto 1300 s): −17.3 s (sd 38.8) — dentro de ±20; 0 derrotas. Controle seed 1 = 665 ✓.
+- Saves antigos já além da horda de desbloqueio não recebem (só dispara quando a horda é exatamente a de desbloqueio).
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.

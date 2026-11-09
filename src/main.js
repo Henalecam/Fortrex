@@ -782,3 +782,9 @@ EVENTS.debandada.d='Uma manada de javalis selvagens cruza a ilha numa faixa marc
 window.__nearLure=(r)=>{const L=LURE.on;if(!L)return -1;let n=0;for(const e of enemies)if(!e.dead&&!e.rival&&!e.fly&&!BIG(e.type)&&hyp(e.pos.x-L.x,e.pos.z-L.z)<(r||4))n++;return n};
 // v14.6 setas de borda não cobrem a etiqueta/barra do chefe: com chefe em campo, o limite de cima das setas desce para baixo da barra (só visual)
 setInterval(()=>{if(window.__oldEdgeBoss){window.__edgeTopB=0;return}let b=window.__topB||0;const bb=$('bossbar');if(bb&&bb.style.display==='block'){const r=bb.getBoundingClientRect();if(r.height>0)b=Math.max(b,Math.round(r.bottom)+2)}window.__edgeTopB=b},300);
+// v14.7 presente do ferreiro: na primeira vez que uma torre rara desbloqueia (gelo w10, correntes w11, catapulta w12, raio-sol w15), uma unidade dela vai direto para a mochila — para o jogador experimentar a novidade sem gastar sorteios
+const GIFT_T=['frost','chain','catapult','sunray'];
+{const _cu=checkUnlocks;checkUnlocks=function(){const r=_cu.apply(this,arguments);if(window.__noGift)return r;const w=state.wave;const G=state.giftT||(state.giftT={});const got=[];for(const k of GIFT_T){if(UNLOCK.turret[k]===w&&!G[k]&&state.inv&&state.inv.turrets){G[k]=1;state.inv.turrets.push({type:k,r:2});state.newItems=(state.newItems||0)+1;got.push(k)}}
+ if(got.length){(window.__giftLog=window.__giftLog||[]).push([w,...got]);window.__giftNow=got}return r}}
+{const _ew=endWave;endWave=function(){window.__giftNow=null;const r=_ew.apply(this,arguments);const got=window.__giftNow;window.__giftNow=null;const el=$('report');if(got&&got.length&&el&&state.phase!=='wave')el.innerHTML+=`<div class="hl gift">🎁 Presente do ferreiro: ${got.map(k=>`${TURRETS[k].ico} <b>${TURRETS[k].n}</b>`).join(', ')} na mochila — instale onde quiser</div>`;return r}}
+window.__unlockAt=(k,w)=>{UNLOCK.turret[k]=w};
