@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.6 — Sons da Isca e do Derrubar
+- Olhada nos inimigos comuns lado a lado (tlook.js: rasteiro, gosma, aranha, diabrete, sapador, escalador): nenhum destoa a ponto de valer uma rodada de arte agora (o diabrete é o mais simples, mas tem asas articuladas desde a v11.5). Escolhido o item (c): as duas habilidades novas não tinham som próprio (só o "pop" genérico).
+- 📯 Isca: corneta curta (dente de serra 196→233 Hz + quinta em triângulo + sopro). ⛏️ Derrubar: rangido (onda quadrada descendo) + estrondo surdo em duas camadas (ruído grave + seno 70→32 Hz). Ambos passam pelo gerador de arte (`_withArt`), como os outros sons, então não mexem na sorte da simulação. Chave `__oldSfx`.
+- Verificado: com som ligado (tsfx.js, Chrome com áudio permitido) a Isca toca sem erro; semente 1 = 656 (os sons não sorteiam nada da simulação).
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros.
+- Crítica: som não aparece em screenshot nem em número; precisa de ouvido humano para saber se a corneta combina com o resto.
+
 ## v13.5 — Estrondo (celebrar os combos)
 - Mudança de frente depois de duas tentativas de contrapeso rejeitadas. Os combos novos (Isca → bomba, Derrubar → desabamento) aconteciam sem nenhum destaque além do rótulo pequeno.
 - Agora: bomba do jogador que pega ≥ 5 inimigos no raio, ou desabamento que soterra ≥ 3, dispara um "momento": câmera lenta curta (0,35 s de tempo real), tremor, estrondo e um selo grande no centro ("💥 ESTRONDO ×N" / "🧱 SOTERRADOS ×N", animação de 1,3 s). No máximo 1 a cada 3 s. Desligado no modo de teste sem tela (`__headless`), então os A/B não mudam. Chave `__oldBig`; contador `state.bigMoments`; gancho `__bigTest()`.

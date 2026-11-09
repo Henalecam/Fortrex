@@ -684,3 +684,8 @@ function bigMoment(txt,col){if(window.__oldBig||window.__headless)return;if(simT
 {const _ex=explode;explode=function(x,y,z,r,d,o){if(o&&o.src==='player'&&o.fire&&Math.abs(r-state.bombR)<.01&&!window.__headless){let n=0;for(const e of enemies)if(!e.dead&&!e.rival&&hyp(e.pos.x-x,e.pos.z-z)<r)n++;if(n>=5)bigMoment(`💥 ESTRONDO ×${n}`,'#ff8a5c')}return _ex.apply(this,arguments)}}
 {const _cf=crushFrom;crushFrom=function(F){const h0=state.crushHits||0;const r=_cf.apply(this,arguments);const d=(state.crushHits||0)-h0;if(d>=3)bigMoment(`🧱 SOTERRADOS ×${d}`,'#e0a050');return r}}
 window.__bigTest=(t)=>{_bigT=-99;bigMoment(t||'💥 ESTRONDO ×7','#ff8a5c')};
+// v13.6 sons próprios: corneta da Isca, rangido + estrondo surdo do Derrubar (só som)
+SFX.horn=_withArt(function(){if(!soundOn||throttle('horn',300))return;tone('sawtooth',196,233,.45,.09);tone('triangle',294,349,.5,.07,.03);nz(.3,'bandpass',600,1.5,.05,.04)});
+SFX.fell=_withArt(function(){if(!soundOn||throttle('fell',250))return;tone('square',140,70,.18,.06);nz(.5,'lowpass',380,0,.35,.02);tone('sine',70,32,.7,.4,.12);nz(.8,'lowpass',220,0,.22,.25)});
+{const _pl=placeLure;placeLure=function(){const r=_pl.apply(this,arguments);if(r&&!window.__oldSfx)SFX.horn();return r}}
+{const _fa=fellAt;fellAt=function(){const r=_fa.apply(this,arguments);if(r&&!window.__oldSfx)SFX.fell();return r}}
