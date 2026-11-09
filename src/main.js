@@ -677,3 +677,10 @@ if(window.__shieldWallOn)CX_DESC.escudeiro=(CX_DESC.escudeiro?CX_DESC.escudeiro+
 // v13.5 Derrubar tem custo de obra: o que desaba por um Derrubar cobra 1 material a cada 3 blocos (reparo), até o que houver em caixa
 {const _cf=crushFrom;crushFrom=function(F){const r=_cf.apply(this,arguments);if(window.__fellRepairOn&&typeof FELL!=='undefined'&&simTime-(FELL.t??-99)<1.5&&!FELL.billed){FELL.billed=1;const c=Math.min(Math.max(0,Math.floor(state.material)),Math.ceil(F.length/3));if(c>0){state.material-=c;state.fellRepair=(state.fellRepair||0)+c;const p=FELL.p||[CHEST.x,CHEST.z];label({x:p[0],y:GY+3.2,z:p[1]},`🔧 obra −${c}`,'#9aa0b2');updateHud()}}return r}}
 {const _fa=fellAt;fellAt=function(i,bot){const r=_fa.apply(this,arguments);if(r)FELL.billed=0;return r}}
+// v13.5 Estrondo: combos grandes ganham um momento — câmera lenta curta, tremor, estrondo e um selo grande no meio da tela (bomba que pega ≥ 5, desabamento que esmaga ≥ 3)
+let _bigT=-99;
+function bigMoment(txt,col){if(window.__oldBig||window.__headless)return;if(simTime-_bigT<3)return;_bigT=simTime;slowmo=Math.max(slowmo,.35);shake=Math.max(shake,.6);try{SFX.boom&&SFX.boom(true)}catch(e){}
+  let el=$('bigPop');if(!el){el=document.createElement('div');el.id='bigPop';document.body.appendChild(el)}el.textContent=txt;el.style.color=col||'#ff8a5c';el.classList.remove('go');void el.offsetWidth;el.classList.add('go');state.bigMoments=(state.bigMoments||0)+1}
+{const _ex=explode;explode=function(x,y,z,r,d,o){if(o&&o.src==='player'&&o.fire&&Math.abs(r-state.bombR)<.01&&!window.__headless){let n=0;for(const e of enemies)if(!e.dead&&!e.rival&&hyp(e.pos.x-x,e.pos.z-z)<r)n++;if(n>=5)bigMoment(`💥 ESTRONDO ×${n}`,'#ff8a5c')}return _ex.apply(this,arguments)}}
+{const _cf=crushFrom;crushFrom=function(F){const h0=state.crushHits||0;const r=_cf.apply(this,arguments);const d=(state.crushHits||0)-h0;if(d>=3)bigMoment(`🧱 SOTERRADOS ×${d}`,'#e0a050');return r}}
+window.__bigTest=(t)=>{_bigT=-99;bigMoment(t||'💥 ESTRONDO ×7','#ff8a5c')};

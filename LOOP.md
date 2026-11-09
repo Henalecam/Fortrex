@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.5 — Estrondo (celebrar os combos)
+- Mudança de frente depois de duas tentativas de contrapeso rejeitadas. Os combos novos (Isca → bomba, Derrubar → desabamento) aconteciam sem nenhum destaque além do rótulo pequeno.
+- Agora: bomba do jogador que pega ≥ 5 inimigos no raio, ou desabamento que soterra ≥ 3, dispara um "momento": câmera lenta curta (0,35 s de tempo real), tremor, estrondo e um selo grande no centro ("💥 ESTRONDO ×N" / "🧱 SOTERRADOS ×N", animação de 1,3 s). No máximo 1 a cada 3 s. Desligado no modo de teste sem tela (`__headless`), então os A/B não mudam. Chave `__oldBig`; contador `state.bigMoments`; gancho `__bigTest()`.
+- Verificação: tbig.js (bomba real em 7 inimigos agrupados → "💥 ESTRONDO ×7", bigMoments = 1); o screenshot precisou pausar a animação (o swiftshader é tão lento que a animação de 1,3 s termina entre dois quadros).
+- Testes: semente 1 h13 = 656; t5 600 → 0 erros; tcompat h14 / h20 / h31 (h15↔h14 é o ruído conhecido); tplay 1280×800 → 0 issues, 0 erros; tfirst 390×844 → 0 issues.
+- Crítica: a câmera lenta mexe no tempo real da simulação por 0,35 s (como a habilidade de herói já fazia) — é sensação, não balanço. Precisa de olho humano para dizer se o selo grande cansa; por isso o limite de 1 a cada 3 s e os limiares altos (≥ 5 / ≥ 3).
+
 ## v13.5b (rejeitada, não publicada) — Derrubar cobra a obra
 - Tentativa de dar custo sentido ao ⛏️ Derrubar: o que desaba por causa dele cobra 1 material a cada 3 blocos (rótulo "🔧 obra −N"), até o que houver em caixa.
 - A/B 12 sementes × 900 s (tecon_rep.js, H=norep; controle = 656): só **~26 material por corrida** (2–52), h13 **+0,7 s (dp 29,3)**, hordas 172 vs 171. Custo pequeno demais para ser decisão e sem efeito no ritmo.
