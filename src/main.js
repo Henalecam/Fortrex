@@ -602,4 +602,10 @@ $('lure').onclick=()=>{if(window.__noLure)return;if(state.phase!=='wave'){toast(
   if(placed)state.bombCd=.01;const r=_b.apply(this,arguments);if(placed){if(state.bombCd===.01)state.bombCd=0;if(Array.isArray(r))r.push('lure')}return r}}
 window.__lureN=()=>state.lures||0;
 window.__placeLure=(x,z)=>placeLure(x,z,false);window.__lureBest=()=>{const al=enemies.filter(e=>!e.dead&&!e.fly&&!e.rival&&!BIG(e.type));let best=null,bs=0;for(const e of al){let s=0;for(const o of al)if(hyp(o.pos.x-e.pos.x,o.pos.z-e.pos.z)<22)s++;if(s>bs){bs=s;best=e}}return best?[best.pos.x,best.pos.z,bs]:null};
-TIPS.push({id:'lure',c:()=>state.wave>=3&&state.phase==='wave'&&enemies.length>15&&!window.__noLure,t:'📯 Inimigos espalhados? Use a Isca (15 material): toque nela e depois no chão — a horda por perto corre até lá e se amontoa por 6 s. Aí é só soltar a bomba em cima.'});
+TIPS.push({id:'lure',c:()=>state.wave>=3&&state.phase==='wave'&&enemies.length>15&&!window.__noLure,t:'📯 Inimigos espalhados? Use a Isca (15 material): toque nela e depois no chão — a horda por perto corre até lá e se amontoa por 6 s. Aí é só soltar a bomba em cima (morteiros e catapultas também miram lá).'});
+// v12.7 armas de arco (morteiro/catapulta) miram no amontoado da isca: depois de 1,5 s de isca, se ela estiver no alcance, atiram no inimigo atraído mais perto dela
+{const _ut=updateTurret;updateTurret=function(t,dt){const L=LURE.on;if(!L||window.__noLureLob||!t.alive||t.team==='r'||!LOB(t.type)||L.t>4.5||(state.focus&&!state.focus.dead&&state.focusT>0))return _ut.apply(this,arguments);
+  if(hyp(L.x-t.pos.x,L.z-t.pos.z)>turretRange(t))return _ut.apply(this,arguments);let best=null,bd=1e9;for(const e of enemies){if(e.dead||e.lured!==L.id)continue;const d=hyp(e.pos.x-L.x,e.pos.z-L.z);if(d<bd){bd=d;best=e}}
+  if(!best||bd>3)return _ut.apply(this,arguments);const f=state.focus,ft=state.focusT;state.focus=best;state.focusT=1;try{return _ut.apply(this,arguments)}finally{state.focus=f;state.focusT=ft}}}
+// medição: explosões no ponto da isca
+{const _ex=explode;explode=function(x,y,z,r,d,o){const L=LURE.on;if(window.__lureEx&&L&&hyp(x-L.x,z-L.z)<4){let n=0;for(const e of enemies)if(!e.dead&&!e.rival&&hyp(e.pos.x-x,e.pos.z-z)<r)n++;window.__lureEx.push([r>=state.bombR-.01&&o&&o.fire?1:0,n])}return _ex.apply(this,arguments)}}

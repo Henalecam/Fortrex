@@ -226,6 +226,14 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v12.7 — Armas de arco miram na Isca
+- Sinergia proposta na v12.6: depois de 1,5 s de isca, morteiros e catapultas com a isca no alcance passam a mirar no inimigo atraído mais perto dela (≤ 3 blocos), usando o mesmo caminho do Fogo Concentrado, sem mexer no foco do jogador (restaurado depois do tiro). Chave `__noLureLob`. Medição `__lureEx` (explosões a ≤ 4 da isca e inimigos no raio).
+- Conferência de controle antes do lote: semente 1 H=nolob = h13 647 (igual à referência com isca).
+- A/B 12 sementes × 900 s (tecon_lob.js): explosões de arco no ponto da isca **280 vs 166**, inimigos atingidos **381 vs 168** (média 1,36 vs 1,01 por explosão); bombas na isca iguais (2,42 vs 2,40). h13 **+1,8 s (dp 22,5; n 11)**; hordas 170 vs 171.
+- Semente 3 do braço novo não chegou à h13: a h12 virou uma horda de chefe (Titã com ~92 mil de vida) que durou > 260 s — conferido rodando de novo com depuração: não era travamento (nada preso nem sem dano), só o caos da semente levando a um chefe pesado; 0 derrotas.
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros.
+- Crítica: o ganho é grande em proporção (+127% de atingidos no ponto da isca) mas o volume absoluto é pequeno (~18 inimigos a mais por corrida) — por isso não mexe no ritmo. Vale pelo combo ficar visível: isca → bomba + tiros em arco caindo juntos.
+
 ## v12.7 (investigação, nada publicado) — Não determinismo dos A/B
 - Suspeita da rodada anterior: semente 1 de controle (H=nolure) deu h13 = 701 no lote e 649 sozinha.
 - Varredura de fontes de tempo real que tocam o estado: `throttle()` (core.js) já usa simTime quando `__freeze`; `frame()` sai cedo com `__freeze`; `setTimeout(()=>state.retreating=false,500)` só na derrota; `toast()` decide mostrar por performance.now mas não sorteia; `weekNo()` usa Date.now só para o desafio semanal; meus laços rAF/setInterval (mira, câmera, barra) não sorteiam nem mexem na simulação.
