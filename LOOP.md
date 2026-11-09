@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.4 — Derrubar no celular: ícone, mira e dica
+- Conferência no celular 390×844 (tdock.js, h31): a coluna da direita cabe com 10 botões (Reunir, Portão, Égide, Bomba, Isca, Derrubar e 4 heróis; y 319–764). Achados:
+  1. **Derrubar usava 🪓, o mesmo ícone da Fúria do herói Thor**, um embaixo do outro → trocado para ⛏️ (botão, rótulo e dica).
+  2. **Mira**: tocar no alto de uma torre cortava o telhado (teste tfelltap.js: fatia na altura 20 → nada desaba). Agora o toque procura, na coluna tocada e nas vizinhas (até 2 de distância), o bloco sólido mais baixo acima do chão e corta ali. Mesmo teste: 3 toques → fatias na altura 1, 4–6 blocos cada. Chave `__oldFellTap`. O bot já cortava na altura 1 — sem efeito nos A/B.
+  3. **Dica no celular** descia para baixo do painel de bênçãos (que é grande no descanso) e cobria os botões; colocar no alto cobria o título do painel. Agora, com o painel grande aberto no celular, a dica espera (não conta tempo) e aparece depois. Chave `__oldTipHold`.
+- Só interface/entrada do jogador; bot e simulação iguais (semente 1 = 656). Testes: t5 600 → 0 erros; tcompat h15 / h20 / h30; tplay 1280×800 → 0 issues, 0 erros; tfirst 390×844 → 0 issues.
+
 ## v13.3 — Derrubar (o desabamento vira arma do jogador)
 - Novo botão 🪓 Derrubar (dock, h ≥ 5): na horda, toque e depois num bloco da sua muralha/torre → some a fatia 3×3 daquela altura (nunca blocos do baú) e tudo o que ficou sem apoio desaba — o "desabamento esmaga" da v12.9 cai sobre quem está ao pé. Os reparadores reconstroem depois (custo real: a muralha fica aberta por um tempo). Dica única. Chave `__noFell`; `__fellN()`, `__fellLog`; o `__crushLog` marca desabamentos até 1,5 s depois de um Derrubar.
 - Bot: se ≥ 4 inimigos terrestres estão a ≤ 2,5 de um ponto e há uma coluna sua com ≥ 5 de altura a ≤ 2 dali, derruba a 2ª camada dela.

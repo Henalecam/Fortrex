@@ -43,6 +43,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);over
 #bell{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--dock,64px) + 30px + env(safe-area-inset-bottom,0px));z-index:7;font-size:12px;padding:3px 10px;background:#2b2d4aee;color:#fff;border:0;border-radius:999px;cursor:pointer}#bell[hidden]{display:none}
 @media (min-width:761px){#bell{left:calc(50% - 272px);transform:none;bottom:calc(30px + env(safe-area-inset-bottom,0px))}#bellList{bottom:calc(80px + env(safe-area-inset-bottom,0px))!important}}
 #bellList{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--dock,64px) + 60px + env(safe-area-inset-bottom,0px));width:min(420px,calc(100vw - 24px));max-height:50vh;overflow:auto;background:var(--panel,#fff);border-radius:14px;padding:10px 12px;z-index:8;box-shadow:0 10px 30px rgba(43,45,74,.3);font-size:12.5px}#bellList[hidden]{display:none}#bellList .bl{padding:4px 0;border-bottom:1px solid #0001}#bellList small{color:#888}
+body.tipHold #ftip{display:none!important}
 .lab{position:absolute;left:0;top:0;transform:translate(-50%,-100%);font-family:var(--display);font-weight:700;font-size:13px;pointer-events:none;text-shadow:0 1px 0 #fff,0 0 6px #fff;animation:lab 1.2s forwards;white-space:nowrap}
 @keyframes lab{0%{opacity:0}15%{opacity:1}100%{opacity:0;margin-top:-28px}}
 #bossbar{position:absolute;left:50%;transform:translateX(-50%);top:calc(96px + env(safe-area-inset-top,0px));width:min(420px,70vw);pointer-events:none;display:none}
@@ -344,7 +345,7 @@ body:has(#buildPanel[style*="flex"]) #rail{left:calc(min(320px,90vw) + 26px)}
   <button class="btn" id="bHero_priestess" hidden title="Selene: Luz Restauradora (O)">🕯️<span class="lb">Luz</span><span class="cost">pronto</span></button>
   <button class="btn" id="bHero_alchemist" hidden title="Íris: Frascos Voláteis (J)">⚗️<span class="lb">Frascos</span><span class="cost">pronto</span></button>
   <button class="btn" id="bHero_berserker" hidden title="Thor: Fúria (Y)">🪓<span class="lb">Fúria</span><span class="cost">pronto</span></button>
-  <button class="btn" id="fell" title="Derrubar: 15 material — toque num bloco da muralha ou torre; uma fatia 3×3 some e tudo que estava em cima desaba, esmagando quem está embaixo">🪓<span class="lb">Derrubar</span><span class="cost" id="fellCd">15</span></button>
+  <button class="btn" id="fell" title="Derrubar: 15 material — toque numa muralha ou torre; a base dela (fatia 3×3) some e tudo que estava em cima desaba, esmagando quem está embaixo">⛏️<span class="lb">Derrubar</span><span class="cost" id="fellCd">15</span></button>
   <button class="btn" id="lure" title="Isca: 15 material — toque no chão e a horda por perto corre até ela por 6 s (junte o grupo e bombardeie)">📯<span class="lb">Isca</span><span class="cost" id="lureCd">15</span></button>
   <button class="btn" id="bomb" title="Bombardeio: 25 material">💣<span class="lb">Bomba</span><span class="cost" id="bombCd">25</span></button>
   <button class="btn war" id="raidBtn" hidden title="Envia soldados e curandeiros contra a fortaleza inimiga">⚔️<span class="lb">Atacar</span></button>
