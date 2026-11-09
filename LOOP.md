@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.9 — Escolha seu começo
+- Olhada no começo do jogo (tfirst.js 390×844): nos primeiros 2 minutos o jogador só vê o tutorial, arrasta blocos e chama a horda — nenhuma decisão. Agora toda partida nova abre com "Escolha seu começo" (1 de 3): 🧱 Pedreira (+45 material), 👥 Voluntários (2 soldados chegam no portão), 🏹 Balista de presente (balista Rara pronta para instalar). Se o jogador chamar a horda sem escolher, ganha a Pedreira. Enquanto o cartão está aberto, a dica espera. Chave `__noPerk`; `state.startPerk`. O bot (modo sem tela) sorteia.
+- A/B 12 sementes × 900 s (tecon_perk.js, H=noperk; controle = 656): h13 **−12,0 s (dp 80,3)**, hordas 173 vs 171. Por vantagem (amostra pequena): Balista 6 corridas −33 s, Voluntários 4 −7,5 s, Pedreira 2 +42 s — a Balista parece a mais forte; observar.
+- Teste de primeira sessão (tfirst.js) passou a escolher uma vantagem (o cartão bloqueia o dock até escolher — é de propósito).
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros; tfirst 390×844 → 0 issues.
+- Crítica: é uma decisão pequena e só uma vez; o valor é o jogador começar decidindo algo. Se a Balista for sempre a melhor, a escolha perde sentido — próximo ajuste possível é baixar a raridade dela.
+
 ## v13.9 (rejeitada, não publicada) — 3ª tentativa de golpe de chefe
 - Com os avisos agora por cima das estruturas (v13.8), refiz o teste do Rio de lava do Titã (tlava.js, `__lavaRiverOn`, câmera de cima): a faixa de aviso **aparece** (rosa, ao lado do Titã), mas o golpe só dispara quando ele já está quase na muralha — faixa curta e só **3 células de lava**. O efeito é irrelevante na prática.
 - Conforme combinado (desistir se não ficar bom em 1 tentativa), encerro a linha de "golpe próprio de chefe" por ora. Ambos os golpes continuam no código, desligados (`__lavaRiverOn`, `__breathOn`). Para um dia voltar: o gatilho precisa olhar a distância até a MURALHA (não até o baú) e disparar enquanto o chefe ainda está longe.
