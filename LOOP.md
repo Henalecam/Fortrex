@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.0 — Conquistas das mecânicas novas (+ investigação do não determinismo)
+- Investigação (1 rodada, como combinado): traço do RNG da simulação (contagem total e por local de chamada) na semente 8 de controle, 4 corridas (2 em paralelo × 2): **idênticas** — 1 519 370 chamadas no 1º minuto, 4 670 261 em 3 min, "tail" da horda 1 = 6 (igual ao lote cr; o lote cr2 tinha dado 8). Não reproduz. Junto com a medição anterior (zero chamadas fora dos evaluate), a divergência é rara (~1 em 12 por lote) e não ligada a temporizadores da página. Encerrado por ora; registrado como ruído conhecido dos A/B.
+- Mudança: 4 conquistas para as mecânicas recentes — 🧱 Soterrados (3 num desabamento), 📯 Isca perfeita (6 com uma bomba na Isca), 🍖 Anfitrião (5 banquetes), ✂️ Tesoura afiada (10 teias cortadas por soldados). Só leem estado (state.crushBest, state.lureBombBest, state.feasts, state.webCut). Conferido: semente 1 h13 = 656, igual ao v12.9 publicado.
+- Achado ao tirar o screenshot: o chip de moral ficava verde com 🍖 já no começo do jogo (moral inicial 60 < 70), convidando a gastar material na horda 1. O destaque agora só acende com moral < 50 (chave `__oldFeastHi`); o bot já usava < 50, então nada muda na simulação.
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros; tfirst 390×844 → 0 issues.
+- Crítica: conquista é incentivo fraco; o valor é apontar para combos que o jogador talvez nunca descobrisse. "Soterrados" deve ser rara (só 191 de ~1000 desabamentos com vítima pegaram ≥ 2).
+
 ## v12.9 — Desabamento esmaga
 - Item do agendamento (economia de fim de jogo): o material ~0 em h31 é do bot (que gasta tudo); a Automação do jogador já guarda reserva de 40 + 4×horda (h31: 164), que cobre Isca (15) + Bomba (25). Sem mudança.
 - Mudança de jogo (tema destruição): quando uma estrutura sem apoio desaba durante a horda (≥ 4 blocos), cada inimigo terrestre com blocos caindo a ≤ 1,6 na horizontal e acima dos pés leva 6×(1+0,12·horda) por bloco da coluna (máx. 8 blocos; chefes ½). Rótulo "🧱 esmagados ×N" quando pega 2 ou mais. Chave `__noCrush`; medição `__crushLog`.
