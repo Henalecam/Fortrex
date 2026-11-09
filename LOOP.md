@@ -226,6 +226,16 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.3 — Derrubar (o desabamento vira arma do jogador)
+- Novo botão 🪓 Derrubar (dock, h ≥ 5): na horda, toque e depois num bloco da sua muralha/torre → some a fatia 3×3 daquela altura (nunca blocos do baú) e tudo o que ficou sem apoio desaba — o "desabamento esmaga" da v12.9 cai sobre quem está ao pé. Os reparadores reconstroem depois (custo real: a muralha fica aberta por um tempo). Dica única. Chave `__noFell`; `__fellN()`, `__fellLog`; o `__crushLog` marca desabamentos até 1,5 s depois de um Derrubar.
+- Bot: se ≥ 4 inimigos terrestres estão a ≤ 2,5 de um ponto e há uma coluna sua com ≥ 5 de altura a ≤ 2 dali, derruba a 2ª camada dela.
+- A/B 12 sementes × 900 s (tecon_fell.js, H=nofell; controle = 656):
+  - 1ª versão (10 material, recarga 20 s): 45 usos → 50 desabamentos com 182 atingidos (~4 por uso); h13 **−23,4 s** (dp 46,3) — passou do gate de ±20.
+  - final (15 material, recarga 30 s): 47 usos → 56 desabamentos com **261 atingidos (~5,6 por uso)**; h13 **−17,3 s (dp 54,0)**; hordas 170 vs 168; total de esmagados 1567 vs 1380.
+- Também: no desktop o 🔔 ficava em cima da dica (que lá continua embaixo) → no desktop o 🔔 foi para a esquerda da barra de baixo.
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros; tfirst 390×844 → 0 issues.
+- Crítica: é a primeira habilidade ativa que deixa o jogo claramente mais fácil (−17 s, no limite de baixo); se as próximas rodadas acrescentarem poder, compensar. O bot usa ~4 vezes por corrida — um jogador atento pode usar mais (recarga 30 s).
+
 ## v13.2 — Avisos com calma + registro 🔔
 - Meta da rodada: ≤ 4 avisos por horda nas primeiras hordas sem perder informação. Medição (ttips.js, mesmo roteiro): v13.1 = 58 em 7 hordas (até 20 numa horda); boa parte vinha marcada como importante (r3/r4 ou forçada), então só "uma vez por partida" não bastava.
 - Mudanças (só interface):
