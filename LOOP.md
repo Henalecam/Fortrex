@@ -890,3 +890,10 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Conferido: 390×844 no meio da horda w19 sem dica; no descanso a dica aparece (ftip display flex).
 - A/B: tipTick não roda headless, então a simulação não muda — seeds 1 e 2 deram 665/759, idênticas à v14.2.
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v14.4 — 🐗📯 A Isca chama a manada (PUBLICADO)
+- Na Debandada, colocar a Isca faz a próxima passagem (das 2 por horda) cruzar uma faixa curta (56) tangente à muralha passando pela isca; a isca dura +2 s nesse caso. Rótulo "a manada atende à isca!".
+- 1ª versão (faixa longa) chegava depois da isca acabar: 2–3 acertos. Corrigido com faixa curta + isca +2 s.
+- Teste forçado (w19, isca no melhor amontoado aos 20 s): passagem pela isca 6, 7, 0, 6, 7, 7, 8 (média 5,9) vs primeira passagem automática 3, 4, 1, 1, 4, 3, 5 (média 3,0). Isca aos 3 s (poucos inimigos juntos): ~3 — o ganho depende de haver multidão na isca.
+- A/B 12 seeds vs v14.3: idêntico (0,0 s) — o bot nunca usou a isca durante uma Debandada; o efeito é só do jogador. Controle seed 1 = 665 ✓.
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
