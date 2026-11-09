@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v12.6 (rejeitada, não publicada) — Evento "Barris de pólvora"
+- Ideia (tema destruição + agência): no evento, 6 barris aparecem no caminho; tocar num barril explode (r 4,6, 110×(1+0,12·horda), fogo) e barris a ≤ 7 explodem em cadeia 0,3 s depois. Funciona (tbarrel.js: toque → explosão + 2 em cadeia; barril vermelho com anel pulsante).
+- A/B 12 sementes (H=nobrl): o evento saiu só 3 vezes em 168 hordas e o bot NUNCA detonou (limiar ≥ 4 inimigos a 4,6, checado a cada 10 s) → h13 −0,9 s (dp 43,6), puro desalinhamento de sorte. Sem dado útil.
+- Medição forçando o evento em toda horda ≥ 3 (tecon_brl.js H=force, `__brlMax` = máximo de inimigos perto de cada barril durante a horda), 2 sementes, 72 barris cada: com barris a WR+4..16 → máximo 0 em ~70% e ≥ 3 em só 3 barris; a WR+2..6 (colado na muralha) → igual (≥ 3 em 3 barris). Os inimigos chegam espalhados; nenhum ponto fixo junta grupo.
+- Conclusão crítica: barril em ponto fixo quase nunca vale o toque (mesma raiz do achado da bomba: grupos pequenos). **Rejeitado**; o evento fica fora do sorteio (só com `window.__barrelsOn`), semente 1 de volta a h13 = 649. Para funcionar precisaria de algo que AGRUPE inimigos (funil, isca) — isso sim seria uma mecânica nova a testar.
+
 ## v12.5 — Câmera volta ao castelo quando a horda começa
 - Olhada num jogo novo h5–h10 (tearly.js, semente 3, bot): na h8 a câmera estava parada no meio do campo, longe do castelo (que aparecia no canto), com a horda chegando fora da tela. Causa: declarar guerra/aceitar missão (realm.js) move a câmera para o meio do caminho até o rival e ela nunca volta sozinha.
 - Agora: ao começar uma horda, se a câmera está a > 40 blocos do castelo e o jogador não mexeu nela (arrastar, roda, toque, WASD/setas) nos últimos 15 s, ela volta suave (0,6 s) ao castelo. Chave `__oldCamWave`; contador `__camBackN()`. Só câmera, sem efeito na simulação (semente 1 h13 = 649, igual).
