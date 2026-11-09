@@ -859,3 +859,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - [ ] Mobile: botões maiores, toque longo para remover
 - [ ] Salvar partida (localStorage) e recorde
 - [ ] Desempenho: medir FPS real com muitos inimigos; reduzir sombras se preciso
+
+## v14.0 (2ª tentativa) — "Arma nova" (REJEITADO, só medição)
+- Censo de torres (bot, 12 seeds, até ~w15): sunray/chain/catapult/frost quase nunca instaladas (desbloqueiam w10–15 e o sorteio tem cannon/ballista em dobro). Fixtures w19/w31 têm catapult/frost/sunray; chain nunca.
+- Teste: após desbloqueio, X% dos sorteios de torre favorecem tipos que o jogador ainda não tem (+ rótulo "· NOVA" no card).
+- Variedade subiu (7–8 tipos colocados por run vs ~5), mas A/B h13 (novo − velho, 12 seeds): 50% → +34.8 s (sd 69.7); 30% → +29.5 s (sd 77.8). Fora da banda ±20 s, mesma direção (defesa mais fraca = waves mais longas). Controle seed 1 = 656 ✓.
+- Desligado atrás de window.__newTOn; window.__turretCensus mantido para medição. Não publicado.

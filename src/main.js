@@ -731,3 +731,8 @@ function offerPerk(){if(window.__noPerk||state.startPerk||state.wave>1)return;if
   c.innerHTML='<b>Escolha seu começo</b><div class="pk">'+START_PERKS.map(p=>`<button class="pkb" data-k="${p.k}"><span class="i">${p.ico}</span><span class="n">${p.n}</span><span class="d">${p.d}</span></button>`).join('')+'</div>';c.hidden=false;for(const b of c.querySelectorAll('.pkb'))b.onclick=()=>applyPerk(b.dataset.k)}
 {const _ng=newGame;newGame=function(){const r=_ng.apply(this,arguments);state.startPerk=null;offerPerk();return r}}
 {const _sw=startWave;startWave=function(){if(!state.startPerk&&!window.__noPerk&&state.wave<=1){const c=$('perkPick');if(c&&!c.hidden)applyPerk('mat')}return _sw.apply(this,arguments)}}
+// v14.0 (REJEITADO, desligado: __newTOn) arma nova: depois que um tipo de torre desbloqueia, metade dos sorteios de torre favorece tipos que você ainda não tem
+function ownedTurretTypes(){const o={};for(const t of turrets)if(t.alive&&t.team!=='r')o[t.type]=1;for(const it of (state.inv&&state.inv.turrets)||[])o[it.type]=1;return o}
+function isNewTurret(type){return !!window.__newTOn&&!ownedTurretTypes()[type]}
+{const _f=randTurretType;randTurretType=function(){if(window.__newTOn){const own=ownedTurretTypes();const fresh=Object.keys(TURRETS).filter(t=>isUnlocked('turret',t)&&!own[t]&&t!=='cannon');if(fresh.length&&Math.random()<(window.__newTP||.3)){const t=pick(fresh);window.__newTN=(window.__newTN||0)+1;return t}}return _f.apply(this,arguments)}}
+window.__turretCensus=()=>{const c={};for(const t of turrets)if(t.alive&&t.team!=='r')c[t.type]=(c[t.type]||0)+1;const inv={};for(const it of (state.inv&&state.inv.turrets)||[])inv[it.type]=(inv[it.type]||0)+1;return {placed:c,inv,newT:window.__newTN||0}};

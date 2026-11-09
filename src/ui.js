@@ -164,7 +164,7 @@ function renderShop(){const tb=$('shopTabs');if(tb){tb.innerHTML=SHOP_TABS.map((
 // ── rewards: pick 1 of 3
 function rewardPool(){const w=state.wave,rr=()=>lootRarity(.06+w*.006+state.luck),P=[];
   P.push(()=>{const r=Math.max(1,rr());const role=pick(['rep','col','gun','sol','med','sol']);return{r,ico:ROLES[role].ico,nm:`Recruta: ${ROLES[role].n}`,ds:ROLES[role].d+'.',go(){const m=makeMinion(role,r,CHEST.x,CHEST.z+2.5);toast(`${m.name} chegou!`,RARITY[r].css)}}});
-  P.push(()=>{const r=Math.max(1,rr());const type=randTurretType();return{r,ico:TURRETS[type].ico,nm:TURRETS[type].n,ds:TURRETS[type].d+' Instale onde quiser.',go(){state.inv.turrets.push({type,r});state.newItems++}}});
+  P.push(()=>{const r=Math.max(1,rr());const type=randTurretType();return{r,ico:TURRETS[type].ico,nm:TURRETS[type].n+(typeof isNewTurret==='function'&&isNewTurret(type)?' · NOVA':''),ds:TURRETS[type].d+' Instale onde quiser.',go(){state.inv.turrets.push({type,r});state.newItems++}}});
   P.push(()=>{const r=Math.max(1,rr());const it=makeEquip(r);return{r,ico:itemIco(it),nm:it.n,ds:itemLines(it).join(' · '),go(){state.inv.armory.push(it);state.newItems++;if(state.autoEquip)autoEquip(it)}}});
   P.push(()=>{const r=rr();const pk=randBlockPack(r);return{r,ico:'🧱',nm:`${pk.n}× ${MAT[pk.m].n}`,ds:MAT[pk.m].special||'Bloco especial.',go(){addBlocks(pk.m,pk.n);state.newItems++}}});
   P.push(()=>{const r=Math.max(1,rr());return{r,ico:'🎁',nm:'Baú do tesouro',ds:'Cai no pátio. Clique nele para abrir.',go(){spawnLoot(CHEST.x+rnd(-2,2),GY+4,CHEST.z+3,'treasure',r,{})}}});
