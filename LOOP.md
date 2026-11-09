@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v12.5 — Câmera volta ao castelo quando a horda começa
+- Olhada num jogo novo h5–h10 (tearly.js, semente 3, bot): na h8 a câmera estava parada no meio do campo, longe do castelo (que aparecia no canto), com a horda chegando fora da tela. Causa: declarar guerra/aceitar missão (realm.js) move a câmera para o meio do caminho até o rival e ela nunca volta sozinha.
+- Agora: ao começar uma horda, se a câmera está a > 40 blocos do castelo e o jogador não mexeu nela (arrastar, roda, toque, WASD/setas) nos últimos 15 s, ela volta suave (0,6 s) ao castelo. Chave `__oldCamWave`; contador `__camBackN()`. Só câmera, sem efeito na simulação (semente 1 h13 = 649, igual).
+- Verificado (tcamw.js): câmera em (30,40), sem mexer → volta para (96,96). Observação crítica: se o jogador mexeu há mais de 15 s e a horda começa sozinha pelo cronômetro, a câmera também volta — intencional (a horda é o que importa), mas pode incomodar quem está assistindo uma guerra; as setas de borda (v12.1) levam de volta em 1 toque.
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros; tfirst 390×844 → 0 issues.
+
 ## v12.4 — Banquete (agência sobre o moral)
 - Continuação do achado da tentativa rejeitada: o moral não tinha nenhuma ação do jogador. Agora, no descanso, tocar no chip de moral faz um **Banquete**: +25 de moral por 20 + 4×horda de material, 1× por descanso. O chip fica verde com 🍖 pulsando quando está disponível e o moral < 70; dica única quando moral < 40. Bot: usa se moral < 50 e material ≥ custo + 60. Chave `__noFeast`.
 - A/B 12 sementes × 900 s (tecon_mor.js, H=nofeast controle): bot fez 20 banquetes no total (0–4 por corrida); h13 **+6,3 s** (dp 34,7; uma semente +108, as outras de −33 a +41, 4 idênticas) → dentro do gate; hordas com moral < 25 no fim: 24 vs 29; moral médio 70 vs 68; hordas alcançadas 170 vs 176 (o material do banquete sai dos upgrades).
