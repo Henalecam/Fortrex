@@ -689,3 +689,13 @@ SFX.horn=_withArt(function(){if(!soundOn||throttle('horn',300))return;tone('sawt
 SFX.fell=_withArt(function(){if(!soundOn||throttle('fell',250))return;tone('square',140,70,.18,.06);nz(.5,'lowpass',380,0,.35,.02);tone('sine',70,32,.7,.4,.12);nz(.8,'lowpass',220,0,.22,.25)});
 {const _pl=placeLure;placeLure=function(){const r=_pl.apply(this,arguments);if(r&&!window.__oldSfx)SFX.horn();return r}}
 {const _fa=fellAt;fellAt=function(){const r=_fa.apply(this,arguments);if(r&&!window.__oldSfx)SFX.fell();return r}}
+// v13.7 Serpe de Fogo ganha o golpe que o nome promete: Sopro de fogo — faixa vermelha no chão por 1,3 s (dá para tirar os minions), depois incendeia tudo na linha e queima armas e minions nela
+{const _bp=bossMovePick;bossMovePick=function(e){if(e.type==='wyrm'&&window.__breathOn&&!e.breath){const dC=hyp(CHEST.x-e.pos.x,CHEST.z-e.pos.z);if(dC<40&&Math.random()<.4){const ang=dC>3?Math.atan2(CHEST.x-e.pos.x,CHEST.z-e.pos.z):e.group.rotation.y;const len=Math.max(12,Math.min(dC+8,18+e.ph*3));e.breath={t:1.3,ang,len,x:e.pos.x,z:e.pos.z};markLine(e.pos.x,e.pos.z,ang,len,3.2,1.3);label({x:e.pos.x,y:e.group.position.y+e.sc*2,z:e.pos.z},'🔥 sopro de fogo!','#ff6a3a');state.breaths=(state.breaths||0)+1;return 'breath'}}return _bp.apply(this,arguments)}}
+{const _ba=bossAI;bossAI=function(e,dt){const B=e.breath;if(B){B.t-=dt;if(B.t>0){e.group.rotation.x=-.15;return true}e.group.rotation.x=0;e.breath=null;breathFire(e,B);return true}return _ba.apply(this,arguments)}}
+function breathFire(e,B){const sx=Math.sin(B.ang),cz=Math.cos(B.ang),dmg=(34+state.wave*3)*(1+.2*(e.ph||1));let ign=0,hitT=0,hitM=0;
+  for(let s=1;s<=B.len;s+=.7){const x=B.x+sx*s,z=B.z+cz*s;for(const o of[-1,0,1]){const px=Math.floor(x+cz*o),pz=Math.floor(z-sx*o);const ty=Math.min(GY+12,Math.floor(topY(px,pz)));for(let y=ty;y>=Math.max(GY-1,ty-2);y--){if(!inb(px,y,pz))continue;const i=idx(px,y,pz);if(vox[i]&&isFlam(vox[i])){ignite(i,'enemy');ign++}}}
+    if(((s*10)|0)%14===0)spawnFlame(x,topY(Math.floor(x),Math.floor(z))+1,z,1.4)}
+  const near=(px,pz)=>{const dx=px-B.x,dz=pz-B.z,t=dx*sx+dz*cz;if(t<0||t>B.len)return false;return Math.abs(dx*cz-dz*sx)<1.8};
+  for(const t of turrets)if(t.alive&&t.team!=='r'&&near(t.pos.x,t.pos.z)){_turTag='wyrm:breath';damageTurret(t,dmg*1.1);_turTag=null;hitT++}
+  for(const m of minions)if(!m.wounded&&!m.away&&near(m.pos.x,m.pos.z)){hurtMinion(m,dmg*.8,e);hitM++}
+  shake=Math.max(shake,.5);SFX.boom&&SFX.boom(false);if(window.__breathLog)window.__breathLog.push([state.wave,ign,hitT,hitM])}

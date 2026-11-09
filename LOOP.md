@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.7 (rejeitada, não publicada) — Sopro de fogo da Serpe
+- Achado: os chefes compartilham o mesmo repertório (pancada, investida, chuva de pedras, invocação; só o Arauto tem golpes próprios) — a "Serpe de Fogo" nem usa fogo. Tentativa: Sopro de fogo telegrafado (faixa vermelha 1,3 s, depois incendeia blocos inflamáveis na linha e fere armas/minions nela).
+- Teste visual (tbreath.js, Serpe forçada): a Serpe voa direto para o centro e sopra de cima da cidadela — a faixa de aviso fica **escondida sob as torres**, e a linha atravessa pedra (0 blocos incendiados, 0 armas e 0 minions atingidos). Nos dois quadros não se vê nem o aviso nem o fogo.
+- Rejeitado antes do A/B (não adianta medir algo que o jogador não enxerga). Desligado (só com `window.__breathOn`); semente 1 = 656.
+- Para voltar: telegrafar no ar (cone na altura do voo) ou no topo das estruturas, e fazer o sopro antes da Serpe chegar ao centro (ex.: quando cruza a muralha), com chamas visíveis ao longo da linha.
+
 ## v13.6 — Sons da Isca e do Derrubar
 - Olhada nos inimigos comuns lado a lado (tlook.js: rasteiro, gosma, aranha, diabrete, sapador, escalador): nenhum destoa a ponto de valer uma rodada de arte agora (o diabrete é o mais simples, mas tem asas articuladas desde a v11.5). Escolhido o item (c): as duas habilidades novas não tinham som próprio (só o "pop" genérico).
 - 📯 Isca: corneta curta (dente de serra 196→233 Hz + quinta em triângulo + sopro). ⛏️ Derrubar: rangido (onda quadrada descendo) + estrondo surdo em duas camadas (ruído grave + seno 70→32 Hz). Ambos passam pelo gerador de arte (`_withArt`), como os outros sons, então não mexem na sorte da simulação. Chave `__oldSfx`.
