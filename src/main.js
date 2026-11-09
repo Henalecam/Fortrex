@@ -609,3 +609,9 @@ TIPS.push({id:'lure',c:()=>state.wave>=3&&state.phase==='wave'&&enemies.length>1
   if(!best||bd>3)return _ut.apply(this,arguments);const f=state.focus,ft=state.focusT;state.focus=best;state.focusT=1;try{return _ut.apply(this,arguments)}finally{state.focus=f;state.focusT=ft}}}
 // medição: explosões no ponto da isca
 {const _ex=explode;explode=function(x,y,z,r,d,o){const L=LURE.on;if(window.__lureEx&&L&&hyp(x-L.x,z-L.z)<4){let n=0;for(const e of enemies)if(!e.dead&&!e.rival&&hyp(e.pos.x-x,e.pos.z-z)<r)n++;window.__lureEx.push([r>=state.bombR-.01&&o&&o.fire?1:0,n])}return _ex.apply(this,arguments)}}
+// v12.9 Desabamento esmaga: quando uma estrutura sem apoio desaba, os blocos que caem ferem os inimigos logo embaixo/ao lado (destruição vira arma — e risco)
+{let _fallC=null;const _ck=checkTurretAnchor;checkTurretAnchor=function(i){if(_fallC)_fallC.push(i);return _ck.apply(this,arguments)};
+ const _st=settle;settle=function(){if(window.__noCrush)return _st.apply(this,arguments);_fallC=[];let r;try{r=_st.apply(this,arguments)}finally{const F=_fallC;_fallC=null;if(F&&F.length>=4&&state.phase==='wave')crushFrom(F)}return r}}
+function crushFrom(F){const col=new Map();for(const i of F){const k=ix(i)+','+iz(i);const c=col.get(k);const y=iy(i);if(!c)col.set(k,{x:ix(i)+.5,z:iz(i)+.5,n:1,ymin:y});else{c.n++;c.ymin=Math.min(c.ymin,y)}}
+  let hit=0,tot=0;const base=(window.__crushB??6)*(1+state.wave*.12);for(const e of enemies){if(e.dead||e.rival||e.fly||e.thief)continue;let n=0;for(const c of col.values()){if(Math.abs(c.x-e.pos.x)<1.6&&Math.abs(c.z-e.pos.z)<1.6&&c.ymin>=e.gy-.5)n+=c.n}if(!n)continue;const d=base*Math.min(n,8)*(BIG(e.type)?.5:1);dmgEnemy(e,d);hit++;tot+=d}
+  if(hit){state.crushHits=(state.crushHits||0)+hit;const c0=[...col.values()][0];if(hit>=2)label({x:c0.x,y:GY+4,z:c0.z},`🧱 esmagados ×${hit}`,'#c0802a');if(window.__crushLog)window.__crushLog.push([state.wave,F.length,hit,Math.round(tot),Math.round(c0.x),Math.round(c0.z)])}}

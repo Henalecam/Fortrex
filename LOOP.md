@@ -226,6 +226,15 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v12.9 — Desabamento esmaga
+- Item do agendamento (economia de fim de jogo): o material ~0 em h31 é do bot (que gasta tudo); a Automação do jogador já guarda reserva de 40 + 4×horda (h31: 164), que cobre Isca (15) + Bomba (25). Sem mudança.
+- Mudança de jogo (tema destruição): quando uma estrutura sem apoio desaba durante a horda (≥ 4 blocos), cada inimigo terrestre com blocos caindo a ≤ 1,6 na horizontal e acima dos pés leva 6×(1+0,12·horda) por bloco da coluna (máx. 8 blocos; chefes ½). Rótulo "🧱 esmagados ×N" quando pega 2 ou mais. Chave `__noCrush`; medição `__crushLog`.
+- Primeira versão (14 por bloco, máx 12): A/B 12 sementes → h13 **−47,3 s** (dp 81,8), fora do gate de ±20 → enfraquecida para 6 por bloco, máx 8.
+- Versão final, A/B 12 sementes × 900 s (tecon_crush.js, H=nocrush; controle conferido: semente 1 = 627): h13 **+1,2 s (dp 75,5; n 11)**; hordas 168 vs 168; ~83 desabamentos com vítima por corrida, ~115 inimigos atingidos, 191 desabamentos pegaram ≥ 2.
+- Não determinismo (de novo): entre os dois lotes, o braço de controle (código idêntico) divergiu em 2 de 12 sementes (8: já na horda 1; 11: na horda 3). Testei isolar o RNG da simulação dentro de cada `evaluate` e contar chamadas de Math.random fora dele: **zero** — então não são temporizadores da página. Causa ainda desconhecida (algo dependente de tempo dentro do passo?). Leitura dos A/B continua com essa ressalva; dp ~75 domina de qualquer forma.
+- Testes: t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros.
+- Crítica: quase todo desabamento pega só 1 inimigo — normalmente quem cavou a base; o efeito é mais "justiça poética" que tática. Não aparece no ritmo.
+
 ## v12.8 — Dicas no alto da tela no celular
 - Conferência do item (a) da rodada: o botão 📯 Isca aparece no celular com o dock cheio (h31: coluna da direita com Reunir, Portão, Égide, Bomba, Isca e 4 heróis, x 338–378, tudo na tela) — ok. Mas a dica (#ftip, embaixo, largura 100vw−24) cobria as **duas colunas de botões** (esquerda 12–52, direita 338–378) por ~90 px de altura: enquanto a dica está na tela, Isca/Bomba/heróis/Construir ficam parcialmente atrás dela.
 - Agora, no celular (≤ 760 px), a dica aparece no alto, logo abaixo da barra superior / bênção / barra do chefe (posição medida pelo mesmo ajuste de 300 ms). Desktop sem mudança. Chave `__oldTip`.
