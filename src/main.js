@@ -579,7 +579,7 @@ window.__barrels=()=>barrels.filter(b=>b.alive).map(b=>[b.x,b.z]);
 const LURE={on:null,cd:0};
 function lureOk(){return !window.__noLure&&state.running&&state.phase==='wave'&&LURE.cd<=0&&state.material>=15}
 function placeLure(x,z,bot){if(!lureOk())return false;state.material-=15;LURE.cd=30;state.lureMode=false;const y=standY(x,z);const L={x,z,y,t:6,id:(state.lures=(state.lures||0)+1),bot};let n=0;
-  for(const e of enemies){if(e.dead||e.rival||e.fly||e.thief||BIG(e.type)||e.type==='ship')continue;if(hyp(e.pos.x-x,e.pos.z-z)<22){e.lured=L.id;e.lureK=n++}}
+  for(const e of enemies){if(e.dead||e.rival||e.fly||e.thief||BIG(e.type)||e.type==='ship'||e.type==='farejador')continue;if(hyp(e.pos.x-x,e.pos.z-z)<22){e.lured=L.id;e.lureK=n++}}
   const r=Math.random;Math.random=_artRnd;try{const g=new THREE.Group();const pole=new THREE.Mesh(new THREE.BoxGeometry(.15,2.6,.15),new THREE.MeshLambertMaterial({color:0x6b4a2a}));pole.position.y=1.3;g.add(pole);const fl=new THREE.Mesh(new THREE.BoxGeometry(1.1,.7,.06),new THREE.MeshLambertMaterial({color:0xd9414f,emissive:0x4a0a10}));fl.position.set(.6,2.2,0);g.add(fl);
     const meat=new THREE.Mesh(new THREE.BoxGeometry(.6,.4,.5),new THREE.MeshLambertMaterial({color:0xc0603a}));meat.position.y=.2;g.add(meat);const ring=new THREE.Mesh(new THREE.RingGeometry(2.6,2.9,36),new THREE.MeshBasicMaterial({color:0xd9414f,transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.06;g.add(ring);g.userData.fl=fl;g.userData.ring=ring;g.position.set(x,y,z);scene.add(g);L.g=g}finally{Math.random=r}
   LURE.on=L;label({x,y:y+3.2,z},`📯 isca! ${n} vêm`,'#d9414f');SFX.pop&&SFX.pop();updateHud();if(window.__lureLog)window.__lureLog.push([state.wave,n]);return true}
@@ -625,3 +625,17 @@ ACH.push({id:'crush3',ico:'🧱',n:'Soterrados',d:'Esmague 3 inimigos num só de
 // v13.1 menos avisos: mensagens rotineiras (minion ferido/voltou, recruta chegou, arma caiu/pronta, construção/upgrade automáticos) aparecem só na 1ª vez da partida
 {const QUIET=[[/ ferido$/,'hurt'],[/ voltou!$/,'back'],[/pronta para instalar/,'ready'],[/caiu! Um coletor/,'fell'],[/, [^,]+ [A-Zá-ú][a-zá-ú]+, chegou!$|chegou!$/,'arrive'],[/^Construção auto/,'abuild'],[/^Upgrade auto/,'aup']];const seen=new Set();
  const _t=toast;toast=function(txt,cls,force){if(!window.__oldToasts&&!force){const s=String(txt);for(const [re,k] of QUIET)if(re.test(s)){if(seen.has(k)){window.__quietN=(window.__quietN||0)+1;return}seen.add(k);break}}return _t.apply(this,arguments)}}
+// v13.2 Inimigo novo: Farejador (Matilha, h ≥ 8) — não cai na Isca; se houver isca a ≤ 25, corre até ela e a destrói
+ETYPES.farejador={hp:150,speed:2.6,dmg:7,rate:1.2,color:0x6b4a2e,radius:.6,n:'Farejador'};SCX.farejador=1.05;NEWLOOK.farejador=1;T_UNLOCK.farejador=window.__snifferOn?8:999;
+{const T=THEMES.find(t=>t.k==='matilha');if(T&&!T.t.includes('farejador'))T.t.push('farejador')}
+CREATURES.farejador=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3),lt=shadeHex(col,.22);
+  const body=B(.6,.5,1.05,col,0,.6,0);B(.62,.16,.7,lt,0,.88,-.05);B(.5,.12,.5,0xd9414f,0,.78,.42);
+  const head=B(.56,.5,.56,lt,0,.86,.7);B(.34,.26,.36,lt,0,.74,1.06);B(.16,.12,.08,0x1d1f33,0,.82,1.25);
+  for(const s of[-1,1]){const ear=B(.14,.34,.1,dk,s*.22,1.2,.62);ear.rotation.z=s*.35}
+  face(head,sc,.56,.5,.56,{sclera:0xfff2d0,pupil:0x2b1a0e,es:.12,ex:.13,ey:.08,brow:0x3a2414,mood:.3,mouth:false},[[.1,.1,.04,0,-.18,.3,0,0,0xffcf3d]]);
+  const tail=K(.12,.12,.55,dk,0,.85,-.62);tail.rotation.x=-.6;g.userData.tail=tail;
+  return{body,head,legs:LG([[-.2,.18,-.35,.18,.36],[.2,.18,-.35,.18,.36],[-.2,.18,.35,.18,.36],[.2,.18,.35,.18,.36]],dk)}};
+CX_DESC.farejador='não cai na Isca: se houver uma isca por perto, corre até ela e a destrói';
+NEW_BRAINS.farejador=function(e,dt){const L=LURE.on;if(!L||window.__noSnifferBrain)return false;const dx=L.x-e.pos.x,dz=L.z-e.pos.z,d=Math.hypot(dx,dz);if(d>25)return false;
+  if(d<1.4){endLure();state.lureEaten=(state.lureEaten||0)+1;label({x:e.pos.x,y:e.gy+2.2,z:e.pos.z},'🐕 a isca foi destruída!','#d9414f');return false}
+  const sp=(e.speed||e.T.speed||2.6)*1.3*dt;const k=Math.min(1,sp/d);const nx=e.pos.x+dx*k,nz=e.pos.z+dz*k;if(standY(nx,nz)<=e.gy+1.1){e.pos.x=nx;e.pos.z=nz}e.group.rotation.y=Math.atan2(dx,dz);e.gy=standY(e.pos.x,e.pos.z);e.group.position.set(e.pos.x,e.gy,e.pos.z);if(e.vel)e.vel.set(0,0,0);return true};

@@ -226,6 +226,12 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.2 (rejeitada, não publicada) — Inimigo "Farejador"
+- Ideia: inimigo de Matilha (h ≥ 8) que interage com a Isca — imune a ela e, se houver isca a ≤ 25, corre até lá e a destrói (contra-jogo). Arte própria (cão marrom de focinho comprido, orelhas caídas, coleira vermelha, rabo animado); conferida em fila com lobo e goblin.
+- A/B 12 sementes × 900 s (tecon_snif.js, H=nosnif; controle conferido = 656): 84 farejadores gerados, 93 iscas do bot, mas só **3 iscas destruídas** — a interação quase nunca acontece (isca e farejador raramente coincidem). h13 **+17,6 s** (dp 49,5), perto do limite do gate; hordas 168 vs 168.
+- Conclusão crítica: na prática é "mais um inimigo" que deixa o jogo mais lento sem trazer a escolha prometida. **Rejeitado**; o código fica, desligado (só com `window.__snifferOn`). Semente 1 de volta a 656.
+- Se voltar: precisa de mais encontros (raio maior, ou aparecer junto com a isca) e, de preferência, de um aviso visual ("🐕 farejando a isca!") para o jogador poder reagir.
+
 ## v13.1 — Menos avisos
 - Primeira sessão de jogador novo medida (ttips.js, 390×844, semente 3, bot, até a horda 7, simulando toques para os avisos aparecerem): **7 dicas** (uma por horda — ok) e **112 avisos (toasts)** — muito acima da regra "avisos mínimos". Os campeões: "X ferido" 13, "X voltou!" 13, "arma pronta para instalar" 9, "Construção auto" 7, "arma caiu! Um coletor…" 6, "X chegou!" 6, "Upgrade auto" 2 (56 no total, ~50%).
 - Agora essas 7 categorias rotineiras aparecem só na 1ª vez de cada partida (avisos forçados e importantes — eventos, desbloqueios, contratos, títulos, conquistas, chefes — continuam). Contador `__quietN`; chave `__oldToasts`. Resultado no mesmo roteiro: **112 → 58** avisos.
