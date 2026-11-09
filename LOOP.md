@@ -865,3 +865,8 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Teste: após desbloqueio, X% dos sorteios de torre favorecem tipos que o jogador ainda não tem (+ rótulo "· NOVA" no card).
 - Variedade subiu (7–8 tipos colocados por run vs ~5), mas A/B h13 (novo − velho, 12 seeds): 50% → +34.8 s (sd 69.7); 30% → +29.5 s (sd 77.8). Fora da banda ±20 s, mesma direção (defesa mais fraca = waves mais longas). Controle seed 1 = 656 ✓.
 - Desligado atrás de window.__newTOn; window.__turretCensus mantido para medição. Não publicado.
+
+## v14.0 — 🛡️ Muralha de pé (PUBLICADO; renomeado de "Muralha firme" por colidir com a bênção de mesmo nome)
+- Medição: blocos azuis perdidos por horda (bot, seed 1): [0,0,12,162,418,92,409,99,129,337,302,271,249,64,101] — "zero perdido" nunca acontece depois da w2, então a regra virou limite 30+6×horda.
+- Bônus: 6+1,5×horda material + linha verde no relatório ("só N blocos perdidos", sequência). Dispara em ~20–25% das hordas do bot (mais quando o jogador defende bem).
+- A/B h13 (novo − velho, 12 seeds, sem perk): +5.7 s (sd 89.0) — dentro de ±20 s; 0 derrotas. Controle seed 1 = 656 ✓.

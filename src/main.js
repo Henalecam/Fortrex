@@ -736,3 +736,12 @@ function ownedTurretTypes(){const o={};for(const t of turrets)if(t.alive&&t.team
 function isNewTurret(type){return !!window.__newTOn&&!ownedTurretTypes()[type]}
 {const _f=randTurretType;randTurretType=function(){if(window.__newTOn){const own=ownedTurretTypes();const fresh=Object.keys(TURRETS).filter(t=>isUnlocked('turret',t)&&!own[t]&&t!=='cannon');if(fresh.length&&Math.random()<(window.__newTP||.3)){const t=pick(fresh);window.__newTN=(window.__newTN||0)+1;return t}}return _f.apply(this,arguments)}}
 window.__turretCensus=()=>{const c={};for(const t of turrets)if(t.alive&&t.team!=='r')c[t.type]=(c[t.type]||0)+1;const inv={};for(const it of (state.inv&&state.inv.turrets)||[])inv[it.type]=(inv[it.type]||0)+1;return {placed:c,inv,newT:window.__newTN||0}};
+// v14.0 muralha de pé: horda vencida perdendo no máximo 30+6×horda blocos da fortaleza (azul) para inimigos/ambiente rende bônus de material e destaque no relatório
+function wallIntactBonus(w){return 6+Math.round(w*1.5)}
+function wallLimit(w){return 30+6*w}
+{const _rv=removeVox;removeVox=function(i,src){if(vox[i]&&blue[i]&&src!=='player'&&src!=='dig'&&state.phase==='wave')state.wLost=(state.wLost||0)+1;return _rv.apply(this,arguments)};
+ const _sw=startWave;startWave=function(){const was=state.phase;const r=_sw.apply(this,arguments);if(was!=='wave'&&state.phase==='wave')state.wLost=0;return r};
+ const _ew=endWave;endWave=function(){const w=state.wave,lost=state.wLost||0,raid=state.raid;const r=_ew.apply(this,arguments);if(raid||state.phase==='wave')return r;(window.__wallLog=window.__wallLog||[]).push(lost);
+  if(window.__noWall||w<2||lost>wallLimit(w))return r;const g=wallIntactBonus(w);state.material+=g;state.wallIntact=(state.wallIntact||0)+1;state.wallStreak=(state.wallStreak||0)+1;
+  const el=$('report');if(el)el.innerHTML+=`<div class="hl wi">🛡️ Muralha de pé (${lost?`só ${lost} bloco${lost===1?'':'s'} perdido${lost===1?'':'s'}`:'intacta'}): <b>+${g}</b> material${state.wallStreak>1?` · ${state.wallStreak} seguidas`:''}</div>`;return r};
+ const _ew2=endWave;endWave=function(){const lost=state.wLost||0;const r=_ew2.apply(this,arguments);if(lost>wallLimit(state.wave-1)&&state.phase!=='wave')state.wallStreak=0;return r}}
