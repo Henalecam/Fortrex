@@ -575,3 +575,31 @@ function clearBarrels(){for(const b of barrels)if(b.alive){b.alive=false;scene.r
 window.__barrels=()=>barrels.filter(b=>b.alive).map(b=>[b.x,b.z]);
 {const _bt=barrelTick;barrelTick=function(){_bt.apply(this,arguments);if(!window.__brlMax)return;for(const b of barrels){if(!b.alive)continue;let n=0;for(const e of enemies)if(!e.dead&&!e.rival&&!e.fly&&hyp(e.pos.x-b.x,e.pos.z-b.z)<4.6)n++;b.mx=Math.max(b.mx||0,n);if(window.__brlAuto&&n>=window.__brlAuto)barrelBoom(b,false)}}}
 {const _cb=clearBarrels;clearBarrels=function(){if(window.__brlMax)for(const b of barrels)window.__brlMax.push(b.alive?b.mx||0:-1);return _cb.apply(this,arguments)}}
+// v12.6 Isca: toque no chão e, por 6 s, os inimigos terrestres num raio de 22 correm até ela e se amontoam (funil para bomba/morteiro). 15 material, recarga 30 s
+const LURE={on:null,cd:0};
+function lureOk(){return !window.__noLure&&state.running&&state.phase==='wave'&&LURE.cd<=0&&state.material>=15}
+function placeLure(x,z,bot){if(!lureOk())return false;state.material-=15;LURE.cd=30;state.lureMode=false;const y=standY(x,z);const L={x,z,y,t:6,id:(state.lures=(state.lures||0)+1),bot};let n=0;
+  for(const e of enemies){if(e.dead||e.rival||e.fly||e.thief||BIG(e.type)||e.type==='ship')continue;if(hyp(e.pos.x-x,e.pos.z-z)<22){e.lured=L.id;e.lureK=n++}}
+  const r=Math.random;Math.random=_artRnd;try{const g=new THREE.Group();const pole=new THREE.Mesh(new THREE.BoxGeometry(.15,2.6,.15),new THREE.MeshLambertMaterial({color:0x6b4a2a}));pole.position.y=1.3;g.add(pole);const fl=new THREE.Mesh(new THREE.BoxGeometry(1.1,.7,.06),new THREE.MeshLambertMaterial({color:0xd9414f,emissive:0x4a0a10}));fl.position.set(.6,2.2,0);g.add(fl);
+    const meat=new THREE.Mesh(new THREE.BoxGeometry(.6,.4,.5),new THREE.MeshLambertMaterial({color:0xc0603a}));meat.position.y=.2;g.add(meat);const ring=new THREE.Mesh(new THREE.RingGeometry(2.6,2.9,36),new THREE.MeshBasicMaterial({color:0xd9414f,transparent:true,opacity:.6,depthWrite:false,side:THREE.DoubleSide}));ring.rotation.x=-Math.PI/2;ring.position.y=.06;g.add(ring);g.userData.fl=fl;g.userData.ring=ring;g.position.set(x,y,z);scene.add(g);L.g=g}finally{Math.random=r}
+  LURE.on=L;label({x,y:y+3.2,z},`📯 isca! ${n} vêm`,'#d9414f');SFX.pop&&SFX.pop();updateHud();if(window.__lureLog)window.__lureLog.push([state.wave,n]);return true}
+function endLure(){const L=LURE.on;if(!L)return;scene.remove(L.g);for(const e of enemies)if(e.lured===L.id)e.lured=0;LURE.on=null}
+function lureTick(dt){if(LURE.cd>0)LURE.cd-=dt;const L=LURE.on;if(!L)return;L.t-=dt;if(L.g){L.g.userData.fl.rotation.y=Math.sin(simTime*6)*.3;L.g.userData.ring.material.opacity=.4+.25*Math.sin(simTime*8)}
+  if(L.bot&&!L.bombed&&L.t<=(window.__lureBT??1.6)&&state.bombCd<=0&&state.material>=25){L.bombed=1;let n=0;for(const e of enemies)if(!e.dead&&hyp(e.pos.x-L.x,e.pos.z-L.z)<state.bombR)n++;(window.__lureBombs=window.__lureBombs||[]).push(n);dropBomb(L.x,L.z)}
+  if(L.t<=0||state.phase!=='wave')endLure()}
+{const _ue=updateEnemy;updateEnemy=function(e,dt){const L=LURE.on;if(!L||e.dead||e.lured!==L.id||e.stun>0)return _ue.apply(this,arguments);
+  const dx=L.x-e.pos.x,dz=L.z-e.pos.z,d=Math.hypot(dx,dz);const stopR=1+((e.lureK||0)%6)*.35;e.bob+=dt*8;enemyAnim(e,dt);
+  if(d>stopR){const sp=(e.T.speed||2)*(window.__lureSp??2.2)*(e.slowT>simTime?.5:1)*dt;const k=Math.min(1,sp/d);const nx=e.pos.x+dx*k,nz=e.pos.z+dz*k;if(standY(nx,nz)<=e.gy+1.1){e.pos.x=nx;e.pos.z=nz}e.group.rotation.y=Math.atan2(dx,dz)}
+  e.gy=standY(e.pos.x,e.pos.z);e.group.position.set(e.pos.x,e.gy,e.pos.z);if(e.vel)e.vel.set(0,0,0)}}
+{const _et=edgeTick;edgeTick=function(dt){lureTick(dt);return _et.apply(this,arguments)}}
+{const _ew=endWave;endWave=function(){endLure();return _ew.apply(this,arguments)}}
+{const _ca=clickAt;clickAt=function(cx,cy,right){if(state.running&&state.lureMode){const ray=rayFrom(cx,cy);const h=voxRay(ray.origin,ray.direction,true);let px,pz;if(h){px=ix(h.i)+.5;pz=iz(h.i)+.5}else if(ray.direction.y<-1e-4){const t=(GY-ray.origin.y)/ray.direction.y;px=ray.origin.x+ray.direction.x*t;pz=ray.origin.z+ray.direction.z*t}
+  state.lureMode=false;$('lure').classList.remove('armed');if(px!==undefined&&px>0&&pz>0&&px<W&&pz<D)placeLure(px,pz,false);else toast('Mire na ilha','r0');return}return _ca.apply(this,arguments)}}
+$('lure').onclick=()=>{if(window.__noLure)return;if(state.phase!=='wave'){toast('A isca só funciona durante a horda','r0');return}if(LURE.cd>0){toast('Isca recarregando','r0');return}if(state.material<15){toast('Precisa de 15 material','r0');return}state.lureMode=!state.lureMode;state.bombMode=false;$('lure').classList.toggle('armed',state.lureMode);if(state.lureMode)toast('Toque onde a isca deve ficar','r2')};
+{const _uh=updateHud;updateHud=function(){_uh.apply(this,arguments);const b=$('lure');if(!b)return;b.hidden=!!window.__noLure||state.wave<3;$('lureCd').textContent=LURE.cd>0?Math.ceil(LURE.cd)+'s':'15'}}
+{const _b=window.__bot;window.__bot=function(){let placed=false;if(!window.__noLure&&lureOk()&&state.bombCd<=0&&state.material>=15+25+40){const al=enemies.filter(e=>!e.dead&&!e.fly&&!e.rival&&!e.thief&&!BIG(e.type));let best=null,bs=0;for(const e of al){const dC=hyp(e.pos.x-CX,e.pos.z-CZ);if(dC>WR+14)continue;let s=0;for(const o of al)if(hyp(o.pos.x-e.pos.x,o.pos.z-e.pos.z)<22)s++;if(s>bs){bs=s;best=e}}
+  if(best&&bs>=6){const dC=hyp(best.pos.x-CX,best.pos.z-CZ)||1;const f=(WR+6)/Math.max(dC,WR+6);placed=placeLure(CX+(best.pos.x-CX)*f,CZ+(best.pos.z-CZ)*f,true)}}
+  if(placed)state.bombCd=.01;const r=_b.apply(this,arguments);if(placed){if(state.bombCd===.01)state.bombCd=0;if(Array.isArray(r))r.push('lure')}return r}}
+window.__lureN=()=>state.lures||0;
+window.__placeLure=(x,z)=>placeLure(x,z,false);window.__lureBest=()=>{const al=enemies.filter(e=>!e.dead&&!e.fly&&!e.rival&&!BIG(e.type));let best=null,bs=0;for(const e of al){let s=0;for(const o of al)if(hyp(o.pos.x-e.pos.x,o.pos.z-e.pos.z)<22)s++;if(s>bs){bs=s;best=e}}return best?[best.pos.x,best.pos.z,bs]:null};
+TIPS.push({id:'lure',c:()=>state.wave>=3&&state.phase==='wave'&&enemies.length>15&&!window.__noLure,t:'📯 Inimigos espalhados? Use a Isca (15 material): toque nela e depois no chão — a horda por perto corre até lá e se amontoa por 6 s. Aí é só soltar a bomba em cima.'});
