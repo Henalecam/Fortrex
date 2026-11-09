@@ -226,6 +226,13 @@ Doc de conceito: https://claude.ai/artifact/AaKAfQTXcQZmVohJQb61uc
 
 - v7.3: TRANQUILO com o bot forte (2700 s): h29 aos 2609 s (43 min), 0 derrotas — relaxado ✓ (as três dificuldades agora bem separadas aos 45 min: Tranquilo h29 · Normal h24 · Brutal h19). Conteúdo: afixo FANTASMA (ghost; h16+ no sorteio de afixos; anel branco-lilás): ciclo de 5 s (fase inicial aleatória), 1 s translúcido (opacidade 0,3 nos corpos de voxels) e imune a todo dano (rótulo “atravessa!” às vezes); expostos não fazem fase. Teste isolado: imune nos ~1,2 s de fase, dano normal depois. Dica de afixos atualizada. Testes: t5 600 w11 sem erros; tcompat v041/v060 OK.
 
+## v13.7 — Destaques da horda
+- Depois de duas tentativas de golpe de chefe rejeitadas por visibilidade, a mudança desta rodada é de recompensa: o resumo de fim de horda (que só dizia combo, estilhaçados, feridos, itens) ganha uma linha "⭐" com os melhores momentos da horda — melhor bomba (×N no raio, se ≥ 2), soterrados por desabamento, iscas usadas, derrubadas, teias cortadas pelos soldados. Só aparece o que aconteceu. Chave `__oldHL`. Só interface (contadores por horda em `state.wHL`, sem sorteio).
+- Achado no screenshot (tearly.js, h11): o selo da bênção ("💚 Vigor · próxima horda") ficava **em cima do texto do resumo**. Agora o ajuste de 300 ms põe o selo logo abaixo do resumo quando ele está aberto (chave `__oldRepFit`).
+- Visto no jogo do bot (semente 3, h10): "⭐ 💣 melhor bomba ×4 · 🧱 2 soterrados · 📯 1 isca".
+- Testes: semente 1 h13 = 656; t5 600 → 0 erros; tcompat h15 / h20 / h31; tplay 1280×800 → 0 issues, 0 erros; tfirst 390×844 → 0 issues.
+- Crítica: é um resumo de texto; um jogador pode nem ler. O valor é mostrar que as mecânicas novas fizeram efeito.
+
 ## v13.7b (rejeitada, não publicada) — Rio de lava do Titã
 - 2ª tentativa de golpe próprio de chefe, agora num chefe terrestre (o Titã de lava): faixa vermelha no chão à frente dele (1,6 s), depois o chão vira lava (2–3 de largura) do Titã até perto da muralha, com chamas.
 - Teste visual (tlava.js, 3 ângulos de câmera, incluindo de cima): o Titã é enorme (escala 3,2) e quando o golpe dispara ele já está quase colado na muralha — a faixa fica curta (7–13 células) e **escondida sob o próprio corpo dele**; de cima dá para ver só um pedaço de lava ao lado. Afastar o início da linha (raio + 1,5) e exigir distância maior fez o golpe quase nunca disparar.
