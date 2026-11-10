@@ -955,3 +955,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Lição de método: com sd 40–70, 12 seeds têm erro padrão de 11–21 s — uma banda de ±20 s decide quase no cara ou coroa quando a mudança desloca o RNG. Em casos na fronteira, medir 24 seeds. (Ressalva: estendi a amostra depois de ver o resultado; as 12 seeds novas sozinhas dão −1,2.)
 - Publicado: cada morto pela bomba estoura (raio 2,2, 30% do dano), até 3 elos e 14 estouros; rótulo "🔥 reação em cadeia ×N" (≥3) e linha no relatório.
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v15.3 — 🎯 Golpe final (PUBLICADO)
+- Medição da cauda (≤3 inimigos, fila vazia; 427 hordas dos braços de controle): média 9,4 s, mediana 4, p90 20, máx. 85 — 16,8% do tempo de horda. Quase todas as caudas ≥20 s são um chefe (Titã) sozinho.
+- Mudança: na cauda, depois de 6 s, armas ganham +6%/s de dano (teto +180%) e a bomba recarrega 2×; marca 🎯 pulsando sobre os alvos e rótulo "Golpe final!".
+- A/B pareado 12 seeds (teto 1300): h13 −7,2 s (sd 62,6); 0 derrotas. Cauda até a w13: média 8,7 → 7,3 s; hordas com cauda ≥20 s 16 → 11; máx. 82 → 52. Ainda sobram caudas longas (ex.: 65 s numa w17) — provável inimigo fora do alcance das armas; investigar.
+- Testes: t5 600 sem erros; tcompat 14/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.

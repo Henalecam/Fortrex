@@ -829,3 +829,15 @@ function chainPop(x,y,z,dmg,depth){spawnDebris(x,y+.3,z,0xff7a2d,6,.28);try{SFX.
  return res}}
 {const _ew=endWave;endWave=function(){const h=state.wHL||{};const r=_ew.apply(this,arguments);const el=$('report');if(h.chain>=3&&el&&state.phase!=='wave')el.innerHTML+=`<div class="hl">🔥 reação em cadeia <b>×${h.chain}</b></div>`;return r}}
 window.__chainN=()=>CHAIN.n;
+// v15.3 GOLPE FINAL: quando restam ≤3 Devoradores e a fila acabou, depois de 6 s as armas ganham +6% de dano por segundo (até +180%) e a bomba recarrega 2× mais rápido — o fim da horda vira uma execução, não uma espera. Os alvos restantes ficam marcados com 🎯.
+const FINAL={b:0,t:0,els:new Map()};
+function finalTick(dt){const on=!window.__noFinal&&state.phase==='wave'&&!state.raid&&!state.queue.length;let a=null;if(on){a=[];for(const e of enemies)if(!e.dead&&!e.rival&&!e.lineup)a.push(e);if(!a.length||a.length>3)a=null}
+ if(!a){FINAL.t=0;FINAL.b=0;return}FINAL.t+=dt;FINAL.b=FINAL.t>6?Math.min(1.8,(FINAL.t-6)*.06):0;if(FINAL.b>0&&state.bombCd>0)state.bombCd=Math.max(0,state.bombCd-dt);
+ if(FINAL.b>0&&!FINAL.said){FINAL.said=1;const e=a[0];label({x:e.pos.x,y:(e.gy||GY)+3.2,z:e.pos.z},'🎯 Golpe final!','#ff5a4d');(window.__finalLog=window.__finalLog||[]).push(state.wave)}}
+{const _et=edgeTick;edgeTick=function(dt){try{finalTick(dt)}catch(e){}return _et.apply(this,arguments)}}
+{const _sw=startWave;startWave=function(){FINAL.t=0;FINAL.b=0;FINAL.said=0;return _sw.apply(this,arguments)}}
+{const _de=dmgEnemy;dmgEnemy=function(e,d){if(FINAL.b>0&&e&&!e.rival&&!e.thief)arguments[1]=d*(1+FINAL.b);return _de.apply(this,arguments)}}
+// marca 🎯 (só visual)
+setInterval(()=>{if(window.__headless)return;const want=new Set();if(FINAL.b>0)for(const e of enemies)if(!e.dead&&!e.rival&&!e.lineup)want.add(e);for(const [e,el] of FINAL.els){if(!want.has(e)||e.dead){el.remove();FINAL.els.delete(e)}}for(const e of want){let el=FINAL.els.get(e);if(!el){el=document.createElement('div');el.className='finalT';el.textContent='🎯';document.body.appendChild(el);FINAL.els.set(e,el)}try{const v=new THREE.Vector3(e.pos.x,(e.gy||GY)+(BIG(e.type)?5:2.4),e.pos.z).project(camera);const ok=v.z<1&&Math.abs(v.x)<1&&Math.abs(v.y)<1;el.style.display=ok?'':'none';el.style.left=((v.x+1)/2*innerWidth)+'px';el.style.top=((1-v.y)/2*innerHeight)+'px'}catch(_){}}},120);
+window.__finalB=()=>FINAL.b;
+window.__finalSet=t=>{FINAL.t=t;finalTick(0);const e=enemies.find(o=>!o.dead&&!o.rival&&!o.lineup);return e?[e.pos.x,e.pos.z,FINAL.b]:null};window.__aliveN=()=>enemies.filter(o=>!o.dead&&!o.rival&&!o.lineup).length+state.queue.length;
