@@ -936,3 +936,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - A/B h13 vs v14.9 (12 seeds, teto 1300, controle seed 1 = 650 ✓): −7,9 s (sd 22,4); 0 derrotas. Container reiniciou no meio do lote; seeds 11–12 refeitas.
 - Primeira versão quase invisível (só faíscas) — cubo de gelo adicionado e rótulo a partir de 2.
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v15.1 — ⛓️📯 Correntes + Isca (PUBLICADO)
+- Com a Isca ativa, a Torre de correntes fisga o não-chefe mais afastado (5–20 da isca, dentro do alcance) e o deixa a 1,6 da isca em vez de empurrar para longe; linha de corrente visível e destaque no relatório.
+- A/B h13 pareado (12 seeds, teto 1300, os dois braços refeitos no container novo): −10,6 s (sd 24,8); 0 derrotas. Fisgadas em 5/12 runs (3–13 por run, distância típica 10–20).
+- Nota de medição: depois do reinício do container os números absolutos mudaram (seed 1 da v15.0: 650 → 752, determinístico no container novo). Braços antigos em disco não servem mais de controle — sempre refazer os dois braços.
+- Testes: t5 600 sem erros; tcompat 14/20/31 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
