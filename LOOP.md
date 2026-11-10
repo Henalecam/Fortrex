@@ -948,3 +948,10 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - v1 (mini-explosões reais, com crateras): h13 +28,5 s (sd 72,8). v2 (dano direto nos vizinhos, sem destruir blocos): +26,2 s (sd 39,2). 12 seeds pareadas, teto 1300, controle seed 1 = 752 ✓. As duas fora de ±20 s na mesma direção (hordas mais longas), 0 derrotas.
 - Cadeias do bot são curtas: de ~310 bombas, 67% só 1 estouro, 15% 2, 10% 3, 9% 4+ (máx. 10–13).
 - Causa do atraso não investigada (hipótese: abates pela cadeia mudam o ritmo de loot/combos). Desligado atrás de window.__chainOn. Não publicado; versão segue 15.1.
+
+## v15.2 — 🔥 Reação em cadeia (PUBLICADO após reanálise)
+- Investigação da rejeição: comparando as linhas por horda (scratchpad/rx), os dois braços são idênticos até a primeira morte por cadeia; daí o sorteio de eventos muda e as hordas divergem caoticamente (ex.: seed 3 w12, 82 s presos no último inimigo vs 7 s). O +26 s podia ser ruído de divergência.
+- Mais 12 seeds pareadas (13–24) da versão 2 (dano direto, sem crateras): −1,2 s (sd 57,0). 24 seeds juntas: +12,5 s (erro padrão ~10) — dentro de ±20; 0 derrotas.
+- Lição de método: com sd 40–70, 12 seeds têm erro padrão de 11–21 s — uma banda de ±20 s decide quase no cara ou coroa quando a mudança desloca o RNG. Em casos na fronteira, medir 24 seeds. (Ressalva: estendi a amostra depois de ver o resultado; as 12 seeds novas sozinhas dão −1,2.)
+- Publicado: cada morto pela bomba estoura (raio 2,2, 30% do dano), até 3 elos e 14 estouros; rótulo "🔥 reação em cadeia ×N" (≥3) e linha no relatório.
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
