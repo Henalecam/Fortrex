@@ -916,3 +916,10 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - A/B h13 vs v14.6 (12 seeds, sem perk, teto 1300 s): −17.3 s (sd 38.8) — dentro de ±20; 0 derrotas. Controle seed 1 = 665 ✓.
 - Saves antigos já além da horda de desbloqueio não recebem (só dispara quando a horda é exatamente a de desbloqueio).
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v14.8 — 🎲 Aposta da muralha (PUBLICADO)
+- No descanso (horda ≥3), o marcador 🛡️ vira o botão "🎲 Apostar N" (N = 10+2×horda). Se a próxima horda perder no máximo o limite da Muralha de pé, recebe 2,5×; se não, perde a aposta. Durante a horda o marcador mostra 🎲 quando há aposta. No celular o botão flutua acima do 🔔 (a barra de status já transborda no descanso).
+- Bot (__botPlus): aposta quando a horda anterior cumpriu o limite e sobra material (custo+60).
+- A/B h13 vs v14.7 (12 seeds, teto 1300, controle seed 1 = 622 ✓): pagamento 3× → −20,9 s (sd 62,5), 0,9 s fora da banda (bot ganha 25/54 = 46%, EV 1,4×); pagamento 2,5× → +0,9 s (sd 64,9), bot ganha 24/55 (44%, EV ≈1,1×). Publicado com 2,5×. 0 derrotas.
+- Bug encontrado: setInterval(wallStUi) da v14.1 guardava a função original, então wrappers não rodavam — trocado por ()=>wallStUi().
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
