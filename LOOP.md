@@ -942,3 +942,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - A/B h13 pareado (12 seeds, teto 1300, os dois braços refeitos no container novo): −10,6 s (sd 24,8); 0 derrotas. Fisgadas em 5/12 runs (3–13 por run, distância típica 10–20).
 - Nota de medição: depois do reinício do container os números absolutos mudaram (seed 1 da v15.0: 650 → 752, determinístico no container novo). Braços antigos em disco não servem mais de controle — sempre refazer os dois braços.
 - Testes: t5 600 sem erros; tcompat 14/20/31 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v15.2 (tentativa) — 🔥 Reação em cadeia (REJEITADO, só medição)
+- Ideia: cada Devorador morto pela bomba estoura (raio 2, 30% do dano), até 3 elos e 14 estouros.
+- v1 (mini-explosões reais, com crateras): h13 +28,5 s (sd 72,8). v2 (dano direto nos vizinhos, sem destruir blocos): +26,2 s (sd 39,2). 12 seeds pareadas, teto 1300, controle seed 1 = 752 ✓. As duas fora de ±20 s na mesma direção (hordas mais longas), 0 derrotas.
+- Cadeias do bot são curtas: de ~310 bombas, 67% só 1 estouro, 15% 2, 10% 3, 9% 4+ (máx. 10–13).
+- Causa do atraso não investigada (hipótese: abates pela cadeia mudam o ritmo de loot/combos). Desligado atrás de window.__chainOn. Não publicado; versão segue 15.1.
