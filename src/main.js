@@ -799,3 +799,5 @@ function placeBet(){if(!betOk())return false;const c=betCost(state.wave);state.m
 {const _b=window.__bot;window.__bot=function(){const r=_b.apply(this,arguments);if(window.__botPlus&&!window.__noBotBet&&state.phase!=='wave'&&(state.wallStreak||0)>0&&state.material>=betCost(state.wave)+60)placeBet();return r}}
 // v14.8: no celular o botão da aposta sai da barra (que já transborda no descanso) e flutua acima do 🔔; volta para a barra durante a horda
 {const _wu2=wallStUi;wallStUi=function(){const r=_wu2.apply(this,arguments);const el=$('wallSt'),ch=$('chestSt');if(!el||!ch)return r;const float=innerWidth<700&&(el.classList.contains('bet')||el.classList.contains('betOn'))&&!el.hidden;if(float&&el.parentNode!==document.body)document.body.appendChild(el);else if(!float&&el.parentNode===document.body)ch.after(el);return r}}
+// v14.9 no celular, no descanso, o contador de inimigos (👾, sempre ~0 entre hordas) sai da barra para o relógio caber
+setInterval(()=>{document.body.classList.toggle('restPh',!window.__oldRestBar&&state.phase!=='wave')},300);

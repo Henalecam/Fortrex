@@ -923,3 +923,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - A/B h13 vs v14.7 (12 seeds, teto 1300, controle seed 1 = 622 ✓): pagamento 3× → −20,9 s (sd 62,5), 0,9 s fora da banda (bot ganha 25/54 = 46%, EV 1,4×); pagamento 2,5× → +0,9 s (sd 64,9), bot ganha 24/55 (44%, EV ≈1,1×). Publicado com 2,5×. 0 derrotas.
 - Bug encontrado: setInterval(wallStUi) da v14.1 guardava a função original, então wrappers não rodavam — trocado por ()=>wallStUi().
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v14.9 — 📱 Barra do topo cabe no descanso (PUBLICADO)
+- No celular, no descanso, a barra do topo (com as setas ‹ › de horda) transbordava e o relógio saía cortado à direita. Agora o contador 👾 (≈0 entre hordas) some no descanso em telas <700 px (body.restPh; __oldRestBar desliga).
+- Medido 390×844 (w20, descanso): .stats scrollWidth 356 = clientWidth 356; relógio termina em x=367 (antes cortado em 390).
+- Só visual: verificação de identidade seeds 1/2 = 650/719 (iguais à v14.8).
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
