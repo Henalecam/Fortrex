@@ -929,3 +929,10 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Medido 390×844 (w20, descanso): .stats scrollWidth 356 = clientWidth 356; relógio termina em x=367 (antes cortado em 390).
 - Só visual: verificação de identidade seeds 1/2 = 650/719 (iguais à v14.8).
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v15.0 — ❄️📯 Gelo + Isca (PUBLICADO)
+- Com a Isca ativa, o Canhão de gelo no alcance mira o inimigo mais perto da isca (≤4); projétil de gelo que cai a ≤6 da isca atordoa 1,8 s todos os não-chefes num raio de 4 (chefes só ficam lentos). Cubo de gelo translúcido sobre cada congelado (só visual), rótulo "❄️ N congelados!" e linha no relatório.
+- Depende da v14.7 (gelo grátis na w10): congelamentos aconteceram em 9/12 runs; tamanhos típicos 1–7, picos de 18 e 27 (seed 12).
+- A/B h13 vs v14.9 (12 seeds, teto 1300, controle seed 1 = 650 ✓): −7,9 s (sd 22,4); 0 derrotas. Container reiniciou no meio do lote; seeds 11–12 refeitas.
+- Primeira versão quase invisível (só faíscas) — cubo de gelo adicionado e rótulo a partir de 2.
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
