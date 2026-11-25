@@ -866,3 +866,31 @@ const BRECHA={boss:null,k:0,n:0};
 {const _ew=endWave;endWave=function(){const h=state.wHL||{};const r=_ew.apply(this,arguments);const el=$('report');if(h.brecha&&el&&state.phase!=='wave')el.innerHTML+=`<div class="hl">🔓 <b>${h.brecha}</b> brecha${h.brecha===1?'':'s'} aberta${h.brecha===1?'':'s'}</div>`;return r}}
 {let seen=0;try{seen=+localStorage.getItem('fortrex_weakTip')||0}catch(e){}let lastN=-1;setInterval(()=>{const el=WEAK.el;if(!el||el.hidden)return;const k=(BRECHA.boss===WEAK.e?BRECHA.k:0);if(WEAK.n!==lastN){lastN=WEAK.n;if(seen<3){seen++;try{localStorage.setItem('fortrex_weakTip',seen)}catch(e){}el.dataset.tip='Toque!'}else el.dataset.tip='';let w=el.querySelector('.wt');if(!w){w=document.createElement('b');w.className='wt';el.appendChild(w)}w.textContent=el.dataset.tip}const t=window.__noBrecha?'':(k?k+'/3':'');if(el.dataset.k!==t)el.dataset.k=t},80)}
 window.__brecha=()=>({n:BRECHA.n,k:BRECHA.k});
+// v15.6 NOVO INIMIGO — ROLÃO: tatu-pedra do tema Cerco (horda 9+). A até 30 blocos do centro ele para, gira no lugar 1,3 s (faixa de perigo avisada) e sai ROLANDO em linha reta até bater na muralha, estourando blocos. Depois fica TONTO 2,8 s: parado e levando dano em dobro — a janela para a bomba.
+ETYPES.rolao={hp:240,speed:1.9,dmg:9,rate:1.1,color:0x8d7b6a,radius:.75,n:'Rolão'};SCX.rolao=1.25;NEWLOOK.rolao=1;T_UNLOCK.rolao=window.__noRolao?999:9;
+{const T=THEMES.find(t=>t.k==='cerco');if(T&&!T.t.includes('rolao'))T.t.push('rolao')}
+CREATURES.rolao=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.28),lt=shadeHex(col,.2),belly=0xe8d9b8;
+  const body=B(.86,.7,1.0,col,0,.62,0);B(.9,.12,.2,dk,0,.99,-.3);B(.92,.12,.2,lt,0,1.0,-.02);B(.9,.12,.2,dk,0,.99,.26);B(.7,.1,.86,belly,0,.3,0);
+  for(const s of[-1,1]){B(.1,.5,.84,dk,s*.46,.66,0)}
+  const head=B(.46,.4,.42,lt,0,.56,.68);B(.24,.18,.24,belly,0,.48,.94);B(.1,.08,.06,0x2a2018,0,.54,1.07);
+  for(const s of[-1,1]){const ear=B(.12,.22,.08,dk,s*.2,.84,.6);ear.rotation.z=s*.3}
+  face(head,sc,.46,.4,.42,{sclera:0xfff6dc,pupil:0x2a1a10,es:.1,ex:.11,ey:.06,brow:0x4a3a2c,mood:.15,mouth:false},[]);
+  const tail=K(.14,.14,.4,dk,0,.5,-.66);tail.rotation.x=-.5;g.userData.tail=tail;
+  return{body,head,legs:LG([[-.26,.16,-.3,.2,.3],[.26,.16,-.3,.2,.3],[-.26,.16,.3,.2,.3],[.26,.16,.3,.2,.3]],dk)}};
+CX_DESC.rolao='gira no lugar e sai rolando em linha reta até bater na muralha; depois fica tonto e leva dano em dobro';
+const ROLAO={n:0,hits:0,dizzyK:0};
+NEW_BRAINS.rolao=function(e,dt){if(window.__noRolaoBrain)return false;const R=e.rol||(e.rol={st:0,t:0,cd:2+Math.random()*2});
+  if(e.stun>0&&R.st!==3){if(R.st===1||R.st===2){R.st=0;R.cd=4;e.group.rotation.x=0}return false}
+  if(R.st===0){R.cd-=dt;if(R.cd>0||e.lured)return false;const dx=CX-e.pos.x,dz=CZ-e.pos.z,d=Math.hypot(dx,dz);if(d>WR+30||d<WR+5)return false;R.st=1;R.t=1.3;R.dx=dx/d;R.dz=dz/d;R.go=0;R.L=d-WR+3;ROLAO.n++;try{markLine(e.pos.x,e.pos.z,Math.atan2(R.dx,R.dz),R.L,2.2,1.3+R.L/11)}catch(_){}label({x:e.pos.x,y:e.gy+2.4,z:e.pos.z},'🌀','#ffb13d');return true}
+  if(R.st===1){R.t-=dt;e.group.rotation.y=Math.atan2(R.dx,R.dz);e.group.rotation.x+=dt*14;if(Math.random()<dt*10)spawnDebris(e.pos.x,e.gy+.2,e.pos.z,0xc9b89a,1,.18);if(e.vel)e.vel.set(0,0,0);if(R.t<=0)R.st=2;return true}
+  if(R.st===2){const sp=11*dt;const nx=e.pos.x+R.dx*sp,nz=e.pos.z+R.dz*sp;R.go+=sp;const ny=standY(nx,nz);e.group.rotation.x+=dt*22;if(Math.random()<dt*14)spawnDebris(e.pos.x,e.gy+.2,e.pos.z,0xc9b89a,1,.2);
+   if(ny>e.gy+1.1||R.go>R.L+6){const hit=ny>e.gy+1.1;if(hit){ROLAO.hits++;try{explode(nx,e.gy+1,nz,1.7,(14+state.wave*1.6),{src:'enemy'})}catch(_){}shake=Math.max(shake,.25)}R.st=3;R.t=2.8;e.stun=Math.max(e.stun||0,2.8);e.dizzy=simTime+2.8;e.group.rotation.x=0;label({x:e.pos.x,y:e.gy+2.4,z:e.pos.z},'💫 tonto!','#ffe98a');return true}
+   if(ny<e.gy-3){R.st=0;R.cd=5;e.group.rotation.x=0;return false}e.pos.x=nx;e.pos.z=nz;e.gy=Math.max(ny,e.gy-.5*1);e.gy=ny;e.group.position.set(nx,e.gy+.25,nz);if(e.vel)e.vel.set(0,0,0);
+   for(const m of (typeof minions!=='undefined'?minions:[])){if(m&&!m.dead&&m.pos&&hyp(m.pos.x-nx,m.pos.z-nz)<1.1&&!m._rolHit){m._rolHit=1;later(1,()=>{m._rolHit=0})}}
+   return true}
+  if(R.st===3){R.t-=dt;if(R.t<=0){R.st=0;R.cd=7}return false}
+  return false};
+{const _de=dmgEnemy;dmgEnemy=function(e,d){if(e&&e.type==='rolao'&&e.dizzy>simTime){arguments[1]=d*2;ROLAO.dizzyK++}return _de.apply(this,arguments)}}
+window.__rolao=()=>({n:ROLAO.n,hits:ROLAO.hits,alive:enemies.filter(e=>!e.dead&&e.type==='rolao').length});
+window.__rolSpawn=(n,dd)=>{for(let k=0;k<(n||1);k++){const a=-.5+k*.22;makeEnemy('rolao',0,CX+Math.cos(a)*(WR+(dd||24)),CZ+Math.sin(a)*(WR+(dd||24)))}return window.__rolList()};
+window.__rolList=()=>enemies.filter(e=>e.type==='rolao').map(e=>({st:e.rol?e.rol.st:-1,x:+e.pos.x.toFixed(1),z:+e.pos.z.toFixed(1),hp:Math.round(e.hp),dead:!!e.dead,go:e.rol&&+(e.rol.go||0).toFixed(1)}));

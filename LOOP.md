@@ -980,3 +980,10 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - A/B determinístico pareado (12 seeds, dois braços, teto 1300): h13 −0,2 s (sd 18,6); 0 derrotas. Bot (60% de acerto) abre 0–6 brechas por partida (média 2,3).
 - Tropeço de processo: a pasta scratchpad/br já existia (lote antigo de barris) e o script retomável pulou tudo — usar sempre pasta nova (aqui: brc).
 - Testes: t5 600 sem erros; tcompat 15/20/30 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues. Depois dos testes só mudou o elemento da dica (DOM/CSS); t5 120 sem erros.
+
+## v15.6 — 🌀 Novo inimigo: Rolão (PUBLICADO)
+- Tatu-pedra do tema Cerco, horda 9+ (hp 240, vel. 1,9). Entre 5 e 30 blocos da muralha: para, gira 1,3 s com faixa de perigo (markLine), rola a 11 u/s em linha reta até bater num degrau >1,1 (explosão raio 1,7 nos blocos, dano 14+1,6×horda) e fica TONTO 2,8 s (atordoado, dano ×2). Atordoar durante o giro cancela a rolagem. Arte original em voxels (carapaça em faixas, cabeça clara, orelhas, cauda) em CREATURES; entrada no Códex.
+- A/B determinístico pareado (12 seeds, dois braços, teto 1300): h13 −0,9 s (sd 46,7); 0 derrotas. 5–51 rolagens por partida (média 21), ~85% batem na muralha.
+- Nota: com o tipo desligado (T_UNLOCK 999) o braço de controle ainda difere da v15.5 em algumas seeds (ex.: seed 6: 706 vs 755) — a simples presença do tipo na lista do tema muda o sorteio. Por isso os dois braços foram refeitos.
+- Capturas: __freeze deixa a cena preta — não usar; tlook.js (LT=rolao CAM=7,128,97,.5,.45) dá o close de arte.
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
