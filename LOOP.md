@@ -1015,3 +1015,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - A/B determinístico pareado (12 seeds, dois braços, teto 1300): h13 +3,4 s (sd 36,0); 0 derrotas.
 - Contador "both" do hook __gem não conta direito (só estatística; não usado).
 - Testes: t5 600 sem erros; tcompat 14/20/31 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v16.1 — 👥 Gêmeos mais presentes e fio visível (PUBLICADO)
+- Fio do par: a linha de 1 px ciano-claro da v16.0 era invisível em jogo (conferido em captura). Agora é uma barra 3D (0,13 de espessura, #13a9cf, sem teste de profundidade) — visível.
+- Presença: Gêmeos entram também no tema Enxame. Medido (12 seeds): 303 criados contra 122 (por partida: mín. 12, máx. 38; antes mín. 0, máx. 19); 84 retornos; 38 pares mortos juntos (contador "both" corrigido).
+- A/B determinístico pareado, teto 1300: seeds 1–12 −11,8 s (sd 23,7) → fronteira → seeds 13–24 −5,0 s (sd 11,8). 24 seeds: −8,4 s; 0 derrotas.
+- Testes: t5 600 sem erros; tcompat 14/19/31 (as duas primeiras 1 abaixo do alvo 15/20, dentro do ruído ±1 — observar se vira tendência); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
