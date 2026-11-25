@@ -993,3 +993,12 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Identidade (harness determinístico): seed 1 = 709 (= v15.6). Seed 2 = 618 em 3 execuções, contra 692 no lote da v15.6 — mas a própria v15.6 reconstruída dá 618 ×2 agora. Conclusão: sobra um não-determinismo raro mesmo com relógio simulado (1 caso observado em ~40 execuções); a mudança visual é idêntica à v15.6 nas mesmas condições.
 - Observação de jogo: nas capturas o Rolão acaba dentro do pátio depois de abrir a muralha — comportamento esperado de brecha, mas vale observar se ele rola em cima das muralhas.
 - Testes: t5 600 sem erros; tcompat 14/20/31 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v15.8 — 🌀 Rolão chega à muralha (PUBLICADO)
+- Verificação do que publiquei na v15.6: o Rolão NÃO rola por cima da muralha (0 de 29 rolagens terminam dentro; subida máx. 2 blocos). Mas a frase "85% batem na muralha" estava errada: ele batia em qualquer degrau de terreno >1,1 — só 21% das rolagens concluídas (47/219) terminavam a ≤7 blocos do raio da muralha; 54% paravam a >10.
+- Tentativa 1 (só rola com faixa livre): rejeitada — 744 bloqueios contra 11 rolagens em 12 seeds; mata a mecânica.
+- Tentativa 2 (explode obstáculos de terreno): rejeitada em 1 seed — 80 estouros e só 2/15 chegam (explosão 'env' tem dano ×0,4).
+- Publicado: a mais de 7 blocos do raio da muralha, degraus de até 4,5 de altura são transpostos (quica por cima). Agora 52% das rolagens concluídas (85/165) chegam à muralha; 33% ainda param longe em obstáculos altos.
+- A/B determinístico pareado, teto 1300: seeds 1–12 +10,5 s (sd 35,0) → fronteira → seeds 13–24 +2,0 s (sd 49,5). 24 seeds: +6,3 s; 0 derrotas.
+- Sem captura útil nesta rodada (os Rolões morreram antes do quadro); a mudança é de comportamento, não visual.
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.

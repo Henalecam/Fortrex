@@ -881,17 +881,18 @@ CX_DESC.rolao='gira no lugar e sai rolando em linha reta até bater na muralha; 
 const ROLAO={n:0,hits:0,dizzyK:0};
 NEW_BRAINS.rolao=function(e,dt){if(window.__noRolaoBrain)return false;const R=e.rol||(e.rol={st:0,t:0,cd:2+Math.random()*2});
   if(e.stun>0&&R.st!==3){if(R.st===1||R.st===2){R.st=0;R.cd=4;e.group.rotation.x=0}return false}
-  if(R.st===0){R.cd-=dt;if(R.cd>0||e.lured)return false;const dx=CX-e.pos.x,dz=CZ-e.pos.z,d=Math.hypot(dx,dz);if(d>WR+30||d<WR+5)return false;R.st=1;R.t=1.3;R.dx=dx/d;R.dz=dz/d;R.go=0;R.L=d-WR+3;ROLAO.n++;try{markLine(e.pos.x,e.pos.z,Math.atan2(R.dx,R.dz),R.L,2.2,1.3+R.L/11)}catch(_){}if(window.__oldRolTag)label({x:e.pos.x,y:e.gy+2.4,z:e.pos.z},'🌀','#ffb13d');return true}
+  if(R.st===0){R.cd-=dt;if(R.cd>0||e.lured)return false;const dx=CX-e.pos.x,dz=CZ-e.pos.z,d=Math.hypot(dx,dz);if(d>WR+30||d<WR+5)return false;R.st=1;R.t=1.3;R.sm=0;R.dx=dx/d;R.dz=dz/d;R.go=0;R.L=d-WR+3;ROLAO.n++;R.gy0=e.gy;R.d0=d-WR;try{markLine(e.pos.x,e.pos.z,Math.atan2(R.dx,R.dz),R.L,2.2,1.3+R.L/11)}catch(_){}if(window.__oldRolTag)label({x:e.pos.x,y:e.gy+2.4,z:e.pos.z},'🌀','#ffb13d');return true}
   if(R.st===1){R.t-=dt;e.group.rotation.y=Math.atan2(R.dx,R.dz);e.group.rotation.x+=dt*14;if(Math.random()<dt*10)spawnDebris(e.pos.x,e.gy+.2,e.pos.z,0xc9b89a,1,.18);if(e.vel)e.vel.set(0,0,0);if(R.t<=0)R.st=2;return true}
   if(R.st===2){const sp=11*dt;const nx=e.pos.x+R.dx*sp,nz=e.pos.z+R.dz*sp;R.go+=sp;const ny=standY(nx,nz);e.group.rotation.x+=dt*22;if(Math.random()<dt*14)spawnDebris(e.pos.x,e.gy+.2,e.pos.z,0xc9b89a,1,.2);
-   if(ny>e.gy+1.1||R.go>R.L+6){const hit=ny>e.gy+1.1;if(hit){ROLAO.hits++;try{explode(nx,e.gy+1,nz,1.7,(14+state.wave*1.6),{src:'enemy'})}catch(_){}shake=Math.max(shake,.25)}R.st=3;R.t=2.8;e.stun=Math.max(e.stun||0,2.8);e.dizzy=simTime+2.8;e.group.rotation.x=0;if(window.__oldRolTag)label({x:e.pos.x,y:e.gy+2.4,z:e.pos.z},'💫 tonto!','#ffe98a');return true}
+   const far=!window.__oldRolLane&&Math.hypot(nx-CX,nz-CZ)-WR>7;if(far&&ny>e.gy+1.1&&ny<e.gy+4.5){R.sm=(R.sm||0)+1;ROLAO.smash=(ROLAO.smash||0)+1;e.gy=ny-1.05}
+   if(ny>e.gy+1.1||R.go>R.L+6){const hit=ny>e.gy+1.1;(window.__rolDbg=window.__rolDbg||[]).push([+R.d0.toFixed(0),+(Math.hypot(e.pos.x-CX,e.pos.z-CZ)-WR).toFixed(1),+(e.gy-R.gy0).toFixed(1),hit?1:0,+R.go.toFixed(0)]);if(hit){ROLAO.hits++;try{explode(nx,e.gy+1,nz,1.7,(14+state.wave*1.6),{src:'enemy'})}catch(_){}shake=Math.max(shake,.25)}R.st=3;R.t=2.8;e.stun=Math.max(e.stun||0,2.8);e.dizzy=simTime+2.8;e.group.rotation.x=0;if(window.__oldRolTag)label({x:e.pos.x,y:e.gy+2.4,z:e.pos.z},'💫 tonto!','#ffe98a');return true}
    if(ny<e.gy-3){R.st=0;R.cd=5;e.group.rotation.x=0;return false}e.pos.x=nx;e.pos.z=nz;e.gy=Math.max(ny,e.gy-.5*1);e.gy=ny;e.group.position.set(nx,e.gy+.25,nz);if(e.vel)e.vel.set(0,0,0);
    for(const m of (typeof minions!=='undefined'?minions:[])){if(m&&!m.dead&&m.pos&&hyp(m.pos.x-nx,m.pos.z-nz)<1.1&&!m._rolHit){m._rolHit=1;later(1,()=>{m._rolHit=0})}}
    return true}
   if(R.st===3){R.t-=dt;if(R.t<=0){R.st=0;R.cd=7}return false}
   return false};
 {const _de=dmgEnemy;dmgEnemy=function(e,d){if(e&&e.type==='rolao'&&e.dizzy>simTime){arguments[1]=d*2;ROLAO.dizzyK++}return _de.apply(this,arguments)}}
-window.__rolao=()=>({n:ROLAO.n,hits:ROLAO.hits,alive:enemies.filter(e=>!e.dead&&e.type==='rolao').length});
+window.__rolao=()=>({n:ROLAO.n,hits:ROLAO.hits,smash:ROLAO.smash||0,alive:enemies.filter(e=>!e.dead&&e.type==='rolao').length});
 window.__rolSpawn=(n,dd)=>{for(let k=0;k<(n||1);k++){const a=-.5+k*.22;makeEnemy('rolao',0,CX+Math.cos(a)*(WR+(dd||24)),CZ+Math.sin(a)*(WR+(dd||24)))}return window.__rolList()};
 window.__rolList=()=>enemies.filter(e=>e.type==='rolao').map(e=>({st:e.rol?e.rol.st:-1,x:+e.pos.x.toFixed(1),z:+e.pos.z.toFixed(1),hp:Math.round(e.hp),dead:!!e.dead,go:e.rol&&+(e.rol.go||0).toFixed(1)}));
 // v15.7 leitura do Rolão à distância (só visual): marcador flutuante 🌀 enquanto gira/rola e 💫 ×2 enquanto tonto, seguindo o bicho; substitui os rótulos de texto
