@@ -1021,3 +1021,10 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Presença: Gêmeos entram também no tema Enxame. Medido (12 seeds): 303 criados contra 122 (por partida: mín. 12, máx. 38; antes mín. 0, máx. 19); 84 retornos; 38 pares mortos juntos (contador "both" corrigido).
 - A/B determinístico pareado, teto 1300: seeds 1–12 −11,8 s (sd 23,7) → fronteira → seeds 13–24 −5,0 s (sd 11,8). 24 seeds: −8,4 s; 0 derrotas.
 - Testes: t5 600 sem erros; tcompat 14/19/31 (as duas primeiras 1 abaixo do alvo 15/20, dentro do ruído ±1 — observar se vira tendência); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v16.2 — 💬 Dica na primeira aparição + conquista Dois Coelhos (PUBLICADO)
+- Na 1ª vez que um Rolão ou um Gêmeo entra na tela durante a horda, uma etiqueta escura presa ao inimigo explica o truque por 7 s ("🌀 Rolão — bate na muralha e fica tonto: dano em dobro!" / "👥 Gêmeos — mate os dois juntos, ou o morto volta"). Uma vez por aparelho (localStorage fortrex_enemyTips); se o inimigo marcado morre, passa para outro do mesmo tipo; não usa toast. __noEnemyTips desliga.
+- Conquista Dois Coelhos: 10 pares de Gêmeos derrotados antes de um voltar (state.gemBoth).
+- Tropeço de teste: a etiqueta sumia das capturas porque a captura neste ambiente leva mais de 7 s; gancho __enTipHold só para teste. Conferido em 390×844 (etiqueta visível e legível).
+- Identidade: seeds 1/2 = 685/648, iguais ao braço da v16.1.
+- Testes: t5 600 sem erros; tcompat 15/20/31 (voltou ao alvo — o 14/19 da v16.1 era ruído); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
