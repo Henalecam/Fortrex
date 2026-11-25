@@ -974,3 +974,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - A/B no harness determinístico (teto 1300): seeds 1–12 −10,8 s (sd 60,2); zona de fronteira → seeds 13–24 (dois braços) −4,9 s (sd 60,5). 24 seeds: −7,9 s (erro padrão ~12); 0 derrotas. Controle seed 1 = 704 ✓.
 - Conferido: 390×844 (toque registra acerto) e 1280×800 (clique registra; 3/3 visível).
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v15.5 — 🔓 Brecha (PUBLICADO)
+- 3 pontos fracos seguidos no mesmo chefe, sem deixar nenhum expirar → Brecha: todo dano nesse chefe ×1,5 por 5 s. O ponto mostra "1/3", "2/3"; rótulo, faíscas, Estrondo e linha no relatório. Dica "Toque!" sob o ponto nas 3 primeiras aparições (localStorage fortrex_weakTip).
+- A/B determinístico pareado (12 seeds, dois braços, teto 1300): h13 −0,2 s (sd 18,6); 0 derrotas. Bot (60% de acerto) abre 0–6 brechas por partida (média 2,3).
+- Tropeço de processo: a pasta scratchpad/br já existia (lote antigo de barris) e o script retomável pulou tudo — usar sempre pasta nova (aqui: brc).
+- Testes: t5 600 sem erros; tcompat 15/20/30 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues. Depois dos testes só mudou o elemento da dica (DOM/CSS); t5 120 sem erros.
