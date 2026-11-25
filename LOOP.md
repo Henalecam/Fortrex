@@ -987,3 +987,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Nota: com o tipo desligado (T_UNLOCK 999) o braço de controle ainda difere da v15.5 em algumas seeds (ex.: seed 6: 706 vs 755) — a simples presença do tipo na lista do tema muda o sorteio. Por isso os dois braços foram refeitos.
 - Capturas: __freeze deixa a cena preta — não usar; tlook.js (LT=rolao CAM=7,128,97,.5,.45) dá o close de arte.
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v15.7 — 👀 Rolão legível à distância (PUBLICADO)
+- Marcador flutuante que segue o Rolão: 🌀 girando enquanto prepara/rola, 💫 + etiqueta "×2" enquanto tonto. Substitui os rótulos de texto (que somem em 1,2 s e disputam o limite de 40 rótulos). __oldRolTag volta ao antigo. Só visual (headless não cria os elementos).
+- Identidade (harness determinístico): seed 1 = 709 (= v15.6). Seed 2 = 618 em 3 execuções, contra 692 no lote da v15.6 — mas a própria v15.6 reconstruída dá 618 ×2 agora. Conclusão: sobra um não-determinismo raro mesmo com relógio simulado (1 caso observado em ~40 execuções); a mudança visual é idêntica à v15.6 nas mesmas condições.
+- Observação de jogo: nas capturas o Rolão acaba dentro do pátio depois de abrir a muralha — comportamento esperado de brecha, mas vale observar se ele rola em cima das muralhas.
+- Testes: t5 600 sem erros; tcompat 14/20/31 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
