@@ -913,3 +913,30 @@ ACH.push({id:'weak25',ico:'💥',n:'Olho Clínico',d:'Acerte 25 pontos fracos de
  {id:'rolao10',ico:'🌀',n:'Caça-Tatu',d:'Derrote 10 Rolões enquanto estão tontos',c:()=>(state.rolDizzyK||0)>=10},
  {id:'wall5',ico:'🛡️',n:'Pedra sobre Pedra',d:'Cumpra a Muralha de pé em 5 hordas seguidas',c:()=>(state.wallStreak||0)>=5});
 window.__achCnt=()=>({weak:state.weakHits||0,brechas:state.brechas||0,chain:state.chainBest||0,fin:state.finalN||0,bet:state.betStreakBest||0,rol:state.rolDizzyK||0,wall:state.wallStreak||0,got:Object.keys(ACHS).filter(k=>['weak25','brecha5','chain10','final20','bet3','rolao10','wall5'].includes(k))});
+// v16.0 NOVO INIMIGO — GÊMEOS DA BRUMA: andam em pares ligados por um fio de bruma (tema Matilha, horda 11+). Se um morre e o outro continua vivo por 4 s, o morto volta com metade da vida (uma vez por par). Mate os dois juntos — bomba, isca, reação em cadeia.
+ETYPES.gemeo={hp:105,speed:2.5,dmg:8,rate:1,color:0x5fb8c9,radius:.5,n:'Gêmeo da Bruma'};SCX.gemeo=.95;NEWLOOK.gemeo=1;T_UNLOCK.gemeo=window.__noGemeo?999:11;
+{const T=THEMES.find(t=>t.k==='matilha');if(T&&!T.t.includes('gemeo'))T.t.push('gemeo')}
+CREATURES.gemeo=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.32),lt=shadeHex(col,.25),glow=0xbff4ff;
+  const body=B(.5,.62,.42,col,0,.62,0);B(.52,.14,.44,dk,0,.36,0);B(.2,.2,.06,glow,0,.66,.22);
+  const head=B(.56,.5,.5,lt,0,1.2,.02);B(.6,.16,.54,dk,0,1.47,.02);const horn=B(.12,.3,.12,glow,.16,1.68,.02);horn.rotation.z=-.25;
+  face(head,sc,.56,.5,.5,{sclera:0xeafcff,pupil:0x123a44,es:.13,ex:.13,ey:.04,brow:dk,mood:.2,mouth:true},[]);
+  for(const s of[-1,1]){const arm=B(.14,.42,.14,dk,s*.34,.66,0);arm.rotation.z=s*.2}
+  const scarf=K(.12,.1,.5,glow,-.1,.98,-.36);scarf.rotation.x=.5;g.userData.tail=scarf;
+  return{body,head,legs:LG([[-.14,.16,0,.16,.32],[.14,.16,0,.16,.32]],dk)}};
+CX_DESC.gemeo='👥 andam em pares ligados · se um morre e o outro sobrevive 4 s, o morto volta — mate os dois juntos';
+const GEM={pairs:[],pend:null,made:0,rev:0,both:0,busy:0};
+{const _me=makeEnemy;makeEnemy=function(type){const e=_me.apply(this,arguments);if(type==='gemeo'&&e&&!GEM.busy&&!window.__noGemeoLink){GEM.made++;if(GEM.pend&&!GEM.pend.dead){GEM.pairs.push({a:GEM.pend,b:e,t:0,rev:0});GEM.pend=null}else GEM.pend=e}return e}}
+function gemTick(dt){if(!GEM.pairs.length)return;for(let i=GEM.pairs.length-1;i>=0;i--){const P=GEM.pairs[i];const ad=P.a.dead,bd=P.b.dead;if(ad&&bd){if(P.t>0||!P.was)GEM.both++;GEM.pairs.splice(i,1);continue}if(!ad&&!bd){P.t=0;continue}
+  if(state.phase!=='wave'){GEM.pairs.splice(i,1);continue}const sv=ad?P.b:P.a;if(P.rev>=1){GEM.pairs.splice(i,1);continue}if(!P.t){P.t=4;P.was=1;P.sv=sv;continue}P.t-=dt;if(P.t>0)continue;
+  GEM.busy=1;let n=null;try{n=makeEnemy('gemeo',0,sv.pos.x+.9,sv.pos.z+.4)}catch(_){}GEM.busy=0;if(!n){GEM.pairs.splice(i,1);continue}n.hp=Math.max(1,n.maxhp*.5);P.rev++;GEM.rev++;P.t=0;if(ad)P.a=n;else P.b=n;spawnDebris(n.pos.x,(n.gy||GY)+.8,n.pos.z,0xbff4ff,10,.3);label({x:n.pos.x,y:(n.gy||GY)+2.2,z:n.pos.z},'👥 o gêmeo voltou!','#5fd4e8');const h=state.wHL||(state.wHL={});h.gemRev=(h.gemRev||0)+1}}
+{const _et=edgeTick;edgeTick=function(dt){try{gemTick(dt)}catch(e){}return _et.apply(this,arguments)}}
+{const _sw=startWave;startWave=function(){GEM.pairs.length=0;GEM.pend=null;return _sw.apply(this,arguments)}}
+// visual: fio de bruma entre o par e contagem ⏳ sobre o sobrevivente
+{const lines=new Map(),tags=new Map();const mat=new THREE.LineBasicMaterial({color:0xbff4ff,transparent:true,opacity:.85});const tick=()=>{if(window.__headless){for(const [P,l] of lines){scene.remove(l);lines.delete(P)}for(const [P,el] of tags){el.remove();tags.delete(P)}return}const live=new Set(GEM.pairs);
+  for(const [P,l] of lines)if(!live.has(P)||P.a.dead||P.b.dead){scene.remove(l);l.geometry.dispose();lines.delete(P)}for(const [P,el] of tags)if(!live.has(P)||!(P.t>0)){el.remove();tags.delete(P)}
+  for(const P of GEM.pairs){if(!P.a.dead&&!P.b.dead){let l=lines.get(P);if(!l){l=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),mat);l.frustumCulled=false;scene.add(l);lines.set(P,l)}const p=l.geometry.attributes.position;p.setXYZ(0,P.a.pos.x,(P.a.gy||GY)+1.1,P.a.pos.z);p.setXYZ(1,P.b.pos.x,(P.b.gy||GY)+1.1,P.b.pos.z);p.needsUpdate=true}
+   else if(P.t>0&&P.sv&&!P.sv.dead){let el=tags.get(P);if(!el){el=document.createElement('div');el.className='gemTag';document.body.appendChild(el);tags.set(P,el)}const s='⏳ '+Math.ceil(P.t);if(el.textContent!==s)el.textContent=s;try{const v=new THREE.Vector3(P.sv.pos.x,(P.sv.gy||GY)+2.5,P.sv.pos.z).project(camera);const ok=v.z<1&&Math.abs(v.x)<1&&Math.abs(v.y)<1;el.style.display=ok?'':'none';el.style.left=((v.x+1)/2*innerWidth)+'px';el.style.top=((1-v.y)/2*innerHeight)+'px'}catch(_){}}}};setInterval(tick,60);window.__gemTagTick=tick}
+{const _ew=endWave;endWave=function(){const h=state.wHL||{};const r=_ew.apply(this,arguments);const el=$('report');if(h.gemRev&&el&&state.phase!=='wave')el.innerHTML+=`<div class="hl">👥 <b>${h.gemRev}</b> gêmeo${h.gemRev===1?' voltou':'s voltaram'} — mate os dois juntos</div>`;return r}}
+window.__gem=()=>({made:GEM.made,rev:GEM.rev,both:GEM.both,pairs:GEM.pairs.length});
+window.__gemSpawn=(n,dd)=>{const out=[];for(let k=0;k<(n||2);k++){const a=-.3+Math.floor(k/2)*.25;out.push(makeEnemy('gemeo',0,CX+Math.cos(a)*(WR+(dd||22))+(k%2)*1.2,CZ+Math.sin(a)*(WR+(dd||22))))}return out.length};
+window.__gemList=()=>enemies.filter(e=>e.type==='gemeo').map(e=>({x:+e.pos.x.toFixed(1),z:+e.pos.z.toFixed(1),hp:Math.round(e.hp),dead:!!e.dead}));window.__gemKill=i=>{const L=enemies.filter(e=>e.type==='gemeo'&&!e.dead);if(L[i])dmgEnemy(L[i],1e6,true);return L.length};

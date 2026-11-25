@@ -1008,3 +1008,10 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Calibração com o bot (≈19 hordas): seed 1 → 18 pontos fracos, 4 brechas, cadeia 14, 7 golpes finais, 0 apostas seguidas, 1 Rolão tonto; seed 2 → 4, 0, 7, 7, 4, 3. "Dominó" subiu de 6 para 10 porque 6 saía em toda partida.
 - Identidade (sem efeito na simulação): seeds 1/2 = 716/618, iguais ao braço da v15.8.
 - Testes: t5 600 sem erros; tcompat 14/20/31 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v16.0 — 👥 Novo inimigo: Gêmeos da Bruma (PUBLICADO)
+- Tema Matilha, horda 11+ (hp 105, vel. 2,5). Pareados na ordem em que nascem; fio de bruma (linha 3D) liga o par. Se um morre e o outro continua vivo 4 s, o morto volta ao lado dele com 50% da vida — uma vez por par; contagem "⏳ N" sobre o sobrevivente; rótulo e linha no relatório quando volta. Arte original em CREATURES (boné chato, placa luminosa no peito, cachecol), entrada no Códex.
+- Efeito direto medido (12 seeds, bot): 132 gêmeos criados no total (0–27 por partida, média 11), 43 retornos — em ~1/3 dos pares o segundo não morre a tempo. Fraqueza: são raros (um tipo entre seis no tema Matilha, só da horda 11 em diante); 3 seeds viram ≤4.
+- A/B determinístico pareado (12 seeds, dois braços, teto 1300): h13 +3,4 s (sd 36,0); 0 derrotas.
+- Contador "both" do hook __gem não conta direito (só estatística; não usado).
+- Testes: t5 600 sem erros; tcompat 14/20/31 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
