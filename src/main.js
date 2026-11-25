@@ -900,3 +900,16 @@ window.__rolList=()=>enemies.filter(e=>e.type==='rolao').map(e=>({st:e.rol?e.rol
  for(const [e,el] of els){if(!want.has(e)){el.remove();els.delete(e)}}
  for(const [e,k] of want){let el=els.get(e);if(!el){el=document.createElement('div');el.className='rolTag';document.body.appendChild(el);els.set(e,el)}if(el.dataset.k!==k){el.dataset.k=k;el.innerHTML=k==='spin'?'<i>🌀</i>':'<i>💫</i><b>×2</b>'}
   try{const v=new THREE.Vector3(e.pos.x,(e.gy||GY)+2.6,e.pos.z).project(camera);const ok=v.z<1&&Math.abs(v.x)<1&&Math.abs(v.y)<1;el.style.display=ok?'':'none';el.style.left=((v.x+1)/2*innerWidth)+'px';el.style.top=((1-v.y)/2*innerHeight)+'px'}catch(_){}}};setInterval(tick,60);window.__rolTagTick=tick;window.__rolTags=()=>[...els.values()].map(el=>el.dataset.k+':'+el.style.display)}
+// v15.9 conquistas das mecânicas novas (contadores no save; não mexem na simulação)
+{const _wh=weakHit;weakHit=function(){const r=_wh.apply(this,arguments);if(r)state.weakHits=(state.weakHits||0)+1;return r}}
+{let lastB=0;const _wh=weakHit;weakHit=function(){const r=_wh.apply(this,arguments);if(BRECHA.n>lastB){state.brechas=(state.brechas||0)+(BRECHA.n-lastB)}lastB=BRECHA.n;return r}}
+{const _ew=endWave;endWave=function(){const w=state.wave,B=state.bet&&state.bet.w===w?state.bet:null,lost=state.wLost||0,h=state.wHL||{},fin=FINAL.said;const r=_ew.apply(this,arguments);if(state.phase==='wave')return r;if((h.chain||0)>(state.chainBest||0))state.chainBest=h.chain;if(fin)state.finalN=(state.finalN||0)+1;if(B){if(lost<=wallLimit(w))state.betStreak=(state.betStreak||0)+1;else state.betStreak=0;state.betStreakBest=Math.max(state.betStreakBest||0,state.betStreak)}return r}}
+{const _de=dmgEnemy;dmgEnemy=function(e,d){const dz=e&&e.type==='rolao'&&!e.dead&&e.dizzy>simTime;const r=_de.apply(this,arguments);if(dz&&e.dead&&!e._dzK){e._dzK=1;state.rolDizzyK=(state.rolDizzyK||0)+1}return r}}
+ACH.push({id:'weak25',ico:'💥',n:'Olho Clínico',d:'Acerte 25 pontos fracos de chefes',c:()=>(state.weakHits||0)>=25},
+ {id:'brecha5',ico:'🔓',n:'Arrombador',d:'Abra 5 brechas em chefes',c:()=>(state.brechas||0)>=5},
+ {id:'chain10',ico:'🔥',n:'Dominó',d:'Faça uma bomba causar 10 estouros em cadeia',c:()=>(state.chainBest||0)>=10},
+ {id:'final20',ico:'🎯',n:'Sem Piedade',d:'Termine 20 hordas com o Golpe final',c:()=>(state.finalN||0)>=20},
+ {id:'bet3',ico:'🎲',n:'Mão Quente',d:'Ganhe 3 apostas da muralha seguidas',c:()=>(state.betStreakBest||0)>=3},
+ {id:'rolao10',ico:'🌀',n:'Caça-Tatu',d:'Derrote 10 Rolões enquanto estão tontos',c:()=>(state.rolDizzyK||0)>=10},
+ {id:'wall5',ico:'🛡️',n:'Pedra sobre Pedra',d:'Cumpra a Muralha de pé em 5 hordas seguidas',c:()=>(state.wallStreak||0)>=5});
+window.__achCnt=()=>({weak:state.weakHits||0,brechas:state.brechas||0,chain:state.chainBest||0,fin:state.finalN||0,bet:state.betStreakBest||0,rol:state.rolDizzyK||0,wall:state.wallStreak||0,got:Object.keys(ACHS).filter(k=>['weak25','brecha5','chain10','final20','bet3','rolao10','wall5'].includes(k))});

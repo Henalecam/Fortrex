@@ -1002,3 +1002,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - A/B determinístico pareado, teto 1300: seeds 1–12 +10,5 s (sd 35,0) → fronteira → seeds 13–24 +2,0 s (sd 49,5). 24 seeds: +6,3 s; 0 derrotas.
 - Sem captura útil nesta rodada (os Rolões morreram antes do quadro); a mudança é de comportamento, não visual.
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v15.9 — 🏆 7 conquistas das mecânicas novas (PUBLICADO)
+- Olho Clínico (25 pontos fracos), Arrombador (5 brechas), Dominó (10 estouros em cadeia numa bomba), Sem Piedade (20 hordas terminadas com Golpe final), Mão Quente (3 apostas seguidas), Caça-Tatu (10 Rolões derrotados tontos), Pedra sobre Pedra (5 Muralhas de pé seguidas). Contadores novos no save (weakHits, brechas, chainBest, finalN, betStreak/betStreakBest, rolDizzyK); nomes conferidos contra as 49 conquistas existentes (já havia "Reação em Cadeia").
+- Calibração com o bot (≈19 hordas): seed 1 → 18 pontos fracos, 4 brechas, cadeia 14, 7 golpes finais, 0 apostas seguidas, 1 Rolão tonto; seed 2 → 4, 0, 7, 7, 4, 3. "Dominó" subiu de 6 para 10 porque 6 saía em toda partida.
+- Identidade (sem efeito na simulação): seeds 1/2 = 716/618, iguais ao braço da v15.8.
+- Testes: t5 600 sem erros; tcompat 14/20/31 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
