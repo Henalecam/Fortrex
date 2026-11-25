@@ -967,3 +967,10 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - **Não-determinismo resolvido**: a seed 1 alternava entre duas trajetórias (≈612 e ≈704–750) que divergiam na horda 3, em qualquer braço. Causa: performance.now() em código de jogo (limite de toasts etc.) — o resultado dependia da velocidade da máquina. Isso explica a "mudança de números após reiniciar o container" e boa parte do sd 40–80 dos A/B anteriores. Correção só no harness: window.__detClock faz performance.now = simTime (tecon_det.js, cópia em tools/). Prova: seeds em que a mudança não dispara antes da w13 dão diferença exatamente 0 (6/12).
 - Investida 2× (chefe por último e a >14 da muralha): h13 −27,8 s (sd 34,6), cauda média 8,9 → 7,3 s, caudas ≥30 s 13 → 8, 0 derrotas — fora da banda. Investida 1,5×: h13 −8,6 s (sd 35,0), mas cauda 9,1 s (sem ganho), 0 derrotas. Nenhuma versão cumpre banda + utilidade → desligado atrás de window.__bossRushOn. Versão segue 15.3; nada publicado.
 - Controle no harness determinístico (v15.3, sem perk): seed 1 = 704, seed 5 = 716. Braço de controle completo em scratchpad/rs/old_*.txt (reutilizável enquanto o caminho desligado não mudar).
+
+## v15.4 — 💥 Ponto fraco (PUBLICADO)
+- Enquanto há chefe em campo (não rival, não voador), a cada 7 s um ponto brilhante aparece nele por 3,5 s (anel que encolhe = tempo restante). Tocar: 2,5% da vida máxima + atordoa 0,4 s; rótulo, faíscas e linha no relatório. Alvo de toque 56 px.
+- Bot (__botPlus, headless): acerta com 60% de chance, 1,2 s depois de aparecer → 14–57 pontos por partida, ~58% acertados.
+- A/B no harness determinístico (teto 1300): seeds 1–12 −10,8 s (sd 60,2); zona de fronteira → seeds 13–24 (dois braços) −4,9 s (sd 60,5). 24 seeds: −7,9 s (erro padrão ~12); 0 derrotas. Controle seed 1 = 704 ✓.
+- Conferido: 390×844 (toque registra acerto) e 1280×800 (clique registra; 3/3 visível).
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
