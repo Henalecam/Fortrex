@@ -1075,3 +1075,14 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Identidade após bump de versão: seed 1 = 690.
 - Visual (tools/tfl.js): Fundeiro com pedra erguida + marcador 🪨💥 ao ser enganado; aviso circular laranja no chão da isca. Na captura enviada a bandeira da isca ficou atrás da torre — o impacto foi conferido pelos contadores (lureN/lureHit), não pela imagem.
 - Testes: t5 600 sem erros; tcompat 14/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues; taudit zero sobreposições.
+
+## v16.8 — 🧾 Relatório enxuto + descanso no celular sem sobreposição (PUBLICADO)
+- Hipótese (c) "LOD deixa inimigos novos como bloco claro" NÃO se confirmou: captura a zoom 32 mostra o Fundeiro com cores; o "bloco claro" das capturas da v16.6 era a pedra antiga (grande e clara, já corrigida) e o clarão de dano. Nada mudado no LOD.
+- Achados reais na captura do descanso (390×844):
+  1. Relatório da horda empilhava até 11 linhas de destaque (uma por mecânica). Caso extremo forçado (todos os destaques): 451 px de altura → 311 px com os destaques como etiquetas numa linha que quebra. Caso típico (4 destaques + muralha): cabe com folga.
+  2. Botão "Apostar" e o sino tapavam o fim do painel de bênção/mercador (desde a v14.8), e com relatório alto o painel passava por trás da barra de baixo. Agora o painel termina acima do botão de aposta e rola por dentro se não couber. (Primeira tentativa falhou: offsetParent é null em elementos position:fixed — conferido na captura e corrigido.)
+  3. Marcador 🪨💥 por cima dos botões da coluna direita → marcadores agora também se escondem sob os botões laterais e a barra de baixo (sino fica de fora da regra).
+- Relatório ganhou "🪨 N atingidos por pedras de Fundeiro" (rolante + isca).
+- Sem efeito na simulação: identidade seed 1 = 690 (igual à v16.7).
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues; taudit zero sobreposições.
+- Não coberto: painel Contratar; relatório de derrota; telas < 360 px.
