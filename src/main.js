@@ -943,7 +943,7 @@ window.__gemList=()=>enemies.filter(e=>e.type==='gemeo').map(e=>({x:+e.pos.x.toF
 // v16.1 Gêmeos mais presentes: entram também no tema Enxame (o mais comum); fio do par virou barra 3D visível
 {const T=THEMES.find(t=>t.k==='enxame');if(T&&!window.__gemOld&&!T.t.includes('gemeo'))T.t.push('gemeo')}
 // v16.2 primeira aparição: na 1ª vez que um Rolão ou um par de Gêmeos entra na tela, uma etiqueta presa ao inimigo explica a mecânica por 7 s (uma vez por aparelho; só visual). + conquista Dois Coelhos.
-{const TXT={rolao:'🌀 Rolão — bate na muralha e fica tonto: dano em dobro!',gemeo:'👥 Gêmeos — mate os dois juntos, ou o morto volta'};let seen={};try{seen=JSON.parse(localStorage.getItem('fortrex_enemyTips')||'{}')||{}}catch(e){}let cur=null;
+{const TXT={rolao:'🌀 Rolão — bate na muralha e fica tonto: dano em dobro!',gemeo:'👥 Gêmeos — mate os dois juntos, ou o morto volta',fundeiro:'🪨 Fundeiro — derrube-o com a pedra erguida: ela rola sobre a horda!'};let seen={};try{seen=JSON.parse(localStorage.getItem('fortrex_enemyTips')||'{}')||{}}catch(e){}let cur=null;
  const tick=()=>{if(window.__headless||window.__noEnemyTips)return;if(cur){if(performance.now()>cur.until&&!window.__enTipHold){cur.el.remove();cur=null;return}if(cur.e.dead){const o=enemies.find(o=>!o.dead&&o.type===cur.t);if(o)cur.e=o;else return}const e=cur.e;try{const v=new THREE.Vector3(e.pos.x,(e.gy||GY)+3.4,e.pos.z).project(camera);const ok=v.z<1&&Math.abs(v.x)<.95&&Math.abs(v.y)<.9;cur.el.style.display=ok?'':'none';cur.el.style.left=Math.max(130,Math.min(innerWidth-130,(v.x+1)/2*innerWidth))+'px';cur.el.style.top=Math.max(Math.max(window.__edgeTopB||0,window.__topB||70)+62,(1-v.y)/2*innerHeight)+'px'}catch(_){}return}
   if(state.phase!=='wave')return;for(const t of Object.keys(TXT)){if(seen[t])continue;for(const e of enemies){if(e.dead||e.type!==t)continue;let v;try{v=new THREE.Vector3(e.pos.x,(e.gy||GY)+2,e.pos.z).project(camera)}catch(_){continue}if(!(v.z<1&&Math.abs(v.x)<.85&&Math.abs(v.y)<.8))continue;seen[t]=1;try{localStorage.setItem('fortrex_enemyTips',JSON.stringify(seen))}catch(_){}const el=document.createElement('div');el.className='enTip';el.textContent=TXT[t];document.body.appendChild(el);cur={e,el,t,until:performance.now()+7000};return}}};
  setInterval(tick,120);window.__enTipTick=tick;window.__enTipReset=()=>{seen={};if(cur){cur.el.remove();cur=null}}}
@@ -971,3 +971,51 @@ setInterval(()=>{let open=false;if(innerWidth<700)for(const s of document.queryS
 // v16.5 marcadores flutuantes não passam por cima de painéis abertos: qualquer marcador cujo centro cai dentro de um painel (Arsenal, Construir, Loja, Códex, Mapa…) fica oculto enquanto estiver ali — em qualquer tamanho de tela
 setInterval(()=>{if(window.__headless||window.__oldUnderPanel)return;const rects=[];for(const p of document.querySelectorAll('.side,#realm,#codex,#shop,#arsenal'))if(p.offsetParent){const r=p.getBoundingClientRect();if(r.height>40)rects.push(r)}{const t=$('top');if(t){const r=t.getBoundingClientRect();if(r.height>10)rects.push({left:0,right:innerWidth,top:0,bottom:Math.max(r.bottom,window.__topB||0,window.__edgeTopB||0)})}}
  for(const e of document.querySelectorAll('#weakPt,.rolTag,.gemTag,.enTip,.finalT,.danger,#bell,.bombAim')){let under=false;if(rects.length){const r=e.getBoundingClientRect();if(r.width||r.height){const cx=(r.left+r.right)/2,cy=(r.top+r.bottom)/2;for(const q of rects)if(cx>=q.left&&cx<=q.right&&cy>=q.top&&cy<=q.bottom){under=true;break}}else under=e.classList.contains('underPanel')&&false}if(under!==e.classList.contains('underPanel'))e.classList.toggle('underPanel',under)}},150);
+// v16.6 NOVO INIMIGO — FUNDEIRO: atirador de cerco (tema Cerco, horda 10+). Para a ~15–21 blocos da muralha, ergue uma pedra por 2 s e a arremessa no muro (alvo avisado no chão); depois de 3 pedras avança para o corpo a corpo. Se MORRER com a pedra erguida, ela se solta e ROLA 24 blocos na direção onde há mais inimigos, atropelando quem estiver no caminho.
+ETYPES.fundeiro={hp:150,speed:2.2,dmg:8,rate:1,color:0xb9835a,radius:.6,n:'Fundeiro'};SCX.fundeiro=1.05;NEWLOOK.fundeiro=1;T_UNLOCK.fundeiro=window.__noFund?999:10;
+{const T=THEMES.find(t=>t.k==='cerco');if(T&&!T.t.includes('fundeiro'))T.t.push('fundeiro')}
+CREATURES.fundeiro=function(sc,col,g){const {B,K,G,LG}=_mk(sc,g);col=ctone(col);const dk=shadeHex(col,-.3),lt=shadeHex(col,.22),cloth=0x4f6d8a,rock=0x8a8f98;
+  const body=B(.62,.6,.46,cloth,0,.62,0);B(.66,.12,.5,dk,0,.4,0);B(.2,.12,.06,0xe8c66a,0,.42,.26);
+  B(.5,.46,.3,dk,0,.7,-.36);B(.2,.16,.2,rock,-.12,.98,-.36);B(.18,.14,.18,shadeHex(rock,-.15),.12,.96,-.34);
+  const head=B(.5,.44,.46,lt,0,1.16,.03);B(.56,.14,.52,cloth,0,1.42,.03);B(.3,.1,.2,cloth,0,1.4,.34);
+  face(head,sc,.5,.44,.46,{sclera:0xfff6dc,pupil:0x2a1a10,es:.11,ex:.12,ey:.03,brow:dk,mood:.3,mouth:true},[]);
+  for(const s of[-1,1]){const arm=K(.15,.5,.15,lt,s*.4,.72,.02);arm.rotation.z=s*.2;(g.userData.arms=g.userData.arms||[]).push(arm)}
+  const stone=K(.36,.32,.34,0x6f747d,0,1.92,.02);g.userData.stone=stone;
+  return{body,head,legs:LG([[-.17,.16,0,.18,.32],[.17,.16,0,.18,.32]],dk)}};
+CX_DESC.fundeiro='🪨 para atrás da linha de frente e arremessa pedras na muralha · se morrer com a pedra erguida, ela cai na própria horda';
+const FUND={n:0,throws:0,drops:0,dropHit:0};
+function fundStone(e,on){const s=e.group.userData.stone;if(s&&s.visible!==on)s.visible=on;const A=e.group.userData.arms;if(A)for(let k=0;k<A.length;k++){A[k].rotation.z=(k?1:-1)*(on?-.12:.2);A[k].position.y=(on?1.62:.72)*e.sc;A[k].position.x=(k?1:-1)*(on?.3:.4)*e.sc}}
+{const _me=makeEnemy;makeEnemy=function(type){const e=_me.apply(this,arguments);if(type==='fundeiro'&&e)try{fundStone(e,false)}catch(_){}return e}}
+NEW_BRAINS.fundeiro=function(e,dt){const F=e.fd||(e.fd={st:0,t:0,shots:0,D:15+Math.random()*6});if(F.st===4)return false;
+  if(e.lured||state.phase!=='wave'){if(F.st){F.st=0;fundStone(e,false)}return false}
+  if(e.stun>0){if(F.st===2){F.st=1;F.t=2;fundStone(e,false)}return false}
+  const dx=CX-e.pos.x,dz=CZ-e.pos.z,d=Math.hypot(dx,dz);
+  if(F.st===0){if(d>WR+F.D||d<WR+5)return false;F.st=1;F.t=.6;FUND.n++}
+  if(enemies.length<=4||F.shots>=3||d<WR+4){F.st=4;fundStone(e,false);return false}
+  e.group.rotation.y=Math.atan2(dx,dz);if(e.vel)e.vel.set(0,0,0);F.t-=dt;
+  if(F.st===1){if(F.t<=0){F.st=2;F.t=2;fundStone(e,true)}return true}
+  if(F.st===2){const s=e.group.userData.stone;if(s)s.position.y=(1.92+Math.sin(simTime*9)*.04)*e.sc;if(F.t<=0){const j=(Math.random()-.5)*3,ux=-dx/d,uz=-dz/d;const tx=CX+ux*(WR-.5)-uz*j,tz=CZ+uz*(WR-.5)+ux*j;try{throwRock(e,tx,tz,1.7,12+state.wave*1.5,0x8a8f98,false)}catch(_){}F.shots++;FUND.throws++;F.st=1;F.t=1.8;fundStone(e,false)}return true}
+  return false};
+NEW_DEATH.fundeiro=function(e){const F=e.fd;FUND.dead=(FUND.dead||0)+1;FUND['d'+(F?F.st:9)]=(FUND['d'+(F?F.st:9)]||0)+1;if(!F||F.st!==2||window.__noFundDrop)return;F.st=4;FUND.drops++;let dx=e.pos.x-CX,dz=e.pos.z-CZ,d=Math.hypot(dx,dz)||1;dx/=d;dz/=d;d=1;const y=(e.gy||GY);if(!window.__fundOut){let bn=0;const a0=Math.atan2(dx,dz);for(let k=0;k<24;k++){const a=a0+k/24*Math.PI*2,ux=Math.sin(a),uz=Math.cos(a);let n=0;for(const o of enemies){if(o.dead||o.fly||o===e)continue;const px=o.pos.x-e.pos.x,pz=o.pos.z-e.pos.z;const t=px*ux+pz*uz;if(t<0||t>24)continue;if(Math.abs(px*uz-pz*ux)<2.1)n++}if(n>bn){bn=n;dx=ux;dz=uz}}}
+  const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.75,0),lmat(0x8a8f98,.4));m.position.set(e.pos.x,y+.8,e.pos.z);scene.add(m);FUND.rolls.push({x:e.pos.x,z:e.pos.z,y,ux:dx/d,uz:dz/d,go:0,m,hit:new Set([e]),n:0,dmg:60+state.wave*8});label({x:e.pos.x,y:y+2.2,z:e.pos.z},'🪨 pedra solta!','#ffb13d');try{markLine(e.pos.x,e.pos.z,Math.atan2(dx/d,dz/d),24,3,1.8)}catch(_){}};
+FUND.rolls=[];
+function fundRollTick(dt){const L=FUND.rolls;if(!L.length)return;for(let i=L.length-1;i>=0;i--){const R=L[i];const sp=12*dt;const nx=R.x+R.ux*sp,nz=R.z+R.uz*sp;const ny=standY(nx,nz);R.go+=sp;let end=R.go>24||ny>R.y+2.2;if(!end){R.x=nx;R.z=nz;R.y=ny;R.m.position.set(nx,ny+.8,nz);R.m.rotation.x+=dt*9;R.m.rotation.z+=dt*5;
+   for(const o of enemies){if(o.dead||o.fly||R.hit.has(o))continue;if(Math.hypot(o.pos.x-nx,o.pos.z-nz)<1.9+(o.T?o.T.radius:.5)){R.hit.add(o);R.n++;FUND.dropHit++;try{hurtEnemy(o,R.dmg*(BIG(o.type)?.5:1),{x:o.pos.x,y:(o.gy||GY)+.6,z:o.pos.z})}catch(_){}if(!BIG(o.type))o.stun=Math.max(o.stun||0,.6)}}
+   if(Math.random()<dt*16)spawnDebris(nx,ny+.2,nz,0xc9b89a,1,.2)}
+  if(end){scene.remove(R.m);R.m.geometry.dispose();spawnDebris(R.x,R.y+.5,R.z,0x8a8f98,10,.35);if(R.n>=2)label({x:R.x,y:R.y+2,z:R.z},`🎳 ${R.n}`,'#ffe98a');if(R.n>=3)state.fundDrops=(state.fundDrops||0)+1;if(R.n>(FUND.best||0))FUND.best=R.n;if(R.n>(state.fundBest||0))state.fundBest=R.n;L.splice(i,1)}}}
+{const _et=edgeTick;edgeTick=function(dt){try{fundRollTick(dt)}catch(e){}return _et.apply(this,arguments)}}
+{const _sw=startWave;startWave=function(){for(const R of FUND.rolls)scene.remove(R.m);FUND.rolls.length=0;return _sw.apply(this,arguments)}}
+window.__fund=()=>({...FUND,rolls:FUND.rolls.length,throws:FUND.throws,drops:FUND.drops,dropHit:FUND.dropHit,alive:enemies.filter(e=>!e.dead&&e.type==='fundeiro').length});
+window.__fundSpawn=(n,dd)=>{for(let k=0;k<(n||1);k++){const a=-.5+k*.16;makeEnemy('fundeiro',0,CX+Math.cos(a)*(WR+(dd||24)),CZ+Math.sin(a)*(WR+(dd||24)))}return window.__fundList()};
+window.__fundList=()=>enemies.filter(e=>e.type==='fundeiro').map(e=>({st:e.fd?e.fd.st:-1,sh:e.fd?e.fd.shots:0,d:+(Math.hypot(e.pos.x-CX,e.pos.z-CZ)-WR).toFixed(1),hp:Math.round(e.hp),dead:!!e.dead}));
+// marcador flutuante 🪨 enquanto a pedra está erguida (janela para derrubá-lo)
+{const els=new Map();const tick=()=>{if(window.__headless){for(const [e,el] of els){el.remove();els.delete(e)}return}for(const [e,el] of els){if(e.dead||!e.fd||e.fd.st!==2){el.remove();els.delete(e)}}
+ for(const e of enemies){if(e.dead||e.type!=='fundeiro'||!e.fd||e.fd.st!==2)continue;let el=els.get(e);if(!el){el=document.createElement('div');el.className='rolTag fundTag';el.dataset.k='load';el.innerHTML='<i>🪨</i><b>💥</b>';document.body.appendChild(el);els.set(e,el)}
+  try{const v=new THREE.Vector3(e.pos.x,(e.gy||GY)+3.5,e.pos.z).project(camera);const ok=v.z<1&&Math.abs(v.x)<1&&Math.abs(v.y)<1;el.style.display=ok?'':'none';el.style.left=((v.x+1)/2*innerWidth)+'px';el.style.top=((1-v.y)/2*innerHeight)+'px'}catch(_){}}};setInterval(tick,60);window.__fundTagTick=tick}
+window.__fundStone=(on,ev)=>{let n=0;for(const e of enemies)if(e.type==='fundeiro'){if(!ev||n%2===0)fundStone(e,!!on);n++}return n};
+// presença garantida do Fundeiro fora do tema Cerco: a partir da horda 10 troca alguns Rasteiros por Fundeiros (1 na 10, 2 na 13… até 5)
+{const _ws=waveSpec;waveSpec=function(w){const L=_ws.apply(this,arguments);if(window.__noFund||window.__noFundSpec||w<10)return L;let k=Math.min(5,Math.floor((w-7)/3));for(let i=0;i<L.length&&k>0;i++)if(L[i]==='crawler'){L[i]='fundeiro';k--}return L}}
+ACH.push({id:'fund3',ico:'🎳',n:'Boliche',d:'Atropele 3 inimigos com uma única pedra solta de um Fundeiro',c:()=>(state.fundBest||0)>=3});
+window.__fundKill=()=>{let n=0;for(const e of enemies.slice())if(!e.dead&&e.type==='fundeiro'&&e.fd&&e.fd.st===2){killEnemy(e);n++;break}return n};
+window.__fundWave=()=>{if(state.phase!=='wave')startWave();return state.phase};
+window.__fundPos=st=>{const e=enemies.find(e=>!e.dead&&e.type==='fundeiro'&&e.fd&&e.fd.st===st);return e?[e.pos.x,e.pos.z]:null};

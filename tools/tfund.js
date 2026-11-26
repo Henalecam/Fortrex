@@ -1,0 +1,13 @@
+const { chromium } = require('playwright');const path=require('path');const fs=require('fs');
+(async()=>{const M=!!process.env.M;const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await (await browser.newContext({viewport:M?{width:390,height:844}:{width:1280,height:800},deviceScaleFactor:2})).newPage();const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ const fx=fs.readFileSync('/home/claude/fortrex/tests/save_v060_w19.json','utf8');
+ await page.addInitScript(s=>{window.__headless=true;localStorage.setItem('fortrex_save_v1',s)},fx);await page.goto('file://'+path.join(__dirname,'three/'+(M?'p5m.html':'p5.html')));await page.waitForTimeout(700);
+ await page.evaluate(()=>{document.getElementById('continue').click()});await page.waitForTimeout(300);await page.evaluate(()=>{for(const b of document.querySelectorAll('button'))if(/Continuar jogando/.test(b.textContent)&&b.offsetParent)b.click();for(const b of document.querySelectorAll('#ftip button, .tipX'))b.click()});
+ const shot=async(n)=>{await page.evaluate(()=>{window.__headless=false;window.__fundTagTick()});await page.waitForTimeout(1300);await page.evaluate(()=>window.__fundTagTick());await page.screenshot({path:n,timeout:120000});await page.evaluate(()=>{window.__headless=true})};
+ console.log('wave',await page.evaluate(()=>window.__fundWave()));
+ console.log('spawn',JSON.stringify(await page.evaluate(()=>window.__fundSpawn(4,16))));
+ const run=async(st,dt,max,zoom)=>page.evaluate(([st,dt,max,zoom])=>{let k=0,o=null;const F=()=>window.__fundList().find(o=>!o.dead&&o.st===st);while(k<max&&!(o=F())){window.__step(dt);k++}const e=window.__fundPos&&window.__fundPos(st);if(e)window.__camSet(zoom,e[0],e[1]);return [k,o,JSON.stringify(window.__fund())]},[st,dt,max,zoom]);
+ console.log('load',JSON.stringify(await run(2,.05,400,+(process.env.Z||30))));await page.evaluate(()=>window.__step(.5));await shot('fund1.png');
+ console.log('kill',await page.evaluate(()=>{const n=window.__fundKill();window.__step(.45);return [n,JSON.stringify(window.__fund())]}));await shot('fund2.png');
+ console.log('after',await page.evaluate(()=>{window.__step(2.5);return JSON.stringify(window.__fund())}));
+ console.log(errs);await browser.close()})();

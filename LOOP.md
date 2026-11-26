@@ -1051,3 +1051,18 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Identidade: seeds 1/2 = 647/642 (iguais à v16.4 no mesmo dia).
 - Testes: t5 600 sem erros; tcompat 15/20/30 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
 - Não coberto: painel Contratar (não abriu durante a horda no teste) e estados de descanso (bênção, mercador).
+
+## v16.6 — 🪨 Novo inimigo: Fundeiro (PUBLICADO)
+- Atirador de cerco (tema Cerco + presença garantida: 1 na horda 10, 2 na 13… até 5, trocando Rasteiros). Para a 15–21 blocos da muralha, ergue uma pedra por 2 s e arremessa no muro (alvo avisado no chão); após 3 pedras avança. Se morrer com a pedra erguida, ela rola 24 blocos na direção com mais inimigos e atropela quem estiver no caminho (60+8×horda de dano). As torres priorizam o Fundeiro de pedra erguida. Conquista nova: Boliche (3 atropelados numa pedra).
+- Ideia original "Minerador que cava túnel" descartada: o Cavador (v1.5) já faz isso.
+- Iterações medidas (seeds 1–2, 1300 s) antes de chegar na versão final:
+  1. pedra cai e explode no lugar, parado a 14–19: 8 plantaram, 1 queda, 0 atingidos — o Fundeiro fica sozinho, longe da horda.
+  2. parado a 5,5–8,5 (atrás da linha de frente): 22/25 e 36/41 morreram ANTES de plantar — quase ninguém chega tão perto.
+  3. pedra rola para trás (pelo caminho da horda): 6 quedas, 4 e 2 atingidos — a fila atrás está vazia.
+  4. pedra rola na direção com mais inimigos (16 blocos): 9 e 3 atingidos em 6 e 3 quedas.
+  5. final (vida 150, 15–21 blocos, 24 blocos de rolagem, mais larga).
+- A/B pareado 12 seeds (H=noperk vs noperk_nofund, mesmo build): h13 −0,6 s (dp 45,2); h17 +6,6 s (dp 50,6); 0 derrotas nos dois braços. Dentro de ±20, não estendi para 13–24.
+- Efeito direto (12 seeds, ~18 hordas cada): em média 17 Fundeiros plantam, 32 pedras arremessadas, 6,5 pedras soltas e 11 inimigos atropelados por partida (1,7 por pedra; melhor pedra entre 2 e 14). ~40% morrem antes de plantar. É pouco por pedra: o campo é ralo no jogo do bot; com bomba/isca do jogador pode render mais, mas isso NÃO foi medido.
+- Identidade após ganchos de teste/conquista/ajuste de arte: seed 1 = 690 e mesmos contadores do braço novo do A/B.
+- Visual conferido em captura (tools/tfund.js): pedra cinza erguida pelos dois braços + marcador 🪨💥; faixa da rolagem avisada no chão. De longe o LOD simplifica o bicho, o marcador continua legível.
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues; taudit: zero sobreposições nos painéis.
