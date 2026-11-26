@@ -1042,3 +1042,12 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Defeito achado na captura: no celular o botão flutuante "🎲 Apostar" (v14.8) e o 🔔 ficavam por cima dos painéis laterais (Arsenal, Construir). Agora somem enquanto um painel .side está aberto (body.sideOpen; __oldSideOpen desliga).
 - Identidade (v16.3 e v16.4 rodadas no mesmo momento): seeds 1/2 = 647/642 nas duas.
 - Testes: t5 600 sem erros; tcompat 15/20/30 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v16.5 — 🧹 Marcadores não cobrem painéis nem a barra do topo (PUBLICADO)
+- Auditoria automatizada no celular 390×844 (tools/taudit.js): horda com chefe + ponto fraco + Rolões + Gêmeos + etiqueta de primeira aparição; abre Construir, Arsenal, Loja, Códex e Mapa e lista marcadores por cima do painel.
+- Antes: Arsenal ← ⚠; Loja ← ponto fraco (clicável!), sino, ⚠; Códex ← ponto fraco, ⚠; Mapa ← ponto fraco, sino, etiqueta. Depois: nenhum, nos 5 painéis.
+- Correção genérica: a cada 150 ms, todo marcador (#weakPt, .rolTag, .gemTag, .enTip, .finalT, .danger, #bell, .bombAim) cujo centro cai num painel aberto ou na faixa do topo (barra de status + barra do chefe) recebe .underPanel (invisível e sem clique). Vale em qualquer tamanho de tela. A etiqueta de primeira aparição fica presa abaixo da barra do chefe.
+- Conferido: ponto fraco continua visível e clicável no campo (tweak.js: acerto registrado).
+- Identidade: seeds 1/2 = 647/642 (iguais à v16.4 no mesmo dia).
+- Testes: t5 600 sem erros; tcompat 15/20/30 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+- Não coberto: painel Contratar (não abriu durante a horda no teste) e estados de descanso (bênção, mercador).
