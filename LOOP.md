@@ -1036,3 +1036,9 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Achado de método: os números absolutos mudam entre versões mesmo com a novidade desligada (seed 1: 685 → 647) porque criar objetos THREE no carregamento consome Math.random (uuid) e desloca o RNG semeado. Não afeta A/B pareado (mesmo build nos dois braços), mas invalida comparar com arquivos de versões anteriores — reforça "sempre refazer os dois braços".
 - Tropeço: turrets criadas pelo gancho __swapTurret não têm t.R — o código novo usa (t.R&&t.R.lvl)||0.
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v16.4 — 📯 Descrições contam a sinergia com a Isca + correção de sobreposição no celular (PUBLICADO)
+- Texto "📯 Com a Isca: …" acrescentado à descrição do Canhão de gelo, Torre de correntes, Raio-sol, Catapulta e Morteiro (aparece no cartão de Construir → Armas e nas recompensas). Conferido em 390×844: cabe no cartão.
+- Defeito achado na captura: no celular o botão flutuante "🎲 Apostar" (v14.8) e o 🔔 ficavam por cima dos painéis laterais (Arsenal, Construir). Agora somem enquanto um painel .side está aberto (body.sideOpen; __oldSideOpen desliga).
+- Identidade (v16.3 e v16.4 rodadas no mesmo momento): seeds 1/2 = 647/642 nas duas.
+- Testes: t5 600 sem erros; tcompat 15/20/30 (ruído ±1); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
