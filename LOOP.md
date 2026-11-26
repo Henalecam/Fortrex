@@ -1028,3 +1028,11 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Tropeço de teste: a etiqueta sumia das capturas porque a captura neste ambiente leva mais de 7 s; gancho __enTipHold só para teste. Conferido em 390×844 (etiqueta visível e legível).
 - Identidade: seeds 1/2 = 685/648, iguais ao braço da v16.1.
 - Testes: t5 600 sem erros; tcompat 15/20/31 (voltou ao alvo — o 14/19 da v16.1 era ruído); tplay 1280×800 0 issues; tfirst 390×844 0 issues.
+
+## v16.3 — ☀️📯 Raio-sol + Isca, "Lente" (PUBLICADO)
+- A Catapulta já mirava o amontoado da Isca desde a v12.7 (LOB); faltava o Raio-sol. Agora, com a Isca ativa e no alcance, o Raio-sol foca o inimigo mais perto da isca e cada disparo também fere (50% do dano aquecido) todo inimigo a ≤1,4 da linha torre→isca até o fim do alcance. Feixe dourado largo visível (barra 3D a cada 3 disparos) e linha no relatório ("atravessou N de uma vez", N≥3).
+- Efeito direto: teste forçado w19 (canhões trocados por raio-sol): 0,45–1,86 inimigo extra por disparo conforme o amontoado; nos 12 runs do A/B: 2.461 disparos com isca, 3.204 acertos extras (1,3 por disparo).
+- A/B determinístico pareado (12 seeds, dois braços, teto 1300): h13 0,0 s (12/12 idênticas — o Raio-sol só chega na horda 15); h17 +0,4 s (2 seeds diferem); 0 derrotas.
+- Achado de método: os números absolutos mudam entre versões mesmo com a novidade desligada (seed 1: 685 → 647) porque criar objetos THREE no carregamento consome Math.random (uuid) e desloca o RNG semeado. Não afeta A/B pareado (mesmo build nos dois braços), mas invalida comparar com arquivos de versões anteriores — reforça "sempre refazer os dois braços".
+- Tropeço: turrets criadas pelo gancho __swapTurret não têm t.R — o código novo usa (t.R&&t.R.lvl)||0.
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues.

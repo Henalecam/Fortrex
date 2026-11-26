@@ -949,3 +949,18 @@ window.__gemList=()=>enemies.filter(e=>e.type==='gemeo').map(e=>({x:+e.pos.x.toF
  setInterval(tick,120);window.__enTipTick=tick;window.__enTipReset=()=>{seen={};if(cur){cur.el.remove();cur=null}}}
 {const _gt=gemTick;let last=0;gemTick=function(dt){const r=_gt.apply(this,arguments);if(GEM.both>last){state.gemBoth=(state.gemBoth||0)+(GEM.both-last)}last=GEM.both;return r}}
 ACH.push({id:'gem10',ico:'👥',n:'Dois Coelhos',d:'Derrote 10 pares de Gêmeos da Bruma antes que um deles volte',c:()=>(state.gemBoth||0)>=10});
+// v16.3 RAIO-SOL + ISCA ("Lente"): com a 📯 Isca ativa e no alcance, a Torre de raio-sol aponta para o amontoado e o feixe ATRAVESSA — cada disparo também fere (50% do dano aquecido) todo inimigo a até 1,4 da linha torre→isca, até o fim do alcance.
+let _beamN=0;{const _b=beam;beam=function(){_beamN++;return _b.apply(this,arguments)}}
+const LENS={shots:0,hits:0};
+{const _ut=updateTurret;updateTurret=function(t,dt){const L=LURE.on;if(window.__noLens||!L||!t.alive||t.team==='r'||t.type!=='sunray')return _ut.apply(this,arguments);const R=turretRange(t);const dx=L.x-t.pos.x,dz=L.z-t.pos.z,d=Math.hypot(dx,dz);if(d>R||d<1)return _ut.apply(this,arguments);
+ let best=null,bd=1e9;if(!(state.focus&&!state.focus.dead&&state.focusT>0))for(const e of enemies){if(e.dead||e.rival)continue;const q=hyp(e.pos.x-L.x,e.pos.z-L.z);if(q<bd){bd=q;best=e}}
+ const b0=_beamN;let r;if(best&&bd<=5){const f=state.focus,ft=state.focusT;state.focus=best;state.focusT=1;try{r=_ut.apply(this,arguments)}finally{state.focus=f;state.focusT=ft}}else r=_ut.apply(this,arguments);
+ if(_beamN>b0){const ux=dx/d,uz=dz/d;const dmg=t.T.dmg*(1+((t.R&&t.R.lvl)||0)*.2)*(1+(t.heat||0))*.5;let n=0;for(const e of enemies){if(e.dead||e.rival||e===t.heatT)continue;const rx=e.pos.x-t.pos.x,rz=e.pos.z-t.pos.z;const al=rx*ux+rz*uz;if(al<1||al>R)continue;if(Math.abs(rx*uz-rz*ux)>1.4)continue;hurtEnemy(e,dmg,new THREE.Vector3(e.pos.x,(e.gy||GY)+.8,e.pos.z));n++}
+  LENS.shots++;LENS.hits+=n;if(n){const h=state.wHL||(state.wHL={});h.lens=Math.max(h.lens||0,n+1)}
+  if(!window.__headless&&(LENS.shots%3===0)){try{const a=new THREE.Vector3(t.pos.x,t.pos.y+1,t.pos.z),b=new THREE.Vector3(t.pos.x+ux*R,(GY||0)+1.2,t.pos.z+uz*R);lensBeam(a,b)}catch(_){}}}
+ return r}}
+const _lensMat=new THREE.MeshBasicMaterial({color:0xffd24d,transparent:true,opacity:.55,depthTest:false});const _lensGeo=new THREE.BoxGeometry(1,1,1);
+function lensBeam(a,b){const m=new THREE.Mesh(_lensGeo,_lensMat);m.renderOrder=986;const len=a.distanceTo(b);m.position.copy(a).add(b).multiplyScalar(.5);m.scale.set(.28,.28,len);m.lookAt(b);scene.add(m);later(.3,()=>scene.remove(m))}
+{const _ew=endWave;endWave=function(){const h=state.wHL||{};const r=_ew.apply(this,arguments);const el=$('report');if(h.lens>=3&&el&&state.phase!=='wave')el.innerHTML+=`<div class="hl">☀️ feixe do Raio-sol atravessou <b>${h.lens}</b> de uma vez</div>`;return r}}
+window.__lens=()=>({shots:LENS.shots,hits:LENS.hits,per:LENS.shots?+(LENS.hits/LENS.shots).toFixed(2):0});
+window.__typeLureSpot=(ty)=>{let best=null;for(const t of turrets){if(!t.alive||t.team==='r'||t.type!==ty)continue;const R=turretRange(t)*.8;for(const e of enemies){if(e.dead||e.rival||e.fly||BIG(e.type))continue;if(hyp(e.pos.x-t.pos.x,e.pos.z-t.pos.z)>R)continue;let n=0;for(const o of enemies)if(!o.dead&&!o.fly&&hyp(o.pos.x-e.pos.x,o.pos.z-e.pos.z)<6)n++;if(!best||n>best[2])best=[e.pos.x,e.pos.z,n]}}return best};
