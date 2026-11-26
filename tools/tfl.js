@@ -1,0 +1,14 @@
+const { chromium } = require('playwright');const path=require('path');const fs=require('fs');
+(async()=>{const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await (await browser.newContext({viewport:{width:1280,height:800},deviceScaleFactor:2})).newPage();const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ const fx=fs.readFileSync('/home/claude/fortrex/tests/save_v060_w19.json','utf8');
+ await page.addInitScript(s=>{window.__headless=true;localStorage.setItem('fortrex_save_v1',s)},fx);await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ await page.evaluate(()=>{document.getElementById('continue').click()});await page.waitForTimeout(300);await page.evaluate(()=>{for(const b of document.querySelectorAll('button'))if(/Continuar jogando/.test(b.textContent)&&b.offsetParent)b.click();for(const b of document.querySelectorAll('#ftip button, .tipX'))b.click()});
+ const shot=async(n)=>{await page.evaluate(()=>{window.__headless=false;window.__fundTagTick();if(window.__C)window.__camSet(26,window.__C[0],window.__C[1])});await page.waitForTimeout(1300);await page.evaluate(()=>window.__fundTagTick());await page.screenshot({path:n,timeout:120000});await page.evaluate(()=>{window.__headless=true})};
+ console.log('wave',await page.evaluate(()=>window.__fundWave()));
+ console.log('spawn',JSON.stringify(await page.evaluate(()=>{window.__step(6);return window.__fundSpawn(2,17)})));
+ await page.evaluate(()=>window.__step(1));
+ const L=await page.evaluate(()=>window.__fundLureAt(9));console.log('lure',JSON.stringify(L),JSON.stringify(await page.evaluate(()=>window.__fundList())));
+ await page.evaluate(([x,z])=>{window.__step(1.4);const p=window.__fundPos(3)||[x,z];window.__C=[(x+p[0])/2,(z+p[1])/2]},[L[1],L[2]]);await shot('fl1.png');
+ await page.evaluate(()=>window.__step(1.2));await shot('fl2.png');
+ console.log('after',await page.evaluate(()=>{window.__step(1.5);return JSON.stringify(window.__fund())}));
+ console.log(errs);await browser.close()})();

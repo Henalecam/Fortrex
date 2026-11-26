@@ -1066,3 +1066,12 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Identidade após ganchos de teste/conquista/ajuste de arte: seed 1 = 690 e mesmos contadores do braço novo do A/B.
 - Visual conferido em captura (tools/tfund.js): pedra cinza erguida pelos dois braços + marcador 🪨💥; faixa da rolagem avisada no chão. De longe o LOD simplifica o bicho, o marcador continua legível.
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues; taudit: zero sobreposições nos painéis.
+
+## v16.7 — 📯 Isca + Fundeiro (PUBLICADO)
+- A Isca engana os Fundeiros a até 30 blocos (com pedra sobrando): em vez de andar até ela ou mirar a muralha, erguem a pedra (2 s) e arremessam NA ISCA (1,2 s de voo, raio 3,2, 60+8×horda de dano, fonte "jogador": não quebra blocos azuis). Gasta uma das 3 pedras. Morrer nesse estado também solta a pedra rolante.
+- Objetivo: dar ao jogador um jeito direto de usar a pedra, já que a pedra rolante rendia só 1,7 inimigo por pedra.
+- Efeito direto (24 seeds, bot): 78 arremessos na isca, 249 atingidos → 3,2 por pedra (contra 1,7 da rolante); ~3 arremessos por partida (0 a 6); melhor pedra por partida de 0 a 16. O bot não mira a isca em Fundeiros; um jogador mirando deve conseguir mais — NÃO medido.
+- A/B pareado (H=noperk vs noperk_nofl, mesmo build): seeds 1–12 h13 +3,0 s (dp 8,5), h17 +18,2 s (dp 95); 1 derrota no braço novo (seed 11, horda 17) e 0 no antigo. Por causa da derrota estendi (decisão posterior) para seeds 13–24: h13 −2,9 s (dp 19,2), h17 −5,1 s (dp 41,1), 0 derrotas nos dois braços. Total: 1 derrota em 24 (novo) vs 0 em 24 (antigo) — tratei como ruído de trajetória (o seed 11 era idêntico até a horda 15), mas fica registrado.
+- Identidade após bump de versão: seed 1 = 690.
+- Visual (tools/tfl.js): Fundeiro com pedra erguida + marcador 🪨💥 ao ser enganado; aviso circular laranja no chão da isca. Na captura enviada a bandeira da isca ficou atrás da torre — o impacto foi conferido pelos contadores (lureN/lureHit), não pela imagem.
+- Testes: t5 600 sem erros; tcompat 14/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues; taudit zero sobreposições.
