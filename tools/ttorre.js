@@ -1,0 +1,13 @@
+const { chromium } = require('playwright');const path=require('path');const fs=require('fs');
+(async()=>{const browser=await chromium.launch({args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const page=await (await browser.newContext({viewport:{width:1280,height:800},deviceScaleFactor:2})).newPage();const errs=[];page.on('pageerror',e=>errs.push(e.message));
+ const fx=fs.readFileSync('/home/claude/fortrex/tests/save_v041_w13.json','utf8');
+ await page.addInitScript(s=>{window.__headless=true;window.__noEnemyTips=0;localStorage.setItem('fortrex_save_v1',s)},fx);await page.goto('file://'+path.join(__dirname,'three/p5.html'));await page.waitForTimeout(700);
+ await page.evaluate(()=>{document.getElementById('continue').click()});await page.waitForTimeout(300);await page.evaluate(()=>{for(const b of document.querySelectorAll('button'))if(/Continuar jogando/.test(b.textContent)&&b.offsetParent)b.click();for(const b of document.querySelectorAll('#ftip button, .tipX'))b.click()});
+ const Z=+(process.env.Z||22);
+ const shot=async(n)=>{await page.evaluate((Z)=>{window.__headless=false;const p=window.__torrePos()||window.__C;if(p){window.__C=p;window.__camSet(Z,p[0],p[1])}},Z);await page.waitForTimeout(1300);await page.screenshot({path:n,timeout:120000});await page.evaluate(()=>{window.__headless=true})};
+ console.log('wave',await page.evaluate(()=>window.__fundWave()));
+ console.log('spawn',JSON.stringify(await page.evaluate(()=>window.__torreSpawn())));
+ await page.evaluate(()=>window.__step(7));console.log(JSON.stringify(await page.evaluate(()=>window.__torre())));await shot('torre1.png');
+ console.log('kill',await page.evaluate(()=>{const p=window.__torrePos();window.__C=p;const k=window.__torreKill();window.__step(.45);return k}));await shot('torre2.png');
+ console.log('after',await page.evaluate(()=>{window.__step(1.5);return JSON.stringify(window.__torre())}));await shot('torre3.png');
+ console.log(errs);await browser.close()})();

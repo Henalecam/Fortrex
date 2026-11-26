@@ -1086,3 +1086,16 @@ Ciclo de cada rodada: 1) testar (t5 1500 com bot ativo + t11) e medir (horda alc
 - Sem efeito na simulação: identidade seed 1 = 690 (igual à v16.7).
 - Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues; taudit zero sobreposições.
 - Não coberto: painel Contratar; relatório de derrota; telas < 360 px.
+
+## v16.9 — 🏰 Novo evento: Torre de cerco (PUBLICADO)
+- Evento (horda 8+): torre de madeira rola em linha reta até a muralha (1,15 bloco/s, vida 2600+520×horda), com 6+horda/3 Rasteiros de escolta que não passam à frente dela e levam ~20% do dano enquanto ela rola. Se ENCOSTA: 4+horda/4 Escaladores pulam para dentro. Se é DERRUBADA antes: tomba para o lado com mais inimigos (faixa 9,5×4,8) com 3 explosões de fonte "jogador" (abrem crateras, não quebram blocos azuis) e larga material. Bombas/explosões do jogador causam dano ×4 nela. Isca não a atrai. Conquista: Madeira! (3 torres derrubadas).
+- Conferido antes: eventos existentes (totem e barris estão desligados por rejeição anterior; "Derrubar" já é habilidade ativa) — não há torre de cerco.
+- Iterações (seeds 1–2, torre forçada em toda horda par ≥8):
+  1. sem escolta: 7 caíram / 2 encostaram; esmagados 4 em 7 quedas (0,6) — campo ralo.
+  2. escolta com −45% de dano: 0 e 2 esmagados — a escolta morria antes da torre.
+  3. escolta com ~20% do dano + queda mais forte (200+30×horda): 6 em 3 e 7 em 5.
+- A/B de ESTRESSE, 12 seeds (torre em toda horda par ≥8 vs sem torre, mesmo build): h13 +2,6 s (dp 43,9); h17 +4,9 s (dp 76,1); 0 derrotas nos dois braços. 60 torres: 49 derrubadas (82%), 11 encostaram; 46 esmagados (0,94 por queda; melhor queda por partida 0–7).
+- Depois do lote aumentei a frequência natural: 10% dos eventos sorteados da horda 8+ viram Torre de cerco (além do sorteio normal). Essa frequência é MUITO menor que a do estresse medido, mas ela em si não passou por A/B próprio; conferência em 2 seeds naturais no commit.
+- Achado visual: sob fogo contínuo a torre virava um bloco BRANCO (clarão de dano permanente) — visto na 1ª captura; nela o clarão virou um tom quente. Os outros inimigos continuam com clarão branco.
+- Honestidade: "tomba em cima da horda" rende ~1 inimigo por queda no jogo do bot; o valor do evento é mais o alvo grande com prazo (encostar × derrubar) e a cratera do que o esmagamento.
+- Testes: t5 600 sem erros; tcompat 15/20/31; tplay 1280×800 0 issues; tfirst 390×844 0 issues; taudit zero sobreposições. Conferência natural (1 seed completo registrado): 1 torre na horda 16, derrubada, 2 esmagados, sem derrota.
